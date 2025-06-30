@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, setRequestLocale } from "next-intl/server";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToggleThemeButton } from "@/components/theme/toggle-theme-button";
 import "../global.css";
@@ -12,6 +12,7 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   // Providing all messages to the client
   // side is the easiest way to get started
   const messages = await getMessages();
