@@ -1,0 +1,25 @@
+{
+  "Index": {
+    "title": "Hello, world!"
+  },
+  "Setup": {
+    "title": "Setup YAPD - Yet Another Pi-hole Dashboard",
+    "language": "Language",
+    "description": "Follow the steps to configure your dashboard. Step {step} of 3.",
+    "step1_title": "Welcome to YAPD!",
+    "step1_description": "This setup wizard will guide you through the configuration process.",
+    "step1_instruction": "Click the \"Next\" button to begin.",
+    "step2_pihole_url": "Pi-hole URL",
+    "step2_pihole_url_placeholder": "http://pi.hole",
+    "step2_pihole_url_description": "The address of your Pi-hole admin interface.",
+    "step2_api_key": "API Key",
+    "step2_api_key_placeholder": "Your secret API key",
+    "step2_api_key_description": "Find this in Pi-hole > Settings > API / Web interface.",
+    "step3_title": "Configuration Complete!",
+    "step3_description": "You have successfully configured your dashboard.",
+    "step3_instruction": "Click \"Finish\" to be redirected to the main page.",
+    "back_button": "Back",
+    "next_button": "Next",
+    "finish_button": "Finish"
+  }
+}

@@ -1,10 +1,11 @@
-"use client";
+'use client'
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useTranslations } from 'next-intl';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,15 +34,18 @@ const step2Schema = z.object({
     apiKey: z.string().min(1, { message: "API Key is required." }),
 });
 
-const Step1 = () => (
-    <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
-        <h3 className="text-2xl font-semibold">Welcome to YAPD!</h3>
-        <p className="text-muted-foreground">
-            This setup wizard will guide you through the configuration process.
-        </p>
-        <p>Click the &quot;Next&quot; button to begin.</p>
-    </div>
-);
+const Step1 = () => {
+    const t = useTranslations('Setup');
+    return (
+        <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
+            <h3 className="text-2xl font-semibold">{t('step1_title')}</h3>
+            <p className="text-muted-foreground">
+                {t('step1_description')}
+            </p>
+            <p>{t('step1_instruction')}</p>
+        </div>
+    );
+};
 
 const Step3 = () => (
     <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
@@ -49,14 +53,39 @@ const Step3 = () => (
         <p className="text-muted-foreground">
             You have successfully configured your dashboard.
         </p>
-        <p>Click &quot;Finish&quot; to be redirected to the main page.</p>
+        <p>Click "Finish" to be redirected to the main page.</p>
     </div>
 );
+
+const LanguageSwitcher = () => {
+    const router = useRouter();
+    const pathname = usePathname();
+    const t = useTranslations('Setup');
+
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLocale = e.target.value;
+        // Replace the locale part of the path
+        const newPath = pathname.replace(/\/(en|pt-br)/, `/${newLocale}`);
+        router.push(newPath);
+    };
+
+    return (
+        <div className="mb-4">
+            <label htmlFor="language-select" className="mr-2">{t('language')}:</label>
+            <select id="language-select" onChange={handleChange} defaultValue={pathname.split('/')[1]}>
+                <option value="en">English</option>
+                <option value="pt-br">Português (Brasil)</option>
+            </select>
+        </div>
+    );
+};
 
 
 function Page() {
     const [step, setStep] = useState(1);
     const router = useRouter();
+    const t = useTranslations('Setup');
+
 
     const form = useForm<z.infer<typeof step2Schema>>({
         resolver: zodResolver(step2Schema),
@@ -89,7 +118,7 @@ function Page() {
             <Card className="w-full max-w-3xl rounded-2xl shadow-lg">
                 <CardHeader>
                     <CardTitle className="text-center text-2xl font-bold">
-                        Setup YAPD - Yet Another Pi-hole Dashboard
+                        {t('title')}
                     </CardTitle>
                     <CardDescription className="text-center text-sm text-muted-foreground">
                         Follow the steps to configure your dashboard. Step {step} of 3.
@@ -98,6 +127,7 @@ function Page() {
                 <Separator />
 
                 <CardContent className="p-6 min-h-[300px] flex flex-col justify-center">
+                    <LanguageSwitcher />
                     {step === 1 && <Step1 />}
                     {step === 2 && (
                         <Form {...form}>
