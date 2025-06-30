@@ -14,12 +14,12 @@ export default async function LocaleLayout({
   const { locale } = await params;
   // Providing all messages to the client
   // side is the easiest way to get started
-  const messages = await getMessages();
+  const messages = await getMessages({ locale });
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
             <div className="absolute top-4 right-4 z-50">
               <ToggleThemeButton />
