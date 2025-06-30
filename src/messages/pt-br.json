@@ -15,6 +15,8 @@
     "step2_api_key": "Chave da API",
     "step2_api_key_placeholder": "Sua chave de API secreta",
     "step2_api_key_description": "Encontre isso em Pi-hole > Settings > API / Web interface.",
+    "step2_pihole_url_error": "Por favor, insira uma URL válida.",
+    "step2_api_key_error": "Chave da API é obrigatória.",
     "step3_title": "Configuração Concluída!",
     "step3_description": "Você configurou seu dashboard com sucesso.",
     "step3_instruction": "Clique em \"Finalizar\" para ser redirecionado para a página principal.",

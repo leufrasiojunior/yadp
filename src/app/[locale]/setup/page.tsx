@@ -28,11 +28,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-const step2Schema = z.object({
-  piholeUrl: z.string().url({ message: "Please enter a valid URL." }),
-  apiKey: z.string().min(1, { message: "API Key is required." }),
-});
-
 const Step1 = () => {
   const t = useTranslations("Setup");
   return (
@@ -44,15 +39,16 @@ const Step1 = () => {
   );
 };
 
-const Step3 = () => (
-  <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
-    <h3 className="text-2xl font-semibold">Configuration Complete!</h3>
-    <p className="text-muted-foreground">
-      You have successfully configured your dashboard.
-    </p>
-    <p>Click &quot;Finish&quot; to be redirected to the main page.</p>
-  </div>
-);
+const Step3 = () => {
+  const t = useTranslations("Setup");
+  return (
+    <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
+      <h3 className="text-2xl font-semibold">{t("step3_title")}</h3>
+      <p className="text-muted-foreground">{t("step3_description")}</p>
+      <p>{t("step3_instruction")}</p>
+    </div>
+  );
+};
 
 const LanguageSwitcher = () => {
   const router = useRouter();
@@ -88,6 +84,11 @@ function Page() {
   const router = useRouter();
   const t = useTranslations("Setup");
 
+  const step2Schema = z.object({
+    piholeUrl: z.string().url({ message: t("step2_pihole_url_error") }),
+    apiKey: z.string().min(1, { message: t("step2_api_key_error") }),
+  });
+
   const form = useForm<z.infer<typeof step2Schema>>({
     resolver: zodResolver(step2Schema),
     defaultValues: {
@@ -122,7 +123,7 @@ function Page() {
             {t("title")}
           </CardTitle>
           <CardDescription className="text-center text-sm text-muted-foreground">
-            Follow the steps to configure your dashboard. Step {step} of 3.
+            {t("description", { step })}
           </CardDescription>
         </CardHeader>
         <Separator />
@@ -138,12 +139,12 @@ function Page() {
                   name="piholeUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Pi-hole URL</FormLabel>
+                      <FormLabel>{t("step2_pihole_url")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="http://pi.hole" {...field} />
+                        <Input placeholder={t("step2_pihole_url_placeholder")} {...field} />
                       </FormControl>
                       <FormDescription>
-                        The address of your Pi-hole admin interface.
+                        {t("step2_pihole_url_description")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -154,17 +155,16 @@ function Page() {
                   name="apiKey"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>API Key</FormLabel>
+                      <FormLabel>{t("step2_api_key")}</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="Your secret API key"
+                          placeholder={t("step2_api_key_placeholder")}
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        Find this in Pi-hole &gt; Settings &gt; API / Web
-                        interface.
+                        {t("step2_api_key_description")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -180,14 +180,14 @@ function Page() {
         <CardFooter className="flex justify-between p-6">
           {step > 1 ? (
             <Button variant="outline" onClick={handleBack}>
-              Back
+              {t("back_button")}
             </Button>
           ) : (
             <div />
           )}
 
-          {step < 3 && <Button onClick={handleNext}>Next</Button>}
-          {step === 3 && <Button onClick={handleFinish}>Finish</Button>}
+          {step < 3 && <Button onClick={handleNext}>{t("next_button")}</Button>}
+          {step === 3 && <Button onClick={handleFinish}>{t("finish_button")}</Button>}
         </CardFooter>
       </Card>
     </div>
