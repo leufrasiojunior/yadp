@@ -29,63 +29,15 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 
-const step2Schema = z.object({
-    piholeUrl: z.string().url({ message: "Please enter a valid URL." }),
-    apiKey: z.string().min(1, { message: "API Key is required." }),
-});
-
-const Step1 = () => {
-    const t = useTranslations('Setup');
-    return (
-        <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
-            <h3 className="text-2xl font-semibold">{t('step1_title')}</h3>
-            <p className="text-muted-foreground">
-                {t('step1_description')}
-            </p>
-            <p>{t('step1_instruction')}</p>
-        </div>
-    );
-};
-
-const Step3 = () => (
-    <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
-        <h3 className="text-2xl font-semibold">Configuration Complete!</h3>
-        <p className="text-muted-foreground">
-            You have successfully configured your dashboard.
-        </p>
-        <p>Click "Finish" to be redirected to the main page.</p>
-    </div>
-);
-
-const LanguageSwitcher = () => {
-    const router = useRouter();
-    const pathname = usePathname();
-    const t = useTranslations('Setup');
-
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newLocale = e.target.value;
-        // Replace the locale part of the path
-        const newPath = pathname.replace(/\/(en|pt-br)/, `/${newLocale}`);
-        router.push(newPath);
-    };
-
-    return (
-        <div className="mb-4">
-            <label htmlFor="language-select" className="mr-2">{t('language')}:</label>
-            <select id="language-select" onChange={handleChange} defaultValue={pathname.split('/')[1]}>
-                <option value="en">English</option>
-                <option value="pt-br">Português (Brasil)</option>
-            </select>
-        </div>
-    );
-};
-
-
 function Page() {
     const [step, setStep] = useState(1);
     const router = useRouter();
     const t = useTranslations('Setup');
 
+    const step2Schema = z.object({
+        piholeUrl: z.string().url({ message: t('step2_pihole_url_error') }),
+        apiKey: z.string().min(1, { message: t('step2_api_key_error') }),
+    });
 
     const form = useForm<z.infer<typeof step2Schema>>({
         resolver: zodResolver(step2Schema),
@@ -95,11 +47,56 @@ function Page() {
         },
     });
 
+    const Step1 = () => {
+        return (
+            <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
+                <h3 className="text-2xl font-semibold">{t('step1_title')}</h3>
+                <p className="text-muted-foreground">
+                    {t('step1_description')}
+                </p>
+                <p>{t('step1_instruction')}</p>
+            </div>
+        );
+    };
+
+    const Step3 = () => {
+        return (
+            <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
+                <h3 className="text-2xl font-semibold">{t('step3_title')}</h3>
+                <p className="text-muted-foreground">
+                    {t('step3_description')}
+                </p>
+                <p>{t('step3_instruction')}</p>
+            </div>
+        );
+    };
+
+    const LanguageSwitcher = () => {
+        const pathname = usePathname();
+
+        const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const newLocale = e.target.value;
+            // Replace the locale part of the path
+            const newPath = pathname.replace(/\/(en|pt-br)/, `/${newLocale}`);
+            router.push(newPath);
+        };
+
+        return (
+            <div className="mb-4">
+                <label htmlFor="language-select" className="mr-2">{t('language')}:</label>
+                <select id="language-select" onChange={handleChange} defaultValue={pathname.split('/')[1]}>
+                    <option value="en">English</option>
+                    <option value="pt-br">Português (Brasil)</option>
+                </select>
+            </div>
+        );
+    };
+
     const handleNext = async () => {
         if (step === 2) {
             const isValid = await form.trigger();
             if (!isValid) return;
-            console.log("Step 2 Data:", form.getValues());
+            console.log(t('step2_data_log'), form.getValues());
         }
         setStep((prev) => prev + 1);
     };
@@ -109,7 +106,7 @@ function Page() {
     };
 
     const handleFinish = () => {
-        console.log("Setup finished!");
+        console.log(t('setup_finished_log'));
         router.push("/");
     };
 
@@ -121,7 +118,7 @@ function Page() {
                         {t('title')}
                     </CardTitle>
                     <CardDescription className="text-center text-sm text-muted-foreground">
-                        Follow the steps to configure your dashboard. Step {step} of 3.
+                        {t('description', {step: step})}
                     </CardDescription>
                 </CardHeader>
                 <Separator />
@@ -174,17 +171,17 @@ function Page() {
                 <CardFooter className="flex justify-between p-6">
                     {step > 1 ? (
                         <Button variant="outline" onClick={handleBack}>
-                            Back
+                            {t('back_button')}
                         </Button>
                     ) : (
                         <div />
                     )}
 
                     {step < 3 && (
-                        <Button onClick={handleNext}>Next</Button>
+                        <Button onClick={handleNext}>{t('next_button')}</Button>
                     )}
                     {step === 3 && (
-                        <Button onClick={handleFinish}>Finish</Button>
+                        <Button onClick={handleFinish}>{t('finish_button')}</Button>
                     )}
                 </CardFooter>
             </Card>

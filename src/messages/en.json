@@ -15,11 +15,15 @@
     "step2_api_key": "API Key",
     "step2_api_key_placeholder": "Your secret API key",
     "step2_api_key_description": "Find this in Pi-hole > Settings > API / Web interface.",
+    "step2_pihole_url_error": "Please enter a valid URL.",
+    "step2_api_key_error": "API Key is required.",
     "step3_title": "Configuration Complete!",
     "step3_description": "You have successfully configured your dashboard.",
     "step3_instruction": "Click \"Finish\" to be redirected to the main page.",
     "back_button": "Back",
     "next_button": "Next",
-    "finish_button": "Finish"
+    "finish_button": "Finish",
+    "step2_data_log": "Step 2 Data:",
+    "setup_finished_log": "Setup finished!"
   }
 }
