@@ -1,8 +1,10 @@
-import { NextIntlClientProvider } from "next-intl";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToggleThemeButton } from "@/components/theme/toggle-theme-button";
 import "../global.css";
+import { notFound } from "next/navigation";
+import { routing } from '@/i18n/routing';
 
 export default async function LocaleLayout({
   children,
@@ -15,6 +17,9 @@ export default async function LocaleLayout({
   // Providing all messages to the client
   // side is the easiest way to get started
   const messages = await getMessages({ locale });
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
 
   return (
     <html lang={locale} suppressHydrationWarning>

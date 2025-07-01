@@ -2,10 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { use, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
+import { setRequestLocale } from 'next-intl/server';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+
+type Props = {
+  params: {
+    locale: string;
+  };
+};
 
 const Step1 = () => {
   const t = useTranslations("Setup");
@@ -79,9 +86,10 @@ const LanguageSwitcher = () => {
   );
 };
 
-function Page() {
+export default function Page({ params }: Props) {
   const [step, setStep] = useState(1);
   const router = useRouter();
+
   const t = useTranslations("Setup");
 
   const step2Schema = z.object({
@@ -194,4 +202,4 @@ function Page() {
   );
 }
 
-export default Page;
+
