@@ -56,18 +56,32 @@ export default function SetupYadp() {
   const [step, setStep] = useState(1);
   const router = useRouter();
   const t = useTranslations("Setup");
-  const step2Schema = z.object({
-    samePassword: z.boolean().default(true),
-    piholes: z
-      .array(
-        z.object({
-          url: z.string().url({ message: t("step2_pihole_url_error") }),
-          password: z.string().min(1, { message: t("step2_password_error") }),
-        })
-      )
-      .min(1)
-      .max(5),
-  });
+  const step2Schema = z
+    .object({
+      samePassword: z.boolean().default(true),
+      piholes: z
+        .array(
+          z.object({
+            url: z.string().url({ message: t("step2_pihole_url_error") }),
+            password: z.string().optional(),
+          })
+        )
+        .min(1)
+        .max(5),
+    })
+    .superRefine((data, ctx) => {
+      data.piholes.forEach((item, idx) => {
+        if (!data.samePassword || idx === 0) {
+          if (!item.password || item.password.trim().length === 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: t("step2_password_error"),
+              path: ["piholes", idx, "password"],
+            });
+          }
+        }
+      });
+    });
 
   const form = useForm<
     z.input<typeof step2Schema>,
