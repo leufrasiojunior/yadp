@@ -17,6 +17,33 @@ const ALGO = "aes-256-cbc";
 const MASTER_KEY = crypto.scryptSync(process.env.CONFIG_SECRET!, "salt", 32);
 const IV = Buffer.alloc(16, 0); // para produção, gere um IV random e salve junto
 
+export async function GET() {
+  const filePath = path.join(process.cwd(), "config", "setup.json");
+  let hasPiholesConfig = false;
+
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    const data = JSON.parse(raw);
+
+    // Verifica se existe um array "piholes" com ao menos um objeto
+    hasPiholesConfig =
+      Array.isArray(data.piholes) &&
+      data.piholes.length > 0 &&
+      data.piholes.every(
+        (item: any) =>
+          item &&
+          typeof item === "object" &&
+          "url" in item &&
+          "password" in item
+      );
+  } catch (e: any) {
+    // Se não existir o arquivo, ou JSON inválido, considera "sem config"
+    hasPiholesConfig = false;
+  }
+
+  return NextResponse.json({ hasPiholesConfig });
+}
+
 export async function POST(req: NextRequest) {
   const { piholes } = await req.json();
 

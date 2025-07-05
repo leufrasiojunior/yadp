@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
@@ -53,6 +53,9 @@ const Step3 = () => {
 };
 
 export default function SetupYadp() {
+  const [needsConfirmation, setNeedsConfirmation] = useState<boolean | null>(null)
+  const [confirmed, setConfirmed] = useState(false)
+
   const [step, setStep] = useState(1);
   const router = useRouter();
   const t = useTranslations("Setup");
@@ -99,6 +102,47 @@ export default function SetupYadp() {
     control: form.control,
     name: "piholes",
   });
+
+  // BUSCA flag na inicialização
+  useEffect(() => {
+    async function checkConfig() {
+      const res = await fetch("/api/config")
+      const json = await res.json()
+      setNeedsConfirmation(json.hasPiholesConfig)
+    }
+    checkConfig()
+  }, [])
+
+  // Loading enquanto busca
+  if (needsConfirmation === null) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p>Carregando configuração...</p>
+      </div>
+    )
+  }
+
+  // Se já havia config e usuário não confirmou ainda
+  if (needsConfirmation && !confirmed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Aviso</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Já existe uma configuração anterior. Deseja refazer o setup?</p>
+          </CardContent>
+          <CardFooter className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => router.push("/")}>
+              Não, manter
+            </Button>
+            <Button onClick={() => setConfirmed(true)}>Sim, refazer</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
 
   const handleNext = async () => {
     if (step === 2) {
