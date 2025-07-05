@@ -1,4 +1,8 @@
 {
-  "piholeUrl": "https://192.168.31.16",
-  "password": "b1478fe081160d40da2ee273e30d309b"
+  "piholes": [
+    {
+      "url": "https://192.168.31.16",
+      "password": "b1478fe081160d40da2ee273e30d309b"
+    }
+  ]
 }

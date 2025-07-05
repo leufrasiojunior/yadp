@@ -18,17 +18,17 @@ const MASTER_KEY = crypto.scryptSync(process.env.CONFIG_SECRET!, "salt", 32);
 const IV = Buffer.alloc(16, 0); // para produção, gere um IV random e salve junto
 
 export async function POST(req: NextRequest) {
-  const { piholeUrl, password } = await req.json();
+  const { piholes } = await req.json();
 
-  // criptografa a senha
-  const cipher = crypto.createCipheriv(ALGO, MASTER_KEY, IV);
-  let encrypted = cipher.update(password, "utf8", "hex");
-  encrypted += cipher.final("hex");
+  const encrypted = piholes.map((item: { url: string; password: string }) => {
+    const cipher = crypto.createCipheriv(ALGO, MASTER_KEY, IV);
+    let enc = cipher.update(item.password, "utf8", "hex");
+    enc += cipher.final("hex");
+    return { url: item.url, password: enc };
+  });
 
-  // monta o objeto de configuração
   const configObj = {
-    piholeUrl,
-    password: encrypted,
+    piholes: encrypted,
   };
 
   // garante que o diretório existe
