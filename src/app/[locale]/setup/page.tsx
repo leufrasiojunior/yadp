@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams, usePathname, useRouter } from "next/navigation";
-import { use, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
@@ -28,12 +28,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { LanguageSwitcher } from "@/components/general/languageSwitcher";
-
-type Props = {
-  params: {
-    locale: string;
-  };
-};
 
 const Step1 = () => {
   const t = useTranslations("Setup");
