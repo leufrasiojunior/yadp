@@ -69,7 +69,11 @@ export default function SetupYadp() {
       .max(5),
   });
 
-  const form = useForm<z.infer<typeof step2Schema>>({
+  const form = useForm<
+    z.input<typeof step2Schema>,
+    unknown,
+    z.infer<typeof step2Schema>
+  >({
     resolver: zodResolver(step2Schema),
     defaultValues: {
       samePassword: true,
