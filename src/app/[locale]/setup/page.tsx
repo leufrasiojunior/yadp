@@ -51,20 +51,20 @@ const Step3 = () => {
   );
 };
 
-export default function Page() {
+export default function SetupYadp() {
   const [step, setStep] = useState(1);
   const router = useRouter();
   const t = useTranslations("Setup");
   const step2Schema = z.object({
     piholeUrl: z.string().url({ message: t("step2_pihole_url_error") }),
-    apiKey: z.string().min(1, { message: t("step2_api_key_error") }),
+    password: z.string().min(1, { message: t("step2_password_error") }),
   });
 
   const form = useForm<z.infer<typeof step2Schema>>({
     resolver: zodResolver(step2Schema),
     defaultValues: {
       piholeUrl: "",
-      apiKey: "",
+      password: "",
     },
   });
 
@@ -81,8 +81,13 @@ export default function Page() {
     setStep((prev) => prev - 1);
   };
 
-  const handleFinish = () => {
-    console.log("Setup finished!");
+  const handleFinish = async () => {
+    const { piholeUrl, password } = form.getValues();
+    await fetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ piholeUrl, password }),
+    });
     router.push("/");
   };
 
@@ -128,19 +133,19 @@ export default function Page() {
                 />
                 <FormField
                   control={form.control}
-                  name="apiKey"
+                  name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("step2_api_key")}</FormLabel>
+                      <FormLabel>{t("step2_password")}</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder={t("step2_api_key_placeholder")}
+                          placeholder={t("step2_password_placeholder")}
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        {t("step2_api_key_description")}
+                        {t("step2_password_description")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
