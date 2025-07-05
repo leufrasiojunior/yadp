@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
 
@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { LanguageSwitcher } from "@/components/general/languageSwitcher";
 
@@ -56,16 +57,29 @@ export default function SetupYadp() {
   const router = useRouter();
   const t = useTranslations("Setup");
   const step2Schema = z.object({
-    piholeUrl: z.string().url({ message: t("step2_pihole_url_error") }),
-    password: z.string().min(1, { message: t("step2_password_error") }),
+    samePassword: z.boolean().default(true),
+    piholes: z
+      .array(
+        z.object({
+          url: z.string().url({ message: t("step2_pihole_url_error") }),
+          password: z.string().min(1, { message: t("step2_password_error") }),
+        })
+      )
+      .min(1)
+      .max(5),
   });
 
   const form = useForm<z.infer<typeof step2Schema>>({
     resolver: zodResolver(step2Schema),
     defaultValues: {
-      piholeUrl: "",
-      password: "",
+      samePassword: true,
+      piholes: [{ url: "", password: "" }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "piholes",
   });
 
   const handleNext = async () => {
@@ -82,11 +96,15 @@ export default function SetupYadp() {
   };
 
   const handleFinish = async () => {
-    const { piholeUrl, password } = form.getValues();
+    const { piholes, samePassword } = form.getValues();
+    const final = piholes.map((item) => ({
+      url: item.url,
+      password: samePassword ? piholes[0].password : item.password,
+    }));
     await fetch("/api/config", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ piholeUrl, password }),
+      body: JSON.stringify({ piholes: final }),
     });
     router.push("/");
   };
@@ -114,43 +132,88 @@ export default function SetupYadp() {
               <form className="space-y-6">
                 <FormField
                   control={form.control}
-                  name="piholeUrl"
+                  name="samePassword"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("step2_pihole_url")}</FormLabel>
+                    <FormItem className="flex flex-row items-center space-x-2">
                       <FormControl>
-                        <Input
-                          placeholder={t("step2_pihole_url_placeholder")}
-                          {...field}
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <FormDescription>
-                        {t("step2_pihole_url_description")}
-                      </FormDescription>
-                      <FormMessage />
+                      <FormLabel className="font-normal">
+                        {t("step2_same_password")}
+                      </FormLabel>
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("step2_password")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder={t("step2_password_placeholder")}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        {t("step2_password_description")}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
+                {fields.map((field, index) => (
+                  <div key={field.id} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name={`piholes.${index}.url` as const}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("step2_pihole_url")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={t("step2_pihole_url_placeholder")}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {t("step2_pihole_url_description")}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {(!form.watch("samePassword") || index === 0) && (
+                      <FormField
+                        control={form.control}
+                        name={`piholes.${index}.password` as const}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t("step2_password")}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder={t("step2_password_placeholder")}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {t("step2_password_description")}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {index > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => remove(index)}
+                      >
+                        {t("step2_remove_url")}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+
+                {fields.length < 5 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => append({ url: "", password: "" })}
+                  >
+                    {t("step2_add_url")}
+                  </Button>
+                )}
               </form>
             </Form>
           )}

@@ -5,3 +5,5 @@ const piholeApi = {
     Authorization: `Bearer ${process.env.NEXT_PUBLIC_PIHOLE_API_TOKEN}`,
   },
 };
+
+export default piholeApi;
