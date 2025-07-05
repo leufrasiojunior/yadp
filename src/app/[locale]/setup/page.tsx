@@ -117,7 +117,7 @@ export default function SetupYadp() {
   if (needsConfirmation === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p>Carregando configuração...</p>
+        <p>{t("loading")}</p>
       </div>
     )
   }
@@ -128,16 +128,16 @@ export default function SetupYadp() {
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>Aviso</CardTitle>
+            <CardTitle>{t("warning")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Já existe uma configuração anterior. Deseja refazer o setup?</p>
+            <p>{t("needs_confirmation")}</p>
           </CardContent>
           <CardFooter className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => router.push("/")}>
-              Não, manter
+              {t("cancel_button")}
             </Button>
-            <Button onClick={() => setConfirmed(true)}>Sim, refazer</Button>
+            <Button onClick={() => setConfirmed(true)}>{t("confirm_button")}</Button>
           </CardFooter>
         </Card>
       </div>

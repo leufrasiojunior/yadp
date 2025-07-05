@@ -25,6 +25,11 @@
     "step3_instruction": "Click \"Finish\" to be redirected to the main page.",
     "back_button": "Back",
     "next_button": "Next",
-    "finish_button": "Finish"
+    "finish_button": "Finish",
+    "loading": "Loading configuration...",
+    "needs_confirmation": "A previous configuration already exists. Do you want to redo the setup?",
+    "confirm_button": "Yes, redo",
+    "cancel_button": "No, keep",
+    "warning": "Warning"
   }
 }
