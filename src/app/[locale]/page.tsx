@@ -1,30 +1,32 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { login, AuthData } from "@/lib/piholeLogin"
+import { formatNumber, formatPercent } from "@/lib/formatter"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card"
 
 type PiholeConfig = { url: string; password: string }
-type AuthData = { sid: string; csrf: string }
 
-export default function ConnectPiholes() {
+type Summary = {
+  queries: {
+    total: number
+    blocked: number
+    percent_blocked: number
+    unique_domains: number
+  }
+}
+
+export default function SummaryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [authResults, setAuthResults] = useState<Record<string, AuthData>>({})
+  const [summary, setSummary] = useState<Summary | null>(null)
 
   useEffect(() => {
-    async function login(url: string, password: string): Promise<AuthData> {
-      const authRes = await fetch("/api/piholes/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, password }),
-      })
-      if (!authRes.ok) {
-        const err = await authRes.json().catch(() => null)
-        throw new Error(err?.error || `Auth falhou em ${url}`)
-      }
-      const { sid, csrf } = (await authRes.json()) as AuthData
-      return { sid, csrf }
-    }
-
     async function testAuth(url: string, sid: string) {
       try {
         const res = await fetch(
@@ -54,7 +56,7 @@ export default function ConnectPiholes() {
       throw new Error(`Falha ao autenticar em ${url}`)
     }
 
-    async function authenticateAll() {
+    async function loadAll() {
       try {
         const confRes = await fetch("/api/piholes")
         if (!confRes.ok) throw new Error("Falha ao ler configuração")
@@ -68,38 +70,81 @@ export default function ConnectPiholes() {
           } catch {}
         }
 
-        const results: Record<string, AuthData> = {}
+        const authResults: Record<string, AuthData> = {}
+        let total = 0
+        let blocked = 0
+        let unique = 0
 
         for (const { url, password } of piholes) {
           const current = storedAuth[url]
           const auth = await ensureAuth(url, password, current)
-          results[url] = auth
+          authResults[url] = auth
+
+          const summaryRes = await fetch(
+            `/api/stats/summary?url=${encodeURIComponent(url)}`,
+            { headers: { "X-FTL-SID": auth.sid } }
+          )
+          if (!summaryRes.ok) {
+            throw new Error(`Falha ao obter summary de ${url}`)
+          }
+          const data = (await summaryRes.json()) as Summary
+          total += data.queries.total
+          blocked += data.queries.blocked
+          unique += data.queries.unique_domains
         }
 
-        setAuthResults(results)
-        localStorage.setItem("piholesAuth", JSON.stringify(results))
-      } catch (e: any) {
-        setError(e.message)
+        const percent_blocked = total > 0 ? (blocked * 100) / total : 0
+        setSummary({
+          queries: {
+            total,
+            blocked,
+            percent_blocked,
+            unique_domains: unique,
+          },
+        })
+        localStorage.setItem("piholesAuth", JSON.stringify(authResults))
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Erro desconhecido"
+        setError(msg)
       } finally {
         setLoading(false)
       }
     }
 
-    authenticateAll()
+    loadAll()
   }, [])
 
   if (loading) return <p>Conectando aos Pi-holes…</p>
   if (error) return <p className="text-red-500">Erro: {error}</p>
 
+  if (!summary) return <p>Nenhum dado carregado.</p>
+
   return (
-    <div className="grid gap-4">
-      {Object.entries(authResults).map(([url, { sid, csrf }]) => (
-        <div key={url} className="p-4 border rounded-lg">
-          <h4 className="font-medium">{url}</h4>
-          <p>SID: <code>{sid}</code></p>
-          <p>CSRF: <code>{csrf}</code></p>
-        </div>
-      ))}
+    <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Total</CardTitle>
+        </CardHeader>
+        <CardContent>{formatNumber(summary.queries.total)}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Blocked</CardTitle>
+        </CardHeader>
+        <CardContent>{formatNumber(summary.queries.blocked)}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>% Blocked</CardTitle>
+        </CardHeader>
+        <CardContent>{formatPercent(summary.queries.percent_blocked)}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Unique Domains</CardTitle>
+        </CardHeader>
+        <CardContent>{formatNumber(summary.queries.unique_domains)}</CardContent>
+      </Card>
     </div>
   )
 }

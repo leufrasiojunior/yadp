@@ -1,5 +1,3 @@
-// // src/app/api/piholes/history/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import https from "https";
@@ -26,9 +24,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Chama diretamente o endpoint do Pi-hole
     const response = await axios.get(
-      `${urlParam.replace(/\/+$/, "")}/api/history`,
+      `${urlParam.replace(/\/+$/, "")}/api/stats/summary`,
       {
         headers: { "X-FTL-SID": sid },
         httpsAgent,
@@ -36,15 +33,14 @@ export async function GET(req: NextRequest) {
       }
     );
 
-    // Retorna apenas o array 'history'
-    return NextResponse.json({ history: response.data.history });
+    return NextResponse.json(response.data);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     const status =
       typeof err === "object" && err && "response" in err
         ? (err as { response?: { status?: number } }).response?.status ?? 500
         : 500;
-    console.error("Erro ao buscar histórico:", message);
+    console.error("Erro ao buscar resumo:", message);
     return NextResponse.json({ error: message }, { status });
   }
 }

@@ -26,11 +26,9 @@ export async function POST(req: NextRequest) {
     // Extrai só o que interessa
     const { sid, csrf } = data.session;
     return NextResponse.json({ sid, csrf });
-  } catch (err: any) {
-    console.error("Auth error:", err.message);
-    return NextResponse.json(
-      { error: err.message || "Falha na autenticação" },
-      { status: 500 }
-    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Falha na autenticação";
+    console.error("Auth error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
