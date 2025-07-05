@@ -2,6 +2,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToggleThemeButton } from "@/components/theme/toggle-theme-button";
+import { SideMenu } from "@/components/general/side-menu";
 import "../global.css";
 import { notFound } from "next/navigation";
 import { routing } from '@/i18n/routing';
@@ -27,6 +28,9 @@ export default async function LocaleLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
 
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+              <div className="absolute top-4 left-4 z-50">
+                <SideMenu />
+              </div>
               <div className="absolute top-4 right-4 z-50">
                 <ToggleThemeButton />
               </div>

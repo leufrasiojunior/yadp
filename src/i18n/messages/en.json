@@ -31,5 +31,10 @@
     "confirm_button": "Yes, redo",
     "cancel_button": "No, keep",
     "warning": "Warning"
+  },
+  "Navigation": {
+    "home": "Home",
+    "summary": "Summary",
+    "topClients": "Top Clients"
   }
 }
