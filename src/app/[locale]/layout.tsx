@@ -28,13 +28,15 @@ export default async function LocaleLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
 
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-              <div className="absolute top-4 left-4 z-50">
+              <div className="flex min-h-screen">
                 <SideMenu />
+                <div className="relative flex-1 ml-64">
+                  <div className="absolute top-4 right-4 z-50">
+                    <ToggleThemeButton />
+                  </div>
+                  {children}
+                </div>
               </div>
-              <div className="absolute top-4 right-4 z-50">
-                <ToggleThemeButton />
-              </div>
-              {children}
             </ThemeProvider>
           </NextIntlClientProvider>
         </PiholeAuthProvider>
