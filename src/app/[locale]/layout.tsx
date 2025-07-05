@@ -5,6 +5,7 @@ import { ToggleThemeButton } from "@/components/theme/toggle-theme-button";
 import "../global.css";
 import { notFound } from "next/navigation";
 import { routing } from '@/i18n/routing';
+import { PiholeAuthProvider } from "@/context/PiholeAuthContext";
 
 export default async function LocaleLayout({
   children,
@@ -22,14 +23,17 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-            <div className="absolute top-4 right-4 z-50">
-              <ToggleThemeButton />
-            </div>
-            {children}
-          </ThemeProvider>
-        </NextIntlClientProvider>
+        <PiholeAuthProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+
+            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+              <div className="absolute top-4 right-4 z-50">
+                <ToggleThemeButton />
+              </div>
+              {children}
+            </ThemeProvider>
+          </NextIntlClientProvider>
+        </PiholeAuthProvider>
       </body>
     </html>
   );
