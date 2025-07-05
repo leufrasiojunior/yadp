@@ -1,12 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
-import { setRequestLocale } from 'next-intl/server';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { LanguageSwitcher } from "@/components/general/languageSwitcher";
 
 type Props = {
   params: {
@@ -57,41 +57,10 @@ const Step3 = () => {
   );
 };
 
-const LanguageSwitcher = () => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const t = useTranslations("Setup");
-
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLocale = e.target.value;
-    // Replace the locale part of the path
-    const newPath = pathname.replace(/\/(en|pt-br)/, `/${newLocale}`);
-    router.push(newPath);
-  };
-
-  return (
-    <div className="mb-4">
-      <label htmlFor="language-select" className="mr-2">
-        {t("language")}:
-      </label>
-      <select
-        id="language-select"
-        onChange={handleChange}
-        defaultValue={pathname.split("/")[1]}
-      >
-        <option value="en">English</option>
-        <option value="pt-br">Português (Brasil)</option>
-      </select>
-    </div>
-  );
-};
-
-export default function Page({ params }: Props) {
+export default function Page() {
   const [step, setStep] = useState(1);
   const router = useRouter();
-
   const t = useTranslations("Setup");
-
   const step2Schema = z.object({
     piholeUrl: z.string().url({ message: t("step2_pihole_url_error") }),
     apiKey: z.string().min(1, { message: t("step2_api_key_error") }),
@@ -126,6 +95,7 @@ export default function Page({ params }: Props) {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-background px-4">
       <Card className="w-full max-w-3xl rounded-2xl shadow-lg">
+
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold">
             {t("title")}
@@ -135,9 +105,10 @@ export default function Page({ params }: Props) {
           </CardDescription>
         </CardHeader>
         <Separator />
-
-        <CardContent className="p-6 min-h-[300px] flex flex-col justify-center">
+        <div className="flex justify-end pr-6 m-0 ">
           <LanguageSwitcher />
+        </div>
+        <CardContent className="p-6 min-h-[300px] flex flex-col justify-center">
           {step === 1 && <Step1 />}
           {step === 2 && (
             <Form {...form}>
@@ -149,7 +120,10 @@ export default function Page({ params }: Props) {
                     <FormItem>
                       <FormLabel>{t("step2_pihole_url")}</FormLabel>
                       <FormControl>
-                        <Input placeholder={t("step2_pihole_url_placeholder")} {...field} />
+                        <Input
+                          placeholder={t("step2_pihole_url_placeholder")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormDescription>
                         {t("step2_pihole_url_description")}
@@ -182,6 +156,8 @@ export default function Page({ params }: Props) {
             </Form>
           )}
           {step === 3 && <Step3 />}
+
+
         </CardContent>
 
         <Separator />
@@ -195,11 +171,11 @@ export default function Page({ params }: Props) {
           )}
 
           {step < 3 && <Button onClick={handleNext}>{t("next_button")}</Button>}
-          {step === 3 && <Button onClick={handleFinish}>{t("finish_button")}</Button>}
+          {step === 3 && (
+            <Button onClick={handleFinish}>{t("finish_button")}</Button>
+          )}
         </CardFooter>
       </Card>
     </div>
   );
 }
-
-
