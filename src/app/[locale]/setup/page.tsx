@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
 
@@ -26,12 +26,41 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
-const step2Schema = z.object({
-  piholeUrl: z.string().url({ message: "Please enter a valid URL." }),
-  apiKey: z.string().min(1, { message: "API Key is required." }),
+const piholeSchema = z.object({
+  url: z.string().url({ message: "Please enter a valid URL." }),
+  apiKey: z.string().optional(),
 });
+
+const step2Schema = z
+  .object({
+    piholes: z.array(piholeSchema).min(1).max(5),
+    sameApiKey: z.boolean(),
+    apiKey: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.sameApiKey) {
+      if (!data.apiKey) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "API Key is required.",
+          path: ["apiKey"],
+        });
+      }
+    } else {
+      data.piholes.forEach((p, i) => {
+        if (!p.apiKey) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "API Key is required.",
+            path: ["piholes", i, "apiKey"],
+          });
+        }
+      });
+    }
+  });
 
 const Step1 = () => {
   const t = useTranslations("Setup");
@@ -91,16 +120,29 @@ function Page() {
   const form = useForm<z.infer<typeof step2Schema>>({
     resolver: zodResolver(step2Schema),
     defaultValues: {
-      piholeUrl: "",
+      piholes: [{ url: "", apiKey: "" }],
+      sameApiKey: false,
       apiKey: "",
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "piholes",
   });
 
   const handleNext = async () => {
     if (step === 2) {
       const isValid = await form.trigger();
       if (!isValid) return;
-      console.log("Step 2 Data:", form.getValues());
+      const values = form.getValues();
+      if (values.sameApiKey) {
+        values.piholes = values.piholes.map((p) => ({
+          ...p,
+          apiKey: values.apiKey,
+        }));
+      }
+      console.log("Step 2 Data:", values);
     }
     setStep((prev) => prev + 1);
   };
@@ -135,41 +177,109 @@ function Page() {
               <form className="space-y-6">
                 <FormField
                   control={form.control}
-                  name="piholeUrl"
+                  name="sameApiKey"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pi-hole URL</FormLabel>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
-                        <Input placeholder="http://pi.hole" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        The address of your Pi-hole admin interface.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="apiKey"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Key</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Your secret API key"
-                          {...field}
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <FormDescription>
-                        Find this in Pi-hole &gt; Settings &gt; API / Web
-                        interface.
-                      </FormDescription>
-                      <FormMessage />
+                      <FormLabel>{t("step2_same_api")}</FormLabel>
                     </FormItem>
                   )}
                 />
+
+                {fields.map((item, index) => (
+                  <div key={item.id} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name={`piholes.${index}.url`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("step2_pihole_url")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={t(
+                                "step2_pihole_url_placeholder"
+                              )}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {t("step2_pihole_url_description")}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {!form.watch("sameApiKey") && (
+                      <FormField
+                        control={form.control}
+                        name={`piholes.${index}.apiKey`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t("step2_api_key")}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder={t("step2_api_key_placeholder")}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {t("step2_api_key_description")}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    {index > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => remove(index)}
+                      >
+                        {t("step2_remove_url")}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+
+                {form.watch("sameApiKey") && (
+                  <FormField
+                    control={form.control}
+                    name="apiKey"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("step2_shared_api_key")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder={t("step2_api_key_placeholder")}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t("step2_api_key_description")}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {fields.length < 5 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => append({ url: "", apiKey: "" })}
+                  >
+                    {t("step2_add_url")}
+                  </Button>
+                )}
               </form>
             </Form>
           )}
