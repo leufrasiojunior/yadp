@@ -31,5 +31,10 @@
     "confirm_button": "Sim, refazer",
     "cancel_button": "Não, manter",
     "warning": "Aviso"
+  },
+  "Navigation": {
+    "home": "Início",
+    "summary": "Sumário",
+    "topClients": "Top Clientes"
   }
 }
