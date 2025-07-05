@@ -11,36 +11,73 @@ export default function ConnectPiholes() {
   const [authResults, setAuthResults] = useState<Record<string, AuthData>>({})
 
   useEffect(() => {
+    async function login(url: string, password: string): Promise<AuthData> {
+      const authRes = await fetch("/api/piholes/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, password }),
+      })
+      if (!authRes.ok) {
+        const err = await authRes.json().catch(() => null)
+        throw new Error(err?.error || `Auth falhou em ${url}`)
+      }
+      const { sid, csrf } = (await authRes.json()) as AuthData
+      return { sid, csrf }
+    }
+
+    async function testAuth(url: string, sid: string) {
+      try {
+        const res = await fetch(
+          `/api/piholes/history?url=${encodeURIComponent(url)}`,
+          { headers: { "X-FTL-SID": sid } }
+        )
+        return res.ok
+      } catch {
+        return false
+      }
+    }
+
+    async function ensureAuth(
+      url: string,
+      password: string,
+      stored?: AuthData
+    ): Promise<AuthData> {
+      if (stored && (await testAuth(url, stored.sid))) {
+        return stored
+      }
+
+      const fresh = await login(url, password)
+      if (await testAuth(url, fresh.sid)) {
+        return fresh
+      }
+
+      throw new Error(`Falha ao autenticar em ${url}`)
+    }
+
     async function authenticateAll() {
       try {
-        // 1) Pega a lista de URL+senha já descriptografadas
         const confRes = await fetch("/api/piholes")
         if (!confRes.ok) throw new Error("Falha ao ler configuração")
         const { piholes } = (await confRes.json()) as { piholes: PiholeConfig[] }
 
-        // 2) Para cada pi-hole, chama sua rota de auth
-        const calls = piholes.map(async ({ url, password }) => {
-          const authRes = await fetch("/api/piholes/auth", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url, password }),
-          })
-          if (!authRes.ok) {
-            const err = await authRes.json()
-            throw new Error(err.error || `Auth falhou em ${url}`)
-          }
-          const { sid, csrf } = (await authRes.json()) as AuthData
-          return { url, sid, csrf }
-        })
+        let storedAuth: Record<string, AuthData> = {}
+        const raw = localStorage.getItem("piholesAuth")
+        if (raw) {
+          try {
+            storedAuth = JSON.parse(raw)
+          } catch {}
+        }
 
-        // 3) Aguarda todas as autenticações
-        const results = await Promise.all(calls)
+        const results: Record<string, AuthData> = {}
 
-        // 4) Monta objeto chaveado por URL e salva no state + localStorage
-        const map: Record<string, AuthData> = {}
-        results.forEach(r => { map[r.url] = { sid: r.sid, csrf: r.csrf } })
-        setAuthResults(map)
-        localStorage.setItem("piholesAuth", JSON.stringify(map))
+        for (const { url, password } of piholes) {
+          const current = storedAuth[url]
+          const auth = await ensureAuth(url, password, current)
+          results[url] = auth
+        }
+
+        setAuthResults(results)
+        localStorage.setItem("piholesAuth", JSON.stringify(results))
       } catch (e: any) {
         setError(e.message)
       } finally {
