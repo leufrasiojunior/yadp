@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { login, AuthData } from "@/lib/piholeLogin"
+import { formatNumber, formatPercent } from "@/lib/formatter"
 import {
   Card,
   CardHeader,
@@ -23,7 +24,7 @@ type Summary = {
 export default function SummaryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [summaries, setSummaries] = useState<Record<string, Summary>>({})
+  const [summary, setSummary] = useState<Summary | null>(null)
 
   useEffect(() => {
     async function testAuth(url: string, sid: string) {
@@ -70,7 +71,9 @@ export default function SummaryPage() {
         }
 
         const authResults: Record<string, AuthData> = {}
-        const results: Record<string, Summary> = {}
+        let total = 0
+        let blocked = 0
+        let unique = 0
 
         for (const { url, password } of piholes) {
           const current = storedAuth[url]
@@ -84,13 +87,25 @@ export default function SummaryPage() {
           if (!summaryRes.ok) {
             throw new Error(`Falha ao obter summary de ${url}`)
           }
-          results[url] = (await summaryRes.json()) as Summary
+          const data = (await summaryRes.json()) as Summary
+          total += data.queries.total
+          blocked += data.queries.blocked
+          unique += data.queries.unique_domains
         }
 
-        setSummaries(results)
+        const percent_blocked = total > 0 ? (blocked * 100) / total : 0
+        setSummary({
+          queries: {
+            total,
+            blocked,
+            percent_blocked,
+            unique_domains: unique,
+          },
+        })
         localStorage.setItem("piholesAuth", JSON.stringify(authResults))
-      } catch (e: any) {
-        setError(e.message)
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Erro desconhecido"
+        setError(msg)
       } finally {
         setLoading(false)
       }
@@ -102,39 +117,34 @@ export default function SummaryPage() {
   if (loading) return <p>Conectando aos Pi-holes…</p>
   if (error) return <p className="text-red-500">Erro: {error}</p>
 
+  if (!summary) return <p>Nenhum dado carregado.</p>
+
   return (
-    <div className="space-y-6 p-4">
-      {Object.entries(summaries).map(([url, summary]) => (
-        <div key={url} className="space-y-4">
-          <h4 className="font-medium">{url}</h4>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Total</CardTitle>
-              </CardHeader>
-              <CardContent>{summary.queries.total}</CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Blocked</CardTitle>
-              </CardHeader>
-              <CardContent>{summary.queries.blocked}</CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>% Blocked</CardTitle>
-              </CardHeader>
-              <CardContent>{summary.queries.percent_blocked}</CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Unique Domains</CardTitle>
-              </CardHeader>
-              <CardContent>{summary.queries.unique_domains}</CardContent>
-            </Card>
-          </div>
-        </div>
-      ))}
+    <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Total</CardTitle>
+        </CardHeader>
+        <CardContent>{formatNumber(summary.queries.total)}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Blocked</CardTitle>
+        </CardHeader>
+        <CardContent>{formatNumber(summary.queries.blocked)}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>% Blocked</CardTitle>
+        </CardHeader>
+        <CardContent>{formatPercent(summary.queries.percent_blocked)}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Unique Domains</CardTitle>
+        </CardHeader>
+        <CardContent>{formatNumber(summary.queries.unique_domains)}</CardContent>
+      </Card>
     </div>
   )
 }

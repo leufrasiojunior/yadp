@@ -30,13 +30,13 @@ export async function GET() {
       Array.isArray(data.piholes) &&
       data.piholes.length > 0 &&
       data.piholes.every(
-        (item: any) =>
+        (item: { url?: unknown; password?: unknown }) =>
           item &&
           typeof item === "object" &&
           "url" in item &&
           "password" in item
       );
-  } catch (e: any) {
+  } catch {
     // Se não existir o arquivo, ou JSON inválido, considera "sem config"
     hasPiholesConfig = false;
   }

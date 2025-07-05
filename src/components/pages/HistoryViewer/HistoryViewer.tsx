@@ -55,8 +55,9 @@ export default function HistoryViewer() {
                 )
 
                 setHistories(results)
-            } catch (err: any) {
-                setError(err.message)
+            } catch (err) {
+                const message = err instanceof Error ? err.message : 'Erro desconhecido'
+                setError(message)
             } finally {
                 setLoading(false)
                 hasLoadedRef.current = true

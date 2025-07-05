@@ -34,11 +34,13 @@ export async function GET(req: NextRequest) {
     );
 
     return NextResponse.json(response.data);
-  } catch (err: any) {
-    console.error("Erro ao buscar resumo:", err.message);
-    return NextResponse.json(
-      { error: err.message || "Erro desconhecido" },
-      { status: err.response?.status || 500 }
-    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Erro desconhecido";
+    const status =
+      typeof err === "object" && err && "response" in err
+        ? (err as { response?: { status?: number } }).response?.status ?? 500
+        : 500;
+    console.error("Erro ao buscar resumo:", message);
+    return NextResponse.json({ error: message }, { status });
   }
 }
