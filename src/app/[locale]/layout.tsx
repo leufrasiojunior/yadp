@@ -34,7 +34,9 @@ export default async function LocaleLayout({
                   <div className="absolute top-4 right-4 z-50">
                     <ToggleThemeButton />
                   </div>
-                  {children}
+                  <div className="p-9 md:p-10">
+                    {children}
+                  </div>
                 </div>
               </div>
             </ThemeProvider>

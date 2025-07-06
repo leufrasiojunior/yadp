@@ -25,12 +25,12 @@ export function SideMenu() {
       </Button>
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-full flex-col border-r bg-background transition-transform duration-300 md:flex",
+          "fixed inset-y-0 left-0 z-40 flex h-full flex-col border-r bg-background transition-transform duration-300 md:flex ",
           collapsed ? "w-14" : "w-64",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="flex items-center justify-between p-2">
+        <div className="flex items-center justify-between p-2 pt-10">
           <Button variant="ghost" size="icon" onClick={() => setCollapsed(!collapsed)} className="hidden md:inline-flex">
             {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
           </Button>
@@ -54,7 +54,7 @@ export function SideMenu() {
               >
                 <span className={collapsed ? "sr-only" : undefined}>{t("summary")}</span>
                 {!collapsed && (
-                  <ChevronDown className={cn("size-4 transition-transform", openSummary && "rotate-180")}/>
+                  <ChevronDown className={cn("size-4 transition-transform", openSummary && "rotate-180")} />
                 )}
               </button>
               {openSummary && !collapsed && (
