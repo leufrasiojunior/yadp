@@ -30,7 +30,7 @@ export default async function LocaleLayout({
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
               <div className="flex min-h-screen">
                 <SideMenu />
-                <div className="relative flex-1 ml-64">
+                <div className="relative flex-1 md:ml-64">
                   <div className="absolute top-4 right-4 z-50">
                     <ToggleThemeButton />
                   </div>
