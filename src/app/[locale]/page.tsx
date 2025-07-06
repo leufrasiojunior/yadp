@@ -2,24 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { login, AuthData } from "@/lib/piholeLogin"
-import { formatNumber, formatPercent } from "@/lib/formatter"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card"
-
-type PiholeConfig = { url: string; password: string }
-
-type Summary = {
-  queries: {
-    total: number
-    blocked: number
-    percent_blocked: number
-    unique_domains: number
-  }
-}
+import { SummaryCard } from "@/components/ui/SummaryCard"
+import type { PiholeConfig, Summary } from "@/types/summary"
 
 export default function SummaryPage() {
   const [loading, setLoading] = useState(true)
@@ -121,30 +105,10 @@ export default function SummaryPage() {
 
   return (
     <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Total</CardTitle>
-        </CardHeader>
-        <CardContent>{formatNumber(summary.queries.total)}</CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Blocked</CardTitle>
-        </CardHeader>
-        <CardContent>{formatNumber(summary.queries.blocked)}</CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>% Blocked</CardTitle>
-        </CardHeader>
-        <CardContent>{formatPercent(summary.queries.percent_blocked)}</CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Unique Domains</CardTitle>
-        </CardHeader>
-        <CardContent>{formatNumber(summary.queries.unique_domains)}</CardContent>
-      </Card>
+      <SummaryCard title="Total" value={summary.queries.total} />
+      <SummaryCard title="Blocked" value={summary.queries.blocked} />
+      <SummaryCard title="% Blocked" value={summary.queries.percent_blocked} isPercentage />
+      <SummaryCard title="Unique Domains" value={summary.queries.unique_domains} />
     </div>
   )
 }
