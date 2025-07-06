@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { login, AuthData } from "@/lib/piholeLogin"
-import { SummaryCard } from "@/components/ui/SummaryCard"
-import type { PiholeConfig, Summary } from "@/types/summary"
+import { login, AuthData } from "@/services/pihole/auth"
+import { SummaryCard } from "@/components/features/summary/SummaryCard"
+import type { PiholeConfig, Summary } from "@/types/api/summary"
 
 export default function SummaryPage() {
   const [loading, setLoading] = useState(true)

@@ -1,7 +1,9 @@
 // Exemplo de uso em src/app/[locale]/test/page.tsx
 "use client"
 
-import HistoryViewer from "@/components/pages/HistoryViewer/HistoryViewer"
+import HistoryViewer from "@/components/features/HistoryViewer/HistoryViewer"
+
+
 
 
 
