@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
+import { useSideMenu } from "@/context/SideMenuContext"
 
 export function SideMenu() {
   const t = useTranslations("Navigation")
   const [openSummary, setOpenSummary] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const { collapsed, setCollapsed } = useSideMenu()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
