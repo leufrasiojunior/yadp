@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { usePiholeAuth } from "@/context/PiholeAuthContext"
+import { usePiholeFetch } from "@/services/pihole/usePiholeFetch"
 
 export type HistoryEntry = {
     timestamp: number
@@ -14,6 +15,7 @@ export type HistoryEntry = {
 
 export default function HistoryViewer() {
     const { auth } = usePiholeAuth()
+    const { piholeFetch } = usePiholeFetch()
     const urls = Object.keys(auth)
     const [histories, setHistories] = useState<Record<string, HistoryEntry[]>>({})
     const [loading, setLoading] = useState<boolean>(false)
@@ -38,18 +40,11 @@ export default function HistoryViewer() {
 
                 await Promise.all(
                     urls.map(async (url) => {
-                        const sid = auth[url].sid
-                        const res = await fetch(
+                        const data = (await piholeFetch(
                             `/api/piholes/history?url=${encodeURIComponent(url)}`,
-                            {
-                                method: "GET",
-                                headers: { "X-FTL-SID": sid },
-                            }
-                        )
-                        if (!res.ok) {
-                            throw new Error(`Erro ao buscar histórico de ${url}: ${res.status}`)
-                        }
-                        const data = (await res.json()) as { history: HistoryEntry[] }
+                            url,
+                            { method: "GET" }
+                        )) as { history: HistoryEntry[] }
                         results[url] = data.history
                     })
                 )
@@ -65,7 +60,7 @@ export default function HistoryViewer() {
         }
 
         loadAllHistories()
-    }, [urls, auth])
+    }, [urls, piholeFetch])
 
     if (loading) return <p>Carregando históricos…</p>
     if (error) return <p className="text-red-500">Erro: {error}</p>

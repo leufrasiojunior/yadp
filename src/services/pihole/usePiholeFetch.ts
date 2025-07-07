@@ -4,7 +4,7 @@
 import { usePiholeAuth } from "@/context/PiholeAuthContext";
 
 export function usePiholeFetch() {
-  const { auth } = usePiholeAuth();
+  const { auth, renewAuthFor } = usePiholeAuth();
 
   /**
    * Faz fetch a um endpoint de sua API, adicionando
@@ -28,10 +28,18 @@ export function usePiholeFetch() {
     headers.set("X-FTL-SID", creds.sid);
     headers.set("Content-Type", "application/json");
 
-    const res = await fetch(endpoint, {
+    let res = await fetch(endpoint, {
       ...init,
       headers,
     });
+
+    if (res.status === 401 || res.status === 403) {
+      try {
+        const newCreds = await renewAuthFor(url);
+        headers.set("X-FTL-SID", newCreds.sid);
+        res = await fetch(endpoint, { ...init, headers });
+      } catch {}
+    }
 
     if (!res.ok) {
       const text = await res.text();

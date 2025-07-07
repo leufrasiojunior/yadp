@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react"
 import { SummaryCard } from "@/components/features/summary/SummaryCard"
 import type { PiholeConfig, Summary } from "@/types/api/summary"
-import type { AuthData } from "@/services/pihole/auth"
 import { FaChartPie, FaBan, FaPercent, FaGlobe } from "react-icons/fa"
 import { useRouter } from "next/navigation"
+import { usePiholeFetch } from "@/services/pihole/usePiholeFetch"
 
 export default function SummaryPage() {
   const router = useRouter()
+  const { piholeFetch } = usePiholeFetch()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
@@ -26,31 +27,15 @@ export default function SummaryPage() {
         if (!confRes.ok) throw new Error("Falha ao ler configuração")
         const { piholes } = (await confRes.json()) as { piholes: PiholeConfig[] }
 
-        let storedAuth: Record<string, AuthData> = {}
-        const raw = localStorage.getItem("piholesAuth")
-        if (raw) {
-          try {
-            storedAuth = JSON.parse(raw)
-          } catch { }
-        }
-
         let total = 0
         let blocked = 0
         let unique = 0
 
         for (const { url } of piholes) {
-          const creds = storedAuth[url]
-          if (!creds) {
-            throw new Error(`Sem autenticação para ${url}`)
-          }
-          const summaryRes = await fetch(
+          const data = (await piholeFetch(
             `/api/stats/summary?url=${encodeURIComponent(url)}`,
-            { headers: { "X-FTL-SID": creds.sid } }
-          )
-          if (!summaryRes.ok) {
-            throw new Error(`Falha ao obter summary de ${url}`)
-          }
-          const data = (await summaryRes.json()) as Summary
+            url
+          )) as Summary
           total += data.queries.total
           blocked += data.queries.blocked
           unique += data.queries.unique_domains
@@ -74,7 +59,7 @@ export default function SummaryPage() {
     }
 
     loadAll()
-  }, [router])
+  }, [router, piholeFetch])
 
   if (loading) return <p>Conectando aos Pi-holes…</p>
   if (error) return <p className="text-red-500">Erro: {error}</p>

@@ -8,6 +8,7 @@ import React, {
     useEffect,
     ReactNode,
 } from "react"
+import { login } from "@/services/pihole/auth"
 
 type AuthData = { sid: string; csrf: string }
 type AuthMap = Record<string, AuthData>
@@ -15,6 +16,7 @@ type AuthMap = Record<string, AuthData>
 interface ContextValue {
     auth: AuthMap
     setAuthFor: (url: string, data: AuthData) => void
+    renewAuthFor: (url: string) => Promise<AuthData>
 }
 
 const PiholeAuthContext = createContext<ContextValue | undefined>(undefined)
@@ -41,8 +43,25 @@ export function PiholeAuthProvider({ children }: { children: ReactNode }) {
         })
     }
 
+    async function renewAuthFor(url: string): Promise<AuthData> {
+        const confRes = await fetch("/api/piholes")
+        if (!confRes.ok) {
+            throw new Error("Falha ao carregar configuração")
+        }
+        const { piholes } = (await confRes.json()) as {
+            piholes: { url: string; password: string }[]
+        }
+        const entry = piholes.find((p) => p.url === url)
+        if (!entry) {
+            throw new Error(`URL ${url} não encontrada na configuração`)
+        }
+        const newAuth = await login(url, entry.password)
+        setAuthFor(url, newAuth)
+        return newAuth
+    }
+
     return (
-        <PiholeAuthContext.Provider value={{ auth, setAuthFor }}>
+        <PiholeAuthContext.Provider value={{ auth, setAuthFor, renewAuthFor }}>
             {children}
         </PiholeAuthContext.Provider>
     )
