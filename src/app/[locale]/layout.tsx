@@ -1,7 +1,6 @@
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import LayoutWithSideMenu from "@/components/general/LayoutWithSideMenu";
 import "../global.css";
 import { notFound } from "next/navigation";
 import { routing } from '@/i18n/routing';
@@ -27,9 +26,7 @@ export default async function LocaleLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
 
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-              <LayoutWithSideMenu>
-                {children}
-              </LayoutWithSideMenu>
+              {children}
             </ThemeProvider>
           </NextIntlClientProvider>
         </PiholeAuthProvider>
