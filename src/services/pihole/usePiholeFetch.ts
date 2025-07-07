@@ -2,9 +2,10 @@
 "use client";
 
 import { usePiholeAuth } from "@/context/PiholeAuthContext";
+import { renewLogin } from "./auth";
 
 export function usePiholeFetch() {
-  const { auth } = usePiholeAuth();
+  const { auth, setAuthFor } = usePiholeAuth();
 
   /**
    * Faz fetch a um endpoint de sua API, adicionando
@@ -19,19 +20,29 @@ export function usePiholeFetch() {
     url: string,
     init: RequestInit = {}
   ) {
-    const creds = auth[url];
+    let creds = auth[url];
     if (!creds) {
       throw new Error(`Sem credenciais p/ ${url}`);
     }
 
-    const headers = new Headers(init.headers);
-    headers.set("X-FTL-SID", creds.sid);
-    headers.set("Content-Type", "application/json");
+    async function doFetch() {
+      const headers = new Headers(init.headers);
+      headers.set("X-FTL-SID", creds.sid);
+      headers.set("Content-Type", "application/json");
+      return fetch(endpoint, { ...init, headers });
+    }
 
-    const res = await fetch(endpoint, {
-      ...init,
-      headers,
-    });
+    let res = await doFetch();
+    if (res.status === 401) {
+      try {
+        const fresh = await renewLogin(url);
+        setAuthFor(url, fresh);
+        creds = fresh;
+        res = await doFetch();
+      } catch {
+        // falha ao renovar, segue com resposta original
+      }
+    }
 
     if (!res.ok) {
       const text = await res.text();

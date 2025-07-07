@@ -13,3 +13,22 @@ export async function login(url: string, password: string): Promise<AuthData> {
   const { sid, csrf } = (await authRes.json()) as AuthData
   return { sid, csrf }
 }
+
+/**
+ * Reexecuta a autenticação para um Pi-hole específico.
+ * Busca a senha na configuração (/api/piholes) e chama login novamente.
+ */
+export async function renewLogin(url: string): Promise<AuthData> {
+  const confRes = await fetch("/api/piholes")
+  if (!confRes.ok) {
+    throw new Error("Falha ao ler configuração")
+  }
+  const { piholes } = (await confRes.json()) as {
+    piholes: { url: string; password: string }[]
+  }
+  const item = piholes.find((p) => p.url === url)
+  if (!item) {
+    throw new Error(`Configuração não encontrada para ${url}`)
+  }
+  return login(item.url, item.password)
+}
