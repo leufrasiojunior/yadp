@@ -33,7 +33,7 @@ export function usePiholeFetch() {
     }
 
     let res = await doFetch();
-    if (res.status === 401) {
+    if (res.status === 401 || res.status === 403) {
       try {
         const fresh = await renewLogin(url);
         setAuthFor(url, fresh);
