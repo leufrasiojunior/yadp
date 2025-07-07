@@ -43,7 +43,8 @@
   "Navigation": {
     "home": "Home",
     "summary": "Summary",
-    "topClients": "Top Clients"
+    "topClients": "Top Clients",
+    "logout": "Logout"
   },
   "Login": {
     "title": "Login to YAPD",

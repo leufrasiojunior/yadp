@@ -1,18 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import { Home, ChevronDown, ChevronLeft, ChevronRight, Menu } from "lucide-react"
+import { Home, ChevronDown, ChevronLeft, ChevronRight, Menu, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Link } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { useSideMenu } from "@/context/SideMenuContext"
+import { useRouter } from "next/navigation"
 
 export function SideMenu() {
   const t = useTranslations("Navigation")
   const [openSummary, setOpenSummary] = useState(false)
   const { collapsed, setCollapsed } = useSideMenu()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const router = useRouter()
+
+  function handleLogout() {
+    localStorage.removeItem("piholesAuth")
+    localStorage.removeItem("yapdAuthTime")
+    router.push("/login")
+  }
 
   return (
     <>
@@ -73,6 +81,16 @@ export function SideMenu() {
             </li>
           </ul>
         </nav>
+        <div className="border-t p-2">
+          <Button
+            variant="ghost"
+            className="flex w-full items-center gap-2"
+            onClick={handleLogout}
+          >
+            <LogOut className="size-4" />
+            {!collapsed && t("logout")}
+          </Button>
+        </div>
       </aside>
     </>
   )
