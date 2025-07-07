@@ -42,6 +42,15 @@ export async function renewLogin(url: string): Promise<AuthData> {
 
   try {
     const data = await renewPromise
+    // Atualiza localStorage mantendo os dados existentes
+    try {
+      const raw = localStorage.getItem("piholesAuth")
+      const current: Record<string, AuthData> = raw ? JSON.parse(raw) : {}
+      current[url] = data
+      localStorage.setItem("piholesAuth", JSON.stringify(current))
+    } catch {
+      // ignore errors ao acessar localStorage
+    }
     return data
   } finally {
     delete pending[url]
