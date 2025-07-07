@@ -45,7 +45,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { piholes } = await req.json();
+  const { piholes, mainUrl, usePiholeAuth, yapdPassword } = await req.json();
 
   const encrypted = piholes.map((item: { url: string; password: string }) => {
     const cipher = crypto.createCipheriv(ALGO, MASTER_KEY, IV);
@@ -54,9 +54,18 @@ export async function POST(req: NextRequest) {
     return { url: item.url, password: enc };
   });
 
-  const configObj = {
+  const configObj: Record<string, unknown> = {
     piholes: encrypted,
+    mainUrl,
+    usePiholeAuth,
   };
+
+  if (!usePiholeAuth && yapdPassword) {
+    const cipher = crypto.createCipheriv(ALGO, MASTER_KEY, IV);
+    let enc = cipher.update(yapdPassword, "utf8", "hex");
+    enc += cipher.final("hex");
+    configObj.yapdPassword = enc;
+  }
 
   // garante que o diretório existe
   await fs.mkdir(CONFIG_DIR, { recursive: true });

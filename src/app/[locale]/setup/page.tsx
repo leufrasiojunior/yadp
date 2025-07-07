@@ -27,6 +27,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { login } from "@/services/pihole/auth";
 import { Separator } from "@/components/ui/separator";
 import { LanguageSwitcher } from "@/components/general/languageSwitcher";
 
@@ -41,17 +49,6 @@ const Step1 = () => {
   );
 };
 
-const Step3 = () => {
-  const t = useTranslations("Setup");
-  return (
-    <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
-      <h3 className="text-2xl font-semibold">{t("step3_title")}</h3>
-      <p className="text-muted-foreground">{t("step3_description")}</p>
-      <p>{t("step3_instruction")}</p>
-    </div>
-  );
-};
-
 export default function SetupYadp() {
   const [needsConfirmation, setNeedsConfirmation] = useState<boolean | null>(null)
   const [confirmed, setConfirmed] = useState(false)
@@ -59,7 +56,7 @@ export default function SetupYadp() {
   const [step, setStep] = useState(1);
   const router = useRouter();
   const t = useTranslations("Setup");
-  const step2Schema = z
+  const schema = z
     .object({
       samePassword: z.boolean().default(true),
       piholes: z
@@ -71,6 +68,9 @@ export default function SetupYadp() {
         )
         .min(1)
         .max(5),
+      primaryIndex: z.number().int().default(0),
+      usePiholeAuth: z.boolean().default(true),
+      yapdPassword: z.string().optional(),
     })
     .superRefine((data, ctx) => {
       data.piholes.forEach((item, idx) => {
@@ -84,17 +84,38 @@ export default function SetupYadp() {
           }
         }
       });
+
+      if (data.primaryIndex < 0 || data.primaryIndex >= data.piholes.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: t("step2_primary_error"),
+          path: ["primaryIndex"],
+        });
+      }
+
+      if (!data.usePiholeAuth) {
+        if (!data.yapdPassword || data.yapdPassword.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t("step3_password_error"),
+            path: ["yapdPassword"],
+          });
+        }
+      }
     });
 
   const form = useForm<
-    z.input<typeof step2Schema>,
+    z.input<typeof schema>,
     unknown,
-    z.infer<typeof step2Schema>
+    z.infer<typeof schema>
   >({
-    resolver: zodResolver(step2Schema),
+    resolver: zodResolver(schema),
     defaultValues: {
       samePassword: true,
       piholes: [{ url: "", password: "" }],
+      primaryIndex: 0,
+      usePiholeAuth: true,
+      yapdPassword: "",
     },
   });
 
@@ -102,6 +123,58 @@ export default function SetupYadp() {
     control: form.control,
     name: "piholes",
   });
+
+  const Step3 = () => {
+    const usePihole = form.watch("usePiholeAuth");
+    return (
+      <Form {...form}>
+        <form className="space-y-6">
+          <FormField
+            control={form.control}
+            name="usePiholeAuth"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="font-normal">
+                  {t("step3_use_pihole")}
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+
+          {!usePihole && (
+            <FormField
+              control={form.control}
+              name="yapdPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("step3_yapd_password")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder={t("step3_yapd_password_placeholder")}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </form>
+      </Form>
+    );
+  };
+
+  const Step4 = () => (
+    <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
+      <h3 className="text-2xl font-semibold">{t("step4_title")}</h3>
+      <p className="text-muted-foreground">{t("step4_description")}</p>
+      <p>{t("step4_instruction")}</p>
+    </div>
+  );
 
   // BUSCA flag na inicialização
   useEffect(() => {
@@ -145,10 +218,9 @@ export default function SetupYadp() {
   }
 
   const handleNext = async () => {
-    if (step === 2) {
+    if (step === 2 || step === 3) {
       const isValid = await form.trigger();
       if (!isValid) return;
-      console.log("Step 2 Data:", form.getValues());
     }
     setStep((prev) => prev + 1);
   };
@@ -158,16 +230,49 @@ export default function SetupYadp() {
   };
 
   const handleFinish = async () => {
-    const { piholes, samePassword } = form.getValues();
+    const {
+      piholes,
+      samePassword,
+      primaryIndex,
+      usePiholeAuth,
+      yapdPassword,
+    } = form.getValues();
+
     const final = piholes.map((item) => ({
       url: item.url,
       password: samePassword ? piholes[0].password : item.password,
     }));
+
+    const mainUrl = piholes[Number(primaryIndex)]?.url ?? "";
+
+    const payload: Record<string, unknown> = {
+      piholes: final,
+      mainUrl,
+      usePiholeAuth,
+    };
+
+    if (!usePiholeAuth) {
+      payload["yapdPassword"] = yapdPassword;
+    }
+
     await fetch("/api/config", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ piholes: final }),
+      body: JSON.stringify(payload),
     });
+
+    if (usePiholeAuth) {
+      const pwd = samePassword
+        ? piholes[0].password!
+        : piholes[Number(primaryIndex)]?.password || "";
+      try {
+        const auth = await login(mainUrl, pwd);
+        localStorage.setItem("piholesAuth", JSON.stringify({ [mainUrl]: auth }));
+      } catch (e) {
+        console.error("auth", e);
+      }
+    }
+
     router.push("/");
   };
 
@@ -276,10 +381,42 @@ export default function SetupYadp() {
                     {t("step2_add_url")}
                   </Button>
                 )}
+
+                <FormField
+                  control={form.control}
+                  name="primaryIndex"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("step2_primary_url")}</FormLabel>
+                      <Select
+                        value={String(field.value)}
+                        onValueChange={(v) => field.onChange(Number(v))}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("step2_primary_placeholder")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {fields.map((f, idx) => (
+                            <SelectItem key={f.id} value={String(idx)}>
+                              {form.watch(`piholes.${idx}.url`) || `#${idx + 1}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        {t("step2_primary_description")}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </form>
             </Form>
           )}
           {step === 3 && <Step3 />}
+          {step === 4 && <Step4 />}
 
 
         </CardContent>
@@ -294,8 +431,8 @@ export default function SetupYadp() {
             <div />
           )}
 
-          {step < 3 && <Button onClick={handleNext}>{t("next_button")}</Button>}
-          {step === 3 && (
+          {step < 4 && <Button onClick={handleNext}>{t("next_button")}</Button>}
+          {step === 4 && (
             <Button onClick={handleFinish}>{t("finish_button")}</Button>
           )}
         </CardFooter>

@@ -38,8 +38,20 @@ export async function GET() {
       }
     );
 
-    // 4) Retorna o array com as senhas em texto claro
-    return NextResponse.json({ piholes });
+    const result: Record<string, unknown> = {
+      piholes,
+      mainUrl: data.mainUrl,
+      usePiholeAuth: data.usePiholeAuth,
+    };
+
+    if (!data.usePiholeAuth && data.yapdPassword) {
+      const decipher = crypto.createDecipheriv(ALGO, MASTER_KEY, IV);
+      let dec = decipher.update(data.yapdPassword, "hex", "utf8");
+      dec += decipher.final("utf8");
+      result.yapdPassword = dec;
+    }
+
+    return NextResponse.json(result);
   } catch {
     // Se der qualquer erro (arquivo não existe, JSON inválido, etc), retorna array vazio
     return NextResponse.json({ piholes: [] });
