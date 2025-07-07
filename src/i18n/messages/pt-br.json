@@ -5,7 +5,7 @@
   "Setup": {
     "title": "Configurar YAPD - Yet Another Pi-hole Dashboard",
     "language": "Idioma",
-    "description": "Siga os passos para configurar seu dashboard. Passo {step} de 3.",
+    "description": "Siga os passos para configurar seu dashboard. Passo {step} de 4.",
     "step1_title": "Bem-vindo ao YAPD!",
     "step1_description": "Este assistente de configuração irá guiá-lo através do processo.",
     "step1_instruction": "Clique no botão \"Próximo\" para começar.",
@@ -20,9 +20,17 @@
     "step2_same_password": "Usar a mesma senha para todas as URLs",
     "step2_add_url": "Adicionar URL",
     "step2_remove_url": "Remover",
-    "step3_title": "Configuração Concluída!",
-    "step3_description": "Você configurou seu dashboard com sucesso.",
-    "step3_instruction": "Clique em \"Finalizar\" para ser redirecionado para a página principal.",
+    "step2_primary_url": "URL principal",
+    "step2_primary_placeholder": "Escolha a URL",
+    "step2_primary_description": "Selecione qual Pi-hole será o principal.",
+    "step2_primary_error": "Escolha uma URL válida.",
+    "step3_use_pihole": "Usar senha do Pi-hole principal no login",
+    "step3_yapd_password": "Senha do YAPD",
+    "step3_yapd_password_placeholder": "Sua senha do YAPD",
+    "step3_password_error": "Senha é obrigatória.",
+    "step4_title": "Configuração Concluída!",
+    "step4_description": "Você configurou seu dashboard com sucesso.",
+    "step4_instruction": "Clique em \"Finalizar\" para ser redirecionado para a página principal.",
     "back_button": "Voltar",
     "next_button": "Próximo",
     "finish_button": "Finalizar",
@@ -35,6 +43,16 @@
   "Navigation": {
     "home": "Início",
     "summary": "Sumário",
-    "topClients": "Top Clientes"
+    "topClients": "Top Clientes",
+    "logout": "Sair"
+  },
+  "Login": {
+    "title": "Entrar no YAPD",
+    "password": "Senha",
+    "password_placeholder": "Sua senha",
+    "button": "Entrar",
+    "error": "Senha inválida",
+    "loading": "Carregando...",
+    "forgot": "Esqueceu a senha?"
   }
 }
