@@ -44,5 +44,14 @@
     "home": "Home",
     "summary": "Summary",
     "topClients": "Top Clients"
+  },
+  "Login": {
+    "title": "Login to YAPD",
+    "password": "Password",
+    "password_placeholder": "Your password",
+    "button": "Login",
+    "error": "Invalid password",
+    "loading": "Loading...",
+    "forgot": "Forgot password?"
   }
 }

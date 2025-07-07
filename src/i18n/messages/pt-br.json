@@ -44,5 +44,14 @@
     "home": "Início",
     "summary": "Sumário",
     "topClients": "Top Clientes"
+  },
+  "Login": {
+    "title": "Entrar no YAPD",
+    "password": "Senha",
+    "password_placeholder": "Sua senha",
+    "button": "Entrar",
+    "error": "Senha inválida",
+    "loading": "Carregando...",
+    "forgot": "Esqueceu a senha?"
   }
 }
