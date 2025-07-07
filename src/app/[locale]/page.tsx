@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { login, AuthData } from "@/services/pihole/auth"
 import { SummaryCard } from "@/components/features/summary/SummaryCard"
 import type { PiholeConfig, Summary } from "@/types/api/summary"
+import { FaChartPie, FaBan, FaPercent, FaGlobe } from "react-icons/fa"
 
 export default function SummaryPage() {
   const [loading, setLoading] = useState(true)
@@ -105,10 +106,10 @@ export default function SummaryPage() {
 
   return (
     <div className="flex flex-row justify-center gap-4">
-      <SummaryCard title="Total" value={summary.queries.total} />
-      <SummaryCard title="Blocked" value={summary.queries.blocked} />
-      <SummaryCard title="% Blocked" value={summary.queries.percent_blocked} isPercentage />
-      <SummaryCard title="Unique Domains" value={summary.queries.unique_domains} />
+      <SummaryCard title="Total" value={summary.queries.total} icon={<FaChartPie className="w-12 h-12 text-muted-foreground" />} />
+      <SummaryCard title="Blocked" value={summary.queries.blocked} icon={<FaBan className="w-12 h-12 text-muted-foreground" />} />
+      <SummaryCard title="% Blocked" value={summary.queries.percent_blocked} isPercentage icon={<FaPercent className="w-12 h-12 text-muted-foreground" />} />
+      <SummaryCard title="Unique Domains" value={summary.queries.unique_domains} icon={<FaGlobe className="w-12 h-12 text-muted-foreground" />} />
     </div>
   )
 }
