@@ -51,7 +51,7 @@ export default function SummaryPage() {
         if (raw) {
           try {
             storedAuth = JSON.parse(raw)
-          } catch {}
+          } catch { }
         }
 
         const authResults: Record<string, AuthData> = {}
@@ -104,7 +104,7 @@ export default function SummaryPage() {
   if (!summary) return <p>Nenhum dado carregado.</p>
 
   return (
-    <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="flex flex-row justify-center gap-4">
       <SummaryCard title="Total" value={summary.queries.total} />
       <SummaryCard title="Blocked" value={summary.queries.blocked} />
       <SummaryCard title="% Blocked" value={summary.queries.percent_blocked} isPercentage />
