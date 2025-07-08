@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { SummaryCard } from "@/components/features/summary/SummaryCard"
+import { HistoryChart, type HistoryEntry } from "@/components/features/history/HistoryChart"
 import type { PiholeConfig, Summary } from "@/types/api/summary"
 import type { AuthData } from "@/services/pihole/auth"
 import { login } from "@/services/pihole/auth"
@@ -13,6 +14,7 @@ export default function SummaryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
+  const [history, setHistory] = useState<HistoryEntry[]>([])
 
   useEffect(() => {
     const tsStr = localStorage.getItem("yapdAuthTime")
@@ -38,6 +40,7 @@ export default function SummaryPage() {
         let total = 0
         let blocked = 0
         let unique = 0
+        const historyMap: Record<number, HistoryEntry> = {}
 
         for (const { url, password } of piholes) {
           let creds = storedAuth[url]
@@ -81,6 +84,43 @@ export default function SummaryPage() {
           total += data.queries.total
           blocked += data.queries.blocked
           unique += data.queries.unique_domains
+
+          const histEndpoint = "/api/piholes/history"
+          let histRes = await fetch(
+            `${histEndpoint}?url=${encodeURIComponent(url)}`,
+            { headers: { "X-FTL-SID": creds.sid } }
+          )
+          if (histRes.status === 401) {
+            try {
+              creds = await login(url, password)
+              storedAuth[url] = creds
+              localStorage.setItem("piholesAuth", JSON.stringify(storedAuth))
+              histRes = await fetch(
+                `${histEndpoint}?url=${encodeURIComponent(url)}`,
+                { headers: { "X-FTL-SID": creds.sid } }
+              )
+            } catch {
+              throw new Error(`Falha ao obter history de ${url}`)
+            }
+          }
+          if (!histRes.ok) {
+            throw new Error(`Falha ao obter history de ${url}`)
+          }
+          const histData = (await histRes.json()) as { history: HistoryEntry[] }
+          for (const entry of histData.history) {
+            const curr = historyMap[entry.timestamp] || {
+              timestamp: entry.timestamp,
+              total: 0,
+              cached: 0,
+              blocked: 0,
+              forwarded: 0,
+            }
+            curr.total += entry.total
+            curr.cached += entry.cached
+            curr.blocked += entry.blocked
+            curr.forwarded += entry.forwarded
+            historyMap[entry.timestamp] = curr
+          }
         }
 
         const percent_blocked = total > 0 ? (blocked * 100) / total : 0
@@ -92,6 +132,10 @@ export default function SummaryPage() {
             unique_domains: unique,
           },
         })
+        const orderedHistory = Object.values(historyMap).sort(
+          (a, b) => a.timestamp - b.timestamp
+        )
+        setHistory(orderedHistory)
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Erro desconhecido"
         setError(msg)
@@ -109,11 +153,14 @@ export default function SummaryPage() {
   if (!summary) return <p>Nenhum dado carregado.</p>
 
   return (
-    <div className="flex flex-row justify-center gap-4">
-      <SummaryCard title="Total" value={summary.queries.total} icon={<FaChartPie className="w-12 h-12 text-muted-foreground" />} />
-      <SummaryCard title="Blocked" value={summary.queries.blocked} icon={<FaBan className="w-12 h-12 text-muted-foreground" />} />
-      <SummaryCard title="% Blocked" value={summary.queries.percent_blocked} isPercentage icon={<FaPercent className="w-12 h-12 text-muted-foreground" />} />
-      <SummaryCard title="Unique Domains" value={summary.queries.unique_domains} icon={<FaGlobe className="w-12 h-12 text-muted-foreground" />} />
+    <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-row justify-center gap-4">
+        <SummaryCard title="Total" value={summary.queries.total} icon={<FaChartPie className="w-12 h-12 text-muted-foreground" />} />
+        <SummaryCard title="Blocked" value={summary.queries.blocked} icon={<FaBan className="w-12 h-12 text-muted-foreground" />} />
+        <SummaryCard title="% Blocked" value={summary.queries.percent_blocked} isPercentage icon={<FaPercent className="w-12 h-12 text-muted-foreground" />} />
+        <SummaryCard title="Unique Domains" value={summary.queries.unique_domains} icon={<FaGlobe className="w-12 h-12 text-muted-foreground" />} />
+      </div>
+      <HistoryChart data={history} />
     </div>
   )
 }
