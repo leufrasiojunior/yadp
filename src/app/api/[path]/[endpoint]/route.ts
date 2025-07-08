@@ -12,7 +12,7 @@ export async function GET(
   const { searchParams } = new URL(req.url);
   const urlParam = searchParams.get("url");
   const sid = req.headers.get("x-ftl-sid");
-  const { path, endpoint } = params;
+  const { path, endpoint } = await params;
 
   if (!urlParam) {
     return NextResponse.json(
