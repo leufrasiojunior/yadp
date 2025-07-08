@@ -5,10 +5,14 @@ import https from "https";
 // Agente para ignorar certificados self-signed
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { path: string; endpoint: string } }
+) {
+  const { searchParams } = req.nextUrl;
   const urlParam = searchParams.get("url");
   const sid = req.headers.get("x-ftl-sid");
+  const { path, endpoint } = await params;
 
   if (!urlParam) {
     return NextResponse.json(
@@ -24,14 +28,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const response = await axios.get(
-      `${urlParam.replace(/\/+$/, "")}/api/stats/summary`,
-      {
-        headers: { "X-FTL-SID": sid },
-        httpsAgent,
-        timeout: 5000,
-      }
-    );
+    const target = `${urlParam.replace(/\/+$/, "")}/api/${path}/${endpoint}`;
+    const response = await axios.get(new URL(target), {
+      headers: { "X-FTL-SID": sid },
+      httpsAgent,
+      timeout: 5000,
+    });
 
     return NextResponse.json(response.data);
   } catch (err) {
@@ -40,7 +42,7 @@ export async function GET(req: NextRequest) {
       typeof err === "object" && err && "response" in err
         ? (err as { response?: { status?: number } }).response?.status ?? 500
         : 500;
-    console.error("Erro ao buscar resumo:", message);
+    console.error(`Erro ao buscar ${path}/${endpoint}:`, message);
     return NextResponse.json({ error: message }, { status });
   }
 }

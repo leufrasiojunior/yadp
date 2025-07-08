@@ -52,8 +52,9 @@ export default function SummaryPage() {
             }
           }
 
+          const endpoint = "/api/stats/summary"
           let summaryRes = await fetch(
-            `/api/stats/summary?url=${encodeURIComponent(url)}`,
+            `${endpoint}?url=${encodeURIComponent(url)}`,
             { headers: { "X-FTL-SID": creds.sid } }
           )
 
@@ -64,7 +65,7 @@ export default function SummaryPage() {
               storedAuth[url] = creds
               localStorage.setItem("piholesAuth", JSON.stringify(storedAuth))
               summaryRes = await fetch(
-                `/api/stats/summary?url=${encodeURIComponent(url)}`,
+                `${endpoint}?url=${encodeURIComponent(url)}`,
                 { headers: { "X-FTL-SID": creds.sid } }
               )
             } catch {

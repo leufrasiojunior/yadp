@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     // Garante que não haja "/" extra no fim da URL
     const endpoint = `${url.replace(/\/$/, "")}/api/auth`;
     const { data } = await axios.post(
-      endpoint,
+      new URL(endpoint),
       { password },
       {
         httpsAgent,
