@@ -28,19 +28,19 @@ export function HistoryChart({ data }: HistoryChartProps) {
             const forwardedHeight = (h.forwarded / max) * 100;
             const cachedHeight = (h.cached / max) * 100;
             return (
-              <div key={h.timestamp} className="flex flex-col-reverse items-center w-6">
+              <div key={h.timestamp} className="flex flex-col-reverse w-6">
                 <div
-                  className="bg-[--chart-3]"
+                  className="bg-[--chart-3] w-full"
                   style={{ height: `${cachedHeight}%` }}
                   title={`Cached: ${h.cached}`}
                 />
                 <div
-                  className="bg-[--chart-2]"
+                  className="bg-[--chart-2] w-full"
                   style={{ height: `${forwardedHeight}%` }}
                   title={`Forwarded: ${h.forwarded}`}
                 />
                 <div
-                  className="bg-[--chart-1]"
+                  className="bg-[--chart-1] w-full"
                   style={{ height: `${blockedHeight}%` }}
                   title={`Blocked: ${h.blocked}`}
                 />
