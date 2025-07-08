@@ -9,7 +9,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { path: string; endpoint: string } }
 ) {
-  const { searchParams } = new URL(req.url);
+  const { searchParams } = req.nextUrl;
   const urlParam = searchParams.get("url");
   const sid = req.headers.get("x-ftl-sid");
   const { path, endpoint } = await params;
@@ -29,7 +29,7 @@ export async function GET(
 
   try {
     const target = `${urlParam.replace(/\/+$/, "")}/api/${path}/${endpoint}`;
-    const response = await axios.get(target, {
+    const response = await axios.get(new URL(target), {
       headers: { "X-FTL-SID": sid },
       httpsAgent,
       timeout: 5000,

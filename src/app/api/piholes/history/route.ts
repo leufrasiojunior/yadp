@@ -8,7 +8,7 @@ import https from "https";
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
+  const { searchParams } = req.nextUrl;
   const urlParam = searchParams.get("url");
   const sid = req.headers.get("x-ftl-sid");
 
@@ -27,14 +27,12 @@ export async function GET(req: NextRequest) {
 
   try {
     // Chama diretamente o endpoint do Pi-hole
-    const response = await axios.get(
-      `${urlParam.replace(/\/+$/, "")}/api/history`,
-      {
-        headers: { "X-FTL-SID": sid },
-        httpsAgent,
-        timeout: 5000,
-      }
-    );
+    const target = `${urlParam.replace(/\/+$/, "")}/api/history`;
+    const response = await axios.get(new URL(target), {
+      headers: { "X-FTL-SID": sid },
+      httpsAgent,
+      timeout: 5000,
+    });
 
     // Retorna apenas o array 'history'
     return NextResponse.json({ history: response.data.history });
