@@ -8,5 +8,7 @@
       "url": "https://192.168.31.23:8443",
       "password": "b1478fe081160d40da2ee273e30d309b"
     }
-  ]
+  ],
+  "mainUrl": "https://192.168.31.16",
+  "usePiholeAuth": true
 }
