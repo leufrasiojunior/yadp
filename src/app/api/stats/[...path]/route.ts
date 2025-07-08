@@ -5,7 +5,10 @@ import https from "https";
 // Agente para ignorar certificados self-signed
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
   const { searchParams } = new URL(req.url);
   const urlParam = searchParams.get("url");
   const sid = req.headers.get("x-ftl-sid");
@@ -24,8 +27,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const endpoint = params.path.join("/");
     const response = await axios.get(
-      `${urlParam.replace(/\/+$/, "")}/api/stats/summary`,
+      `${urlParam.replace(/\/+$/, "")}/api/stats/${endpoint}`,
       {
         headers: { "X-FTL-SID": sid },
         httpsAgent,
@@ -40,7 +44,7 @@ export async function GET(req: NextRequest) {
       typeof err === "object" && err && "response" in err
         ? (err as { response?: { status?: number } }).response?.status ?? 500
         : 500;
-    console.error("Erro ao buscar resumo:", message);
+    console.error("Erro ao buscar dados:", message);
     return NextResponse.json({ error: message }, { status });
   }
 }

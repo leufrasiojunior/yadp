@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { SummaryCard } from "@/components/features/summary/SummaryCard"
 import type { PiholeConfig, Summary } from "@/types/api/summary"
+import type { HistoryEntry } from "@/types/api/history"
 import type { AuthData } from "@/services/pihole/auth"
 import { login } from "@/services/pihole/auth"
 import { FaChartPie, FaBan, FaPercent, FaGlobe } from "react-icons/fa"
@@ -37,7 +38,6 @@ export default function SummaryPage() {
 
         let total = 0
         let blocked = 0
-        let unique = 0
 
         for (const { url, password } of piholes) {
           let creds = storedAuth[url]
@@ -52,34 +52,36 @@ export default function SummaryPage() {
             }
           }
 
-          let summaryRes = await fetch(
-            `/api/stats/summary?url=${encodeURIComponent(url)}`,
+          let historyRes = await fetch(
+            `/api/stats/history?url=${encodeURIComponent(url)}`,
             { headers: { "X-FTL-SID": creds.sid } }
           )
 
           // Se retornou 401, tenta reautenticar e refazer a chamada
-          if (summaryRes.status === 401) {
+          if (historyRes.status === 401) {
             try {
               creds = await login(url, password)
               storedAuth[url] = creds
               localStorage.setItem("piholesAuth", JSON.stringify(storedAuth))
-              summaryRes = await fetch(
-                `/api/stats/summary?url=${encodeURIComponent(url)}`,
+              historyRes = await fetch(
+                `/api/stats/history?url=${encodeURIComponent(url)}`,
                 { headers: { "X-FTL-SID": creds.sid } }
               )
             } catch {
-              throw new Error(`Falha ao obter summary de ${url}`)
+              throw new Error(`Falha ao obter histórico de ${url}`)
             }
           }
 
-          if (!summaryRes.ok) {
-            throw new Error(`Falha ao obter summary de ${url}`)
+          if (!historyRes.ok) {
+            throw new Error(`Falha ao obter histórico de ${url}`)
           }
 
-          const data = (await summaryRes.json()) as Summary
-          total += data.queries.total
-          blocked += data.queries.blocked
-          unique += data.queries.unique_domains
+          const data = (await historyRes.json()) as { history: HistoryEntry[] }
+          const last = data.history.at(-1)
+          if (last) {
+            total += last.total
+            blocked += last.blocked
+          }
         }
 
         const percent_blocked = total > 0 ? (blocked * 100) / total : 0
@@ -88,7 +90,7 @@ export default function SummaryPage() {
             total,
             blocked,
             percent_blocked,
-            unique_domains: unique,
+            unique_domains: 0,
           },
         })
       } catch (e) {
