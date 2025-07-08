@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { usePiholeAuth } from "@/context/PiholeAuthContext"
+import HistoryBarChart from "./HistoryBarChart"
 
 export type HistoryEntry = {
     timestamp: number
@@ -77,7 +78,8 @@ export default function HistoryViewer() {
         <div className="space-y-6 p-4">
             {Object.entries(histories).map(([url, history]) => (
                 <div key={url} className="border rounded-lg p-4">
-                    <h4 className="text-lg font-medium">Histórico de {url}</h4>
+                    <h4 className="text-lg font-medium mb-4">Histórico de {url}</h4>
+                    <HistoryBarChart history={history} className="mb-4" />
                     <ul className="list-disc ml-5">
                         {history.map((entry, idx) => (
                             <li key={idx}>
