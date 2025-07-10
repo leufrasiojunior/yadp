@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.525.0",
     "next": "15.3.4",
     "next-intl": "^4.3.1",
@@ -31,6 +32,7 @@
     "react-flagkit": "^2.0.4",
     "react-hook-form": "^7.59.0",
     "react-icons": "^5.5.0",
+    "recharts": "^3.1.0",
     "tailwind-merge": "^3.3.1",
     "zod": "^3.25.67"
   },
