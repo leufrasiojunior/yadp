@@ -14,6 +14,7 @@ export default function HomePage() {
         <option value="en">English</option>
         <option value="de">Deutsch</option>
       </LocaleSwitcherSelect>
+      <div className='w-full p-0 bg-amber-600'><h1>teste</h1></div>
     </div>
   );
 }
