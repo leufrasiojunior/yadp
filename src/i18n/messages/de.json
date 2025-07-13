@@ -1,0 +1,11 @@
+{
+    "HomePage": {
+        "title": "Hallo Welt!",
+        "about": "Gehe zur Über-Seite"
+    },
+    "AboutPage": {
+        "title": "Über Yapd",
+        "description": "Yapd ist ein einfaches und leistungsstarkes Tool zur Verwaltung deiner täglichen Aufgaben und Projekte.",
+        "about": "Gehe zur Über-Seite"
+    }
+}
