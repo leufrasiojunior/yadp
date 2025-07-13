@@ -7,5 +7,14 @@
         "title": "About Yapd",
         "description": "Yapd is a simple and powerful tool for managing your daily tasks and projects.",
         "about": "Go to the about page"
+    },
+    "Login": {
+        "title": "Login to YAPD",
+        "password": "Password",
+        "password_placeholder": "Your password",
+        "button": "Login",
+        "error": "Invalid password",
+        "loading": "Loading...",
+        "forgot": "Forgot password?"
     }
 }
