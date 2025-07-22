@@ -4,19 +4,7 @@ import { useParams } from "next/navigation";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-
-const LOCALE_OPTIONS = [
-  {
-    value: "en",
-    label: "English",
-    flag: "🇺🇸"
-  },
-  {
-    value: "pt-br", 
-    label: "Português",
-    flag: "🇧🇷"
-  }
-];
+import { localeLanguages, getFlagEmoji } from "@/config/locales";
 
 export function LocaleSwitcher() {
   const router = useRouter();
@@ -36,11 +24,11 @@ export function LocaleSwitcher() {
           <SelectValue placeholder="Language" />
         </SelectTrigger>
         <SelectContent>
-          {LOCALE_OPTIONS.map((locale) => (
-            <SelectItem key={locale.value} className="text-xs" value={locale.value}>
+          {localeLanguages.map((language) => (
+            <SelectItem key={language.value} className="text-xs" value={language.value}>
               <div className="flex items-center gap-2">
-                <span className="text-sm">{locale.flag}</span>
-                <span>{locale.label}</span>
+                <span className="text-sm">{getFlagEmoji(language.code)}</span>
+                <span>{language.label}</span>
               </div>
             </SelectItem>
           ))}
