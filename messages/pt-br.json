@@ -1,0 +1,26 @@
+{
+  "dashboard": {
+    "cards": {
+      "totalRevenue": {
+        "title": "Receita Total",
+        "trending": "Tendência de alta este mês",
+        "description": "Visitantes nos últimos 6 meses"
+      },
+      "newCustomers": {
+        "title": "Novos Clientes", 
+        "trending": "Queda de 20% neste período",
+        "description": "Aquisição precisa de atenção"
+      },
+      "activeAccounts": {
+        "title": "Contas Ativas",
+        "trending": "Forte retenção de usuários", 
+        "description": "Engajamento supera metas"
+      },
+      "growthRate": {
+        "title": "Taxa de Crescimento",
+        "trending": "Aumento constante de performance",
+        "description": "Atende projeções de crescimento"
+      }
+    }
+  }
+}
