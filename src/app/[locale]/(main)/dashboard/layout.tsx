@@ -40,8 +40,8 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
   };
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar variant={sidebarVariant} collapsible={sidebarCollapsible} />
+    <SidebarProvider defaultOpen={defaultOpen} suppressHydrationWarning>
+      <AppSidebar variant={sidebarVariant} collapsible={sidebarCollapsible} suppressHydrationWarning />
       <SidebarInset
         data-content-layout={contentLayout}
         className={cn(
@@ -50,7 +50,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
           // On wider screens with collapsed sidebar, removes margin and sets margin auto for alignment.
           "max-[113rem]:peer-data-[variant=inset]:!mr-2 min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:!mr-auto",
         )}
-      >
+        suppressHydrationWarning>
         <header className="flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex w-full items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-1 lg:gap-2">

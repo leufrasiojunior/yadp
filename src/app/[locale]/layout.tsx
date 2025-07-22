@@ -51,8 +51,8 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className={`${inter.className} min-h-screen antialiased`} suppressHydrationWarning>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
+        <NextIntlClientProvider locale={locale} messages={messages} >
+          <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset} >
             {children}
             <Toaster />
           </PreferencesStoreProvider>
