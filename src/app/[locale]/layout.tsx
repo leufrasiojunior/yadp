@@ -22,15 +22,15 @@ export const metadata: Metadata = {
   description: APP_CONFIG.meta.description,
 };
 
-export default async function RootLayout({ 
-  children, 
-  params 
-}: { 
+export default async function RootLayout({
+  children,
+  params
+}: {
   children: ReactNode;
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  
+
   // Ensure that the incoming `locale` is valid
   if (!hasLocale(routing.locales, locale)) {
     notFound();
@@ -50,7 +50,7 @@ export default async function RootLayout({
       data-theme-preset={themePreset}
       suppressHydrationWarning
     >
-      <body className={`${inter.className} min-h-screen antialiased`}>
+      <body className={`${inter.className} min-h-screen antialiased`} suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
             {children}
