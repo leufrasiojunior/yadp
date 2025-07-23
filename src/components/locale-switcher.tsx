@@ -1,10 +1,12 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useRouter, usePathname } from "@/i18n/navigation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { localeLanguages, getFlagEmoji } from "@/config/locales";
+import { useRouter, usePathname } from "@/i18n/navigation";
+import { setValueToCookie } from "@/server/server-actions";
 
 export function LocaleSwitcher() {
   const router = useRouter();
@@ -12,7 +14,11 @@ export function LocaleSwitcher() {
   const params = useParams();
   const currentLocale = params.locale as string;
 
-  const handleLocaleChange = (locale: string) => {
+  const handleLocaleChange = async (locale: string) => {
+    // Save locale preference to cookie
+    await setValueToCookie("locale", locale);
+
+    // Navigate to new locale
     router.replace(pathname, { locale });
   };
 

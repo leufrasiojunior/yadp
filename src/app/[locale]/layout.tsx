@@ -2,13 +2,14 @@ import { ReactNode } from "react";
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { notFound } from "next/navigation";
+
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
 
 import { Toaster } from "@/components/ui/sonner";
 import { APP_CONFIG } from "@/config/app-config";
+import { routing } from "@/i18n/routing";
 import { getPreference } from "@/server/server-actions";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
 import { THEME_MODE_VALUES, THEME_PRESET_VALUES, type ThemePreset, type ThemeMode } from "@/types/preferences/theme";
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-  params
+  params,
 }: {
   children: ReactNode;
   params: Promise<{ locale: string }>;
@@ -41,6 +42,10 @@ export default async function RootLayout({
 
   const themeMode = await getPreference<ThemeMode>("theme_mode", THEME_MODE_VALUES, "light");
   const themePreset = await getPreference<ThemePreset>("theme_preset", THEME_PRESET_VALUES, "default");
+
+  // Get saved locale preference from cookie
+  // const savedLocale = await getPreference<string>("locale", ["en", "pt-br"], "pt-br");
+
   const messages = await getMessages();
 
   return (
@@ -51,8 +56,8 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className={`${inter.className} min-h-screen antialiased`} suppressHydrationWarning>
-        <NextIntlClientProvider locale={locale} messages={messages} >
-          <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset} >
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
             {children}
             <Toaster />
           </PreferencesStoreProvider>
