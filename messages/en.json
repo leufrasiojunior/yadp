@@ -7,13 +7,13 @@
         "description": "Visitors for the last 6 months"
       },
       "newCustomers": {
-        "title": "New Customers", 
+        "title": "New Customers",
         "trending": "Down 20% this period",
         "description": "Acquisition needs attention"
       },
       "activeAccounts": {
         "title": "Active Accounts",
-        "trending": "Strong user retention", 
+        "trending": "Strong user retention",
         "description": "Engagement exceed targets"
       },
       "growthRate": {
@@ -22,5 +22,45 @@
         "description": "Meets growth projections"
       }
     }
+  },
+  "Setup": {
+    "title": "Setup YAPD - Yet Another Pi-hole Dashboard",
+    "language": "Language",
+    "description": "Follow the steps to configure your dashboard. Step {step} of 4.",
+    "step1_title": "Welcome to YAPD!",
+    "step1_description": "This setup wizard will guide you through the configuration process.",
+    "step1_instruction": "Click the \"Next\" button to begin.",
+    "step2_pihole_url": "Pi-hole URL",
+    "step2_pihole_url_placeholder": "https://pi.hole",
+    "step2_pihole_url_description": "The address of your Pi-hole admin interface.",
+    "step2_password": "Password",
+    "step2_password_placeholder": "Your secret",
+    "step2_password_description": "Enter your Pi-hole admin password.",
+    "step2_pihole_url_error": "Please enter a valid URL.",
+    "step2_password_error": "Password is required.",
+    "step2_same_password": "Use the same password for all URLs",
+    "step2_add_url": "Add URL",
+    "step2_remove_url": "Remove",
+    "step2_primary_url": "Primary URL",
+    "step2_primary_placeholder": "Choose URL",
+    "step2_primary_description": "Select which Pi-hole will be the main one.",
+    "step2_primary_error": "Choose a valid URL.",
+    "step3_use_pihole": "Use main Pi-hole password for login",
+    "step3_yapd_password": "YAPD Password",
+    "step3_yapd_password_placeholder": "Your YAPD password",
+    "step3_password_error": "Password is required.",
+    "step4_title": "Configuration Complete!",
+    "step4_description": "You have successfully configured your dashboard.",
+    "step4_instruction": "Click \"Finish\" to be redirected to the main page.",
+    "back_button": "Back",
+    "next_button": "Next",
+    "finish_button": "Finish",
+    "loading": "Loading configuration...",
+    "needs_confirmation": "A previous configuration already exists. Do you want to redo the setup?",
+    "confirm_button": "Yes, redo",
+    "cancel_button": "No, keep",
+    "warning": "Warning",
+    "pihole_max_error": "You can add a maximum of 5 Pi-hole URLs.",
+    "pihole_min_error": "You must add at least 1 Pi-hole URL."
   }
 }
