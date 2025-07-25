@@ -19,7 +19,6 @@ type Step2Props = {
 };
 
 export default function Step2({ form, fields, append, remove, t }: Step2Props) {
-  console.log(form);
   return (
     <Form {...form}>
       <form className="space-y-6">

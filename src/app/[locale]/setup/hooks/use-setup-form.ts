@@ -1,12 +1,16 @@
+// Importa o resolver do Zod para o React Hook Form
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl"; // Importamos o useTranslations do next-intl
+// Importa o hook de traduções do next-intl
+import { useTranslations } from "next-intl";
+// Importa os hooks useForm e useFieldArray do React Hook Form
 import { useForm, useFieldArray } from "react-hook-form";
-import { z } from "zod"; // Importamos 'z' da Zod. 'ZodIssueCode' não é mais necessário aqui.
+// Importa o Zod para validação de esquemas
+import { z } from "zod";
 
 // ❗ Função para construir o esquema com validações personalizadas (superRefine)
 // Esta função é exportada para que seus tipos possam ser inferidos externamente.
 // O 't' é uma função de tradução, usada para mensagens de erro localizadas.
-export function createSetupFormSchema(t: (k: string) => string) {
+export function createSetupFormSchema(t: (key: string) => string) {
   // Esquema base para uma única entrada Pi-hole
   // Definido dentro desta função para ter acesso a 't'
   const PiholeSchema = z.object({
@@ -18,10 +22,15 @@ export function createSetupFormSchema(t: (k: string) => string) {
   // Definido dentro desta função para ter acesso a 't'
   const SetupSchemaBase = z.object({
     samePassword: z.boolean().default(true), // Indica se todos os Pi-holes usam a mesma senha
-    piholes: z.array(PiholeSchema).min(1, t("pihole_min_error")).max(5, t("pihole_max_error")), // Um array de Pi-holes, com limite de 1 a 5, usando 't'
-    primaryIndex: z.number().int().default(0), // Índice do Pi-hole primário (inteiro)
+    piholes: z.array(PiholeSchema).min(1, t("pihole_min_error")).max(5, t("pihole_max_error")), // Um array de Pi-holes, com limite de 1 a 5
+    primaryIndex: z.number().int().default(0), // Índice do Pi-hole primário
     usePiholeAuth: z.boolean().default(true), // Indica se a autenticação do Pi-hole será usada
     yapdPassword: z.string().optional().default(""), // Senha para o YAPD (Yet Another Pi-hole Dashboard)
+    themePreset: z.string().default("default"), // Tema de cores
+    themeMode: z.string().default("dark"), // Modo do tema (claro ou escuro)
+    sidebarVariant: z.string().default("sidebar"), // Variante da barra lateral
+    sidebarCollapsible: z.string().default("icon"), // Comportamento de recolhimento da barra lateral
+    contentLayout: z.string().default("full-width"), // Layout do conteúdo
   });
 
   // Usamos superRefine para adicionar validações personalizadas que dependem de vários campos
@@ -32,9 +41,8 @@ export function createSetupFormSchema(t: (k: string) => string) {
       if (!data.samePassword || idx === 0) {
         // Verifica se a senha do Pi-hole está vazia ou contém apenas espaços em branco
         if (!item.password || item.password.trim().length === 0) {
-          // Adiciona um erro personalizado ao contexto de validação
           ctx.addIssue({
-            code: "custom", // Usamos a string literal "custom" em vez de ZodIssueCode.custom
+            code: "custom", // Usamos a string literal "custom"
             message: t("step2_password_error"), // Mensagem de erro traduzida
             path: ["piholes", idx, "password"], // Caminho do campo onde o erro ocorreu
           });
@@ -66,7 +74,6 @@ export function createSetupFormSchema(t: (k: string) => string) {
 
 // ⛑ Tipos separados corretamente para entrada e saída do formulário
 // Estes tipos são inferidos do retorno de 'createSetupFormSchema' e exportados.
-// Usamos um 't' dummy para inferência de tipo, pois 't' só é resolvido em tempo de execução.
 export type DummyT = (key: string) => string;
 export type SetupFormSchema = ReturnType<typeof createSetupFormSchema>;
 export type SetupFormInput = z.input<SetupFormSchema>;
@@ -74,14 +81,14 @@ export type SetupFormOutput = z.infer<SetupFormSchema>;
 
 // Hook personalizado para gerenciar o formulário de configuração
 export function useSetupForm() {
-  const t = useTranslations("Setup"); // Obtemos a função de tradução diretamente aqui
+  const t = useTranslations("Setup");
 
   // Constrói o esquema de validação usando a função de tradução
-  const schema = createSetupFormSchema(t); // Chamamos a função exportada para obter o esquema
+  const schema = createSetupFormSchema(t);
 
   // Inicializa o hook useForm do React Hook Form
   const form = useForm<SetupFormInput, unknown, SetupFormOutput>({
-    resolver: zodResolver(schema), // Integra o Zod com o React Hook Form para validação
+    resolver: zodResolver(schema),
     defaultValues: {
       // Define os valores padrão do formulário
       samePassword: true,
@@ -89,15 +96,19 @@ export function useSetupForm() {
       primaryIndex: 0,
       usePiholeAuth: true,
       yapdPassword: "",
+      themePreset: "default",
+      themeMode: "dark",
+      sidebarVariant: "sidebar",
+      sidebarCollapsible: "icon",
+      contentLayout: "full-width",
     },
   });
 
   // Hook useFieldArray para gerenciar dinamicamente o array de Pi-holes
   const { fields, append, remove } = useFieldArray({
-    control: form.control, // Passa o controle do formulário
-    name: "piholes", // Nome do campo array que será gerenciado
+    control: form.control,
+    name: "piholes",
   });
 
-  // Retorna o objeto do formulário, os campos do array, e as funções para adicionar/remover Pi-holes
   return { form, fields, append, remove };
 }
