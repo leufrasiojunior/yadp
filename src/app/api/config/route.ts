@@ -1,0 +1,70 @@
+// src/app/api/config/route.ts
+import crypto from "crypto";
+import { promises as fs } from "fs";
+import path from "path";
+
+import { NextRequest, NextResponse } from "next/server";
+
+const CONFIG_DIR = path.resolve(process.cwd(), process.env.CONFIG_DIR ?? "config");
+const CONFIG_PATH = path.join(CONFIG_DIR, "setup.json");
+const ALGO = "aes-256-cbc";
+
+// Derive key e IV a partir de uma “senha-mestra” em env var
+const MASTER_KEY = crypto.scryptSync(process.env.CONFIG_SECRET!, "salt", 32);
+const IV = Buffer.alloc(16, 0); // para produção, gere um IV random e salve junto
+
+export async function GET() {
+  const filePath = path.join(process.cwd(), "config", "setup.json");
+  let hasPiholesConfig = false;
+
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    const data = JSON.parse(raw);
+
+    // Verifica se existe um array "piholes" com ao menos um objeto
+    hasPiholesConfig =
+      Array.isArray(data.piholes) &&
+      data.piholes.length > 0 &&
+      data.piholes.every(
+        (item: { url?: unknown; password?: unknown }) =>
+          typeof item === "object" && "url" in item && "password" in item,
+      );
+  } catch {
+    // Se não existir o arquivo, ou JSON inválido, considera "sem config"
+    hasPiholesConfig = false;
+  }
+
+  return NextResponse.json({ hasPiholesConfig });
+}
+
+export async function POST(req: NextRequest) {
+  const { piholes, mainUrl, usePiholeAuth, yapdPassword } = await req.json();
+
+  const encrypted = piholes.map((item: { url: string; password: string }) => {
+    const cipher = crypto.createCipheriv(ALGO, MASTER_KEY, IV);
+    let enc = cipher.update(item.password, "utf8", "hex");
+    enc += cipher.final("hex");
+    return { url: item.url, password: enc };
+  });
+
+  const configObj: Record<string, unknown> = {
+    piholes: encrypted,
+    mainUrl,
+    usePiholeAuth,
+  };
+
+  if (!usePiholeAuth && yapdPassword) {
+    const cipher = crypto.createCipheriv(ALGO, MASTER_KEY, IV);
+    let enc = cipher.update(yapdPassword, "utf8", "hex");
+    enc += cipher.final("hex");
+    configObj.yapdPassword = enc;
+  }
+
+  // garante que o diretório existe
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  await fs.mkdir(CONFIG_DIR, { recursive: true });
+  // grava o JSON formatado
+  await fs.writeFile(CONFIG_PATH, JSON.stringify(configObj, null, 2), "utf8");
+
+  return NextResponse.json({ ok: true });
+}
