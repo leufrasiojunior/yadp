@@ -18,6 +18,7 @@ export default function middleware(request: NextRequest) {
   if (savedLocale && routing.locales.includes(savedLocale)) {
     // Check if the current path doesn't already have a locale
     const pathname = request.nextUrl.pathname;
+    console.log("Current pathname:", pathname);
     const hasLocale = routing.locales.some((locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`);
 
     // If no locale in path and we have a saved preference, redirect

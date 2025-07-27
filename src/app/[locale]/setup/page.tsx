@@ -13,8 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import Step1 from "./_components/step1";
 import Step2 from "./_components/step2";
 import Step3 from "./_components/step3";
-import Step4 from "./_components/step4";
-import Step5 from "./_components/step5"; // Importa o novo componente da etapa 5
+import Step5 from "./_components/step4"; // Importa o novo componente da etapa 5
+import Step4 from "./_components/step5";
 import { useSetupForm } from "./hooks/use-setup-form";
 
 export default function SetupYadp() {
@@ -158,8 +158,8 @@ export default function SetupYadp() {
             <Step2 form={form} fields={fields} append={() => append({ url: "", password: "" })} remove={remove} t={t} />
           )}
           {step === 3 && <Step3 form={form} t={t} />}
-          {step === 4 && <Step4 />}
-          {step === 5 && <Step5 form={form} t={t} />}
+          {step === 4 && <Step5 form={form} t={t} />}
+          {step === 5 && <Step4 />}
         </CardContent>
         <Separator />
         <CardFooter className="flex justify-between p-6">

@@ -11,17 +11,17 @@ const nextConfig = {
     return [
       {
         source: "/dashboard",
-        destination: "/pt-br/dashboard/default",
+        destination: "/",
         permanent: false,
       },
       {
         source: "/pt-br/dashboard",
-        destination: "/pt-br/dashboard/default",
+        destination: "/",
         permanent: false,
       },
       {
         source: "/en/dashboard",
-        destination: "/en/dashboard/default",
+        destination: "/",
         permanent: false,
       },
     ];

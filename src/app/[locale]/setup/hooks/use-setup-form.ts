@@ -26,6 +26,7 @@ export function createSetupFormSchema(t: (key: string) => string) {
     primaryIndex: z.number().int().default(0), // Índice do Pi-hole primário
     usePiholeAuth: z.boolean().default(true), // Indica se a autenticação do Pi-hole será usada
     yapdPassword: z.string().optional().default(""), // Senha para o YAPD (Yet Another Pi-hole Dashboard)
+    language: z.string().default("en"), // Idioma de exibição padrão
     themePreset: z.string().default("default"), // Tema de cores
     themeMode: z.string().default("dark"), // Modo do tema (claro ou escuro)
     sidebarVariant: z.string().default("sidebar"), // Variante da barra lateral
@@ -65,7 +66,7 @@ export function createSetupFormSchema(t: (key: string) => string) {
         ctx.addIssue({
           code: "custom", // Usamos a string literal "custom"
           message: t("step3_password_error"), // Mensagem de erro traduzida
-          path: ["yapdPassword"], // Caminho do campo onde o erro ocorreu
+          path: ["yapdPassword"], // Caminho do campo onde o erro foi encontrado
         });
       }
     }
@@ -96,6 +97,7 @@ export function useSetupForm() {
       primaryIndex: 0,
       usePiholeAuth: true,
       yapdPassword: "",
+      language: "en",
       themePreset: "default",
       themeMode: "dark",
       sidebarVariant: "sidebar",
