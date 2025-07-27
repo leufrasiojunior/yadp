@@ -8,10 +8,16 @@ export default async function LocalePage({ params }: { params: Promise<{ locale:
   const cookieStore = await cookies();
   const savedLocale = cookieStore.get("locale")?.value;
 
-  // If user has a different saved preference, redirect to that
   if (savedLocale && savedLocale !== locale && routing.locales.includes(savedLocale)) {
     redirect(`/${savedLocale}/dashboard/default`);
   }
 
-  redirect(`/${locale}/dashboard/default`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/config`, { cache: "no-store" });
+  const json = await res.json();
+
+  if (json.hasPiholesConfig == false) {
+    redirect(`/${locale}/setup`);
+  }
+
+  redirect(`/${locale}/login`);
 }

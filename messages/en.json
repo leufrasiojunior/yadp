@@ -78,5 +78,14 @@
     "warning": "Warning",
     "pihole_max_error": "You can add a maximum of 5 Pi-hole URLs.",
     "pihole_min_error": "You must add at least 1 Pi-hole URL."
+  },
+  "Login": {
+    "title": "Log in to YAPD",
+    "password": "Password",
+    "password_placeholder": "Your password",
+    "button": "Log In",
+    "error": "Invalid password",
+    "loading": "Loading...",
+    "forgot": "Forgot password?"
   }
 }

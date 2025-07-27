@@ -78,5 +78,14 @@
     "warning": "Aviso",
     "pihole_max_error": "Você pode adicionar no máximo 5 URLs do Pi-hole.",
     "pihole_min_error": "Você deve adicionar pelo menos 1 URL do Pi-hole."
+  },
+  "Login": {
+    "title": "Entrar no YAPD",
+    "password": "Senha",
+    "password_placeholder": "Sua senha",
+    "button": "Entrar",
+    "error": "Senha inválida",
+    "loading": "Carregando...",
+    "forgot": "Esqueceu a senha?"
   }
 }
