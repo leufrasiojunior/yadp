@@ -1,23 +1,47 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
 
+import { useEffect, useState } from "react";
+
+import { useRouter } from "next/navigation";
+
+import { useLocale } from "next-intl";
+
+import { AuthGuard } from "@/components/auth-guard";
 import { routing } from "@/i18n/routing";
 
-export default async function LocalePage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-  const cookieStore = await cookies();
-  const savedLocale = cookieStore.get("locale")?.value;
+export default function LocalePage() {
+  const router = useRouter();
+  const locale = useLocale();
+  const [loading, setLoading] = useState(true);
 
-  if (savedLocale && savedLocale !== locale && routing.locales.includes(savedLocale)) {
-    redirect(`/${savedLocale}/dashboard/default`);
+  useEffect(() => {
+    async function checkConfig() {
+      const res = await fetch("/api/config");
+      const json = await res.json();
+
+      if (!json.hasPiholesConfig) {
+        router.push(`/${locale}/setup`);
+      } else {
+        const savedLocale = localStorage.getItem("locale");
+        if (savedLocale && savedLocale !== locale && routing.locales.includes(savedLocale)) {
+          router.push(`/${savedLocale}/dashboard/default`);
+        } else {
+          router.push(`/${locale}/dashboard/default`);
+        }
+      }
+      setLoading(false);
+    }
+
+    checkConfig();
+  }, [router, locale]);
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/config`, { cache: "no-store" });
-  const json = await res.json();
-
-  if (json.hasPiholesConfig == false) {
-    redirect(`/${locale}/setup`);
-  }
-
-  redirect(`/${locale}/login`);
+  return (
+    <AuthGuard>
+      <></>
+    </AuthGuard>
+  );
 }

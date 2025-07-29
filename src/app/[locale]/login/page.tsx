@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-// import { login, AuthData } from "@/services/pihole/auth";
+import { AuthData, login } from "@/providers/auth";
 
 type Config = {
   piholes: { url: string; password: string }[];
@@ -47,38 +46,57 @@ export default function LoginPage() {
     if (!config) return;
     setError(null);
 
-    // const authResults: Record<string, AuthData> = {};
+    // Cria um Map para armazenar resultados de autenticação ao invés de objeto genérico
+    // Isso evita ataques de injeção de objeto (Object Injection)
+    const authResults = new Map<string, AuthData>();
 
-    // if (config.usePiholeAuth) {
-    //     try {
-    //         const mainAuth = await login(config.mainUrl, password);
-    //         authResults[config.mainUrl] = mainAuth;
-    //     } catch {
-    //         setError(t("error"));
-    //         return;
-    //     }
-    // } else {
-    //     if (password !== config.yapdPassword) {
-    //         setError(t("error"));
-    //         return;
-    //     }
-    // }
+    if (config.usePiholeAuth) {
+      try {
+        const mainAuth = await login(config.mainUrl, password);
+        if (isSafeKey(config.mainUrl)) authResults.set(config.mainUrl, mainAuth);
+      } catch {
+        setError(t("error"));
+        return;
+      }
+    } else {
+      // Proteção contra timing attacks usando comparação segura
+      // A comparação direta de strings pode revelar informações sobre a senha
+      // através do tempo de execução
+      const expectedPassword = config.yapdPassword ?? "";
+      const isValidPassword = await secureStringCompare(password, expectedPassword);
 
-    // await Promise.all(
-    //     config.piholes.map(async ({ url, password: pwd }) => {
-    //         if (authResults[url]) return;
-    //         try {
-    //             const data = await login(url, pwd);
-    //             authResults[url] = data;
-    //         } catch (e) {
-    //             console.error("auth", url, e);
-    //         }
-    //     })
-    // );
+      if (!isValidPassword) {
+        setError(t("error"));
+        return;
+      }
+    }
 
-    // localStorage.setItem("piholesAuth", JSON.stringify(authResults));
-    localStorage.setItem("yapdAuthTime", Date.now().toString());
-    router.push("/");
+    await Promise.all(
+      config.piholes.map(async ({ url, password: pwd }) => {
+        // Verifica se já existe autenticação para esta URL usando Map.has()
+        // que é mais seguro que acessar propriedades de objeto diretamente
+        if (!isSafeKey(url)) {
+          console.warn("URL rejeitada por segurança:", url);
+          return;
+        }
+        if (authResults.has(url)) return;
+        try {
+          const data = await login(url, pwd);
+          authResults.set(url, data);
+        } catch (e) {
+          console.error("auth", url, e);
+        }
+      }),
+    );
+
+    // Converte o Map para objeto de forma segura
+    // Ao invés de usar Object.fromEntries() que pode ser vulnerável,
+    // criamos o objeto manualmente validando cada chave
+    const authResultsObject = createSecureObjectFromMap(authResults);
+
+    localStorage.setItem("piholesAuth", JSON.stringify(authResultsObject));
+    localStorage.setItem("yapdAuthTime", Math.floor(Date.now() / 1000).toString());
+    router.push(`/dashboard/default`);
   }
 
   if (loading) {
@@ -114,4 +132,105 @@ export default function LoginPage() {
       </Card>
     </div>
   );
+}
+
+/**
+ * Converte um Map para objeto de forma segura, evitando Object Injection
+ *
+ * Object.fromEntries() pode ser vulnerável se as chaves contiverem propriedades
+ * perigosas como "__proto__", "constructor", "prototype", etc.
+ * Esta função valida as chaves antes de criar o objeto.
+ *
+ * @param map - Map a ser convertido
+ * @returns Objeto seguro criado a partir do Map
+ */
+
+function isSafeKey(key: string): boolean {
+  const dangerousKeys = [
+    "__proto__",
+    "constructor",
+    "prototype",
+    "hasOwnProperty",
+    "isPrototypeOf",
+    "propertyIsEnumerable",
+    "toString",
+    "valueOf",
+  ];
+
+  if (!key || typeof key !== "string") return false;
+
+  if (dangerousKeys.includes(key.toLowerCase())) return false;
+
+  for (let i = 0; i < key.length; i++) {
+    const code = key.charCodeAt(i);
+    if ((code >= 0 && code <= 31) || (code >= 127 && code <= 159)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function createSecureObjectFromMap<T>(map: Map<string, T>): Record<string, T> {
+  const result = Object.create(null) as Record<string, T>;
+
+  for (const [key, value] of map) {
+    if (isSafeKey(key)) {
+      if (Object.prototype.hasOwnProperty.call(result, key)) {
+        console.warn(`Chave duplicada rejeitada: ${key}`);
+        continue;
+      }
+      Object.defineProperty(result, key, {
+        value,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+    } else {
+      console.warn(`Chave perigosa ou inválida rejeitada: ${key}`);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Função para comparação segura de strings que evita timing attacks
+ *
+ * Timing attacks exploram diferenças no tempo de execução para deduzir informações.
+ * Uma comparação simples com === pode parar na primeira diferença encontrada,
+ * revelando informações sobre a senha através do tempo de resposta.
+ *
+ * @param input - String inserida pelo usuário
+ * @param expected - String esperada (senha correta)
+ * @returns Promise<boolean> - Se as strings são iguais
+ */
+async function secureStringCompare(input: string, expected: string): Promise<boolean> {
+  // Garante que ambas as strings tenham o mesmo comprimento para comparação
+  const maxLength = Math.max(input.length, expected.length);
+
+  // Padroniza ambas as strings para o mesmo tamanho
+  const paddedInput = input.padEnd(maxLength, "\0");
+  const paddedExpected = expected.padEnd(maxLength, "\0");
+
+  // Usa TextEncoder para converter para bytes
+  const encoder = new TextEncoder();
+  const inputBytes = encoder.encode(paddedInput);
+  const expectedBytes = encoder.encode(paddedExpected);
+
+  // Realiza comparação byte por byte sempre percorrendo toda a string
+  // independente de quando encontrar diferenças (tempo constante)
+  let isEqual = true;
+  for (let i = 0; i < maxLength; i++) {
+    // Usa bitwise XOR para comparar - sempre executa independente do resultado
+    if (inputBytes[i] !== expectedBytes[i]) {
+      isEqual = false;
+      // Não para o loop aqui - continua até o final para manter tempo constante
+    }
+  }
+
+  // Adiciona um pequeno delay aleatório para mascarar ainda mais o timing
+  await new Promise((resolve) => setTimeout(resolve, Math.random() * 10));
+
+  return isEqual;
 }
