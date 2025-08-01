@@ -1,47 +1,14 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useEffect, useState } from "react";
+export default async function LocalePage({ params }: { params: { locale: string } }) {
+  const { locale } = await params;
 
-import { useRouter } from "next/navigation";
+  const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/config`, { cache: "no-store" });
+  const json = await res.json();
 
-import { useLocale } from "next-intl";
-
-import { AuthGuard } from "@/components/auth-guard";
-import { routing } from "@/i18n/routing";
-
-export default function LocalePage() {
-  const router = useRouter();
-  const locale = useLocale();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function checkConfig() {
-      const res = await fetch("/api/config");
-      const json = await res.json();
-
-      if (!json.hasPiholesConfig) {
-        router.push(`/${locale}/setup`);
-      } else {
-        const savedLocale = localStorage.getItem("locale");
-        if (savedLocale && savedLocale !== locale && routing.locales.includes(savedLocale)) {
-          router.push(`/${savedLocale}/dashboard/default`);
-        } else {
-          router.push(`/${locale}/dashboard/default`);
-        }
-      }
-      setLoading(false);
-    }
-
-    checkConfig();
-  }, [router, locale]);
-
-  if (loading) {
-    return <div>Loading...</div>;
+  if (json.hasPiholesConfig == false) {
+    redirect(`/${locale}/setup`);
   }
 
-  return (
-    <AuthGuard>
-      <></>
-    </AuthGuard>
-  );
+  redirect(`/${locale}/login`);
 }

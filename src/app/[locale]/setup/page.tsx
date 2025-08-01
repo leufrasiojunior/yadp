@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { LoadingSpinner } from "@/components/ui/spinner";
 
 import Step1 from "./_components/step1";
 import Step2 from "./_components/step2";
@@ -113,7 +114,7 @@ export default function SetupYadp() {
   if (needsConfirmation === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p>{t("loading")}</p>
+        <LoadingSpinner />
       </div>
     );
   }

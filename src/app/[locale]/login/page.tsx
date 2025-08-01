@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LoadingSpinner } from "@/components/ui/spinner";
 import { AuthData, login } from "@/providers/auth";
 
 type Config = {
@@ -22,11 +23,26 @@ type Config = {
 export default function LoginPage() {
   const t = useTranslations("Login");
   const router = useRouter();
+  const locale = useLocale();
 
   const [password, setPassword] = useState("");
   const [config, setConfig] = useState<Config | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const yapdAuthTime = localStorage.getItem("yapdAuthTime");
+    if (yapdAuthTime) {
+      const authTime = parseInt(yapdAuthTime, 10);
+      const now = Math.floor(Date.now() / 1000);
+      const twentyFourHoursInSeconds = 24 * 60 * 60;
+
+      if (now - authTime < twentyFourHoursInSeconds) {
+        router.push(`/${locale}/dashboard/default`);
+      }
+    }
+  }, [router, locale]);
 
   useEffect(() => {
     async function load() {
@@ -45,7 +61,7 @@ export default function LoginPage() {
   async function handleLogin() {
     if (!config) return;
     setError(null);
-
+    setIsSubmitting(true);
     // Cria um Map para armazenar resultados de autenticação ao invés de objeto genérico
     // Isso evita ataques de injeção de objeto (Object Injection)
     const authResults = new Map<string, AuthData>();
@@ -56,6 +72,7 @@ export default function LoginPage() {
         if (isSafeKey(config.mainUrl)) authResults.set(config.mainUrl, mainAuth);
       } catch {
         setError(t("error"));
+        setIsSubmitting(false);
         return;
       }
     } else {
@@ -64,9 +81,11 @@ export default function LoginPage() {
       // através do tempo de execução
       const expectedPassword = config.yapdPassword ?? "";
       const isValidPassword = await secureStringCompare(password, expectedPassword);
+      setIsSubmitting(false);
 
       if (!isValidPassword) {
         setError(t("error"));
+        setIsSubmitting(false);
         return;
       }
     }
@@ -100,7 +119,11 @@ export default function LoginPage() {
   }
 
   if (loading) {
-    return <p>{t("loading")}</p>;
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   return (
@@ -125,8 +148,8 @@ export default function LoginPage() {
         </CardContent>
 
         <CardFooter>
-          <Button className="w-full" onClick={handleLogin}>
-            {t("button")}
+          <Button className="w-full" onClick={handleLogin} disabled={isSubmitting}>
+            {isSubmitting ? <LoadingSpinner className="mx-auto h-4 w-4" /> : t("button")}
           </Button>
         </CardFooter>
       </Card>
