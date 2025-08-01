@@ -68,6 +68,8 @@
     "step5_offcanvas": "Fora da tela",
     "step5_centered": "Centralizado",
     "step5_full_width": "Largura total",
+    "step5_language": "Idioma de Exibição",
+    "step5_language_description": "Selecione o idioma do painel.",
     "back_button": "Voltar",
     "next_button": "Próximo",
     "finish_button": "Finalizar",

@@ -68,6 +68,8 @@
     "step5_offcanvas": "Fuera del lienzo",
     "step5_centered": "Centrado",
     "step5_full_width": "Ancho completo",
+    "step5_language": "Idioma de visualización",
+    "step5_language_description": "Seleccione el idioma del panel.",
     "back_button": "Volver",
     "next_button": "Siguiente",
     "finish_button": "Finalizar",

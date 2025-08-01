@@ -68,6 +68,8 @@
     "step5_offcanvas": "OffCanvas",
     "step5_centered": "Centered",
     "step5_full_width": "Full Width",
+    "step5_language": "Display Language",
+    "step5_language_description": "Select the language for the dashboard.",
     "back_button": "Back",
     "next_button": "Next",
     "finish_button": "Finish",

@@ -26,12 +26,12 @@ export function createSetupFormSchema(t: (key: string) => string) {
     primaryIndex: z.number().int().default(0), // Índice do Pi-hole primário
     usePiholeAuth: z.boolean().default(true), // Indica se a autenticação do Pi-hole será usada
     yapdPassword: z.string().optional().default(""), // Senha para o YAPD (Yet Another Pi-hole Dashboard)
-    language: z.string().default("en"), // Idioma de exibição padrão
     themePreset: z.string().default("default"), // Tema de cores
     themeMode: z.string().default("dark"), // Modo do tema (claro ou escuro)
     sidebarVariant: z.string().default("sidebar"), // Variante da barra lateral
     sidebarCollapsible: z.string().default("icon"), // Comportamento de recolhimento da barra lateral
     contentLayout: z.string().default("full-width"), // Layout do conteúdo
+    locale: z.string().default("en"), // Idioma de exibição do painel
   });
 
   // Usamos superRefine para adicionar validações personalizadas que dependem de vários campos
@@ -70,6 +70,14 @@ export function createSetupFormSchema(t: (key: string) => string) {
         });
       }
     }
+
+    if (!data.locale || data.locale.trim().length === 0) {
+      ctx.addIssue({
+        code: "custom", // Usamos a string literal "custom"
+        message: t("step5_language_error"), // Mensagem de erro traduzida
+        path: ["locale"], // Caminho do campo onde o erro foi encontrado
+      });
+    }
   });
 }
 
@@ -97,12 +105,12 @@ export function useSetupForm() {
       primaryIndex: 0,
       usePiholeAuth: true,
       yapdPassword: "",
-      language: "en",
       themePreset: "default",
       themeMode: "dark",
       sidebarVariant: "sidebar",
       sidebarCollapsible: "icon",
       contentLayout: "full-width",
+      locale: "en", // Define o idioma de exibição padrão
     },
   });
 

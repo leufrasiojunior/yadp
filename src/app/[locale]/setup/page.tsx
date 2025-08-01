@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/ui/spinner";
+import { setValueToCookie } from "@/server/server-actions";
 
 import Step1 from "./_components/step1";
 import Step2 from "./_components/step2";
 import Step3 from "./_components/step3";
-import Step5 from "./_components/step4"; // Importa o novo componente da etapa 5
+import Step5 from "./_components/step4";
 import Step4 from "./_components/step5";
 import { useSetupForm } from "./hooks/use-setup-form";
 
@@ -71,6 +72,7 @@ export default function SetupYadp() {
       sidebarVariant,
       sidebarCollapsible,
       contentLayout,
+      locale,
     } = form.getValues();
 
     // Formata os dados dos Pi-holes
@@ -82,17 +84,27 @@ export default function SetupYadp() {
     // Obtém a URL do Pi-hole primário
     const mainUrl = piholes[Number(primaryIndex)]?.url ?? "";
 
-    // Cria o payload para a requisição
-    const payload: Record<string, unknown> = {
-      piholes: final,
-      mainUrl,
-      usePiholeAuth,
+    // Garante que themeConfig está definido corretamente
+    const themeConfig = {
       theme_preset: themePreset,
       theme_mode: themeMode,
       sidebar_variant: sidebarVariant,
       sidebar_collapsible: sidebarCollapsible,
       content_layout: contentLayout,
+      NEXT_LOCALE: locale,
     };
+
+    // Cria o payload para a requisição
+    const payload: Record<string, unknown> = {
+      piholes: final,
+      mainUrl,
+      usePiholeAuth,
+      themeConfig,
+    };
+
+    for (const [key, value] of Object.entries(themeConfig)) {
+      await setValueToCookie(key, String(value));
+    }
 
     // Adiciona a senha do YAPD ao payload se a autenticação do Pi-hole não for usada
     if (!usePiholeAuth) {

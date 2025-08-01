@@ -5,6 +5,7 @@ import { UseFormReturn } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { localeLanguages } from "@/config/locales";
 import { THEME_PRESET_OPTIONS } from "@/types/preferences/theme";
 
 import { SetupFormInput, SetupFormOutput } from "../hooks/use-setup-form";
@@ -39,6 +40,23 @@ export default function Step5({ form, t }: Step5Props) {
                       backgroundColor: themeMode === "dark" ? preset.primary.dark : preset.primary.light,
                     }}
                   />
+                  {preset.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs font-medium">{t("step5_language")}</Label>
+          <Select value={form.watch("locale")} onValueChange={(value) => form.setValue("locale", value)}>
+            <SelectTrigger size="sm" className="w-full text-xs">
+              <SelectValue placeholder={t("step5_language")} />
+            </SelectTrigger>
+            <SelectContent>
+              {localeLanguages.map((preset) => (
+                <SelectItem key={preset.value} className="text-xs" value={preset.value}>
+                  <span className="size-2.5 rounded-full" />
                   {preset.label}
                 </SelectItem>
               ))}
