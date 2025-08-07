@@ -1,6 +1,6 @@
 import { JSX } from "react";
 
-import { Info, CheckCircle, AlertTriangle, XCircle, Dot } from "lucide-react";
+import { Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 type ToastType = "info" | "success" | "error" | "warning";
