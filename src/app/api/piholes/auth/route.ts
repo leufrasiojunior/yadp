@@ -107,8 +107,6 @@ function validatePiholeResponse(data: any): NextResponse<ErrorResponse> | null {
  * @returns NextResponse com dados de autenticação
  */
 function createSuccessResponse(sid: string, csrf: string): NextResponse<AuthResponse> {
-  console.log("Autenticação bem-sucedida no Pi-hole");
-
   return NextResponse.json({
     sid,
     csrf,
@@ -204,8 +202,6 @@ function handleError(err: unknown): NextResponse<ErrorResponse> {
  * @returns Dados da resposta do axios
  */
 async function authenticateWithPihole(authEndpoint: string, password: string) {
-  console.log(`Tentando autenticar no Pi-hole: ${authEndpoint}`);
-
   return await axios.post(authEndpoint, { password }, getAxiosConfig());
 }
 

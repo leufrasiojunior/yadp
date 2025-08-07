@@ -18,10 +18,12 @@ export function SectionCards() {
   const { summary, loading, error } = usePiholeSummary();
 
   useEffect(() => {
-    showToast("error", "Failed to fetch Pi-hole summary", error?.message, {
-      label: "Tentar novamente",
-      onClick: () => location.reload(),
-    });
+    if (error) {
+      showToast("error", "Failed to fetch Pi-hole summary", error?.message, {
+        label: "Tentar novamente",
+        onClick: () => location.reload(),
+      });
+    }
   }, [error]);
 
   if (loading) {

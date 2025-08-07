@@ -13,7 +13,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const yapdAuthTime = localStorage.getItem("yapdAuthTime");
-    console.log("AuthGuard: yapdAuthTime:", yapdAuthTime);
     if (yapdAuthTime) {
       const authTime = parseInt(yapdAuthTime, 10);
       const now = Math.floor(Date.now() / 1000);
