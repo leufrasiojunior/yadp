@@ -31,17 +31,17 @@ export function usePiholeSummary() {
             total: totalQueries,
             blocked: totalBlocked,
             percent_blocked: (totalBlocked / totalQueries) * 100,
-            unique_domains: 0, // Not aggregated
-            forwarded: 0, // Not aggregated
-            cached: 0, // Not aggregated
-            frequency: 0, // Not aggregated
-            types: {}, // Not aggregated
-            status: {}, // Not aggregated
-            replies: {}, // Not aggregated
+            unique_domains: 0,
+            forwarded: 0,
+            cached: 0,
+            frequency: 0,
+            types: {},
+            status: {},
+            replies: {},
           },
-          clients: { active: 0, total: 0 }, // Not aggregated
-          gravity: { domains_being_blocked: 0, last_update: 0 }, // Not aggregated
-          took: 0, // Not aggregated
+          clients: { active: 0, total: 0 },
+          gravity: { domains_being_blocked: 0, last_update: 0 },
+          took: 0,
         });
       } catch (error) {
         console.error("Error fetching Pi-hole summary:", error);
