@@ -59,7 +59,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
             {children}
-            <Toaster />
+            <Toaster position="top-center" richColors expand={true} closeButton visibleToasts={5} />
           </PreferencesStoreProvider>
         </NextIntlClientProvider>
       </body>

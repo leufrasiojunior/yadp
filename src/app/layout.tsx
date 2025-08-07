@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className={`${inter.className} min-h-screen antialiased`} suppressHydrationWarning>
         <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
           {children}
-          <Toaster />
+          <Toaster position="top-center" richColors expand={true} closeButton visibleToasts={5} />
         </PreferencesStoreProvider>
       </body>
     </html>

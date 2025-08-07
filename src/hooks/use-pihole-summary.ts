@@ -5,9 +5,11 @@ import { PiholeSummary } from "@/types/pihole";
 export function usePiholeSummary() {
   const [summary, setSummary] = useState<PiholeSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchSummary = async () => {
+      setError(null);
       try {
         const piholesAuth = JSON.parse(localStorage.getItem("piholesAuth") ?? "{}");
         const urls = Object.keys(piholesAuth);
@@ -21,6 +23,12 @@ export function usePiholeSummary() {
               "X-FTL-SID": sid,
             },
           });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: response.statusText }));
+            throw new Error(`Failed to fetch from ${url}: ${errorData.message ?? response.statusText}`);
+          }
+
           const data: PiholeSummary = await response.json();
           totalQueries += data.queries.total;
           totalBlocked += data.queries.blocked;
@@ -30,7 +38,7 @@ export function usePiholeSummary() {
           queries: {
             total: totalQueries,
             blocked: totalBlocked,
-            percent_blocked: (totalBlocked / totalQueries) * 100,
+            percent_blocked: totalQueries > 0 ? (totalBlocked / totalQueries) * 100 : 0,
             unique_domains: 0,
             forwarded: 0,
             cached: 0,
@@ -43,8 +51,8 @@ export function usePiholeSummary() {
           gravity: { domains_being_blocked: 0, last_update: 0 },
           took: 0,
         });
-      } catch (error) {
-        console.error("Error fetching Pi-hole summary:", error);
+      } catch (err: any) {
+        setError(err);
       } finally {
         setLoading(false);
       }
@@ -53,5 +61,5 @@ export function usePiholeSummary() {
     fetchSummary();
   }, []);
 
-  return { summary, loading };
+  return { summary, loading, error };
 }

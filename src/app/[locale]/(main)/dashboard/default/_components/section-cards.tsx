@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { CircleQuestionMark, Globe } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -9,10 +11,18 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/comp
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { usePiholeSummary } from "@/hooks/use-pihole-summary";
+import { showToast } from "@/lib/toast-function";
 
 export function SectionCards() {
   const t = useTranslations("dashboard.cards");
-  const { summary, loading } = usePiholeSummary();
+  const { summary, loading, error } = usePiholeSummary();
+
+  useEffect(() => {
+    showToast("error", "Failed to fetch Pi-hole summary", error?.message, {
+      label: "Tentar novamente",
+      onClick: () => location.reload(),
+    });
+  }, [error]);
 
   if (loading) {
     return (
@@ -86,7 +96,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>{t("queriesPercent.title")}</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {summary?.gravity.domains_being_blocked.toFixed(2)}%
+            {summary?.gravity.domains_being_blocked.toLocaleString()}%
           </CardTitle>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
