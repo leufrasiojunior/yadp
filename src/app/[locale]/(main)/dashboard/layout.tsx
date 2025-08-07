@@ -70,7 +70,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
               </div>
             </div>
           </header>
-          <div className="h-full p-4 md:p-6">{children}</div>
+          <div className="h-full content-center items-center justify-center p-4 md:p-6">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </AuthGuard>

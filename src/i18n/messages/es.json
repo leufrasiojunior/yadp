@@ -1,25 +1,17 @@
 {
   "dashboard": {
     "cards": {
-      "totalRevenue": {
-        "title": "Ingresos Totales",
-        "trending": "Tendencia al alza este mes",
-        "description": "Visitantes en los últimos 6 meses"
+      "queriesTotal": {
+        "title": "Total",
+        "description": "Total de consultas"
       },
-      "newCustomers": {
-        "title": "Nuevos Clientes",
-        "trending": "Caída del 20% en este período",
-        "description": "La adquisición necesita atención"
+      "queriesBlocked": {
+        "title": "Bloqueadas",
+        "description": "Total de elementos bloqueados."
       },
-      "activeAccounts": {
-        "title": "Cuentas Activas",
-        "trending": "Fuerte retención de usuarios",
-        "description": "El engagement supera las metas"
-      },
-      "growthRate": {
-        "title": "Tasa de Crecimiento",
-        "trending": "Aumento constante del rendimiento",
-        "description": "Cumple las proyecciones de crecimiento"
+      "queriesPercent": {
+        "title": "% Bloqueadas",
+        "description": "% Bloqueadas"
       }
     }
   },
