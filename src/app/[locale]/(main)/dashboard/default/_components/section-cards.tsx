@@ -28,15 +28,28 @@ export function SectionCards() {
 
   if (loading) {
     return (
-      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
-        {[...Array(3)].map((_, i) => (
+      <div className=":data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
           <Card key={i} className="@container/card">
-            <CardHeader>
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-8 w-3/4" />
-            </CardHeader>
+            <div className="flex h-full items-center gap-4 p-4">
+              <div className="flex flex-1 flex-col justify-center gap-2">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Badge variant="secondary" className="h-6 bg-transparent px-2">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Skeleton className="" />
+                      </TooltipTrigger>
+                      <Skeleton className="h-4 w-3/4" />
+                    </Tooltip>
+                  </Badge>
+                </div>
+                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                  <Skeleton className="h-6 w-3/4" />
+                </CardTitle>
+                <Skeleton className="h-6 w-3/4" />
+              </div>
+            </div>
           </Card>
         ))}
       </div>
@@ -98,7 +111,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>{t("queriesPercent.title")}</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {summary?.gravity.domains_being_blocked.toLocaleString()}%
+            {summary?.gravity.domains_being_blocked.toLocaleString()}
           </CardTitle>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
