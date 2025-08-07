@@ -3,12 +3,11 @@ import packageJson from "../../package.json";
 const currentYear = new Date().getFullYear();
 
 export const APP_CONFIG = {
-  name: "Studio Admin",
+  name: "YAPD",
   version: packageJson.version,
-  copyright: `© ${currentYear}, Studio Admin.`,
+  copyright: `© ${currentYear}`,
   meta: {
-    title: "Studio Admin - Modern Next.js Dashboard Starter Template",
-    description:
-      "Studio Admin is a modern, open-source dashboard starter template built with Next.js 15, Tailwind CSS v4, and shadcn/ui. Perfect for SaaS apps, admin panels, and internal tools—fully customizable and production-ready.",
+    title: "YAPD - Modern Next.js Dashboard admin interface for Pihole",
+    description: "YAPD - Yet, another PiHole dashborad is a modern interface for PiHole using modern tecnologies",
   },
 };

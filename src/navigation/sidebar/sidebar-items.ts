@@ -36,10 +36,10 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    label: "Dashboards",
+    label: "Main",
     items: [
       {
-        title: "Default",
+        title: "Dashboard",
         url: "/dashboard/default",
         icon: LayoutDashboard,
       },
