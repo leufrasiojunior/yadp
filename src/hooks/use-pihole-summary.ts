@@ -10,6 +10,8 @@ export function usePiholeSummary() {
   useEffect(() => {
     const fetchSummary = async () => {
       setError(null);
+      const piholeEndpoint = "stats/summary";
+
       try {
         const piholesAuth = JSON.parse(localStorage.getItem("piholesAuth") ?? "{}");
         const urls = Object.keys(piholesAuth);
@@ -19,11 +21,14 @@ export function usePiholeSummary() {
 
         for (const url of urls) {
           const sid = piholesAuth[url].sid;
-          const response = await fetch(`/api/pihole-proxy?url=${encodeURIComponent(url)}`, {
-            headers: {
-              "X-FTL-SID": sid,
+          const response = await fetch(
+            `/api/pihole-proxy?url=${encodeURIComponent(url)}&endpoint=${encodeURIComponent(piholeEndpoint)}`,
+            {
+              headers: {
+                "X-FTL-SID": sid,
+              },
             },
-          });
+          );
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: response.statusText }));

@@ -27,3 +27,15 @@ export interface Queries {
   status: { [key: string]: number };
   replies: { [key: string]: number };
 }
+
+export interface HistoryType {
+  history: History[];
+  took: number;
+}
+
+export interface History {
+  timestamp: number;
+  total: number;
+  cached: number;
+  blocked: number;
+}

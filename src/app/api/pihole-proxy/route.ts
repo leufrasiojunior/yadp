@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const piholeUrl = searchParams.get("url");
+  const piholeEndpoint = searchParams.get("endpoint");
   const sid = request.headers.get("X-FTL-SID");
 
   if (!piholeUrl || !sid) {
@@ -10,12 +11,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const response = await fetch(`${piholeUrl}/api/stats/summary`, {
+    console.log("Pihole URL Structure", `${piholeUrl}/api/${piholeEndpoint}`);
+    const response = await fetch(`${piholeUrl}/api/${piholeEndpoint}`, {
       headers: {
         "X-FTL-SID": sid,
       },
     });
-
     if (!response.ok) {
       return NextResponse.json(await response.json(), { status: response.status });
     }
