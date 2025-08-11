@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -17,13 +17,13 @@ const chartConfig = {
   total: {
     label: "total",
   },
-  cached: {
-    label: "Cached",
-    color: "--chart-1",
-  },
   blocked: {
     label: "Blocked",
-    color: "--chart-5",
+    color: "vvar(--chart-5)",
+  },
+  cached: {
+    label: "Cached",
+    color: "var(--chart-1)",
   },
 } satisfies ChartConfig;
 
@@ -99,13 +99,13 @@ export function ChartAreaInteractive() {
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
           <AreaChart data={filteredData}>
             <defs>
-              <linearGradient id="fillCached" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-cached)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-cached)" stopOpacity={0.1} />
-              </linearGradient>
               <linearGradient id="fillBlocked" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-blocked)" stopOpacity={1.0} />
                 <stop offset="95%" stopColor="var(--color-blocked)" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="fillCached" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-cached)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-cached)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
 
@@ -116,10 +116,19 @@ export function ChartAreaInteractive() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value) => new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              tickFormatter={(value) =>
+                new Date(value).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })
+              }
             />
+            <YAxis tickLine={true} axisLine={true} />
             <ChartTooltip
-              cursor={false}
+              cursor={true}
               defaultIndex={isMobile ? -1 : 10}
               content={
                 <ChartTooltipContent
@@ -127,6 +136,9 @@ export function ChartAreaInteractive() {
                     return new Date(value).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
                     });
                   }}
                   indicator="dot"
@@ -134,10 +146,12 @@ export function ChartAreaInteractive() {
               }
             />
             <Area dataKey="cached" type="natural" fill="url(#fillCached)" stroke="var(--chart-1)" stackId="a" />
-            <Area dataKey="blocked" type="natural" fill="url(#fillBlocked)" stroke="var(--chart-5)" stackId="a" />
+            <Area dataKey="blocked" type="natural" fill="url(#fillBlocked)" stroke="var(--chart-5)" stackId="b" />
           </AreaChart>
         </ChartContainer>
       </CardContent>
     </Card>
   );
 }
+
+// cached blocked

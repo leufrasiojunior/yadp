@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 
-import { History, HistoryType } from "@/types/pihole";
+import { formatUnixTime } from "@/lib/utils";
+import { HistoryType } from "@/types/pihole";
 
 export function usePiholeHistory() {
-  const [history, setHistory] = useState<{ date: Date; total: number; cached: number; blocked: number }[]>([]);
+  const [history, setHistory] = useState<{ date: string; total: number; cached: number; blocked: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     setError(null);
-    const piholeEndpoint = "history/database?from=1754449200&until=1754621999";
+    const piholeEndpoint = "history/database?from=1754794800&until=1754881199";
 
     const fetchHistory = async () => {
       try {
@@ -49,12 +50,13 @@ export function usePiholeHistory() {
 
         const chartData = Object.entries(aggregated)
           .map(([timestamp, values]) => ({
-            date: new Date(Number(timestamp) * 1000), // YYYY-MM-DD HH:mm
+            date: formatUnixTime(timestamp ?? 0, "MMMM d, yyyy HH:mm"),
             total: values.total,
             cached: values.cached,
             blocked: values.blocked,
           }))
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        console.log("chartData", chartData);
         setHistory(chartData);
       } catch (err: any) {
         setError(err);
