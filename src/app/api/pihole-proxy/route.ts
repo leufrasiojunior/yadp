@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    console.log("Pihole URL Structure", `${piholeUrl}/api/${piholeEndpoint}`);
     const response = await fetch(`${piholeUrl}/api/${piholeEndpoint}`, {
       headers: {
         "X-FTL-SID": sid,

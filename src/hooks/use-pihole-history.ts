@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { History, HistoryType } from "@/types/pihole";
 
 export function usePiholeHistory() {
-  const [history, setHistory] = useState<{ date: string; total: number; cached: number; blocked: number }[]>([]);
+  const [history, setHistory] = useState<{ date: Date; total: number; cached: number; blocked: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -49,13 +49,12 @@ export function usePiholeHistory() {
 
         const chartData = Object.entries(aggregated)
           .map(([timestamp, values]) => ({
-            date: new Date(Number(timestamp) * 1000).toISOString().replace("T", " ").slice(0, 16), // YYYY-MM-DD HH:mm
+            date: new Date(Number(timestamp) * 1000), // YYYY-MM-DD HH:mm
             total: values.total,
             cached: values.cached,
             blocked: values.blocked,
           }))
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        console.log("chartData", chartData);
         setHistory(chartData);
       } catch (err: any) {
         setError(err);
