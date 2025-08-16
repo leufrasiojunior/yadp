@@ -1,16 +1,32 @@
 import { useEffect, useState } from "react";
 
-import { formatUnixTime } from "@/lib/utils";
+import { getUnixTime, subHours } from "date-fns";
+
 import { HistoryType } from "@/types/pihole";
 
 export function usePiholeHistory() {
-  const [history, setHistory] = useState<{ date: string; total: number; cached: number; blocked: number }[]>([]);
+  const [history, setHistory] = useState<{ date: number; total: number; cached: number; blocked: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     setError(null);
-    const piholeEndpoint = "history/database?from=1754794800&until=1754881199";
+
+    // 1. Pega a data e hora atual
+    const now = new Date();
+
+    // 2. Calcula a data e hora de 24 horas atrás
+    const twentyFourHoursAgo = subHours(now, 24);
+
+    // 3. Converte ambas as datas para timestamp Unix (em segundos)
+    const from = getUnixTime(twentyFourHoursAgo);
+    const until = getUnixTime(now);
+
+    // 4. Monta a URL do endpoint dinamicamente
+    const piholeEndpoint = `history/database?from=${from}&until=${until}`;
+
+    console.log(piholeEndpoint);
+    // Exemplo de saída: "history/database?from=1721757921&until=1721844321"
 
     const fetchHistory = async () => {
       try {
@@ -50,13 +66,12 @@ export function usePiholeHistory() {
 
         const chartData = Object.entries(aggregated)
           .map(([timestamp, values]) => ({
-            date: formatUnixTime(timestamp ?? 0, "MMMM d, yyyy HH:mm"),
+            date: Number(timestamp) * 1000, // Convert Unix seconds to JS milliseconds
             total: values.total,
             cached: values.cached,
             blocked: values.blocked,
           }))
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        console.log("chartData", chartData);
+          .sort((a, b) => a.date - b.date);
         setHistory(chartData);
       } catch (err: any) {
         setError(err);

@@ -13,6 +13,14 @@
         "title": "%Bloqueadas",
         "description": "% Bloqueados"
       }
+    },
+    "historyChart": {
+      "title": "Histórico",
+      "description": "Histórico de requisições das últimas 24 horas.",
+      "description_mobile": "Últimas 24h",
+      "tooltip_total": "Total",
+      "tooltip_blocked": "Bloqueadas",
+      "tooltip_cached": "Em cache"
     }
   },
   "Setup": {

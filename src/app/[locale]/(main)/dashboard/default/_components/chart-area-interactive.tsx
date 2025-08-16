@@ -1,111 +1,91 @@
 "use client";
 
-import * as React from "react";
-
+import { useLocale, useTranslations } from "next-intl";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePiholeHistory } from "@/hooks/use-pihole-history";
+import { formatUnixTime } from "@/lib/utils";
 
 export const description = "An interactive area chart";
 
-const chartConfig = {
-  total: {
-    label: "total",
-  },
-  blocked: {
-    label: "Blocked",
-    color: "vvar(--chart-5)",
-  },
-  cached: {
-    label: "Cached",
-    color: "var(--chart-1)",
-  },
-} satisfies ChartConfig;
-
 export function ChartAreaInteractive() {
+  const t = useTranslations("dashboard.historyChart");
+  const locale = useLocale();
   const { history, loading, error } = usePiholeHistory();
   const isMobile = useIsMobile();
-  const [timeRange, setTimeRange] = React.useState("90d");
 
-  React.useEffect(() => {
-    if (isMobile) {
-      setTimeRange("7d");
-    }
-  }, [isMobile]);
+  const chartConfig = {
+    date: {
+      label: t("tooltip_total"),
+    },
+    blocked: {
+      label: t("tooltip_blocked"),
+      color: "var(--chart-5)",
+    },
+    total: {
+      label: t("tooltip_total"),
+      color: "var(--chart-1)",
+    },
+  } satisfies ChartConfig;
 
-  const filteredData = history.filter((item) => {
-    const date = new Date(item.date);
-    const referenceDate = new Date("2025-08-08");
-    let daysToSubtract = 90;
-    if (timeRange === "30d") {
-      daysToSubtract = 30;
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7;
+  if (loading) {
+    return (
+      <Card className="@container/card">
+        <CardHeader>
+          <Skeleton className="h-7 w-1/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+          <Skeleton className="aspect-auto h-[250px] w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const formatDate = (value: string | number) => {
+    console.log("Tooltip value:", value); // <-- veja no console
+    const date =
+      typeof value === "number" && value < 1e12
+        ? new Date(value * 1000) // timestamp em segundos
+        : new Date(value);
+
+    if (isNaN(date.getTime())) {
+      return String(value); // fallback pra não quebrar
     }
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-    return date >= startDate;
-  });
-  console.log("filtered:", filteredData);
+
+    return date.toLocaleDateString(locale, {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
 
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Total Visitors</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          <span className="hidden @[540px]/card:block">Total for the last 3 months</span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
+          <span className="hidden @[540px]/card:block">{t("description")}</span>
+          <span className="@[540px]/card:hidden">{t("description_mobile")}</span>
         </CardDescription>
-        <CardAction>
-          <ToggleGroup
-            type="single"
-            value={timeRange}
-            onValueChange={setTimeRange}
-            variant="outline"
-            className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
-          >
-            <ToggleGroupItem value="90d">Last 3 months</ToggleGroupItem>
-            <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
-            <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
-          </ToggleGroup>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger
-              className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
-              size="sm"
-              aria-label="Select a value"
-            >
-              <SelectValue placeholder="Last 3 months" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="rounded-lg">
-                Last 3 months
-              </SelectItem>
-              <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
-              </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </CardAction>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-          <AreaChart data={filteredData}>
+          <AreaChart data={history}>
             <defs>
               <linearGradient id="fillBlocked" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-blocked)" stopOpacity={1.0} />
-                <stop offset="95%" stopColor="var(--color-blocked)" stopOpacity={0.1} />
+                <stop offset="5%" stopColor="var(--chart-5)" stopOpacity={1.0} />
+                <stop offset="95%" stopColor="var(--chart-5)" stopOpacity={0.1} />
               </linearGradient>
-              <linearGradient id="fillCached" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-cached)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-cached)" stopOpacity={0.1} />
+              <linearGradient id="fillTotal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
 
@@ -116,14 +96,8 @@ export function ChartAreaInteractive() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value) =>
-                new Date(value).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                })
+              tickFormatter={
+                (value) => formatUnixTime(value, "HH:mm") // apenas hora:minuto
               }
             />
             <YAxis tickLine={true} axisLine={true} />
@@ -132,20 +106,17 @@ export function ChartAreaInteractive() {
               defaultIndex={isMobile ? -1 : 10}
               content={
                 <ChartTooltipContent
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    });
+                  labelFormatter={(_, payload) => {
+                    const rawDate = payload?.[0]?.payload?.date;
+                    return rawDate
+                      ? formatUnixTime(rawDate, "d MMM, HH:mm") // dia abreviado + hora:min
+                      : "";
                   }}
                   indicator="dot"
                 />
               }
             />
-            <Area dataKey="cached" type="natural" fill="url(#fillCached)" stroke="var(--chart-1)" stackId="a" />
+            <Area dataKey="total" type="natural" fill="url(#fillTotal)" stroke="var(--chart-1)" stackId="a" />
             <Area dataKey="blocked" type="natural" fill="url(#fillBlocked)" stroke="var(--chart-5)" stackId="b" />
           </AreaChart>
         </ChartContainer>
@@ -153,5 +124,3 @@ export function ChartAreaInteractive() {
     </Card>
   );
 }
-
-// cached blocked

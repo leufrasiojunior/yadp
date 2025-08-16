@@ -13,6 +13,14 @@
         "title": "% Blocked",
         "description": "% Blocked"
       }
+    },
+    "historyChart": {
+      "title": "History",
+      "description": "Request history for the last 24 hours.",
+      "description_mobile": "Last 24h",
+      "tooltip_total": "Total",
+      "tooltip_blocked": "Blocked",
+      "tooltip_cached": "Cached"
     }
   },
   "Setup": {
