@@ -20,6 +20,7 @@
       "description_mobile": "Últimas 24h",
       "tooltip_total": "Total",
       "tooltip_blocked": "Bloqueadas",
+      "tooltip_blockedPercent": "%Bloqueadas",
       "tooltip_cached": "En caché"
     }
   },

@@ -33,9 +33,28 @@ export interface HistoryType {
   took: number;
 }
 
-export interface History {
+export interface HistoryType {
   timestamp: number;
   total: number;
   cached: number;
   blocked: number;
+}
+
+export interface ChartHistoryType {
+  date?: number;
+  timestamp?: number;
+  total: number;
+  cached: number;
+  blocked: number;
+}
+
+export interface PayloadChart {
+  stroke: string;
+  fill: string;
+  dataKey: string;
+  name: string;
+  hide: boolean;
+  color: string;
+  payload: ChartHistoryType;
+  value: number;
 }
