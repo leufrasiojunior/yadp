@@ -121,7 +121,7 @@ export function ChartAreaInteractive() {
                   <div className="bg-background/95 rounded-xl border p-3 shadow-md backdrop-blur">
                     <div className="text-muted-foreground mb-1 text-xs font-medium">{tsLabel}</div>
 
-                    <div className="flex flex-col gap-1 space-y-1">
+                    <div className="flex flex-col gap-0.5">
                       {items.map((it) => (
                         <div key={it.key} className="flex items-center gap-2 text-sm">
                           <span className="inline-block h-2 w-2 rounded-full" style={{ background: it.color }} />
