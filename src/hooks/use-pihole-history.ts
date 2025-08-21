@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { getUnixTime, subHours } from "date-fns";
 
-import { HistoryType } from "@/types/pihole";
+import { FullHistoryType, HistoryType } from "@/types/pihole";
 
 export function usePiholeHistory() {
   const [history, setHistory] = useState<{ date: number; total: number; cached: number; blocked: number }[]>([]);
@@ -24,9 +24,6 @@ export function usePiholeHistory() {
 
     // 4. Monta a URL do endpoint dinamicamente
     const piholeEndpoint = `history/database?from=${from}&until=${until}`;
-
-    console.log(piholeEndpoint);
-    // Exemplo de saída: "history/database?from=1721757921&until=1721844321"
 
     const fetchHistory = async () => {
       try {
@@ -51,7 +48,7 @@ export function usePiholeHistory() {
             throw new Error(`Failed to fetch from ${url}: ${errorData.message ?? response.statusText}`);
           }
 
-          const historyData: HistoryType = await response.json();
+          const historyData: FullHistoryType = await response.json();
 
           for (const item of historyData.history) {
             if (!aggregated[item.timestamp]) {
@@ -81,6 +78,11 @@ export function usePiholeHistory() {
     };
 
     fetchHistory();
+
+    const intervalId = setInterval(fetchHistory, 10000);
+
+    // Função de limpeza para remover o intervalo quando o componente for desmontado
+    return () => clearInterval(intervalId);
   }, []);
 
   return { history, loading, error };

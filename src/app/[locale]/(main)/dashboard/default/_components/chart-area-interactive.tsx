@@ -95,7 +95,6 @@ export function ChartAreaInteractive() {
 
                 // OBS: no seu log o campo de tempo é "date" (ms). Mantemos compatível com "timestamp" (s) também.
                 const point = payload[0].payload as ChartHistoryType;
-                console.log("point", point);
                 const rawTs = point?.date ?? point?.timestamp; // ← fix: não usar apenas timestamp
 
                 const total: number = Number(point?.total ?? 0);
@@ -106,7 +105,6 @@ export function ChartAreaInteractive() {
 
                 // Nome das séries com i18n
                 const items = payload.map((entry: PayloadChart) => {
-                  console.log("entry", entry);
                   const key = String(entry.dataKey);
                   const name = (chartConfig as any)[key]?.label ?? key;
                   return {

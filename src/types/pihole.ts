@@ -28,8 +28,8 @@ export interface Queries {
   replies: { [key: string]: number };
 }
 
-export interface HistoryType {
-  history: History[];
+export interface FullHistoryType {
+  history: HistoryType[];
   took: number;
 }
 
