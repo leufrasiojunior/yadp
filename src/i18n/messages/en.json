@@ -2,16 +2,20 @@
   "dashboard": {
     "cards": {
       "queriesTotal": {
-        "title": "Total",
-        "description": "Total queries"
+        "title": "Total Queries",
+        "description": "Total number of DNS queries in the last 24 hours."
       },
       "queriesBlocked": {
-        "title": "Blocked",
-        "description": "Total blocked items."
+        "title": "Blocked Queries",
+        "description": "Total number of DNS queries blocked in the last 24 hours."
       },
       "queriesPercent": {
         "title": "% Blocked",
-        "description": "% Blocked"
+        "description": "Percentage of DNS queries blocked in the last 24 hours."
+      },
+      "totalDomains": {
+        "title": "Domains on Blocklist",
+        "description": "Total number of domains on blocklists."
       }
     },
     "historyChart": {
@@ -36,7 +40,7 @@
     "step2_pihole_url_description": "The address of your Pi-hole admin interface.",
     "step2_password": "Password",
     "step2_password_placeholder": "Your secret",
-    "step2_password_description": "Enter your Pi-hole admin password.",
+    "step2_password_description": "Enter the password for your Pi-hole's web admin interface.",
     "step2_pihole_url_error": "Please enter a valid URL.",
     "step2_password_error": "Password is required.",
     "step2_same_password": "Use the same password for all URLs",
@@ -49,6 +53,7 @@
     "step3_use_pihole": "Use main Pi-hole password for login",
     "step3_yapd_password": "YAPD Password",
     "step3_yapd_password_placeholder": "Your YAPD password",
+    "step3_yapd_password_description": "Create a password to protect access to the YAPD dashboard.",
     "step3_password_error": "Password is required.",
     "step4_title": "Configuration Complete!",
     "step4_description": "You have successfully configured your dashboard.",
@@ -70,7 +75,7 @@
     "step5_centered": "Centered",
     "step5_full_width": "Full Width",
     "step5_language": "Display Language",
-    "step5_language_description": "Select the language for the dashboard.",
+    "step5_language_description": "Choose the display language for the YAPD interface.",
     "back_button": "Back",
     "next_button": "Next",
     "finish_button": "Finish",

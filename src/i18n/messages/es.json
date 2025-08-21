@@ -2,16 +2,20 @@
   "dashboard": {
     "cards": {
       "queriesTotal": {
-        "title": "Total",
-        "description": "Total de consultas"
+        "title": "Consultas Totales",
+        "description": "Número total de consultas DNS en las últimas 24 horas."
       },
       "queriesBlocked": {
-        "title": "Bloqueadas",
-        "description": "Total de elementos bloqueados."
+        "title": "Consultas Bloqueadas",
+        "description": "Número total de consultas DNS bloqueadas en las últimas 24 horas."
       },
       "queriesPercent": {
         "title": "% Bloqueadas",
-        "description": "% Bloqueadas"
+        "description": "Porcentaje de consultas DNS bloqueadas en las últimas 24 horas."
+      },
+      "totalDomains": {
+        "title": "Dominios en Blocklist",
+        "description": "Número total de dominios en las listas de bloqueo."
       }
     },
     "historyChart": {
@@ -36,7 +40,7 @@
     "step2_pihole_url_description": "La dirección de la interfaz de administración de su Pi-hole.",
     "step2_password": "Contraseña",
     "step2_password_placeholder": "Su contraseña secreta",
-    "step2_password_description": "Ingrese la contraseña de administración de su Pi-hole.",
+    "step2_password_description": "Ingrese la contraseña de la interfaz de administración web de su Pi-hole.",
     "step2_pihole_url_error": "Por favor, introduzca una URL válida.",
     "step2_password_error": "La contraseña es obligatoria.",
     "step2_same_password": "Usar la misma contraseña para todas las URLs",
@@ -49,6 +53,7 @@
     "step3_use_pihole": "Usar la contraseña del Pi-hole principal para iniciar sesión",
     "step3_yapd_password": "Contraseña de YAPD",
     "step3_yapd_password_placeholder": "Su contraseña de YAPD",
+    "step3_yapd_password_description": "Cree una contraseña para proteger el acceso al panel de YAPD.",
     "step3_password_error": "La contraseña es obligatoria.",
     "step4_title": "¡Configuración Completa!",
     "step4_description": "Ha configurado su panel con éxito.",
@@ -70,7 +75,7 @@
     "step5_centered": "Centrado",
     "step5_full_width": "Ancho completo",
     "step5_language": "Idioma de visualización",
-    "step5_language_description": "Seleccione el idioma del panel.",
+    "step5_language_description": "Elija el idioma de visualización para la interfaz de YAPD.",
     "back_button": "Volver",
     "next_button": "Siguiente",
     "finish_button": "Finalizar",
