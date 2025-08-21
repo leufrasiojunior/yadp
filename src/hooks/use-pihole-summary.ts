@@ -65,7 +65,14 @@ export function usePiholeSummary() {
       }
     };
 
+    // Executa a busca inicial dos dados
     fetchSummary();
+
+    // Configura um intervalo para atualizar os dados a cada 2 segundos
+    const intervalId = setInterval(fetchSummary, 1000);
+
+    // Função de limpeza para remover o intervalo quando o componente for desmontado
+    return () => clearInterval(intervalId);
   }, []);
 
   return { summary, loading, error };

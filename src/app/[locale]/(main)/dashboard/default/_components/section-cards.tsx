@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
-import { Ban, CircleQuestionMark, Globe, Percent } from "lucide-react";
+import { Ban, CircleQuestionMark, Globe, Percent, ShieldBanIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
@@ -133,7 +133,7 @@ export function SectionCards() {
       <Card className="@container/card">
         <div className="flex h-full items-center gap-4 p-4">
           <div className="flex h-20 w-20 items-center justify-center">
-            <Percent className="h-12 w-12" />
+            <ShieldBanIcon className="h-12 w-12" />
           </div>
           <div className="flex flex-1 flex-col justify-center">
             <div className="flex items-center justify-between">
