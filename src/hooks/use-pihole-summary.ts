@@ -8,8 +8,9 @@ export function usePiholeSummary() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
     const fetchSummary = async () => {
-      setError(null);
       const piholeEndpoint = "stats/summary";
 
       try {
@@ -58,21 +59,27 @@ export function usePiholeSummary() {
           gravity: { domains_being_blocked: totalDomains_being_blocked, last_update: 0 },
           took: 0,
         });
+        setError(null);
       } catch (err: any) {
         setError(err);
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    // Executa a busca inicial dos dados
     fetchSummary();
 
-    // Configura um intervalo para atualizar os dados a cada 2 segundos
-    const intervalId = setInterval(fetchSummary, 1000);
+    // Configura um intervalo para atualizar os dados a cada 1 segundo
+    intervalId = setInterval(fetchSummary, 1000);
 
-    // Função de limpeza para remover o intervalo quando o componente for desmontado
-    return () => clearInterval(intervalId);
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
 
   return { summary, loading, error };
