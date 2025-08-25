@@ -58,3 +58,27 @@ export interface PayloadChart {
   payload: ChartHistoryType;
   value: number;
 }
+
+export interface HistoryItem {
+  timestamp: number;
+  data: Record<string, number>;
+}
+export interface Client {
+  name: string | null;
+  total: number;
+}
+
+export interface ClientsChartData {
+  [key: string]: Client; // equivale ao Record<string, Client>
+}
+
+export interface ChartTopClientesHistoryType {
+  history: HistoryItem[];
+  clients: ClientsChartData;
+  took: number;
+}
+export interface ChartDataPoint {
+  date: number;
+  timestamp?: number;
+  [key: string]: unknown;
+}

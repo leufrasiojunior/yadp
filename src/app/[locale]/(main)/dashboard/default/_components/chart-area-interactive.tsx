@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import type { Locale as DateFnsLocale } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
@@ -10,7 +12,7 @@ import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePiholeHistory } from "@/hooks/use-pihole-history";
-import { formatUnixTime } from "@/lib/utils";
+import { safeFormatUnixTime } from "@/lib/helpers";
 import { ChartHistoryType, PayloadChart } from "@/types/pihole";
 
 export const description = "An interactive area chart";
@@ -23,6 +25,39 @@ export function ChartAreaInteractive() {
 
   // Map next-intl locale -> date-fns locale
   const dfnsLocale: DateFnsLocale | undefined = mapToDateFnsLocale(locale);
+
+  const processedData = useMemo(() => {
+    if (!history?.length) {
+      return {
+        data: [],
+        tickFormatter: (value: number) => safeFormatUnixTime(value, "HH:mm", dfnsLocale),
+        hasValidData: false,
+      };
+    }
+
+    // Processa os dados garantindo timestamps válidos
+    const validData = history
+      .map((item: ChartHistoryType) => {
+        const timestamp = Number(item.date);
+        if (isNaN(timestamp)) return null;
+
+        return {
+          ...item,
+          date: timestamp, // Mantém o timestamp original
+        };
+      })
+      .filter((item) => item !== null);
+    // Função para formatar os ticks
+    const tickFormatter = (value: number) => {
+      return safeFormatUnixTime(value, "HH:mm", dfnsLocale, true);
+    };
+
+    return {
+      data: validData,
+      tickFormatter,
+      hasValidData: validData.length > 0,
+    };
+  }, [history, dfnsLocale]);
 
   const chartConfig = {
     blocked: {
@@ -76,12 +111,13 @@ export function ChartAreaInteractive() {
 
             {/* Eixo X: últimas 24h → hora:minuto */}
             <XAxis
-              dataKey="date" // IMPORTANTE: seu payload usa "date" (ms). Se usar "timestamp" (s), ajuste aqui.
+              dataKey="date"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value: string | number) => safeFormatUnixTime(value, "HH:mm", dfnsLocale)}
+              tickFormatter={processedData.tickFormatter}
+              tickCount={8}
+              minTickGap={30}
             />
 
             <YAxis tickLine axisLine />
@@ -92,7 +128,6 @@ export function ChartAreaInteractive() {
               defaultIndex={isMobile ? -1 : 10}
               content={({ payload }) => {
                 if (!payload?.length) return null;
-
                 // OBS: no seu log o campo de tempo é "date" (ms). Mantemos compatível com "timestamp" (s) também.
                 const point = payload[0].payload as ChartHistoryType;
                 const rawTs = point?.date ?? point?.timestamp; // ← fix: não usar apenas timestamp
@@ -106,7 +141,7 @@ export function ChartAreaInteractive() {
                 // Nome das séries com i18n
                 const items = payload.map((entry: PayloadChart) => {
                   const key = String(entry.dataKey);
-                  const name = (chartConfig as any)[key]?.label ?? key;
+                  const name = (chartConfig as ChartConfig)[key]?.label ?? key;
                   return {
                     key,
                     name,
@@ -162,14 +197,14 @@ function mapToDateFnsLocale(l: string): DateFnsLocale | undefined {
  * Usa formatUnixTime com proteção contra valores indefinidos/ruins.
  * Evita lançar erros no tooltip; retorna string vazia em casos inválidos.
  */
-function safeFormatUnixTime(ts: number | string | undefined, pattern: string, dfnsLocale?: DateFnsLocale): string {
-  if (ts === undefined || ts === null || ts === "") return ""; // evita exception
-  try {
-    return dfnsLocale ? formatUnixTime(ts, pattern, dfnsLocale) : formatUnixTime(ts, pattern);
-  } catch {
-    return ""; // por quê: não queremos quebrar o tooltip
-  }
-}
+// function safeFormatUnixTime(ts: number | string | undefined, pattern: string, dfnsLocale?: DateFnsLocale): string {
+//   if (ts === undefined || ts === null || ts === "") return ""; // evita exception
+//   try {
+//     return dfnsLocale ? formatUnixTime(ts, pattern, dfnsLocale) : formatUnixTime(ts, pattern);
+//   } catch {
+//     return ""; // por quê: não queremos quebrar o tooltip
+//   }
+// }
 
 /** Percentual com arredondamento sempre para cima (ceil). */
 function formatPercentCeil(numerator: number, denominator: number, localeStr: string, digits: number = 2): string {

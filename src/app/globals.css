@@ -71,6 +71,13 @@ These serve as the fallback; there is no separate default.css file. */
   --chart-3: oklch(0.5693 0 0);
   --chart-4: oklch(0.683 0 0);
   --chart-5: oklch(0.7921 0 0);
+  --chart-6: oklch(0.69 0.19 337.28);
+  --chart-7: oklch(0.69 0.11 172.08);
+  --chart-8: oklch(0.69 0.19 41.22);
+  --chart-9: oklch(0.72 0.19 146.12);
+  --chart-10: oklch(0.61 0.16 275.12);
+  --chart-11: oklch(0.79 0.17 89.15);
+  --chart-12: oklch(0.66 0.15 229.89);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
