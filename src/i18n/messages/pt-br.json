@@ -26,6 +26,17 @@
       "tooltip_blocked": "Bloqueadas",
       "tooltip_blockedPercent": "%Bloqueadas",
       "tooltip_cached": "Em cache"
+    },
+    "clientActivityChart": {
+      "title": "Top Clientes",
+      "description": "Top clientes nas últimas 24 horas",
+      "description_mobile": "Top clientes nas últimas 24h",
+      "noData": {
+        "title": "Nenhum dado disponível",
+        "description": "Nenhum dado disponível para exibir o gráfico de clientes.",
+        "description_mobile": "Nenhum dado disponível.",
+        "message": "Nenhum dado de cliente encontrado para o período."
+      }
     }
   },
   "Setup": {

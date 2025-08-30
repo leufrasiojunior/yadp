@@ -14,7 +14,8 @@ import { mapToDateFnsLocale, safeFormatUnixTime } from "@/lib/helpers";
 import { ChartDataPoint } from "@/types/pihole";
 
 export function ChartClientArea() {
-  const t = useTranslations("dashboard.historyChart");
+  const t = useTranslations("dashboard.clientActivityChart");
+  const tNoData = useTranslations("dashboard.clientActivityChart.noData");
   const locale = useLocale();
   const { chartData, chartConfig, activeKeys, loading } = usePiholeTopClients();
 
@@ -73,18 +74,14 @@ export function ChartClientArea() {
     return (
       <Card className="@container/card">
         <CardHeader>
-          <CardTitle>Top Clientes</CardTitle>
+          <CardTitle>{tNoData("title")}</CardTitle>
           <CardDescription>
-            <span className="hidden @[540px]/card:block">
-              Nenhum dado disponível para exibir o gráfico de clientes.
-            </span>
-            <span className="@[540px]/card:hidden">Nenhum dado disponível.</span>
+            <span className="hidden @[540px]/card:block">{tNoData("description")}</span>
+            <span className="@[540px]/card:hidden">{tNoData("description_mobile")}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-          <div className="text-muted-foreground flex h-[250px] items-center justify-center">
-            Nenhum dado de cliente encontrado para o período.
-          </div>
+          <div className="text-muted-foreground flex h-[250px] items-center justify-center">{tNoData("message")}</div>
         </CardContent>
       </Card>
     );
@@ -93,10 +90,10 @@ export function ChartClientArea() {
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Top Clientes</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          <span className="hidden @[540px]/card:block">Top clientes nas últimas 24 horas</span>
-          <span className="@[540px]/card:hidden">Top clientes nas últimas 24 horas</span>
+          <span className="hidden @[540px]/card:block">{t("description")}</span>
+          <span className="@[540px]/card:hidden">{t("description_mobile")}</span>
         </CardDescription>
       </CardHeader>
 

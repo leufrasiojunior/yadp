@@ -26,6 +26,17 @@
       "tooltip_blocked": "Blocked",
       "tooltip_blockedPercent": "%Blocked",
       "tooltip_cached": "Cached"
+    },
+    "clientActivityChart": {
+      "title": "Top Clients",
+      "description": "Top clients in the last 24 hours",
+      "description_mobile": "Top clients in the last 24h",
+      "noData": {
+        "title": "No data available",
+        "description": "No data available to display the client chart.",
+        "description_mobile": "No data available.",
+        "message": "No client data found for the period."
+      }
     }
   },
   "Setup": {

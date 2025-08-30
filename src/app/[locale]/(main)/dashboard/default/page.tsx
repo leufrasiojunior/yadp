@@ -1,9 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ChartAreaInteractive } from "./_components/chart-area-interactive";
+import { ChartPieSimple } from "./_components/chart-pie-simple";
 import { ChartClientArea } from "./_components/client-activity";
-import { DataTable } from "./_components/data-table";
-import data from "./_components/data.json";
 import { SectionCards } from "./_components/section-cards";
 
 export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
@@ -17,7 +16,10 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
       <SectionCards />
       <ChartAreaInteractive />
       <ChartClientArea />
-      {/* <DataTable data={data} /> */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+        <ChartPieSimple />
+        <ChartPieSimple />
+      </div>
     </div>
   );
 }
