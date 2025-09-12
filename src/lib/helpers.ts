@@ -43,3 +43,27 @@ export function safeFormatUnixTime(
     return "";
   }
 }
+
+// ---------- helpers ----------
+
+/** Percentual com arredondamento sempre para cima (ceil). */
+export function formatPercentCeil(
+  numerator: number,
+  denominator: number,
+  localeStr: string,
+  digits: number = 2,
+): string {
+  if (!denominator || denominator <= 0)
+    return (
+      new Intl.NumberFormat(localeStr, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(0) + "%"
+    );
+  const raw = (numerator / denominator) * 100;
+  const factor = Math.pow(10, digits);
+  const ceiled = Math.ceil(raw * factor) / factor; // sempre para cima
+  return (
+    new Intl.NumberFormat(localeStr, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(ceiled) + "%"
+  );
+}

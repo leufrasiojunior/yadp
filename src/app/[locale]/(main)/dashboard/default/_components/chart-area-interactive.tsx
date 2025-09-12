@@ -2,29 +2,88 @@
 
 import { useMemo } from "react";
 
-import type { Locale as DateFnsLocale } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { getUnixTime, subHours, Locale as DateFnsLocale } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAggregatedPiholeQuery } from "@/hooks/use-aggregated-pihole-query";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { usePiholeHistory } from "@/hooks/use-pihole-history";
-import { safeFormatUnixTime } from "@/lib/helpers";
-import { ChartHistoryType, PayloadChart } from "@/types/pihole";
+import { formatPercentCeil, mapToDateFnsLocale, safeFormatUnixTime } from "@/lib/helpers";
+import { ChartHistoryType, FullHistoryType, PayloadChart } from "@/types/pihole";
 
-export const description = "An interactive area chart";
+// Logic from usePiholeHistory hook
+type AggregatedHistory = {
+  date: number;
+  total: number;
+  cached: number;
+  blocked: number;
+}[];
+
+const initialData: AggregatedHistory = [];
+
+const historyAggregator = (results: FullHistoryType[]): AggregatedHistory => {
+  const aggregated: Record<number, { total: number; cached: number; blocked: number }> = {};
+
+  for (const historyData of results) {
+    for (const item of historyData.history) {
+      if (!aggregated[item.timestamp]) {
+        aggregated[item.timestamp] = { total: 0, cached: 0, blocked: 0 };
+      }
+      aggregated[item.timestamp].total += item.total;
+      aggregated[item.timestamp].cached += item.cached;
+      aggregated[item.timestamp].blocked += item.blocked;
+    }
+  }
+
+  return Object.entries(aggregated)
+    .map(([timestamp, values]) => ({
+      date: Number(timestamp) * 1000,
+      total: values.total,
+      cached: values.cached,
+      blocked: values.blocked,
+    }))
+    .sort((a, b) => a.date - b.date);
+};
+// End of logic from usePiholeHistory hook
 
 export function ChartAreaInteractive() {
   const t = useTranslations("dashboard.historyChart");
-  const locale = useLocale(); // e.g. "pt-BR"
-  const { history, loading } = usePiholeHistory();
+  const locale = useLocale();
   const isMobile = useIsMobile();
-
-  // Map next-intl locale -> date-fns locale
   const dfnsLocale: DateFnsLocale | undefined = mapToDateFnsLocale(locale);
+
+  const tickFormatter = (value: number) => {
+    return safeFormatUnixTime(value, "HH:mm", dfnsLocale, true);
+  };
+
+  // Inlined hook logic
+  const now = new Date();
+  const twentyFourHoursAgo = subHours(now, 24);
+  const from = getUnixTime(twentyFourHoursAgo);
+  const until = getUnixTime(now);
+  const piholeEndpoint = `history/database?from=${from}&until=${until}`;
+
+  const { data: history, loading } = useAggregatedPiholeQuery<FullHistoryType, AggregatedHistory>(
+    piholeEndpoint,
+    historyAggregator,
+    initialData,
+    // 2000,
+  );
+  // End of inlined hook logic
+
+  const chartConfig = {
+    blocked: {
+      label: t("tooltip_blocked"),
+      color: "var(--chart-5)",
+    },
+    total: {
+      label: t("tooltip_total"),
+      color: "var(--chart-1)",
+    },
+  } satisfies ChartConfig;
 
   const processedData = useMemo(() => {
     if (!history?.length) {
@@ -58,17 +117,6 @@ export function ChartAreaInteractive() {
       hasValidData: validData.length > 0,
     };
   }, [history, dfnsLocale]);
-
-  const chartConfig = {
-    blocked: {
-      label: t("tooltip_blocked"),
-      color: "var(--chart-5)",
-    },
-    total: {
-      label: t("tooltip_total"),
-      color: "var(--chart-1)",
-    },
-  } satisfies ChartConfig;
 
   if (loading) {
     return (
@@ -181,44 +229,5 @@ export function ChartAreaInteractive() {
         </ChartContainer>
       </CardContent>
     </Card>
-  );
-}
-
-// ---------- helpers ----------
-
-/** Mapeia locale string (next-intl) para objeto locale do date-fns. */
-function mapToDateFnsLocale(l: string): DateFnsLocale | undefined {
-  // Por enquanto atendemos pt e pt-BR. Expanda conforme necessário.
-  if (l?.toLowerCase().startsWith("pt")) return ptBR;
-  return undefined; // fallback: sem locale → usa default do date-fns
-}
-
-/**
- * Usa formatUnixTime com proteção contra valores indefinidos/ruins.
- * Evita lançar erros no tooltip; retorna string vazia em casos inválidos.
- */
-// function safeFormatUnixTime(ts: number | string | undefined, pattern: string, dfnsLocale?: DateFnsLocale): string {
-//   if (ts === undefined || ts === null || ts === "") return ""; // evita exception
-//   try {
-//     return dfnsLocale ? formatUnixTime(ts, pattern, dfnsLocale) : formatUnixTime(ts, pattern);
-//   } catch {
-//     return ""; // por quê: não queremos quebrar o tooltip
-//   }
-// }
-
-/** Percentual com arredondamento sempre para cima (ceil). */
-function formatPercentCeil(numerator: number, denominator: number, localeStr: string, digits: number = 2): string {
-  if (!denominator || denominator <= 0)
-    return (
-      new Intl.NumberFormat(localeStr, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(0) + "%"
-    );
-  const raw = (numerator / denominator) * 100;
-  const factor = Math.pow(10, digits);
-  const ceiled = Math.ceil(raw * factor) / factor; // sempre para cima
-  return (
-    new Intl.NumberFormat(localeStr, {
-      minimumFractionDigits: digits,
-      maximumFractionDigits: digits,
-    }).format(ceiled) + "%"
   );
 }

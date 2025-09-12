@@ -63,6 +63,11 @@ export interface HistoryItem {
   timestamp: number;
   data: Record<string, number>;
 }
+
+export interface ClientHistoryResponse {
+  history: HistoryItem[];
+  took?: number;
+}
 export interface Client {
   name: string | null;
   total: number;

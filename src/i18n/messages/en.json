@@ -37,6 +37,18 @@
         "description_mobile": "No data available.",
         "message": "No client data found for the period."
       }
+    },
+    "query_types": {
+      "title": "Query Types",
+      "description": "Distribution of query types in the last 24 hours",
+      "description_mobile": "Query types last 24h",
+      "tooltip_other": "Other",
+      "noData": {
+        "title": "No data available",
+        "description": "No data available to display the query types chart.",
+        "description_mobile": "No data available.",
+        "message": "No query type data found for the period."
+      }
     }
   },
   "Setup": {

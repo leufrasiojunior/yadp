@@ -1,0 +1,6 @@
+Retornar com os toast em caso de erro
+
+Botão de logoff.
+
+Verificar o login, caso ocorra 401 tentar logar novamente. Caso ocorra erro, desligar toda a aplicação.
+Ajustar o tamanho dos ícones dos cards na página principal.

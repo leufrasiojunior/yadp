@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ChartAreaInteractive } from "./_components/chart-area-interactive";
-import { ChartPieSimple } from "./_components/chart-pie-simple";
+import { ChartPieTopQueryes } from "./_components/chart-pie-query-types";
 import { ChartClientArea } from "./_components/client-activity";
 import { SectionCards } from "./_components/section-cards";
 
@@ -17,8 +17,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
       <ChartAreaInteractive />
       <ChartClientArea />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-        <ChartPieSimple />
-        <ChartPieSimple />
+        <ChartPieTopQueryes />
       </div>
     </div>
   );

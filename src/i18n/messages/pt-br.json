@@ -37,6 +37,18 @@
         "description_mobile": "Nenhum dado disponível.",
         "message": "Nenhum dado de cliente encontrado para o período."
       }
+    },
+    "query_types": {
+      "title": "Tipos de Consulta",
+      "description": "Distribuição dos tipos de consulta nas últimas 24 horas",
+      "description_mobile": "Tipos de consulta últimas 24h",
+      "tooltip_other": "Outros",
+      "noData": {
+        "title": "Nenhum dado disponível",
+        "description": "Nenhum dado disponível para exibir o gráfico de tipos de consulta.",
+        "description_mobile": "Nenhum dado disponível.",
+        "message": "Nenhum dado de tipo de consulta encontrado para o período."
+      }
     }
   },
   "Setup": {

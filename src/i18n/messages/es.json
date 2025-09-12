@@ -36,6 +36,18 @@
         "description": "No hay datos disponibles para mostrar el gráfico de clientes.",
         "description_mobile": "No hay datos disponibles.",
         "message": "No se encontraron datos de clientes para el período."
+      },
+      "query_types": {
+        "title": "Tipos de Consulta",
+        "description": "Distribución de los tipos de consulta en las últimas 24 horas",
+        "description_mobile": "Tipos de consulta últimas 24h",
+        "tooltip_other": "Otros",
+        "noData": {
+          "title": "No hay datos disponibles",
+          "description": "No hay datos disponibles para mostrar el gráfico de tipos de consulta.",
+          "description_mobile": "No hay datos disponibles.",
+          "message": "No se encontraron datos de tipos de consulta para el período."
+        }
       }
     }
   },
