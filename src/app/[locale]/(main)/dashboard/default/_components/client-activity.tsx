@@ -2,9 +2,11 @@
 
 import { useMemo } from "react";
 
+import { Joti_One } from "next/font/google";
+
 import type { Locale as DateFnsLocale } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
-import { Area, AreaChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -66,37 +68,56 @@ export function ChartClientArea() {
   );
 
   const { chartData, chartConfig, allClients } = useMemo(() => {
-    const clientSet = new Set<string>();
-    if (history) {
-      // Get top 5 clients based on total queries
-      const clientTotals: Record<string, number> = {};
-      for (const item of history) {
-        Object.keys(item).forEach((key) => {
-          if (key !== "date") {
-            if (!clientTotals[key]) {
-              clientTotals[key] = 0;
-            }
-            clientTotals[key] += item[key as keyof typeof item];
-          }
-        });
-      }
-      const sortedClients = Object.entries(clientTotals)
-        .sort(([, a], [, b]) => b - a)
-        .map(([client]) => client);
+    if (!history) return { chartData: [], chartConfig: {}, allClients: [] };
 
-      sortedClients.slice(0, 5).forEach((client) => clientSet.add(client));
+    // 1. Calcular totais
+    const clientTotals: Record<string, number> = {};
+    for (const item of history) {
+      Object.entries(item).forEach(([key, value]) => {
+        if (key !== "date") {
+          clientTotals[key] = (clientTotals[key] || 0) + value;
+        }
+      });
     }
-    const clients = Array.from(clientSet);
 
+    // 2. Ordenar
+    const sortedClients = Object.entries(clientTotals)
+      .sort(([, a], [, b]) => b - a)
+      .map(([client]) => client);
+
+    const topClients = sortedClients.slice(0, 5);
+    const otherClients = sortedClients.slice(5);
+
+    // 3. Transformar chartData para incluir "Outros"
+    const dataWithOthers = history.map((item) => {
+      const newItem: any = { date: item.date };
+      let othersSum = 0;
+
+      for (const [key, value] of Object.entries(item)) {
+        if (key === "date") continue;
+        if (topClients.includes(key)) {
+          newItem[key] = value;
+        } else {
+          othersSum += value;
+        }
+      }
+
+      newItem["Outros"] = othersSum;
+      return newItem;
+    });
+
+    const fixedColors = ["var(--chart-1)", "var(--chart-6)", "var(--chart-7)", "var(--chart-8)", "var(--chart-9)"];
+
+    // 4. Config de cores
     const config: ChartConfig = {};
-    clients.forEach((client, index) => {
+    [...topClients, "Outros"].forEach((client, index) => {
       config[client] = {
         label: client,
-        color: `var(--chart-${(index % 12) + 1})`,
+        color: fixedColors[index] ?? fixedColors[fixedColors.length - 1],
       };
     });
 
-    return { chartData: history, chartConfig: config, allClients: clients };
+    return { chartData: dataWithOthers, chartConfig: config, allClients: [...topClients, "Outros"] };
   }, [history]);
 
   const tickFormatter = (value: number) => {
@@ -125,7 +146,7 @@ export function ChartClientArea() {
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-          <AreaChart data={chartData}>
+          <BarChart data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="date"
@@ -137,10 +158,40 @@ export function ChartClientArea() {
               minTickGap={30}
             />
             <YAxis tickLine axisLine />
-            <ChartTooltip cursor content={<ChartTooltipContent indicator="dot" />} />
-            <Legend />
+            <ChartTooltip
+              cursor
+              content={({ active, payload, label }) => {
+                if (!active || !payload) return null;
+
+                // Ordena pelo valor (maior → menor)
+                const sortedPayload = [...payload].sort((a, b) => (b.value as number) - (a.value as number));
+
+                const total = sortedPayload.reduce((sum, p) => sum + (p.value as number), 0);
+
+                return (
+                  <div className="bg-background rounded-lg border p-2 shadow">
+                    <div className="mb-1 font-medium">
+                      {safeFormatUnixTime(label, "d MMM, HH:mm", dfnsLocale, true)}
+                    </div>
+                    {sortedPayload.map((p) => {
+                      const value = p.value as number;
+                      const percent = total > 0 ? ((value / total) * 100).toFixed(2) : "0.00";
+                      return (
+                        <div key={p.dataKey} className="flex items-center gap-2">
+                          <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: p.color }} />
+                          <span>
+                            {p.dataKey}: {value} ({percent}%)
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              }}
+            />
+
             {allClients.map((client) => (
-              <Area
+              <Bar
                 key={client}
                 dataKey={client}
                 type="natural"
@@ -150,7 +201,7 @@ export function ChartClientArea() {
                 stackId="a"
               />
             ))}
-          </AreaChart>
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>

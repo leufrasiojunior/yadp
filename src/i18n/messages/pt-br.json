@@ -49,6 +49,17 @@
         "description_mobile": "Nenhum dado disponível.",
         "message": "Nenhum dado de tipo de consulta encontrado para o período."
       }
+    },
+    "clientActivity": {
+      "title": "Atividade do Cliente",
+      "description": "Atividade dos principais clientes nas últimas 24 horas",
+      "description_mobile": "Atividade do cliente últimas 24h",
+      "noData": {
+        "title": "Nenhum dado disponível",
+        "description": "Nenhum dado disponível para exibir o gráfico de atividade do cliente.",
+        "description_mobile": "Nenhum dado disponível.",
+        "message": "Nenhum dado de atividade do cliente encontrado para o período."
+      }
     }
   },
   "Setup": {

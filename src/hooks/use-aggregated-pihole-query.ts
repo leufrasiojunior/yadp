@@ -34,7 +34,6 @@ export function useAggregatedPiholeQuery<T, R>(
 
       const promises = urls.map((url) => {
         const sid = piholesAuth[url].sid;
-        console.log("Fetching data for url:", url, "with endpoint:", endpoint);
         return fetch(`/api/pihole-proxy?url=${encodeURIComponent(url)}&endpoint=${encodeURIComponent(endpoint)}`, {
           headers: {
             "X-FTL-SID": sid,
