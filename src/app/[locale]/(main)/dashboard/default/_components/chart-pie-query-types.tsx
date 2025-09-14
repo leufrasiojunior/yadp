@@ -3,10 +3,10 @@
 import { useMemo } from "react";
 
 import { useTranslations } from "next-intl";
-import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAggregatedPiholeQuery } from "@/hooks/use-aggregated-pihole-query";
 
@@ -48,12 +48,23 @@ export function ChartPieTopQueryes() {
         value: value,
       }));
 
+    const fixedColors = [
+      "var(--chart-1)",
+      "var(--chart-2)",
+      "var(--chart-3)",
+      "var(--chart-4)",
+      "var(--chart-5)",
+      "var(--chart-6)",
+      "var(--chart-7)",
+      "var(--chart-8)",
+    ];
+
     const chartConfig = Object.fromEntries(
       parsedData.map((entry, idx) => [
         entry.name,
         {
           label: entry.name,
-          color: `var(--chart-${(idx % 12) + 1})`,
+          color: fixedColors[idx] ?? fixedColors[fixedColors.length - 1],
         },
       ]),
     );
@@ -87,7 +98,13 @@ export function ChartPieTopQueryes() {
           <ResponsiveContainer>
             <PieChart>
               <Tooltip content={<ChartTooltipContent />} />
-              <Pie data={chartData} dataKey="value" nameKey="name" />
+              <Pie data={chartData} dataKey="value" nameKey="name">
+                {chartData.map((entry) => (
+                  <Cell key={`cell-${entry.name}`} fill={chartConfig[entry.name]?.color || "var(--chart-1)"} />
+                ))}
+              </Pie>
+
+              <ChartLegend content={<ChartLegendContent nameKey="name" payload={chartData} />} />
             </PieChart>
           </ResponsiveContainer>
         </ChartContainer>

@@ -77,11 +77,11 @@ export function ChartAreaInteractive() {
   const chartConfig = {
     blocked: {
       label: t("tooltip_blocked"),
-      color: "var(--chart-5)",
+      color: "var(--chart-3)",
     },
     total: {
       label: t("tooltip_total"),
-      color: "var(--chart-1)",
+      color: "var(--chart-4)",
     },
   } satisfies ChartConfig;
 
@@ -146,12 +146,12 @@ export function ChartAreaInteractive() {
           <AreaChart data={history}>
             <defs>
               <linearGradient id="fillBlocked" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--chart-5)" stopOpacity={1.0} />
-                <stop offset="95%" stopColor="var(--chart-5)" stopOpacity={0.1} />
+                <stop offset="5%" stopColor="var(--chart-3)" stopOpacity={1.0} />
+                <stop offset="95%" stopColor="var(--chart-3)" stopOpacity={0.1} />
               </linearGradient>
               <linearGradient id="fillTotal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1} />
+                <stop offset="5%" stopColor="var(--chart-4)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--chart-4)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
 
