@@ -24,10 +24,11 @@ type AggregatedHistory = {
 
 const initialData: AggregatedHistory = [];
 
-const historyAggregator = (results: FullHistoryType[]): AggregatedHistory => {
+const historyAggregator = (results: { url: string; data: FullHistoryType }[]): AggregatedHistory => {
   const aggregated: Record<number, { total: number; cached: number; blocked: number }> = {};
 
-  for (const historyData of results) {
+  for (const { data: historyData } of results) {
+    // ← pega só o `data`
     for (const item of historyData.history) {
       if (!aggregated[item.timestamp]) {
         aggregated[item.timestamp] = { total: 0, cached: 0, blocked: 0 };
@@ -47,6 +48,7 @@ const historyAggregator = (results: FullHistoryType[]): AggregatedHistory => {
     }))
     .sort((a, b) => a.date - b.date);
 };
+
 // End of logic from usePiholeHistory hook
 
 export function ChartAreaInteractive() {

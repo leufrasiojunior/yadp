@@ -3,7 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 
 // Define a generic aggregator function type
-type Aggregator<T, R> = (results: T[]) => R;
+type Aggregator<T, R> = (results: FetchResult<T>[]) => R;
+
+type FetchResult<T> = {
+  url: string;
+  data: T;
+};
 
 export function useAggregatedPiholeQuery<T, R>(
   endpoint: string,
@@ -14,6 +19,7 @@ export function useAggregatedPiholeQuery<T, R>(
   const [data, setData] = useState<R>(initialData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [urltoFetch, setUrlToFetch] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     // For the first fetch, we are loading. Subsequent fetches are background updates.
@@ -32,19 +38,24 @@ export function useAggregatedPiholeQuery<T, R>(
         return;
       }
 
-      const promises = urls.map((url) => {
+      const promises = urls.map(async (url) => {
         const sid = piholesAuth[url].sid;
-        return fetch(`/api/pihole-proxy?url=${encodeURIComponent(url)}&endpoint=${encodeURIComponent(endpoint)}`, {
-          headers: {
-            "X-FTL-SID": sid,
+        const response = await fetch(
+          `/api/pihole-proxy?url=${encodeURIComponent(url)}&endpoint=${encodeURIComponent(endpoint)}`,
+          {
+            headers: {
+              "X-FTL-SID": sid,
+            },
           },
-        }).then(async (response) => {
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: response.statusText }));
-            throw new Error(`Failed to fetch from ${url}: ${errorData.message ?? response.statusText}`);
-          }
-          return response.json() as Promise<T>;
-        });
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: response.statusText }));
+          throw new Error(`Failed to fetch from ${url}: ${errorData.message ?? response.statusText}`);
+        }
+
+        const data = (await response.json()) as T;
+        return { url, data } satisfies FetchResult<T>;
       });
 
       const results = await Promise.all(promises);
@@ -72,5 +83,5 @@ export function useAggregatedPiholeQuery<T, R>(
     }
   }, [fetchData, refreshInterval]);
 
-  return { data, loading, error };
+  return { data, loading, error, urltoFetch };
 }
