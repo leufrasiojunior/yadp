@@ -4,3 +4,8 @@ Botão de logoff.
 
 Verificar o login, caso ocorra 401 tentar logar novamente. Caso ocorra erro, desligar toda a aplicação.
 Ajustar o tamanho dos ícones dos cards na página principal.
+
+
+Atribuir um alias para cada pihole para melhor identificação.
+
+Separar um filtro do alias/url no dash main.

@@ -6,6 +6,7 @@ import {
   ChartBar,
   Banknote,
   type LucideIcon,
+  Database,
 } from "lucide-react";
 
 export interface NavSubItem {
@@ -43,6 +44,12 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/default",
         icon: LayoutDashboard,
       },
+      {
+        title: "Query Log",
+        url: "/dashboard/querylog",
+        icon: Database,
+      },
+
       {
         title: "CRM",
         url: "/dashboard/crm",

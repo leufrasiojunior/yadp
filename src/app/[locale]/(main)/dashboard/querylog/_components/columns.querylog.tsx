@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { recentQueryLogSchema } from "./schema";
+import { recentLeadSchema } from "./schema";
 
-export const recentLeadsColumns: ColumnDef<z.infer<typeof recentQueryLogSchema>>[] = [
+export const recentQueryLogColumns: ColumnDef<z.infer<typeof recentLeadSchema>>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -34,17 +34,23 @@ export const recentLeadsColumns: ColumnDef<z.infer<typeof recentQueryLogSchema>>
     enableHiding: false,
   },
   {
-    accessorKey: "time",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Time" />,
-    cell: ({ row }) => <span className="tabular-nums">{row.original.time.toLocaleString()}</span>,
+    accessorKey: "id",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Ref" />,
+    cell: ({ row }) => <span className="tabular-nums">{row.original.id}</span>,
     enableSorting: true,
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
-    cell: ({ row }) => <span>{row.original.type}</span>,
+    accessorKey: "name",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+    cell: ({ row }) => <span>{row.original.name}</span>,
     enableHiding: true,
+  },
+  {
+    accessorKey: "company",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Company" />,
+    cell: ({ row }) => <span>{row.original.company}</span>,
+    enableSorting: false,
   },
   {
     accessorKey: "status",
@@ -53,15 +59,15 @@ export const recentLeadsColumns: ColumnDef<z.infer<typeof recentQueryLogSchema>>
     enableSorting: false,
   },
   {
-    accessorKey: "domain",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Domain" />,
-    cell: ({ row }) => <Badge variant="outline">{row.original.domain}</Badge>,
+    accessorKey: "source",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Source" />,
+    cell: ({ row }) => <Badge variant="outline">{row.original.source}</Badge>,
     enableSorting: false,
   },
   {
-    accessorKey: "client",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Client" />,
-    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.client.name}</span>,
+    accessorKey: "lastActivity",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Last Activity" />,
+    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.lastActivity}</span>,
     enableSorting: false,
   },
   {
