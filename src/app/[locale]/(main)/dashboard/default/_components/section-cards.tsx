@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAggregatedPiholeQuery } from "@/hooks/use-aggregated-pihole-query";
+import { FetchResult, useAggregatedPiholeQuery } from "@/hooks/use-aggregated-pihole-query";
 import { PiholeSummary } from "@/types/pihole";
 
 // Logic from usePiholeSummary hook
@@ -27,15 +27,17 @@ const initialData: PiholeSummary = {
   took: 0,
 };
 
-const summaryAggregator = (results: PiholeSummary[]): PiholeSummary => {
+const summaryAggregator = (results: FetchResult<PiholeSummary>[]): PiholeSummary => {
   const aggregated = results.reduce(
     (acc, current) => {
-      acc.queries.total += current.queries.total;
-      acc.queries.blocked += current.queries.blocked;
-      acc.gravity.domains_being_blocked += current.gravity.domains_being_blocked;
+      const data = current.data; // <- pega o objeto PiholeSummary de cada URL
+
+      acc.queries.total += data.queries.total;
+      acc.queries.blocked += data.queries.blocked;
+      acc.gravity.domains_being_blocked += data.gravity.domains_being_blocked;
       return acc;
     },
-    JSON.parse(JSON.stringify(initialData)), // Deep copy to avoid mutation
+    JSON.parse(JSON.stringify(initialData)), // deep copy pra não mutar initialData
   );
 
   if (aggregated.queries.total > 0) {

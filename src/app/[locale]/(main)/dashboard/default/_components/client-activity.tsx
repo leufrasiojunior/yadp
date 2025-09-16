@@ -11,7 +11,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } f
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAggregatedPiholeQuery } from "@/hooks/use-aggregated-pihole-query";
+import { FetchResult, useAggregatedPiholeQuery } from "@/hooks/use-aggregated-pihole-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { mapToDateFnsLocale, safeFormatUnixTime } from "@/lib/helpers";
 import { ClientHistoryResponse } from "@/types/pihole";
@@ -26,12 +26,12 @@ export type AggregatedClientHistory = AggregatedClientHistoryEntry[];
 const initialData: AggregatedClientHistory = [];
 
 // Aggregator function to process API data
-const historyAggregator = (results: ClientHistoryResponse[]): AggregatedClientHistory => {
+const historyAggregator = (results: FetchResult<ClientHistoryResponse>[]): AggregatedClientHistory => {
   const aggregated: Record<number, Record<string, number>> = {};
 
   for (const result of results) {
-    if (!result.history) continue;
-    for (const item of result.history) {
+    if (!result.data) continue;
+    for (const item of result.data.history) {
       const timestamp = item.timestamp * 1000; // to ms
       if (!aggregated[timestamp]) {
         aggregated[timestamp] = {};

@@ -1,4 +1,4 @@
-import { table } from "console";
+"use client";
 
 import React from "react";
 
@@ -33,6 +33,7 @@ type QueryResponse = {
 }[];
 
 const historyAggregator = (results: QueryTableResponse[]): QueryResponse => {
+  console.log("Aggregating results:", results);
   return [];
 };
 const initialData: QueryResponse = [];
@@ -40,42 +41,47 @@ const initialData: QueryResponse = [];
 function QuerylogPage() {
   const piholeEndpoint = `queries`;
 
-  const { data: queries, loading } = useAggregatedPiholeQuery<QueryTableResponse, QueryResponse>(
+  const {
+    data: queries,
+    loading,
+    urltoFetch,
+  } = useAggregatedPiholeQuery<QueryTableResponse, QueryResponse>(
     piholeEndpoint,
     historyAggregator,
     initialData,
     // 2000,
   );
 
-  const table = useDataTableInstance({
-    data: queries,
-    columns: recentQueryLogColumns,
-    getRowId: (row) => row.id.toString(),
-  });
+  // const table = useDataTableInstance({
+  //     data: queries,
+  //     columns: recentQueryLogColumns,
+  //     getRowId: (row) => row.id.toString(),
+  // });
   return (
-    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs">
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Leads</CardTitle>
-          <CardDescription>Track and manage your latest leads and their status.</CardDescription>
-          <CardAction>
-            <div className="flex items-center gap-2">
-              <DataTableViewOptions table={table} />
-              <Button variant="outline" size="sm">
-                <Download />
-                <span className="hidden lg:inline">Export</span>
-              </Button>
-            </div>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="flex size-full flex-col gap-4">
-          <div className="overflow-hidden rounded-md border">
-            <DataTableNew table={table} columns={recentLeadsColumns} />
-          </div>
-          <DataTablePagination table={table} />
-        </CardContent>
-      </Card>
-    </div>
+    // <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs">
+    //     <Card>
+    //         <CardHeader>
+    //             <CardTitle>Recent Leads</CardTitle>
+    //             <CardDescription>Track and manage your latest leads and their status.</CardDescription>
+    //             <CardAction>
+    //                 <div className="flex items-center gap-2">
+    //                     <DataTableViewOptions table={table} />
+    //                     <Button variant="outline" size="sm">
+    //                         <Download />
+    //                         <span className="hidden lg:inline">Export</span>
+    //                     </Button>
+    //                 </div>
+    //             </CardAction>
+    //         </CardHeader>
+    //         <CardContent className="flex size-full flex-col gap-4">
+    //             <div className="overflow-hidden rounded-md border">
+    //                 <DataTableNew table={table} columns={recentLeadsColumns} />
+    //             </div>
+    //             <DataTablePagination table={table} />
+    //         </CardContent>
+    //     </Card>
+    // </div>
+    <h1>QuerylogPage - Under Construction</h1>
   );
 }
 

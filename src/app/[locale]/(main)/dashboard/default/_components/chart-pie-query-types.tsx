@@ -8,7 +8,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAggregatedPiholeQuery } from "@/hooks/use-aggregated-pihole-query";
+import { FetchResult, useAggregatedPiholeQuery } from "@/hooks/use-aggregated-pihole-query";
 
 // Logic from usePiholeQueryTypes hook
 interface QueryTypesData {
@@ -17,11 +17,11 @@ interface QueryTypesData {
 
 const initialData: QueryTypesData = { types: {} };
 
-const queryTypesAggregator = (results: QueryTypesData[]): QueryTypesData => {
+const queryTypesAggregator = (results: FetchResult<QueryTypesData>[]): QueryTypesData => {
   if (results.length === 0) {
     return initialData;
   }
-  return results[0];
+  return results[0].data;
 };
 // End of logic from usePiholeQueryTypes hook
 

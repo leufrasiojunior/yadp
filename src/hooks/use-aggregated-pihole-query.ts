@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 // Define a generic aggregator function type
 type Aggregator<T, R> = (results: FetchResult<T>[]) => R;
 
-type FetchResult<T> = {
+export type FetchResult<T> = {
   url: string;
   data: T;
 };
