@@ -44,7 +44,15 @@ export function safeFormatUnixTime(
   }
 }
 
-// ---------- helpers ----------
+export function formatReplyTime(seconds: number): string {
+  if (seconds < 0.001) {
+    return `${(seconds * 1_000_000).toFixed(1)} µs`; // microssegundos
+  } else if (seconds < 1) {
+    return `${(seconds * 1000).toFixed(2)} ms`; // milissegundos
+  } else {
+    return `${seconds.toFixed(2)} s`; // segundos
+  }
+}
 
 /** Percentual com arredondamento sempre para cima (ceil). */
 export function formatPercentCeil(

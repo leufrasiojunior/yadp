@@ -1,5 +1,5 @@
 export interface QueryTableResponse {
-  queries: QueryTableResponse[];
+  queries: Query[]; // sua lista de queries
   cursor: number;
   recordsTotal: number;
   recordsFiltered: number;
@@ -20,4 +20,19 @@ export interface Client {
 export interface Ede {
   code: number;
   text: any;
+}
+
+export interface Query {
+  id: number;
+  time: number;
+  type: string;
+  status: string;
+  dnssec: string;
+  domain: string;
+  upstream?: string;
+  reply: Reply;
+  client: Client;
+  list_id?: number;
+  ede: Ede;
+  cname: any;
 }

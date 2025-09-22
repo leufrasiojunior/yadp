@@ -1,17 +1,10 @@
 import z from "zod";
 
-export const recentQueryLogSchema = z.object({
+export const recentLeadSchema = z.object({
   id: z.string(),
-  time: z.date(),
-  type: z.string(),
+  name: z.string(),
+  company: z.string(),
   status: z.string(),
-  domain: z.string(),
-  reply: z.object({
-    type: z.string(),
-    time: z.date(),
-  }),
-  client: z.object({
-    ip: z.string(),
-    name: z.string().nullable(),
-  }),
+  source: z.string(),
+  lastActivity: z.string(),
 });

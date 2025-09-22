@@ -1,0 +1,2309 @@
+{
+    "queries": [
+        {
+            "id": 13881007,
+            "time": 1758063356.1843088,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "desktop.postman.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "IP",
+                "time": 8.08238983154297e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13881006,
+            "time": 1758063356.18707,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "desktop.postman.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "NODATA",
+                "time": 4.5537948608398438e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13881005,
+            "time": 1758063356.6962256,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "firebaselogging-pa.googleapis.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 5.1736831665039062e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13881004,
+            "time": 1758063356.6972618,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "firebaselogging-pa.googleapis.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 2.9087066650390625e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13881003,
+            "time": 1758063353.4053683,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "events-am.gw.postman.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "IP",
+                "time": 0.00011491775512695312
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13881002,
+            "time": 1758063353.4094644,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "events-am.gw.postman.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "NODATA",
+                "time": 9.27448272705078e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13881001,
+            "time": 1758063352.3954453,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "sr-client-cfg.amplitude.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.8439712524414062e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13881000,
+            "time": 1758063352.3973839,
+            "type": "HTTPS",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "sr-client-cfg.amplitude.com",
+            "upstream": null,
+            "reply": {
+                "type": "NODATA",
+                "time": 4.5299530029296875e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880999,
+            "time": 1758063352.8056338,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "events.getpostman.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 8.70227813720703e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880998,
+            "time": 1758063351.561167,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "bifrost-https-v4.gw.postman.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00012350082397460938
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880997,
+            "time": 1758063351.5667813,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "bifrost-https-v4.gw.postman.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 7.7962875366210938e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880996,
+            "time": 1758063350.2433457,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.89165496826172e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880995,
+            "time": 1758063350.2453313,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 4.76837158203125e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880994,
+            "time": 1758063346.6672547,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "westus-0.in.applicationinsights.azure.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 9.8943710327148438e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880993,
+            "time": 1758063346.669255,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "westus-0.in.applicationinsights.azure.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 5.14984130859375e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880992,
+            "time": 1758063344.5812492,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "liberty.logs.roku.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "IP",
+                "time": 0.00013875961303710938
+            },
+            "client": {
+                "ip": "192.168.31.44",
+                "name": null
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880991,
+            "time": 1758063336.1003041,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "ntp.msn.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00072574615478515625
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880990,
+            "time": 1758063335.6423221,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 5.6982040405273438e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880989,
+            "time": 1758063335.64331,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 2.6226043701171875e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880988,
+            "time": 1758063332.964231,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "functional.events.data.microsoft.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00080633163452148438
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880987,
+            "time": 1758063332.98317,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "functional.events.data.microsoft.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.000751495361328125
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880986,
+            "time": 1758063331.322084,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "ldrc1r76cf.execute-api.sa-east-1.amazonaws.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "IP",
+                "time": 0.00046300888061523438
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880985,
+            "time": 1758063331.3523841,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "ldrc1r76cf.execute-api.sa-east-1.amazonaws.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "NODATA",
+                "time": 0.00045371055603027344
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880984,
+            "time": 1758063326.2452583,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "ext-cdn.cuponomia.com.br",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00035881996154785156
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880983,
+            "time": 1758063326.2728181,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "ext-cdn.cuponomia.com.br",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.000295877456665039
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880982,
+            "time": 1758063322.6556895,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.8439712524414062e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880981,
+            "time": 1758063322.6576512,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 4.7206878662109375e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880980,
+            "time": 1758063316.0320351,
+            "type": "A",
+            "status": "DENYLIST",
+            "dnssec": "UNKNOWN",
+            "domain": "api.ipify.org",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.74860382080078e-05
+            },
+            "client": {
+                "ip": "192.168.31.2",
+                "name": null
+            },
+            "list_id": 11,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880979,
+            "time": 1758063309.5348582,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 5.626678466796875e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880978,
+            "time": 1758063309.5358448,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 2.4080276489257812e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880977,
+            "time": 1758063308.7004862,
+            "type": "A",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "pplx-next-static-public.perplexity.ai",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 0.000486135482788086
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880976,
+            "time": 1758063308.727592,
+            "type": "HTTPS",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "pplx-next-static-public.perplexity.ai",
+            "upstream": null,
+            "reply": {
+                "type": "BLOB",
+                "time": 0.00040864944458007812
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880975,
+            "time": 1758063305.8667896,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 9.5367431640625e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880974,
+            "time": 1758063305.86881,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.0095062255859375e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880973,
+            "time": 1758063303.072181,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "www.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0011608600616455078
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880972,
+            "time": 1758063301.86029,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "firebaselogging-pa.googleapis.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 8.46385955810547e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880971,
+            "time": 1758063301.8622415,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "firebaselogging-pa.googleapis.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 5.53131103515625e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880970,
+            "time": 1758063302.0607104,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "www.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0011448860168457031
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880969,
+            "time": 1758063302.0847414,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "www.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.000964641571044922
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880968,
+            "time": 1758063295.5844753,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "ntp.msn.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0015709400177001953
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880967,
+            "time": 1758063295.6154008,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "ntp.msn.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0014131069183349609
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880966,
+            "time": 1758063295.6434982,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "ntp.msn.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.000802755355834961
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880965,
+            "time": 1758063295.8741627,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "img-s-msn-com.akamaized.net",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00023746490478515625
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880964,
+            "time": 1758063295.8938737,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "img-s-msn-com.akamaized.net",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00023412704467773438
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880963,
+            "time": 1758063295.9163618,
+            "type": "HTTPS",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "c.bing.com",
+            "upstream": null,
+            "reply": {
+                "type": "NODATA",
+                "time": 0.00032663345336914062
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880962,
+            "time": 1758063295.942858,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "c.bing.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 0.00023436546325683594
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880961,
+            "time": 1758063295.9590187,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "api.msn.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00098395347595214844
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880960,
+            "time": 1758063295.98004,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "api.msn.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00077533721923828125
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880959,
+            "time": 1758063294.453156,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "scribe.logs.roku.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.8439712524414062e-05
+            },
+            "client": {
+                "ip": "192.168.31.44",
+                "name": null
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880958,
+            "time": 1758063292.2867618,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "mobile.pipe.aria.microsoft.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 9.0122222900390625e-05
+            },
+            "client": {
+                "ip": "192.168.31.2",
+                "name": null
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880957,
+            "time": 1758063287.8283,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "www.terabox.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "IP",
+                "time": 0.00034403800964355469
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880956,
+            "time": 1758063287.8478637,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "www.terabox.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "NODATA",
+                "time": 0.00022435188293457031
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880955,
+            "time": 1758063287.9825017,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "fonts.gstatic.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "IP",
+                "time": 0.00026559829711914062
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880954,
+            "time": 1758063288.0015249,
+            "type": "HTTPS",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "fonts.gstatic.com",
+            "upstream": null,
+            "reply": {
+                "type": "BLOB",
+                "time": 0.00025200843811035156
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880953,
+            "time": 1758063285.5184469,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "browser.events.data.msn.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 0.00028133392333984375
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880952,
+            "time": 1758063285.5463758,
+            "type": "HTTPS",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "browser.events.data.msn.com",
+            "upstream": null,
+            "reply": {
+                "type": "NODATA",
+                "time": 0.00030231475830078125
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880951,
+            "time": 1758063285.5756483,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "srtb.msn.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 0.000310659408569336
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880950,
+            "time": 1758063285.6020472,
+            "type": "HTTPS",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "srtb.msn.com",
+            "upstream": null,
+            "reply": {
+                "type": "NODATA",
+                "time": 0.00023317337036132812
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880949,
+            "time": 1758063285.6230476,
+            "type": "HTTPS",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "sb.scorecardresearch.com",
+            "upstream": null,
+            "reply": {
+                "type": "NODATA",
+                "time": 0.00023436546325683594
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880948,
+            "time": 1758063285.64415,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "c.msn.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 0.00023293495178222656
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880947,
+            "time": 1758063285.6636679,
+            "type": "HTTPS",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "c.msn.com",
+            "upstream": null,
+            "reply": {
+                "type": "NODATA",
+                "time": 0.00023198127746582031
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880946,
+            "time": 1758063285.6843219,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "sb.scorecardresearch.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 0.00033497810363769531
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -3,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880945,
+            "time": 1758063285.7058389,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "assets.msn.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00087809562683105469
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880944,
+            "time": 1758063285.7262049,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "assets.msn.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00085854530334472656
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880943,
+            "time": 1758063285.7472,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "r.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.034491062164306641
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880942,
+            "time": 1758063285.7689879,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "r.msftstatic.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0011999607086181641
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880941,
+            "time": 1758063285.788435,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "r.msftstatic.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0019094944000244141
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880940,
+            "time": 1758063285.8106072,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "r.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.010904073715209961
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880939,
+            "time": 1758063285.8402886,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "th.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.015109062194824219
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880938,
+            "time": 1758063285.8594077,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "th.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.010294675827026367
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880937,
+            "time": 1758063285.8818507,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "www.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.015415430068969727
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880936,
+            "time": 1758063285.9075286,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "www.bing.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0069420337677001953
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880935,
+            "time": 1758063284.3460572,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.74860382080078e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880934,
+            "time": 1758063284.3479009,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 4.1961669921875e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880933,
+            "time": 1758063283.3118479,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 5.054473876953125e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880932,
+            "time": 1758063283.3129,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 3.1232833862304688e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880931,
+            "time": 1758063282.6790876,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 5.245208740234375e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880930,
+            "time": 1758063282.6800616,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 2.5987625122070312e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880929,
+            "time": 1758063281.6741045,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "stream.lab.amplitude.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 7.2956085205078125e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880928,
+            "time": 1758063281.6805165,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "stream.lab.amplitude.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 9.79900360107422e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880927,
+            "time": 1758063278.46419,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "edge.microsoft.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0015630722045898438
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880926,
+            "time": 1758063278.4908414,
+            "type": "HTTPS",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "edge.microsoft.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00075507164001464844
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880925,
+            "time": 1758063278.7217994,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 6.17504119873047e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880924,
+            "time": 1758063278.7228475,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 2.6702880859375e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880923,
+            "time": 1758063276.4651325,
+            "type": "A",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "www.perplexity.ai",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 0.00027418136596679688
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880922,
+            "time": 1758063276.48408,
+            "type": "HTTPS",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "www.perplexity.ai",
+            "upstream": null,
+            "reply": {
+                "type": "BLOB",
+                "time": 0.00028562545776367188
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880921,
+            "time": 1758063273.3029368,
+            "type": "A",
+            "status": "FORWARDED",
+            "dnssec": "UNKNOWN",
+            "domain": "proxy.individual.githubcopilot.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00908064842224121
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880920,
+            "time": 1758063273.3074191,
+            "type": "AAAA",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "proxy.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "CNAME",
+                "time": 6.22272491455078e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880919,
+            "time": 1758063272.5254068,
+            "type": "A",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "functional.events.data.microsoft.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.00036883354187011719
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880918,
+            "time": 1758063272.5561171,
+            "type": "HTTPS",
+            "status": "CACHE_STALE",
+            "dnssec": "UNKNOWN",
+            "domain": "functional.events.data.microsoft.com",
+            "upstream": "8.8.4.4#53",
+            "reply": {
+                "type": "CNAME",
+                "time": 0.0003337860107421875
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880917,
+            "time": 1758063270.2135315,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.62939453125e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880916,
+            "time": 1758063270.2153995,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 4.4107437133789062e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880915,
+            "time": 1758063269.0341132,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 8.0585479736328125e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880914,
+            "time": 1758063269.0359464,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 4.1723251342773438e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880913,
+            "time": 1758063269.6664989,
+            "type": "AAAA",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 7.4148178100585938e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880912,
+            "time": 1758063269.6683376,
+            "type": "A",
+            "status": "GRAVITY",
+            "dnssec": "UNKNOWN",
+            "domain": "telemetry.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "IP",
+                "time": 5.0306320190429688e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": -5,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880911,
+            "time": 1758063269.87131,
+            "type": "A",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "proxy.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "CNAME",
+                "time": 7.62939453125e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880910,
+            "time": 1758063269.8745551,
+            "type": "AAAA",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "proxy.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "CNAME",
+                "time": 5.4836273193359375e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880909,
+            "time": 1758063268.2896047,
+            "type": "A",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "proxy.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "CNAME",
+                "time": 8.296966552734375e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        },
+        {
+            "id": 13880908,
+            "time": 1758063268.29289,
+            "type": "AAAA",
+            "status": "CACHE",
+            "dnssec": "UNKNOWN",
+            "domain": "proxy.individual.githubcopilot.com",
+            "upstream": null,
+            "reply": {
+                "type": "CNAME",
+                "time": 5.7220458984375e-05
+            },
+            "client": {
+                "ip": "192.168.31.18",
+                "name": "M54-de-Leonald"
+            },
+            "list_id": null,
+            "ede": {
+                "code": -1,
+                "text": null
+            },
+            "cname": null
+        }
+    ],
+    "cursor": 13881007,
+    "recordsTotal": 46695,
+    "recordsFiltered": 46695,
+    "draw": 0,
+    "took": 0.0028128623962402344
+}
