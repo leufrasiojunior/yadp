@@ -8,7 +8,11 @@ import { SetupService } from "./setup.service";
 @ApiTags("setup")
 @Controller("setup")
 export class SetupController {
-  constructor(@Inject(SetupService) private readonly setupService: SetupService) {}
+  private readonly setupService: SetupService;
+
+  constructor(@Inject(SetupService) setupService: SetupService) {
+    this.setupService = setupService;
+  }
 
   @Get("status")
   @ApiOkResponse()

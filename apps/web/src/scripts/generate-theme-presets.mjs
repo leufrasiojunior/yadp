@@ -1,23 +1,27 @@
 /**
- * Script: generate-theme-presets.ts
+ * Script: generate-theme-presets.mjs
  *
- * This script scans the /styles/presets directory for CSS files containing theme definitions.
+ * This script scans apps/web/src/styles/presets for CSS files containing theme definitions.
  * It extracts `label:`, `value:`, and primary color definitions (`--primary`) for both light and dark modes.
  * These primary colors are used to visually represent each theme in the UI (e.g., colored dots or theme previews).
- * Default theme colors are fetched from /app/globals.css.
- * All extracted metadata is injected into a marked section of the /lib/preferences/theme.ts file.
+ * Default theme colors are fetched from apps/web/src/app/globals.css.
+ * All extracted metadata is injected into a marked section of apps/web/src/lib/preferences/theme.ts.
  *
  * Usage:
- * - During local development, run manually after adding any new theme preset:
+ * - From the monorepo root, run `npm run generate:presets`.
+ * - From apps/web, run `npm run generate:presets`.
+ * - Run it after adding or changing any preset CSS file.
  *     npm run generate:presets
  * - Ensure that each new CSS preset includes `label:` and `value:` comments.
- * - This generation step is currently automated using a Husky pre-push hook.
- * - You may optionally integrate it directly into a build step if preferred.
+ * - This generation step is automated by the root Husky pre-commit hook.
  */
 
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const presetDir = path.resolve(__dirname, "../styles/presets");
 
@@ -108,18 +112,12 @@ const updated = fileContent.replace(
 );
 
 function main() {
-  const biomeBin = require.resolve("@biomejs/biome/bin/biome");
-  const formatted = execFileSync(process.execPath, [biomeBin, "format", "--stdin-file-path", outputPath], {
-    input: updated,
-    encoding: "utf8",
-  });
-
-  if (formatted === fileContent) {
+  if (updated === fileContent) {
     console.log("ℹ️  No changes in theme.ts");
     return;
   }
 
-  fs.writeFileSync(outputPath, formatted);
+  fs.writeFileSync(outputPath, updated);
   console.log("✅ theme.ts updated with new theme presets");
 }
 

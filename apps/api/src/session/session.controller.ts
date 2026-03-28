@@ -8,7 +8,11 @@ import { SessionService } from "./session.service";
 @ApiTags("session")
 @Controller("session")
 export class SessionController {
-  constructor(@Inject(SessionService) private readonly sessionService: SessionService) {}
+  private readonly sessionService: SessionService;
+
+  constructor(@Inject(SessionService) sessionService: SessionService) {
+    this.sessionService = sessionService;
+  }
 
   @Post("login")
   @ApiOkResponse()

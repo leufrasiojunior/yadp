@@ -14,7 +14,11 @@ import { InstancesService } from "./instances.service";
 @UseGuards(SessionGuard)
 @Controller("instances")
 export class InstancesController {
-  constructor(@Inject(InstancesService) private readonly instancesService: InstancesService) {}
+  private readonly instancesService: InstancesService;
+
+  constructor(@Inject(InstancesService) instancesService: InstancesService) {
+    this.instancesService = instancesService;
+  }
 
   @Get()
   @ApiOkResponse()

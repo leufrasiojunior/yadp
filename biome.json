@@ -31,7 +31,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!.github", "!.husky", "!node_modules", "!.next", "!dist", "!out", "!src/components/ui"]
+    "includes": ["**", "!.github", "!.husky", "!node_modules", "!.next", "!dist", "!out", "!apps/web/src/components/ui"]
   },
   "formatter": {
     "enabled": true,
@@ -90,6 +90,9 @@
     }
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
@@ -102,6 +105,34 @@
       "bracketSpacing": true
     }
   },
+  "overrides": [
+    {
+      "includes": ["apps/api/**"],
+      "linter": {
+        "domains": {
+          "next": "none",
+          "react": "none"
+        },
+        "rules": {
+          "correctness": {
+            "useHookAtTopLevel": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/api/src/generated/**"],
+      "assist": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "enabled": false
+      }
+    }
+  ],
   "html": {
     "formatter": {
       "indentScriptAndStyle": false,

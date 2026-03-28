@@ -10,7 +10,11 @@ export type AuthenticatedRequest = Request & {
 
 @Injectable()
 export class SessionGuard implements CanActivate {
-  constructor(@Inject(SessionService) private readonly sessionService: SessionService) {}
+  private readonly sessionService: SessionService;
+
+  constructor(@Inject(SessionService) sessionService: SessionService) {
+    this.sessionService = sessionService;
+  }
 
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();

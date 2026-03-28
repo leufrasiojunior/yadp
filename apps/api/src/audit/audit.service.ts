@@ -17,8 +17,11 @@ type AuditEntry = {
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
+  private readonly prisma: PrismaService;
 
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) prisma: PrismaService) {
+    this.prisma = prisma;
+  }
 
   async record(entry: AuditEntry) {
     try {

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "generate:presets": "ts-node -P tsconfig.scripts.json src/scripts/generate-theme-presets.ts"
+    "generate:presets": "node src/scripts/generate-theme-presets.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
