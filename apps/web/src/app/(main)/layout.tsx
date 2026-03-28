@@ -1,0 +1,114 @@
+import type { ReactNode } from "react";
+
+import { cookies } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { Activity, Binary, ShieldCheck } from "lucide-react";
+
+import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
+import { SearchDialog } from "@/app/(main)/dashboard/_components/sidebar/search-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ApiUnavailableScreen } from "@/components/yapd/api-unavailable-screen";
+import { AppSessionProvider } from "@/components/yapd/app-session-provider";
+import { getServerSession, getSetupStatus, isYapdApiUnavailableError } from "@/lib/api/yapd-server";
+import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@/lib/preferences/layout";
+import { cn } from "@/lib/utils";
+import { getPreference } from "@/server/server-actions";
+
+export default async function MainLayout({ children }: Readonly<{ children: ReactNode }>) {
+  try {
+    const [setup, session, cookieStore, variant, collapsible] = await Promise.all([
+      getSetupStatus(),
+      getServerSession(),
+      cookies(),
+      getPreference("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
+      getPreference("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
+    ]);
+
+    if (setup.needsSetup) {
+      redirect("/setup");
+    }
+
+    if (!session) {
+      redirect("/login");
+    }
+
+    const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
+
+    return (
+      <AppSessionProvider session={session}>
+        <SidebarProvider
+          defaultOpen={defaultOpen}
+          style={
+            {
+              "--sidebar-width": "calc(var(--spacing) * 68)",
+            } as React.CSSProperties
+          }
+        >
+          <AppSidebar session={session} variant={variant} collapsible={collapsible} />
+          <SidebarInset
+            className={cn(
+              "[html[data-content-layout=centered]_&>*]:mx-auto",
+              "[html[data-content-layout=centered]_&>*]:w-full",
+              "[html[data-content-layout=centered]_&>*]:max-w-screen-2xl",
+            )}
+          >
+            <header
+              className={cn(
+                "flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12",
+                "[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md",
+              )}
+            >
+              <div className="flex w-full items-center justify-between px-4 lg:px-6">
+                <div className="flex items-center gap-1 lg:gap-2">
+                  <SidebarTrigger className="-ml-1" />
+                  <Separator
+                    orientation="vertical"
+                    className="mx-2 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
+                  />
+                  <SearchDialog />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="hidden gap-1 md:inline-flex">
+                    <ShieldCheck className="size-3.5" />
+                    {session.baseline.name}
+                  </Badge>
+                  <Button asChild variant="outline" size="sm">
+                    <Link prefetch={false} href="/dashboard">
+                      <Activity />
+                      Overview
+                    </Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link prefetch={false} href="/instances">
+                      <Binary />
+                      Instances
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </header>
+            <div className="h-full p-4 md:p-6">{children}</div>
+          </SidebarInset>
+        </SidebarProvider>
+      </AppSessionProvider>
+    );
+  } catch (error) {
+    if (isYapdApiUnavailableError(error)) {
+      return (
+        <ApiUnavailableScreen
+          apiBaseUrl={error.baseUrl}
+          description="A area autenticada precisa do backend para validar a baseline, ler a sessao atual e responder as rotas de gerenciamento."
+          retryHref="/dashboard"
+          title="O painel nao conseguiu falar com o backend"
+        />
+      );
+    }
+
+    throw error;
+  }
+}

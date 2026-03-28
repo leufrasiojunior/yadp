@@ -1,0 +1,2207 @@
+{
+  "info": {
+    "_postman_id": "2334c4cc-ee62-4876-9baa-b460116372b7",
+    "name": "Pi-hole API 6.0",
+    "description": "Pi-hole API 6.0 (**This version of Pi-hole API is still in development)**\n\nSome calls require an API token for authentication, to obtain the token change the **\"password\"** variable in **Variables** and then run once**\"Authentication\\\\Submit password for login\".**\n\nA Pre-request script will automatically add the **\"Accept: application/json\"** header if no \"Accept\" header is added to the requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "29129346"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Check if authentication is required",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/auth",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "auth"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit password for login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();\r",
+                  "\r",
+                  "pm.collectionVariables.set(\"sid\", data.session.sid);\r",
+                  "pm.collectionVariables.set(\"csrf\", data.session.csrf);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\": \"{{password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/auth",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "auth"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/auth",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "auth"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create new application password",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/auth/app",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "auth", "app"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete session by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/auth/session/:id",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "auth", "session", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Session ID"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List of all current sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/auth/sessions",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "auth", "sessions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Suggest new TOTP credentials",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/auth/totp",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "auth", "totp"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [""]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [""]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metrics",
+      "item": [
+        {
+          "name": "Get activity graph data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/history",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "history"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get per-client activity graph data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/history/clients",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "history", "clients"],
+              "query": [
+                {
+                  "key": "N",
+                  "value": "0",
+                  "description": "Maximum number of clients to return, setting this to 0 will return all clients",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get activity graph data (long-term data)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/history/database?from=1672580025&until=1672666425",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "history", "database"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "1672580025",
+                  "description": "(Mandatory) Unix timestamp from when the data should be requested",
+                  "type": "text"
+                },
+                {
+                  "key": "until",
+                  "value": "1672666425",
+                  "description": "(Mandatory) Unix timestamp until when the data should be requested",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get per-client activity graph data (long-term data)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/history/database/clients?from=1672580025&until=1672666425",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "history", "database", "clients"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "1672580025",
+                  "description": "(Mandatory) Unix timestamp from when the data should be requested"
+                },
+                {
+                  "key": "until",
+                  "value": "1672666425",
+                  "description": "(Mandatory) Unix timestamp until when the data should be requested"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get queries",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const responseData = pm.response.json();\r",
+                  "\r",
+                  "if (responseData.cursor > 0) {\r",
+                  "    pm.environment.set(\"queries_cursor\", responseData.cursor);\r",
+                  "}\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/queries",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "queries"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "",
+                  "description": "Unix timestamp from when the data should be requested",
+                  "disabled": true
+                },
+                {
+                  "key": "until",
+                  "value": "",
+                  "description": "Unix timestamp from when the data should be requested",
+                  "disabled": true
+                },
+                {
+                  "key": "length",
+                  "value": "",
+                  "description": "Number of results to return",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "start",
+                  "value": "",
+                  "description": "Offset from first record",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "{{queries_cursor}}",
+                  "description": "Database ID of the most recent query to be shown",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "domain",
+                  "value": "",
+                  "description": "Filter by specific domain (wildcards supported)",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "client_ip",
+                  "value": "",
+                  "description": "Filter by specific client IP address (wildcards supported)",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "upstream",
+                  "value": "",
+                  "description": "Filter by specific upstream (wildcards supported)",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by specific query type (A, AAAA, ...)",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by specific query status (GRAVITY, FORWARDED, ...)",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "reply",
+                  "value": "",
+                  "description": "Filter by specific reply type (NODATA, NXDOMAIN, ...)",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "dnssec",
+                  "value": "",
+                  "description": "Filter by specific DNSSEC status (SECURE, INSECURE, ...)",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "disk",
+                  "value": "false",
+                  "description": "(Default: false, Allowed true|false) Load queries from on-disk database rather than from in-memory",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get query filter suggestions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/queries/suggestions",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "queries", "suggestions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get query types (long-term database)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/database/query_types?from=1672580025&until=1672666425",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "database", "query_types"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "1672580025",
+                  "description": "(Mandatory) Unix timestamp from when the data should be requested"
+                },
+                {
+                  "key": "until",
+                  "value": "1672666425",
+                  "description": "(Mandatory) Unix timestamp until when the data should be requested"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get database content details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/database/summary?from=1672580025&until=1672666425",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "database", "summary"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "1672580025",
+                  "description": "(Mandatory) Unix timestamp from when the data should be requested"
+                },
+                {
+                  "key": "until",
+                  "value": "1672666425",
+                  "description": "(Mandatory) Unix timestamp until when the data should be requested"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get top clients (long-term database)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/database/top_clients?from=1672580025&until=1672666425",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "database", "top_clients"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "1672580025",
+                  "description": "(Mandatory) Unix timestamp from when the data should be requested"
+                },
+                {
+                  "key": "until",
+                  "value": "1672666425",
+                  "description": "(Mandatory) Unix timestamp until when the data should be requested"
+                },
+                {
+                  "key": "blocked",
+                  "value": "false",
+                  "description": "Return information about permitted or blocked clients",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "count",
+                  "value": "10",
+                  "description": "Number of requested items",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get top domains (long-term database)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/database/top_domains?from=1672580025&until=1672666425",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "database", "top_domains"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "1672580025",
+                  "description": "(Mandatory) Unix timestamp from when the data should be requested"
+                },
+                {
+                  "key": "until",
+                  "value": "1672666425",
+                  "description": "(Mandatory) Unix timestamp until when the data should be requested"
+                },
+                {
+                  "key": "blocked",
+                  "value": "false",
+                  "description": "Return information about permitted or blocked domains",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "count",
+                  "value": "10",
+                  "description": "Number of requested items",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get metrics about Pi-hole's upstream destinations (long-term database)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/database/upstreams?from=1672580025&until=1672666425",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "database", "upstreams"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "1672580025",
+                  "description": "(Mandatory) Unix timestamp from when the data should be requested"
+                },
+                {
+                  "key": "until",
+                  "value": "1672666425",
+                  "description": "(Mandatory) Unix timestamp until when the data should be requested"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get query types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/query_types",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "query_types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get most recently blocked domain",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/recent_blocked",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "recent_blocked"],
+              "query": [
+                {
+                  "key": "count",
+                  "value": "10",
+                  "description": "Number of requested blocked domains",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get overview of Pi-hole activity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/summary",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get top clients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/top_clients",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "top_clients"],
+              "query": [
+                {
+                  "key": "blocked",
+                  "value": "false",
+                  "description": "Return information about permitted or blocked clients",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "count",
+                  "value": "30",
+                  "description": "Number of requested items",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get top domains",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/top_domains?blocked=false",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "top_domains"],
+              "query": [
+                {
+                  "key": "blocked",
+                  "value": "false",
+                  "description": "Return information about permitted or blocked domains"
+                },
+                {
+                  "key": "count",
+                  "value": "30",
+                  "description": "Number of requested items",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get metrics about Pi-hole's upstream destinations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/stats/top_domains",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "stats", "top_domains"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [""]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [""]
+          }
+        }
+      ]
+    },
+    {
+      "name": "DNS control",
+      "item": [
+        {
+          "name": "Get current blocking status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/dns/blocking",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "dns", "blocking"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change current blocking status",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"blocking\": false,\r\n    \"timer\": 10 // Number of seconds to disable blocking for or null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/dns/blocking",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "dns", "blocking"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Group management",
+      "item": [
+        {
+          "name": "Add new group",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"test_group\", // Group name or array with group names [\"group1\", \"group2\", \"group3\"]\r\n    \"comment\": \"Some comment for this group\",\r\n    \"enabled\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/groups",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "groups"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete multiple groups",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n    {\r\n        \"item\": \"group1\"\r\n    },\r\n    {\r\n        \"item\": \"group2\"\r\n    }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/groups:batchDelete",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "groups:batchDelete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/groups",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "groups"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/groups/:name",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "groups", ":name"],
+              "variable": [
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Group name"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replace group",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"test_group\",\r\n    \"comment\": \"Some comment for this group\",\r\n    \"enabled\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/groups/:name",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "groups", ":name"],
+              "variable": [
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Group name"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete group",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/groups/:name",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "groups", ":name"],
+              "variable": [
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Group name"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Domain management",
+      "item": [
+        {
+          "name": "Delete multiple domains",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n    {\r\n        \"item\": \"example.com\",\r\n        \"type\": \"allow\",\r\n        \"kind\": \"exact\"\r\n    },\r\n    {\r\n        \"item\": \"example.net\",\r\n        \"type\": \"allow\",\r\n        \"kind\": \"exact\"\r\n    }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/domains:batchDelete",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "domains:batchDelete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add new domain",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"domain\": \"testdomain.com\",\r\n    \"comment\": \"Some comment describing this domain\",\r\n    \"groups\": [\r\n        0\r\n    ],\r\n    \"enabled\": false\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/domains/:type/:kind",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "domains", ":type", ":kind"],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Type (allowed or denied domain)"
+                },
+                {
+                  "key": "kind",
+                  "value": "",
+                  "description": "Kind (exact domain or regular expression)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get domain",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/domains/:type/:kind/:domain",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "domains", ":type", ":kind", ":domain"],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Type (allowed or denied domain)"
+                },
+                {
+                  "key": "kind",
+                  "value": "",
+                  "description": "Kind (exact domain or regular expression)"
+                },
+                {
+                  "key": "domain",
+                  "value": "",
+                  "description": "Domain"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replace domain",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"type\": \"allow\",\r\n    \"kind\": \"exact\",\r\n    \"comment\": \"Some comment describing this domain\",\r\n    \"groups\": [\r\n        0\r\n    ],\r\n    \"enabled\": false\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/domains/:type/:kind/:domain",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "domains", ":type", ":kind", ":domain"],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Type (allowed or denied domain)"
+                },
+                {
+                  "key": "kind",
+                  "value": "",
+                  "description": "Kind (exact domain or regular expression)"
+                },
+                {
+                  "key": "domain",
+                  "value": "",
+                  "description": "Domain"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete domain",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"type\": \"allow\",\r\n    \"kind\": \"exact\",\r\n    \"comment\": \"Some comment describing this domain\",\r\n    \"groups\": [\r\n        0\r\n    ],\r\n    \"enabled\": false,\r\n    \"took\": 0.003\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/domains/:type/:kind/:domain",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "domains", ":type", ":kind", ":domain"],
+              "variable": [
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Type (allowed or denied domain)"
+                },
+                {
+                  "key": "kind",
+                  "value": "",
+                  "description": "Kind (exact domain or regular expression)"
+                },
+                {
+                  "key": "domain",
+                  "value": "",
+                  "description": "Domain"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Client management",
+      "item": [
+        {
+          "name": "Add new client",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"client\": \"127.0.0.1\",\r\n    \"comment\": \"Some comment for this client\",\r\n    \"groups\": [\r\n        0\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/clients",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "clients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete multiple clients",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n    {\r\n        \"item\": \"192.168.2.5\"\r\n    },\r\n    {\r\n        \"item\": \"::1\"\r\n    },\r\n    {\r\n        \"item\": \"12:34:56:78:9A:BC\"\r\n    },\r\n    {\r\n        \"item\": \"localhost\"\r\n    },\r\n    {\r\n        \"item\": \":eth0\"\r\n    }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/clients:batchDelete",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "clients:batchDelete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get client suggestions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/clients/_suggestions",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "clients", "_suggestions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get clients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/clients/:client",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "clients", ":client"],
+              "variable": [
+                {
+                  "key": "client",
+                  "value": "",
+                  "description": "client IP / MAC / hostname / interface"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replace client",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"comment\": \"Some comment for this client\",\r\n    \"groups\": [\r\n        0\r\n    ],\r\n    \"took\": 0.003\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/clients/:client",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "clients", ":client"],
+              "variable": [
+                {
+                  "key": "client",
+                  "value": "",
+                  "description": "client IP / MAC / hostname / interface"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get clients Copy",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/clients/:client",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "clients", ":client"],
+              "variable": [
+                {
+                  "key": "client",
+                  "value": "",
+                  "description": "client IP / MAC / hostname / interface"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "List management",
+      "item": [
+        {
+          "name": "Add new list",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"address\": \"https://hosts-file.net/ad_servers.txt\",\r\n    \"type\": \"block\",\r\n    \"comment\": \"Some comment for this list\",\r\n    \"groups\": [\r\n        0\r\n    ],\r\n    \"enabled\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/lists",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "lists"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete lists",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"address\": \"https://hosts-file.net/ad_servers.txt\",\r\n    \"type\": \"block\",\r\n    \"comment\": \"Some comment for this list\",\r\n    \"groups\": [\r\n        0\r\n    ],\r\n    \"enabled\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/lists:batchDelete",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "lists:batchDelete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get lists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/lists/:list",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "lists", ":list"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "block",
+                  "description": "Type of list, optional (allow | block)",
+                  "type": "text",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "list",
+                  "value": "",
+                  "description": "Address of the list, optional"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replace list",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"comment\": \"Some comment for this list\",\r\n    \"type\": \"block\",\r\n    \"groups\": [\r\n        0\r\n    ],\r\n    \"enabled\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/lists/:list",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "lists", ":list"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "block",
+                  "description": "Type of list, optional (allow|block)",
+                  "type": "text",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "list",
+                  "value": "",
+                  "description": "Address of the list, optional"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete list",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/lists/:list",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "lists", ":list"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "block",
+                  "description": "Type of list, optional (allow|block)",
+                  "type": "text",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "list",
+                  "value": "",
+                  "description": "Address of the list"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search domains in Pi-hole's lists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/search/:domain",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "search", ":domain"],
+              "query": [
+                {
+                  "key": "partial",
+                  "value": "false",
+                  "description": "Is partial matching requested?",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "N",
+                  "value": "20",
+                  "description": "Maximum number of results to be returned",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "debug",
+                  "value": "false",
+                  "description": "Add debug information to the response",
+                  "type": "text",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "domain",
+                  "value": "",
+                  "description": "(Part of) domain to be searched for"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "FTL information",
+      "item": [
+        {
+          "name": "Get list of available API endpoints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/endpoints",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "endpoints"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get information about requesting client",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/client",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "client"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get info about long-term database",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/database",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "database"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get info about various ftl parameters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/ftl",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "ftl"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get info about various host parameters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/host",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "host"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login page related information",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/login",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pi-hole diagnosis messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/messages",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Pi-hole diagnosis message",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/messages/:message_id",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "messages", ":message_id"],
+              "variable": [
+                {
+                  "key": "message_id",
+                  "value": "",
+                  "description": "ID of the message to be deleted"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get count of Pi-hole diagnosis messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/messages/count",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "messages", "count"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get metrics info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/metrics",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "metrics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get info about various sensors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/sensors",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "sensors"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get info about various system parameters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/system",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "system"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pi-hole version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/info/version",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "info", "version"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get DNS log content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/logs/dnsmasq",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "logs", "dnsmasq"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get FTL information",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/logs/ftl",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "logs", "ftl"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get HTTP server information",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/logs/webserver",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "logs", "webserver"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Network information",
+      "item": [
+        {
+          "name": "Get info about the devices in your local network as seen by your Pi-hole",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/network/devices",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "network", "devices"],
+              "query": [
+                {
+                  "key": "max_devices",
+                  "value": "10",
+                  "description": "(Optional) Maximum number of devices to show",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "max_addresses",
+                  "value": "3",
+                  "description": "(Optional) Maximum number of addresses to show per device",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a device from the network table",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/network/devices/:device_id",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "network", "devices", ":device_id"],
+              "variable": [
+                {
+                  "key": "device_id",
+                  "value": "",
+                  "description": "Device ID"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get info about the gateway of your Pi-hole",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/network/gateway",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "network", "gateway"],
+              "query": [
+                {
+                  "key": "detailed",
+                  "value": "false",
+                  "description": "(Optional) Detailed interface/routing information",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get info about the interfaces of your Pi-hole",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/network/interfaces",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "network", "interfaces"],
+              "query": [
+                {
+                  "key": "defailed",
+                  "value": "false",
+                  "description": "(Optional) Detailed interface/routing information",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get info about the routes of your Pi-hole",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/network/routes",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "network", "routes"],
+              "query": [
+                {
+                  "key": "defailed",
+                  "value": "false",
+                  "description": "(Optional) Detailed interface/routing information",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Local DNS Records",
+      "item": [
+        {
+          "name": "Get A/AAAA records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/dns/hosts",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", "dns", "hosts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add A/AAAA records",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/dns/hosts/:record",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", "dns", "hosts", ":record"],
+              "variable": [
+                {
+                  "key": "record",
+                  "value": "1.2.3.4 domain.net",
+                  "description": "IP address (IPv4 or IPv6) and domain seperated by a SPACE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete A/AAAA record",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/dns/hosts/:record",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", "dns", "hosts", ":record"],
+              "variable": [
+                {
+                  "key": "record",
+                  "value": "1.2.3.4 domain.net",
+                  "description": "IP address (IPv4 or IPv6) and domain seperated by a SPACE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get CNAME records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/dns/cnameRecords",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", "dns", "cnameRecords"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add CNAME record",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/dns/cnameRecords/:record",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", "dns", "cnameRecords", ":record"],
+              "variable": [
+                {
+                  "key": "record",
+                  "value": "pi.hole,pihole.net,60",
+                  "description": "Domain, target domainm, TTL"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete CNAME record",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/dns/cnameRecords/:record",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", "dns", "cnameRecords", ":record"],
+              "variable": [
+                {
+                  "key": "record",
+                  "value": "pi.hole,pihole.net,60",
+                  "description": "Domain, target domainm, TTL"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Actions",
+      "item": [
+        {
+          "name": "Flush the network table",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/action/flush/arp",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "action", "flush", "arp"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Flush the DNS logs",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/action/flush/logs",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "action", "flush", "logs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Run gravity",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/action/gravity",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "action", "gravity"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restart pihole-FTL",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/action/restartdns",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "action", "restartdns"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "PADD",
+      "item": [
+        {
+          "name": "Get summarized data for PADD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/padd",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "padd"],
+              "query": [
+                {
+                  "key": "full",
+                  "value": "true",
+                  "description": "Return full data",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pi-hole configuration",
+      "item": [
+        {
+          "name": "Teleporter",
+          "item": [
+            {
+              "name": "Export Pi-hole settings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/zip",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{host}}/{{path}}/teleporter",
+                  "host": ["{{host}}"],
+                  "path": ["{{path}}", "teleporter"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Import Pi-hole settings",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"config\": true,\r\n  \"dhcp_leases\": true,\r\n  \"gravity\": {\r\n    \"group\": true,\r\n    \"adlist\": true,\r\n    \"adlist_by_group\": true,\r\n    \"domainlist\": true,\r\n    \"domainlist_by_group\": true,\r\n    \"client\": true,\r\n    \"client_by_group\": true\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/{{path}}/teleporter",
+                  "host": ["{{host}}"],
+                  "path": ["{{path}}", "teleporter"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get current configuration of your Pi-hole",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config"],
+              "query": [
+                {
+                  "key": "detailed",
+                  "value": "false",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get current configuration of your Pi-hole Copy",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"config\": {\r\n    \"dns\": {\r\n      \"CNAMEdeepInspect\": true\r\n    }\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/{{path}}/config",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get specific part of current configuration of your Pi-hole",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/:element",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", ":element"],
+              "query": [
+                {
+                  "key": "detailed",
+                  "value": "false",
+                  "description": "(Optional) Return detailed information about the configuration",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "element",
+                  "value": "",
+                  "description": "config element, Examples: dnsmasq/upstreams"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add config array item",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/:element/:value",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", ":element", ":value"],
+              "variable": [
+                {
+                  "key": "element",
+                  "value": "",
+                  "description": "dnsmasq/upstreams"
+                },
+                {
+                  "key": "value",
+                  "value": "",
+                  "description": "config value"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete config array item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/config/:element/:value",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "config", ":element", ":value"],
+              "variable": [
+                {
+                  "key": "element",
+                  "value": "",
+                  "description": "dnsmasq/upstreams"
+                },
+                {
+                  "key": "value",
+                  "value": "",
+                  "description": "config value"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "DHCP",
+      "item": [
+        {
+          "name": "Get currently active DHCP leases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/dhcp/leases",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "dhcp", "leases"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove DHCP lease",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/{{path}}/dhcp/leases/:ip",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "dhcp", "leases", ":ip"],
+              "variable": [
+                {
+                  "key": "ip",
+                  "value": "",
+                  "description": "IP address of lease to be deleted"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Documentation",
+      "item": [
+        {
+          "name": "Get the embedded API documentation rendered as HTML",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/html",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{host}}/{{path}}/docs",
+              "host": ["{{host}}"],
+              "path": ["{{path}}", "docs"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [""]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [""]
+          }
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{sid}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "sid",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          "\r",
+          "// If no 'Accept' header is set, then add 'Accept: application/json' as the default\r",
+          "const a = pm.request.headers.get(\"Accept\");\r",
+          "if (typeof a === 'undefined') {\r",
+          "    pm.request.headers.add(\"Accept: application/json\");\r",
+          "}\r",
+          "  \r",
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "host",
+      "value": "http://pi.hole",
+      "type": "string"
+    },
+    {
+      "key": "path",
+      "value": "api",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "correct horse battery staple",
+      "type": "string"
+    },
+    {
+      "key": "sid",
+      "value": "deadbeef",
+      "type": "string"
+    },
+    {
+      "key": "csrf",
+      "value": "deadbeef",
+      "type": "string"
+    },
+    {
+      "key": "queries_cursor",
+      "value": "0"
+    }
+  ]
+}

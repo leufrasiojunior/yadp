@@ -1,0 +1,514 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "YAPD API",
+    "version": "0.1.0",
+    "description": "Contrato do primeiro slice do YAPD."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/api"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "yapd_session"
+      }
+    },
+    "schemas": {
+      "BaselineInfo": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "baseUrl": { "type": "string", "format": "uri" }
+        },
+        "required": ["id", "name", "baseUrl"]
+      },
+      "SetupStatusResponse": {
+        "type": "object",
+        "properties": {
+          "needsSetup": { "type": "boolean" },
+          "baselineConfigured": { "type": "boolean" },
+          "baseline": {
+            "oneOf": [{ "$ref": "#/components/schemas/BaselineInfo" }, { "type": "null" }]
+          }
+        },
+        "required": ["needsSetup", "baselineConfigured", "baseline"]
+      },
+      "CreateBaselineRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "baseUrl": { "type": "string", "format": "uri" },
+          "servicePassword": { "type": "string" },
+          "totp": { "type": "string" },
+          "allowSelfSigned": { "type": "boolean" },
+          "certificatePem": { "type": "string" }
+        },
+        "required": ["name", "baseUrl", "servicePassword"]
+      },
+      "CreateBaselineResponse": {
+        "type": "object",
+        "properties": {
+          "baseline": {
+            "allOf": [
+              { "$ref": "#/components/schemas/BaselineInfo" },
+              {
+                "type": "object",
+                "properties": {
+                  "version": { "type": "string" }
+                },
+                "required": ["version"]
+              }
+            ]
+          }
+        },
+        "required": ["baseline"]
+      },
+      "SessionLoginRequest": {
+        "type": "object",
+        "properties": {
+          "password": { "type": "string" },
+          "totp": { "type": "string" }
+        },
+        "required": ["password"]
+      },
+      "SessionResponse": {
+        "type": "object",
+        "properties": {
+          "authenticated": { "type": "boolean", "enum": [true] },
+          "baseline": { "$ref": "#/components/schemas/BaselineInfo" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "csrfToken": { "type": "string" }
+        },
+        "required": ["authenticated", "baseline", "expiresAt", "csrfToken"]
+      },
+      "LogoutResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [true] }
+        },
+        "required": ["ok"]
+      },
+      "InstanceSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "baseUrl": { "type": "string", "format": "uri" },
+          "isBaseline": { "type": "boolean" },
+          "lastKnownVersion": {
+            "oneOf": [{ "type": "string" }, { "type": "null" }]
+          },
+          "lastValidatedAt": {
+            "oneOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+          },
+          "trustMode": { "type": "string", "enum": ["STRICT", "CUSTOM_CA", "ALLOW_SELF_SIGNED"] },
+          "hasCustomCertificate": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": [
+          "id",
+          "name",
+          "baseUrl",
+          "isBaseline",
+          "lastKnownVersion",
+          "lastValidatedAt",
+          "trustMode",
+          "hasCustomCertificate",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "InstanceListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InstanceSummary" }
+          }
+        },
+        "required": ["items"]
+      },
+      "CreateInstanceRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "baseUrl": { "type": "string", "format": "uri" },
+          "servicePassword": { "type": "string" },
+          "allowSelfSigned": { "type": "boolean" },
+          "certificatePem": { "type": "string" }
+        },
+        "required": ["name", "baseUrl", "servicePassword"]
+      },
+      "CreateOrUpdateInstanceResponse": {
+        "type": "object",
+        "properties": {
+          "instance": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "baseUrl": { "type": "string", "format": "uri" },
+              "version": { "type": "string" }
+            },
+            "required": ["id", "name", "baseUrl", "version"]
+          }
+        },
+        "required": ["instance"]
+      },
+      "DiscoverInstancesRequest": {
+        "type": "object",
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "items": { "type": "string", "format": "uri" }
+          }
+        }
+      },
+      "DiscoverInstanceItem": {
+        "type": "object",
+        "properties": {
+          "baseUrl": { "type": "string", "format": "uri" },
+          "reachable": { "type": "boolean" },
+          "authRequired": { "type": "boolean" },
+          "error": { "type": "string" }
+        },
+        "required": ["baseUrl", "reachable", "authRequired"]
+      },
+      "DiscoverInstancesResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DiscoverInstanceItem" }
+          }
+        },
+        "required": ["items"]
+      },
+      "UpdateInstanceRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "baseUrl": { "type": "string", "format": "uri" },
+          "servicePassword": { "type": "string" },
+          "allowSelfSigned": { "type": "boolean" },
+          "certificatePem": { "type": "string" }
+        }
+      },
+      "TestInstanceResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [true] },
+          "version": { "type": "string" },
+          "checkedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["ok", "version", "checkedAt"]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        },
+        "required": ["status", "timestamp"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "number" },
+          "message": { "type": "string" },
+          "error": { "type": "string" }
+        },
+        "required": ["statusCode", "message", "error"]
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setup/status": {
+      "get": {
+        "operationId": "getSetupStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SetupStatusResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setup/baseline": {
+      "post": {
+        "operationId": "createBaseline",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateBaselineRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreateBaselineResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session/login": {
+      "post": {
+        "operationId": "loginSession",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SessionLoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SessionResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/session": {
+      "get": {
+        "operationId": "getSession",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SessionResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "logoutSession",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LogoutResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instances": {
+      "get": {
+        "operationId": "listInstances",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InstanceListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createInstance",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateInstanceRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreateOrUpdateInstanceResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instances/discover": {
+      "post": {
+        "operationId": "discoverInstances",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DiscoverInstancesRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DiscoverInstancesResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instances/{id}/test": {
+      "post": {
+        "operationId": "testInstance",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TestInstanceResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instances/{id}": {
+      "patch": {
+        "operationId": "updateInstance",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateInstanceRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreateOrUpdateInstanceResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

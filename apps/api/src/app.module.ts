@@ -1,0 +1,26 @@
+import { Module } from "@nestjs/common";
+
+import { AuditModule } from "./audit/audit.module";
+import { CryptoModule } from "./common/crypto/crypto.module";
+import { PrismaModule } from "./common/prisma/prisma.module";
+import { AppEnvModule } from "./config/app-env.module";
+import { HealthModule } from "./health/health.module";
+import { InstancesModule } from "./instances/instances.module";
+import { PiholeModule } from "./pihole/pihole.module";
+import { SessionModule } from "./session/session.module";
+import { SetupModule } from "./setup/setup.module";
+
+@Module({
+  imports: [
+    AppEnvModule,
+    AuditModule,
+    CryptoModule,
+    HealthModule,
+    InstancesModule,
+    PiholeModule,
+    PrismaModule,
+    SessionModule,
+    SetupModule,
+  ],
+})
+export class AppModule {}

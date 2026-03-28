@@ -1,0 +1,61 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CertificateTrustMode {
+  STRICT
+  CUSTOM_CA
+  ALLOW_SELF_SIGNED
+}
+
+model Instance {
+  id               String                     @id @default(cuid())
+  name             String
+  baseUrl          String
+  isBaseline       Boolean                    @default(false)
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  lastValidatedAt  DateTime?
+  lastKnownVersion String?
+  secret           InstanceSecret?
+  certificateTrust InstanceCertificateTrust?
+}
+
+model InstanceSecret {
+  id                String   @id @default(cuid())
+  instanceId        String   @unique
+  encryptedPassword String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  instance          Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+}
+
+model InstanceCertificateTrust {
+  id                String               @id @default(cuid())
+  instanceId        String               @unique
+  mode              CertificateTrustMode @default(STRICT)
+  certificatePem    String?
+  fingerprintSha256 String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  instance          Instance             @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  actorType  String
+  actorLabel String?
+  ipAddress  String?
+  targetType String?
+  targetId   String?
+  result     String
+  details    Json?
+  createdAt  DateTime @default(now())
+}
