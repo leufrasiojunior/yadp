@@ -12,6 +12,25 @@ export type AppSession = {
   };
   expiresAt: string;
   csrfToken: string;
+  instanceSessions: {
+    successfulInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    failedInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+      kind:
+        | "invalid_credentials"
+        | "tls_error"
+        | "timeout"
+        | "dns_error"
+        | "connection_refused"
+        | "pihole_response_error"
+        | "unknown";
+      message: string;
+    }>;
+  };
 };
 
 const AppSessionContext = createContext<AppSession | null>(null);

@@ -388,6 +388,7 @@ export const ModelName = {
   Instance: 'Instance',
   InstanceSecret: 'InstanceSecret',
   InstanceCertificateTrust: 'InstanceCertificateTrust',
+  InstanceSession: 'InstanceSession',
   AuditLog: 'AuditLog'
 } as const
 
@@ -404,7 +405,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "auditLog"
+    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -704,6 +705,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    InstanceSession: {
+      payload: Prisma.$InstanceSessionPayload<ExtArgs>
+      fields: Prisma.InstanceSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.InstanceSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.InstanceSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.InstanceSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.InstanceSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>
+        }
+        findMany: {
+          args: Prisma.InstanceSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>[]
+        }
+        create: {
+          args: Prisma.InstanceSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>
+        }
+        createMany: {
+          args: Prisma.InstanceSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.InstanceSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.InstanceSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>
+        }
+        update: {
+          args: Prisma.InstanceSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.InstanceSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.InstanceSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.InstanceSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.InstanceSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InstanceSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.InstanceSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateInstanceSession>
+        }
+        groupBy: {
+          args: Prisma.InstanceSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InstanceSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.InstanceSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InstanceSessionCountAggregateOutputType> | number
+        }
+      }
+    }
     AuditLog: {
       payload: Prisma.$AuditLogPayload<ExtArgs>
       fields: Prisma.AuditLogFieldRefs
@@ -866,6 +941,26 @@ export const InstanceCertificateTrustScalarFieldEnum = {
 export type InstanceCertificateTrustScalarFieldEnum = (typeof InstanceCertificateTrustScalarFieldEnum)[keyof typeof InstanceCertificateTrustScalarFieldEnum]
 
 
+export const InstanceSessionScalarFieldEnum = {
+  id: 'id',
+  instanceId: 'instanceId',
+  encryptedSid: 'encryptedSid',
+  encryptedCsrf: 'encryptedCsrf',
+  piholeSessionId: 'piholeSessionId',
+  loginAt: 'loginAt',
+  lastActiveAt: 'lastActiveAt',
+  validUntil: 'validUntil',
+  authSource: 'authSource',
+  lastErrorKind: 'lastErrorKind',
+  lastErrorMessage: 'lastErrorMessage',
+  lastErrorAt: 'lastErrorAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InstanceSessionScalarFieldEnum = (typeof InstanceSessionScalarFieldEnum)[keyof typeof InstanceSessionScalarFieldEnum]
+
+
 export const AuditLogScalarFieldEnum = {
   id: 'id',
   action: 'action',
@@ -993,6 +1088,34 @@ export type ListEnumCertificateTrustModeFieldRefInput<$PrismaModel> = FieldRefIn
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'InstanceSessionAuthSource'
+ */
+export type EnumInstanceSessionAuthSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstanceSessionAuthSource'>
+    
+
+
+/**
+ * Reference to a field of type 'InstanceSessionAuthSource[]'
+ */
+export type ListEnumInstanceSessionAuthSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstanceSessionAuthSource[]'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -1007,16 +1130,16 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'Float'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
 
 
 /**
- * Reference to a field of type 'Int[]'
+ * Reference to a field of type 'Float[]'
  */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1118,6 +1241,7 @@ export type GlobalOmitConfig = {
   instance?: Prisma.InstanceOmit
   instanceSecret?: Prisma.InstanceSecretOmit
   instanceCertificateTrust?: Prisma.InstanceCertificateTrustOmit
+  instanceSession?: Prisma.InstanceSessionOmit
   auditLog?: Prisma.AuditLogOmit
 }
 

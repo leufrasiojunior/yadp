@@ -37,16 +37,19 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
       "pihole-master": {
         badge: "Login da baseline",
         title: "Entre usando o Pi-hole master",
-        description: "O YAPD usa o endpoint oficial do Pi-hole v6 para obter um SID e criar a sessão segura do painel.",
-        primaryNote: "Senha e TOTP são enviados apenas para a baseline e não ficam gravados no banco do YAPD.",
+        description:
+          "O YAPD usa o login oficial do Pi-hole master para criar a sessão inicial da baseline e sincronizar as sessões gerenciadas das instâncias.",
+        primaryNote:
+          "As credenciais das instâncias foram definidas no setup. O login humano da baseline reaproveita o SID obtido agora, sem abrir uma segunda sessão logo em seguida.",
         secondaryNote:
-          "As outras instâncias continuam com segredos técnicos próprios para operações internas do backend.",
+          "As outras instâncias continuam com suas próprias credenciais salvas e sessões gerenciadas pelo backend.",
         cardTitle: (baselineName) => baselineName,
         cardDescription: (baseUrl) => baseUrl,
         successToast: (baselineName) => `Sessão criada via ${baselineName}.`,
         fields: {
           password: "Senha do Pi-hole",
-          passwordDescription: "O backend não persiste essa senha. Ela só serve para obter o SID atual da interface.",
+          passwordDescription:
+            "Use a senha do Pi-hole master para autorizar a sessão inicial da baseline e liberar o painel.",
           totp: "Código TOTP opcional",
         },
         validationPassword: "Informe a senha do Pi-hole.",
@@ -88,15 +91,17 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
         badge: "Baseline login",
         title: "Sign in with the master Pi-hole",
         description:
-          "YAPD uses the official Pi-hole v6 endpoint to obtain an SID and create the dashboard's secure session.",
-        primaryNote: "Password and TOTP are sent only to the baseline and are never stored in the YAPD database.",
-        secondaryNote: "Other instances keep their own technical secrets for internal backend operations.",
+          "YAPD uses the official master Pi-hole login to seed the baseline session and synchronize the managed sessions of the instances.",
+        primaryNote:
+          "Instance credentials were defined during setup. The baseline human login reuses the SID obtained now instead of opening a second session right after login.",
+        secondaryNote: "Other instances keep their own stored credentials and backend-managed sessions.",
         cardTitle: (baselineName) => baselineName,
         cardDescription: (baseUrl) => baseUrl,
         successToast: (baselineName) => `Session created through ${baselineName}.`,
         fields: {
           password: "Pi-hole password",
-          passwordDescription: "The backend does not persist this password. It is only used to obtain the current SID.",
+          passwordDescription:
+            "Use the master Pi-hole password to authorize the baseline session and unlock the panel.",
           totp: "Optional TOTP code",
         },
         validationPassword: "Provide the Pi-hole password.",

@@ -47,6 +47,13 @@ export class InstancesController {
     return this.instancesService.testInstance(instanceId, request);
   }
 
+  @Post(":id/reauthenticate")
+  @UseGuards(CsrfGuard)
+  @ApiOkResponse()
+  reauthenticateInstance(@Param("id") instanceId: string, @Req() request: Request) {
+    return this.instancesService.reauthenticateInstance(instanceId, request);
+  }
+
   @Patch(":id")
   @UseGuards(CsrfGuard)
   @ApiOkResponse()

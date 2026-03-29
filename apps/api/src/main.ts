@@ -1,6 +1,8 @@
 import "reflect-metadata";
 
-import { ValidationPipe } from "@nestjs/common";
+import "./config/load-env";
+
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
@@ -9,12 +11,17 @@ import helmet from "helmet";
 
 import { AppModule } from "./app.module";
 import { getRequestLocale } from "./common/i18n/locale";
+import { normalizeAppLogLevel, resolveNestLoggerLevels } from "./common/logging/log-levels";
 import { AppEnvService } from "./config/app-env";
 import { buildOpenApiDocument } from "./openapi";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const configuredLogLevel = normalizeAppLogLevel(process.env.LOG_LEVEL);
+  const app = await NestFactory.create(AppModule, {
+    logger: resolveNestLoggerLevels(configuredLogLevel),
+  });
   const env = app.get(AppEnvService);
+  const logger = new Logger("Bootstrap");
 
   app.enableShutdownHooks();
   app.setGlobalPrefix("api");
@@ -41,6 +48,9 @@ async function bootstrap() {
   }
 
   await app.listen(env.values.API_PORT, env.values.API_HOST);
+  logger.log(
+    `YAPD API listening on http://${env.values.API_HOST}:${env.values.API_PORT}/api with log level "${env.values.LOG_LEVEL}".`,
+  );
 }
 
 void bootstrap();

@@ -60,6 +60,11 @@ export type InstanceSecret = Prisma.InstanceSecretModel
  */
 export type InstanceCertificateTrust = Prisma.InstanceCertificateTrustModel
 /**
+ * Model InstanceSession
+ * 
+ */
+export type InstanceSession = Prisma.InstanceSessionModel
+/**
  * Model AuditLog
  * 
  */

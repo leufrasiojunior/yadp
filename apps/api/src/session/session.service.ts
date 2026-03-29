@@ -12,6 +12,7 @@ import type { Prisma } from "../common/prisma/prisma-client";
 import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
 import { AppEnvService } from "../config/app-env";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
+import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { SessionCookiePayload } from "./session.types";
 
@@ -21,6 +22,7 @@ export class SessionService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CryptoService) private readonly crypto: CryptoService,
     @Inject(AppEnvService) private readonly env: AppEnvService,
+    @Inject(PiholeInstanceSessionService) private readonly instanceSessions: PiholeInstanceSessionService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
@@ -42,12 +44,6 @@ export class SessionService {
     }
 
     const loginMode = fromDbLoginMode(appConfig?.loginMode);
-    const connection = {
-      baseUrl: baseline.baseUrl,
-      allowSelfSigned: baseline.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
-      certificatePem: baseline.certificateTrust?.certificatePem ?? null,
-      locale,
-    };
     const ipAddress = getRequestIp(request);
 
     if (loginMode === "yapd-password") {
@@ -55,9 +51,7 @@ export class SessionService {
         throw new PreconditionFailedException(translateApi(locale, "session.localLoginUnavailable"));
       }
 
-      const isValidPassword = this.crypto.verifyPassword(dto.password, appConfig.passwordHash);
-
-      if (!isValidPassword) {
+      if (!this.crypto.verifyPassword(dto.password, appConfig.passwordHash)) {
         await this.audit.record({
           action: "session.login",
           actorType: "yapd_operator",
@@ -75,6 +69,7 @@ export class SessionService {
         throw new UnauthorizedException(translateApi(locale, "session.localLoginFailed"));
       }
 
+      const instanceSessions = await this.instanceSessions.bootstrapAllSessions(locale);
       const payload: SessionCookiePayload = {
         authMethod: loginMode,
         baselineInstanceId: baseline.id,
@@ -83,7 +78,6 @@ export class SessionService {
       };
 
       this.writeSessionCookie(response, payload);
-
       await this.audit.record({
         action: "session.login",
         actorType: "yapd_operator",
@@ -95,35 +89,58 @@ export class SessionService {
         details: {
           authMethod: loginMode,
           validitySeconds: this.env.values.YAPD_SESSION_TTL_SECONDS,
+          failedInstanceCount: instanceSessions.failedInstances.length,
         } satisfies Prisma.InputJsonObject,
       });
 
-      return {
-        authenticated: true as const,
-        authMethod: loginMode,
-        baseline: {
+      return this.buildSessionResponse(
+        {
           id: baseline.id,
           name: baseline.name,
           baseUrl: baseline.baseUrl,
         },
-        expiresAt: payload.expiresAt,
-        csrfToken: payload.antiCsrfToken,
-      };
+        payload,
+        instanceSessions,
+      );
     }
 
+    const connection = {
+      baseUrl: baseline.baseUrl,
+      allowSelfSigned: baseline.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
+      certificatePem: baseline.certificateTrust?.certificatePem ?? null,
+      locale,
+    };
+
     try {
-      const session = await this.pihole.authenticate(connection, dto.password, dto.totp);
+      const authenticated = await this.pihole.authenticate(connection, dto.password, dto.totp);
+      const seeded = await this.instanceSessions.seedSessionFromLogin(
+        baseline.id,
+        locale,
+        {
+          sid: authenticated.sid,
+          csrf: authenticated.csrf,
+        },
+        "HUMAN_MASTER",
+      );
+      const instanceSessions = await this.instanceSessions.bootstrapAllSessions(locale, {
+        seededSessions: {
+          [baseline.id]: {
+            session: {
+              sid: authenticated.sid,
+              csrf: authenticated.csrf,
+            },
+            authSource: "HUMAN_MASTER",
+          },
+        },
+      });
       const payload: SessionCookiePayload = {
         authMethod: loginMode,
         baselineInstanceId: baseline.id,
-        sid: session.sid,
-        csrf: session.csrf,
-        expiresAt: new Date(Date.now() + session.validity * 1000).toISOString(),
+        expiresAt: seeded.summary.validUntil ?? new Date(Date.now() + authenticated.validity * 1000).toISOString(),
         antiCsrfToken: this.crypto.createToken(),
       };
 
       this.writeSessionCookie(response, payload);
-
       await this.audit.record({
         action: "session.login",
         actorType: "pihole_operator",
@@ -134,22 +151,21 @@ export class SessionService {
         result: "SUCCESS",
         details: {
           authMethod: loginMode,
-          validitySeconds: session.validity,
+          validitySeconds: authenticated.validity,
           usedTotp: Boolean(dto.totp),
+          failedInstanceCount: instanceSessions.failedInstances.length,
         } satisfies Prisma.InputJsonObject,
       });
 
-      return {
-        authenticated: true as const,
-        authMethod: loginMode,
-        baseline: {
+      return this.buildSessionResponse(
+        {
           id: baseline.id,
           name: baseline.name,
           baseUrl: baseline.baseUrl,
         },
-        expiresAt: payload.expiresAt,
-        csrfToken: payload.antiCsrfToken,
-      };
+        payload,
+        instanceSessions,
+      );
     } catch (error) {
       await this.audit.record({
         action: "session.login",
@@ -173,7 +189,7 @@ export class SessionService {
     }
   }
 
-  async getCurrentSession(request: Request) {
+  async getCurrentSession(request: Request, response: Response) {
     const locale = getRequestLocale(request);
     const payload = this.requireSession(request);
     const baseline = await this.prisma.instance.findUnique({
@@ -181,20 +197,40 @@ export class SessionService {
     });
 
     if (!baseline) {
+      this.clearSessionCookie(response);
       throw new UnauthorizedException(translateApi(locale, "session.baselineMissing"));
     }
 
-    return {
-      authenticated: true,
-      authMethod: payload.authMethod,
-      baseline: {
+    let nextPayload = payload;
+
+    if (payload.authMethod === "pihole-master") {
+      try {
+        const active = await this.instanceSessions.ensureActiveSession(baseline.id, locale);
+
+        if (active.summary.validUntil) {
+          nextPayload = {
+            ...payload,
+            expiresAt: active.summary.validUntil,
+          };
+          this.writeSessionCookie(response, nextPayload);
+        }
+      } catch (error) {
+        this.clearSessionCookie(response);
+        throw new UnauthorizedException(
+          error instanceof Error ? error.message : translateApi(locale, "session.expired"),
+        );
+      }
+    }
+
+    return this.buildSessionResponse(
+      {
         id: baseline.id,
         name: baseline.name,
         baseUrl: baseline.baseUrl,
       },
-      expiresAt: payload.expiresAt,
-      csrfToken: payload.antiCsrfToken,
-    };
+      nextPayload,
+      null,
+    );
   }
 
   async logout(request: Request, response: Response) {
@@ -205,26 +241,9 @@ export class SessionService {
     if (payload) {
       const baseline = await this.prisma.instance.findUnique({
         where: { id: payload.baselineInstanceId },
-        include: { certificateTrust: true },
       });
 
       if (baseline) {
-        if (payload.authMethod === "pihole-master" && payload.sid) {
-          try {
-            await this.pihole.logout(
-              {
-                baseUrl: baseline.baseUrl,
-                allowSelfSigned: baseline.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
-                certificatePem: baseline.certificateTrust?.certificatePem ?? null,
-                locale,
-              },
-              payload.sid,
-            );
-          } catch {
-            // Logging out of Pi-hole is best-effort. We still clear the local session.
-          }
-        }
-
         await this.audit.record({
           action: "session.logout",
           actorType: payload.authMethod === "yapd-password" ? "yapd_operator" : "pihole_operator",
@@ -237,6 +256,9 @@ export class SessionService {
             authMethod: payload.authMethod,
           } satisfies Prisma.InputJsonObject,
         });
+      } else {
+        this.clearSessionCookie(response);
+        throw new UnauthorizedException(translateApi(locale, "session.baselineMissing"));
       }
     }
 
@@ -286,6 +308,28 @@ export class SessionService {
       secure: this.env.values.COOKIE_SECURE || this.env.isProduction,
       path: "/",
     });
+  }
+
+  private buildSessionResponse(
+    baseline: {
+      id: string;
+      name: string;
+      baseUrl: string;
+    },
+    payload: SessionCookiePayload,
+    instanceSessions: Awaited<ReturnType<PiholeInstanceSessionService["bootstrapAllSessions"]>> | null,
+  ) {
+    return {
+      authenticated: true as const,
+      authMethod: payload.authMethod,
+      baseline,
+      expiresAt: payload.expiresAt,
+      csrfToken: payload.antiCsrfToken,
+      instanceSessions: instanceSessions ?? {
+        successfulInstances: [],
+        failedInstances: [],
+      },
+    };
   }
 
   private writeSessionCookie(response: Response, payload: SessionCookiePayload) {

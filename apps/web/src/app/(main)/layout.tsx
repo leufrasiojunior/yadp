@@ -4,12 +4,12 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { Activity, Binary, ShieldCheck } from "lucide-react";
+import { Activity, Binary } from "lucide-react";
 
+import { DashboardScopeSelector } from "@/app/(main)/dashboard/_components/dashboard-scope-selector";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { LayoutControls } from "@/app/(main)/dashboard/_components/sidebar/layout-controls";
 import { SearchDialog } from "@/app/(main)/dashboard/_components/sidebar/search-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -17,11 +17,18 @@ import { ApiErrorScreen } from "@/components/yapd/api-error-screen";
 import { ApiUnavailableScreen } from "@/components/yapd/api-unavailable-screen";
 import { AppSessionProvider } from "@/components/yapd/app-session-provider";
 import {
+  getInstances,
   getServerSession,
   getSetupStatus,
   isYapdApiResponseError,
   isYapdApiUnavailableError,
 } from "@/lib/api/yapd-server";
+import {
+  DASHBOARD_SCOPE_COOKIE,
+  parseDashboardScope,
+  resolveDashboardScope,
+  serializeDashboardScope,
+} from "@/lib/dashboard/dashboard-scope";
 import { getServerI18n } from "@/lib/i18n/server";
 import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@/lib/preferences/layout";
 import { cn } from "@/lib/utils";
@@ -31,9 +38,10 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
   const { locale, messages } = await getServerI18n();
 
   try {
-    const [setup, session, cookieStore, variant, collapsible] = await Promise.all([
+    const [setup, session, instances, cookieStore, variant, collapsible] = await Promise.all([
       getSetupStatus(),
       getServerSession(),
+      getInstances(),
       cookies(),
       getPreference("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
       getPreference("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
@@ -48,6 +56,9 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
     }
 
     const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
+    const selectedDashboardScope = serializeDashboardScope(
+      resolveDashboardScope(parseDashboardScope(cookieStore.get(DASHBOARD_SCOPE_COOKIE)?.value), instances.items),
+    );
 
     return (
       <AppSessionProvider session={session}>
@@ -83,10 +94,13 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
                   <SearchDialog />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="hidden gap-1 md:inline-flex">
-                    <ShieldCheck className="size-3.5" />
-                    {session.baseline.name}
-                  </Badge>
+                  <DashboardScopeSelector
+                    allInstancesLabel={messages.dashboard.scope.allInstances}
+                    instances={instances.items}
+                    label={messages.dashboard.scope.label}
+                    placeholder={messages.dashboard.scope.placeholder}
+                    value={selectedDashboardScope}
+                  />
                   <Button asChild variant="outline" size="sm">
                     <Link prefetch={false} href="/dashboard">
                       <Activity />

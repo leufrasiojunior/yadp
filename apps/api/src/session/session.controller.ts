@@ -24,8 +24,8 @@ export class SessionController {
   @Get()
   @ApiCookieAuth()
   @ApiOkResponse()
-  getCurrentSession(@Req() request: Request) {
-    return this.sessionService.getCurrentSession(request);
+  getCurrentSession(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+    return this.sessionService.getCurrentSession(request, response);
   }
 
   @Delete()

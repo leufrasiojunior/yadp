@@ -10,8 +10,10 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import type { AppSession } from "@/components/yapd/app-session-provider";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { useWebI18n } from "@/lib/i18n/client";
 
 type PiholeLoginFormCopy = {
   fields: {
@@ -37,6 +39,7 @@ export function PiholeLoginForm({
     totp: z.string().optional(),
   });
   const router = useRouter();
+  const { messages } = useWebI18n();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,7 +50,7 @@ export function PiholeLoginForm({
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const client = getBrowserApiClient();
-    const { response } = await client.POST("/session/login", {
+    const { data, response } = await client.POST<AppSession>("/session/login", {
       body: {
         password: values.password,
         totp: values.totp || undefined,
@@ -60,6 +63,18 @@ export function PiholeLoginForm({
     }
 
     toast.success(copy.successToast);
+
+    data?.instanceSessions.failedInstances.forEach((failure) => {
+      const message =
+        failure.message.trim().length > 0
+          ? messages.dashboard.toasts.instanceFailure(failure.instanceName, failure.message)
+          : messages.dashboard.toasts.genericInstanceFailure(failure.instanceName);
+
+      toast.warning(message, {
+        id: `login-instance-failure-${failure.instanceId}`,
+      });
+    });
+
     router.replace("/dashboard");
     router.refresh();
   };

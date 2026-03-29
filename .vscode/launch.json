@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "YAPD API Debug",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run debug --workspace @yapd/api",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

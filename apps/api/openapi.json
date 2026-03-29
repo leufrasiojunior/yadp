@@ -1,514 +1,417 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.0.0",
+  "paths": {
+    "/dashboard/overview": {
+      "get": {
+        "operationId": "DashboardController_getOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scope": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": ["mode", "instanceId", "instanceName"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalQueries": {
+                          "type": "number"
+                        },
+                        "queriesBlocked": {
+                          "type": "number"
+                        },
+                        "percentageBlocked": {
+                          "type": "number"
+                        },
+                        "domainsOnList": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalQueries", "queriesBlocked", "percentageBlocked", "domainsOnList"]
+                    },
+                    "charts": {
+                      "type": "object",
+                      "properties": {
+                        "totalQueries": {
+                          "type": "object",
+                          "properties": {
+                            "points": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "timestamp": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "totalQueries": {
+                                    "type": "number"
+                                  },
+                                  "cachedQueries": {
+                                    "type": "number"
+                                  },
+                                  "blockedQueries": {
+                                    "type": "number"
+                                  },
+                                  "forwardedQueries": {
+                                    "type": "number"
+                                  },
+                                  "percentageBlocked": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "timestamp",
+                                  "totalQueries",
+                                  "cachedQueries",
+                                  "blockedQueries",
+                                  "forwardedQueries",
+                                  "percentageBlocked"
+                                ]
+                              }
+                            }
+                          },
+                          "required": ["points"]
+                        },
+                        "clientActivity": {
+                          "type": "object",
+                          "properties": {
+                            "series": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "totalQueries": {
+                                    "type": "number"
+                                  },
+                                  "points": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "timestamp": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        "queries": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "required": ["timestamp", "queries"]
+                                    }
+                                  }
+                                },
+                                "required": ["key", "label", "totalQueries", "points"]
+                              }
+                            }
+                          },
+                          "required": ["series"]
+                        }
+                      },
+                      "required": ["totalQueries", "clientActivity"]
+                    },
+                    "sources": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          }
+                        },
+                        "failedInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "invalid_credentials",
+                                  "tls_error",
+                                  "timeout",
+                                  "dns_error",
+                                  "connection_refused",
+                                  "pihole_response_error",
+                                  "unknown"
+                                ]
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName", "kind", "message"]
+                          }
+                        }
+                      },
+                      "required": ["totalInstances", "successfulInstances", "failedInstances"]
+                    }
+                  },
+                  "required": ["scope", "summary", "charts", "sources"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["dashboard"]
+      }
+    },
+    "/session/login": {
+      "post": {
+        "operationId": "SessionController_login",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["session"]
+      }
+    },
+    "/session": {
+      "get": {
+        "operationId": "SessionController_getCurrentSession",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["session"]
+      },
+      "delete": {
+        "operationId": "SessionController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["session"]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "status": "ok",
+                    "timestamp": "2026-03-28T15:00:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["health"]
+      }
+    },
+    "/instances": {
+      "get": {
+        "operationId": "InstancesController_listInstances",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      },
+      "post": {
+        "operationId": "InstancesController_createInstance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      }
+    },
+    "/instances/discover": {
+      "post": {
+        "operationId": "InstancesController_discoverInstances",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      }
+    },
+    "/instances/{id}/test": {
+      "post": {
+        "operationId": "InstancesController_testInstance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      }
+    },
+    "/instances/{id}/reauthenticate": {
+      "post": {
+        "operationId": "InstancesController_reauthenticateInstance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      }
+    },
+    "/instances/{id}": {
+      "patch": {
+        "operationId": "InstancesController_updateInstance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      }
+    },
+    "/setup/status": {
+      "get": {
+        "operationId": "SetupController_getStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["setup"]
+      }
+    },
+    "/setup/baseline": {
+      "post": {
+        "operationId": "SetupController_createBaseline",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["setup"]
+      }
+    }
+  },
   "info": {
     "title": "YAPD API",
+    "description": "API do primeiro slice do YAPD",
     "version": "0.1.0",
-    "description": "Contrato do primeiro slice do YAPD."
+    "contact": {}
   },
-  "servers": [
-    {
-      "url": "http://localhost:3001/api"
-    }
-  ],
+  "tags": [],
+  "servers": [],
   "components": {
     "securitySchemes": {
-      "cookieAuth": {
+      "cookie": {
         "type": "apiKey",
         "in": "cookie",
         "name": "yapd_session"
       }
     },
-    "schemas": {
-      "BaselineInfo": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "baseUrl": { "type": "string", "format": "uri" }
-        },
-        "required": ["id", "name", "baseUrl"]
-      },
-      "SetupStatusResponse": {
-        "type": "object",
-        "properties": {
-          "needsSetup": { "type": "boolean" },
-          "baselineConfigured": { "type": "boolean" },
-          "baseline": {
-            "oneOf": [{ "$ref": "#/components/schemas/BaselineInfo" }, { "type": "null" }]
-          }
-        },
-        "required": ["needsSetup", "baselineConfigured", "baseline"]
-      },
-      "CreateBaselineRequest": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "baseUrl": { "type": "string", "format": "uri" },
-          "servicePassword": { "type": "string" },
-          "totp": { "type": "string" },
-          "allowSelfSigned": { "type": "boolean" },
-          "certificatePem": { "type": "string" }
-        },
-        "required": ["name", "baseUrl", "servicePassword"]
-      },
-      "CreateBaselineResponse": {
-        "type": "object",
-        "properties": {
-          "baseline": {
-            "allOf": [
-              { "$ref": "#/components/schemas/BaselineInfo" },
-              {
-                "type": "object",
-                "properties": {
-                  "version": { "type": "string" }
-                },
-                "required": ["version"]
-              }
-            ]
-          }
-        },
-        "required": ["baseline"]
-      },
-      "SessionLoginRequest": {
-        "type": "object",
-        "properties": {
-          "password": { "type": "string" },
-          "totp": { "type": "string" }
-        },
-        "required": ["password"]
-      },
-      "SessionResponse": {
-        "type": "object",
-        "properties": {
-          "authenticated": { "type": "boolean", "enum": [true] },
-          "baseline": { "$ref": "#/components/schemas/BaselineInfo" },
-          "expiresAt": { "type": "string", "format": "date-time" },
-          "csrfToken": { "type": "string" }
-        },
-        "required": ["authenticated", "baseline", "expiresAt", "csrfToken"]
-      },
-      "LogoutResponse": {
-        "type": "object",
-        "properties": {
-          "ok": { "type": "boolean", "enum": [true] }
-        },
-        "required": ["ok"]
-      },
-      "InstanceSummary": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "baseUrl": { "type": "string", "format": "uri" },
-          "isBaseline": { "type": "boolean" },
-          "lastKnownVersion": {
-            "oneOf": [{ "type": "string" }, { "type": "null" }]
-          },
-          "lastValidatedAt": {
-            "oneOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
-          },
-          "trustMode": { "type": "string", "enum": ["STRICT", "CUSTOM_CA", "ALLOW_SELF_SIGNED"] },
-          "hasCustomCertificate": { "type": "boolean" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
-        },
-        "required": [
-          "id",
-          "name",
-          "baseUrl",
-          "isBaseline",
-          "lastKnownVersion",
-          "lastValidatedAt",
-          "trustMode",
-          "hasCustomCertificate",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "InstanceListResponse": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/InstanceSummary" }
-          }
-        },
-        "required": ["items"]
-      },
-      "CreateInstanceRequest": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "baseUrl": { "type": "string", "format": "uri" },
-          "servicePassword": { "type": "string" },
-          "allowSelfSigned": { "type": "boolean" },
-          "certificatePem": { "type": "string" }
-        },
-        "required": ["name", "baseUrl", "servicePassword"]
-      },
-      "CreateOrUpdateInstanceResponse": {
-        "type": "object",
-        "properties": {
-          "instance": {
-            "type": "object",
-            "properties": {
-              "id": { "type": "string" },
-              "name": { "type": "string" },
-              "baseUrl": { "type": "string", "format": "uri" },
-              "version": { "type": "string" }
-            },
-            "required": ["id", "name", "baseUrl", "version"]
-          }
-        },
-        "required": ["instance"]
-      },
-      "DiscoverInstancesRequest": {
-        "type": "object",
-        "properties": {
-          "candidates": {
-            "type": "array",
-            "items": { "type": "string", "format": "uri" }
-          }
-        }
-      },
-      "DiscoverInstanceItem": {
-        "type": "object",
-        "properties": {
-          "baseUrl": { "type": "string", "format": "uri" },
-          "reachable": { "type": "boolean" },
-          "authRequired": { "type": "boolean" },
-          "error": { "type": "string" }
-        },
-        "required": ["baseUrl", "reachable", "authRequired"]
-      },
-      "DiscoverInstancesResponse": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/DiscoverInstanceItem" }
-          }
-        },
-        "required": ["items"]
-      },
-      "UpdateInstanceRequest": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "baseUrl": { "type": "string", "format": "uri" },
-          "servicePassword": { "type": "string" },
-          "allowSelfSigned": { "type": "boolean" },
-          "certificatePem": { "type": "string" }
-        }
-      },
-      "TestInstanceResponse": {
-        "type": "object",
-        "properties": {
-          "ok": { "type": "boolean", "enum": [true] },
-          "version": { "type": "string" },
-          "checkedAt": { "type": "string", "format": "date-time" }
-        },
-        "required": ["ok", "version", "checkedAt"]
-      },
-      "HealthResponse": {
-        "type": "object",
-        "properties": {
-          "status": { "type": "string" },
-          "timestamp": { "type": "string", "format": "date-time" }
-        },
-        "required": ["status", "timestamp"]
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "statusCode": { "type": "number" },
-          "message": { "type": "string" },
-          "error": { "type": "string" }
-        },
-        "required": ["statusCode", "message", "error"]
-      }
-    }
-  },
-  "paths": {
-    "/health": {
-      "get": {
-        "operationId": "getHealth",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/HealthResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/setup/status": {
-      "get": {
-        "operationId": "getSetupStatus",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SetupStatusResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/setup/baseline": {
-      "post": {
-        "operationId": "createBaseline",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateBaselineRequest" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CreateBaselineResponse" }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/session/login": {
-      "post": {
-        "operationId": "loginSession",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/SessionLoginRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SessionResponse" }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
-          "412": {
-            "description": "Precondition failed",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/session": {
-      "get": {
-        "operationId": "getSession",
-        "security": [{ "cookieAuth": [] }],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SessionResponse" }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "operationId": "logoutSession",
-        "security": [{ "cookieAuth": [] }],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LogoutResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instances": {
-      "get": {
-        "operationId": "listInstances",
-        "security": [{ "cookieAuth": [] }],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/InstanceListResponse" }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "operationId": "createInstance",
-        "security": [{ "cookieAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateInstanceRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CreateOrUpdateInstanceResponse" }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instances/discover": {
-      "post": {
-        "operationId": "discoverInstances",
-        "security": [{ "cookieAuth": [] }],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/DiscoverInstancesRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscoverInstancesResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instances/{id}/test": {
-      "post": {
-        "operationId": "testInstance",
-        "security": [{ "cookieAuth": [] }],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/TestInstanceResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/instances/{id}": {
-      "patch": {
-        "operationId": "updateInstance",
-        "security": [{ "cookieAuth": [] }],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateInstanceRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CreateOrUpdateInstanceResponse" }
-              }
-            }
-          }
-        }
-      }
-    }
+    "schemas": {}
   }
 }

@@ -1,8 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { z } from "zod";
 
+import { DEFAULT_APP_LOG_LEVEL, LOG_LEVEL_VALUES } from "../common/logging/log-levels";
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  LOG_LEVEL: z.enum(LOG_LEVEL_VALUES).default(DEFAULT_APP_LOG_LEVEL),
   API_PORT: z.coerce.number().default(3001),
   API_HOST: z.string().min(1).default("127.0.0.1"),
   WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
@@ -15,6 +18,7 @@ const envSchema = z.object({
     .positive()
     .default(60 * 60 * 12),
   APP_ENCRYPTION_KEY: z.string().min(16).default("replace-this-encryption-key"),
+  PIHOLE_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
   COOKIE_SECURE: z
     .enum(["true", "false"])
     .default("false")

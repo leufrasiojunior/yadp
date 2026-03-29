@@ -51,6 +51,13 @@ export type InstanceItem = {
   hasCustomCertificate: boolean;
   createdAt: string;
   updatedAt: string;
+  sessionStatus: "active" | "expired" | "missing" | "error";
+  sessionManagedBy: "human-master" | "stored-secret" | null;
+  sessionLoginAt: string | null;
+  sessionLastActiveAt: string | null;
+  sessionValidUntil: string | null;
+  sessionLastErrorKind: DashboardInstanceErrorKind | null;
+  sessionLastErrorMessage: string | null;
 };
 
 export type InstanceListResponse = {
@@ -66,6 +73,65 @@ export type DiscoverInstanceItem = {
 
 export type DiscoverInstancesResponse = {
   items: DiscoverInstanceItem[];
+};
+
+export type DashboardInstanceErrorKind =
+  | "invalid_credentials"
+  | "tls_error"
+  | "timeout"
+  | "dns_error"
+  | "connection_refused"
+  | "pihole_response_error"
+  | "unknown";
+
+export type DashboardOverviewResponse = {
+  scope: {
+    mode: "all" | "instance";
+    instanceId: string | null;
+    instanceName: string | null;
+  };
+  summary: {
+    totalQueries: number;
+    queriesBlocked: number;
+    percentageBlocked: number;
+    domainsOnList: number;
+  };
+  charts: {
+    totalQueries: {
+      points: Array<{
+        timestamp: string;
+        totalQueries: number;
+        cachedQueries: number;
+        blockedQueries: number;
+        forwardedQueries: number;
+        percentageBlocked: number;
+      }>;
+    };
+    clientActivity: {
+      series: Array<{
+        key: string;
+        label: string;
+        totalQueries: number;
+        points: Array<{
+          timestamp: string;
+          queries: number;
+        }>;
+      }>;
+    };
+  };
+  sources: {
+    totalInstances: number;
+    successfulInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    failedInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+      kind: DashboardInstanceErrorKind;
+      message: string;
+    }>;
+  };
 };
 
 export type YapdSession = AppSession;

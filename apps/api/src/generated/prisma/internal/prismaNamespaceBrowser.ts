@@ -55,6 +55,7 @@ export const ModelName = {
   Instance: 'Instance',
   InstanceSecret: 'InstanceSecret',
   InstanceCertificateTrust: 'InstanceCertificateTrust',
+  InstanceSession: 'InstanceSession',
   AuditLog: 'AuditLog'
 } as const
 
@@ -121,6 +122,26 @@ export const InstanceCertificateTrustScalarFieldEnum = {
 } as const
 
 export type InstanceCertificateTrustScalarFieldEnum = (typeof InstanceCertificateTrustScalarFieldEnum)[keyof typeof InstanceCertificateTrustScalarFieldEnum]
+
+
+export const InstanceSessionScalarFieldEnum = {
+  id: 'id',
+  instanceId: 'instanceId',
+  encryptedSid: 'encryptedSid',
+  encryptedCsrf: 'encryptedCsrf',
+  piholeSessionId: 'piholeSessionId',
+  loginAt: 'loginAt',
+  lastActiveAt: 'lastActiveAt',
+  validUntil: 'validUntil',
+  authSource: 'authSource',
+  lastErrorKind: 'lastErrorKind',
+  lastErrorMessage: 'lastErrorMessage',
+  lastErrorAt: 'lastErrorAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InstanceSessionScalarFieldEnum = (typeof InstanceSessionScalarFieldEnum)[keyof typeof InstanceSessionScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {

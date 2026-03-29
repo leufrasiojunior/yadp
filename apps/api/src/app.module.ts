@@ -4,6 +4,7 @@ import { AuditModule } from "./audit/audit.module";
 import { CryptoModule } from "./common/crypto/crypto.module";
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { AppEnvModule } from "./config/app-env.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 import { HealthModule } from "./health/health.module";
 import { InstancesModule } from "./instances/instances.module";
 import { PiholeModule } from "./pihole/pihole.module";
@@ -15,6 +16,7 @@ import { SetupModule } from "./setup/setup.module";
     AppEnvModule,
     AuditModule,
     CryptoModule,
+    DashboardModule,
     HealthModule,
     InstancesModule,
     PiholeModule,

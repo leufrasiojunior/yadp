@@ -24,3 +24,11 @@ export const AppLoginMode = {
 } as const
 
 export type AppLoginMode = (typeof AppLoginMode)[keyof typeof AppLoginMode]
+
+
+export const InstanceSessionAuthSource = {
+  HUMAN_MASTER: 'HUMAN_MASTER',
+  STORED_SECRET: 'STORED_SECRET'
+} as const
+
+export type InstanceSessionAuthSource = (typeof InstanceSessionAuthSource)[keyof typeof InstanceSessionAuthSource]

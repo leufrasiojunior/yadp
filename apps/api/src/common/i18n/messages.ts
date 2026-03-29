@@ -4,10 +4,16 @@ type MessageValue = string | ((params: Record<string, string>) => string);
 
 type ApiMessageKey =
   | "csrf.invalid"
+  | "dashboard.allInstancesFailed"
+  | "dashboard.instanceIdRequired"
+  | "dashboard.noInstances"
   | "instances.invalidCredentials"
   | "instances.notFound"
+  | "pihole.invalidResponse"
+  | "pihole.invalidTechnicalCredentials"
   | "pihole.refused"
   | "pihole.reachable"
+  | "pihole.tls"
   | "pihole.timeout"
   | "pihole.unresolved"
   | "pihole.unreachable"
@@ -36,11 +42,19 @@ type ApiMessageKey =
 const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
   "pt-BR": {
     "csrf.invalid": "Token CSRF ausente ou inválido.",
+    "dashboard.allInstancesFailed": "Nenhuma instância retornou métricas válidas.",
+    "dashboard.instanceIdRequired": "Selecione uma instância válida para carregar o dashboard.",
+    "dashboard.noInstances": "Nenhuma instância Pi-hole está cadastrada no YAPD.",
     "instances.invalidCredentials": "As credenciais do Pi-hole são inválidas.",
     "instances.notFound": "Instância não encontrada.",
+    "pihole.invalidResponse": ({ baseUrl, path }) =>
+      `O Pi-hole em ${baseUrl} respondeu em um formato inesperado para ${path}.`,
+    "pihole.invalidTechnicalCredentials": ({ baseUrl }) =>
+      `As credenciais técnicas salvas para ${baseUrl} são inválidas.`,
     "pihole.refused": ({ baseUrl }) =>
       `A conexão foi recusada por ${baseUrl}. Verifique o host, a porta e se o Pi-hole está em execução.`,
     "pihole.reachable": "Pi-hole alcançável",
+    "pihole.tls": ({ baseUrl }) => `O certificado TLS apresentado por ${baseUrl} não é confiável para esta instância.`,
     "pihole.timeout": ({ baseUrl }) =>
       `A conexão com ${baseUrl} expirou. Verifique se o Pi-hole está online e acessível pelo backend.`,
     "pihole.unresolved": ({ baseUrl }) =>
@@ -75,11 +89,19 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
   },
   "en-US": {
     "csrf.invalid": "Missing or invalid CSRF token.",
+    "dashboard.allInstancesFailed": "No instance returned valid dashboard metrics.",
+    "dashboard.instanceIdRequired": "Select a valid instance to load the dashboard.",
+    "dashboard.noInstances": "No Pi-hole instance is registered in YAPD.",
     "instances.invalidCredentials": "The Pi-hole credentials are invalid.",
     "instances.notFound": "Instance not found.",
+    "pihole.invalidResponse": ({ baseUrl, path }) =>
+      `The Pi-hole at ${baseUrl} returned an unexpected payload for ${path}.`,
+    "pihole.invalidTechnicalCredentials": ({ baseUrl }) =>
+      `The saved technical credentials for ${baseUrl} are invalid.`,
     "pihole.refused": ({ baseUrl }) =>
       `Connection refused by ${baseUrl}. Check the host, port, and whether the Pi-hole is running.`,
     "pihole.reachable": "Pi-hole reachable",
+    "pihole.tls": ({ baseUrl }) => `The TLS certificate presented by ${baseUrl} is not trusted for this instance.`,
     "pihole.timeout": ({ baseUrl }) =>
       `Timed out while connecting to ${baseUrl}. Check if the Pi-hole is online and reachable from the backend.`,
     "pihole.unresolved": ({ baseUrl }) =>

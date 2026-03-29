@@ -4,48 +4,16 @@
  */
 
 export interface paths {
-  "/health": {
+  "/dashboard/overview": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations["getHealth"];
+    get: operations["DashboardController_getOverview"];
     put?: never;
     post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/setup/status": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["getSetupStatus"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/setup/baseline": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["createBaseline"];
     delete?: never;
     options?: never;
     head?: never;
@@ -61,7 +29,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    post: operations["loginSession"];
+    post: operations["SessionController_login"];
     delete?: never;
     options?: never;
     head?: never;
@@ -75,10 +43,26 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations["getSession"];
+    get: operations["SessionController_getCurrentSession"];
     put?: never;
     post?: never;
-    delete: operations["logoutSession"];
+    delete: operations["SessionController_logout"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["HealthController_getHealth"];
+    put?: never;
+    post?: never;
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
@@ -91,9 +75,9 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations["listInstances"];
+    get: operations["InstancesController_listInstances"];
     put?: never;
-    post: operations["createInstance"];
+    post: operations["InstancesController_createInstance"];
     delete?: never;
     options?: never;
     head?: never;
@@ -109,7 +93,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    post: operations["discoverInstances"];
+    post: operations["InstancesController_discoverInstances"];
     delete?: never;
     options?: never;
     head?: never;
@@ -125,7 +109,23 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    post: operations["testInstance"];
+    post: operations["InstancesController_testInstance"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/instances/{id}/reauthenticate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["InstancesController_reauthenticateInstance"];
     delete?: never;
     options?: never;
     head?: never;
@@ -145,129 +145,45 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    patch: operations["updateInstance"];
+    patch: operations["InstancesController_updateInstance"];
+    trace?: never;
+  };
+  "/setup/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["SetupController_getStatus"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/setup/baseline": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SetupController_createBaseline"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    BaselineInfo: {
-      id: string;
-      name: string;
-      /** Format: uri */
-      baseUrl: string;
-    };
-    SetupStatusResponse: {
-      needsSetup: boolean;
-      baselineConfigured: boolean;
-      baseline: components["schemas"]["BaselineInfo"] | null;
-    };
-    CreateBaselineRequest: {
-      name: string;
-      /** Format: uri */
-      baseUrl: string;
-      servicePassword: string;
-      totp?: string;
-      allowSelfSigned?: boolean;
-      certificatePem?: string;
-    };
-    CreateBaselineResponse: {
-      baseline: components["schemas"]["BaselineInfo"] & {
-        version: string;
-      };
-    };
-    SessionLoginRequest: {
-      password: string;
-      totp?: string;
-    };
-    SessionResponse: {
-      /** @enum {boolean} */
-      authenticated: true;
-      baseline: components["schemas"]["BaselineInfo"];
-      /** Format: date-time */
-      expiresAt: string;
-      csrfToken: string;
-    };
-    LogoutResponse: {
-      /** @enum {boolean} */
-      ok: true;
-    };
-    InstanceSummary: {
-      id: string;
-      name: string;
-      /** Format: uri */
-      baseUrl: string;
-      isBaseline: boolean;
-      lastKnownVersion: string | null;
-      lastValidatedAt: string | null;
-      /** @enum {string} */
-      trustMode: "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
-      hasCustomCertificate: boolean;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-    };
-    InstanceListResponse: {
-      items: components["schemas"]["InstanceSummary"][];
-    };
-    CreateInstanceRequest: {
-      name: string;
-      /** Format: uri */
-      baseUrl: string;
-      servicePassword: string;
-      allowSelfSigned?: boolean;
-      certificatePem?: string;
-    };
-    CreateOrUpdateInstanceResponse: {
-      instance: {
-        id: string;
-        name: string;
-        /** Format: uri */
-        baseUrl: string;
-        version: string;
-      };
-    };
-    DiscoverInstancesRequest: {
-      candidates?: string[];
-    };
-    DiscoverInstanceItem: {
-      /** Format: uri */
-      baseUrl: string;
-      reachable: boolean;
-      authRequired: boolean;
-      error?: string;
-    };
-    DiscoverInstancesResponse: {
-      items: components["schemas"]["DiscoverInstanceItem"][];
-    };
-    UpdateInstanceRequest: {
-      name?: string;
-      /** Format: uri */
-      baseUrl?: string;
-      servicePassword?: string;
-      allowSelfSigned?: boolean;
-      certificatePem?: string;
-    };
-    TestInstanceResponse: {
-      /** @enum {boolean} */
-      ok: true;
-      version: string;
-      /** Format: date-time */
-      checkedAt: string;
-    };
-    HealthResponse: {
-      status: string;
-      /** Format: date-time */
-      timestamp: string;
-    };
-    ErrorResponse: {
-      statusCode: number;
-      message: string;
-      error: string;
-    };
-  };
+  schemas: never;
   responses: never;
   parameters: never;
   requestBodies: never;
@@ -276,7 +192,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  getHealth: {
+  DashboardController_getOverview: {
     parameters: {
       query?: never;
       header?: never;
@@ -285,18 +201,76 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description OK */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["HealthResponse"];
+          "application/json": {
+            scope: {
+              /** @enum {string} */
+              mode: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+            };
+            summary: {
+              totalQueries: number;
+              queriesBlocked: number;
+              percentageBlocked: number;
+              domainsOnList: number;
+            };
+            charts: {
+              totalQueries: {
+                points: {
+                  /** Format: date-time */
+                  timestamp: string;
+                  totalQueries: number;
+                  cachedQueries: number;
+                  blockedQueries: number;
+                  forwardedQueries: number;
+                  percentageBlocked: number;
+                }[];
+              };
+              clientActivity: {
+                series: {
+                  key: string;
+                  label: string;
+                  totalQueries: number;
+                  points: {
+                    /** Format: date-time */
+                    timestamp: string;
+                    queries: number;
+                  }[];
+                }[];
+              };
+            };
+            sources: {
+              totalInstances: number;
+              successfulInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+              failedInstances: {
+                instanceId: string;
+                instanceName: string;
+                /** @enum {string} */
+                kind:
+                  | "invalid_credentials"
+                  | "tls_error"
+                  | "timeout"
+                  | "dns_error"
+                  | "connection_refused"
+                  | "pihole_response_error"
+                  | "unknown";
+                message: string;
+              }[];
+            };
+          };
         };
       };
     };
   };
-  getSetupStatus: {
+  SessionController_login: {
     parameters: {
       query?: never;
       header?: never;
@@ -305,281 +279,200 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description OK */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": components["schemas"]["SetupStatusResponse"];
-        };
+        content?: never;
       };
     };
   };
-  createBaseline: {
+  SessionController_getCurrentSession: {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateBaselineRequest"];
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
+  };
+  SessionController_logout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
-      /** @description Created */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  HealthController_getHealth: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  InstancesController_listInstances: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  InstancesController_createInstance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  InstancesController_discoverInstances: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  InstancesController_testInstance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  InstancesController_reauthenticateInstance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  InstancesController_updateInstance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SetupController_getStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SetupController_createBaseline: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
       201: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": components["schemas"]["CreateBaselineResponse"];
-        };
-      };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  loginSession: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SessionLoginRequest"];
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SessionResponse"];
-        };
-      };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Precondition failed */
-      412: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getSession: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SessionResponse"];
-        };
-      };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  logoutSession: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["LogoutResponse"];
-        };
-      };
-    };
-  };
-  listInstances: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["InstanceListResponse"];
-        };
-      };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateInstanceRequest"];
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateOrUpdateInstanceResponse"];
-        };
-      };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  discoverInstances: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["DiscoverInstancesRequest"];
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DiscoverInstancesResponse"];
-        };
-      };
-    };
-  };
-  testInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TestInstanceResponse"];
-        };
-      };
-    };
-  };
-  updateInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateInstanceRequest"];
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateOrUpdateInstanceResponse"];
-        };
+        content?: never;
       };
     };
   };

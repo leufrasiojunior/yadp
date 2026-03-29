@@ -107,6 +107,7 @@ type WebMessages = {
         createSuccess: string;
         discoverSuccess: string;
         testSuccess: string;
+        reauthenticateSuccess: string;
       };
       create: {
         title: string;
@@ -140,11 +141,22 @@ type WebMessages = {
         trust: string;
         version: string;
         lastValidation: string;
+        session: string;
+        validUntil: string;
+        lastError: string;
         actions: string;
         baseline: string;
         managed: string;
+        humanMaster: string;
+        storedSecret: string;
         testIdle: string;
         testLoading: string;
+        reauthenticateIdle: string;
+        reauthenticateLoading: string;
+        statusActive: string;
+        statusExpired: string;
+        statusMissing: string;
+        statusError: string;
       };
       page: {
         eyebrow: string;
@@ -220,21 +232,32 @@ type WebMessages = {
   dashboard: {
     eyebrow: string;
     title: string;
-    cards: {
-      instances: string;
-      baseline: string;
-      session: string;
-      setupHint: string;
-      expiresAt: (formatted: string) => string;
+    scope: {
+      label: string;
+      allInstances: string;
+      placeholder: string;
     };
-    sliceTitle: string;
-    sliceDescription: string;
-    sliceBodyPrimary: string;
-    sliceBodySecondary: string;
-    nextTitle: string;
-    nextDescription: string;
-    nextBodyPrimary: string;
-    nextBodySecondary: string;
+    cards: {
+      totalQueries: string;
+      queriesBlocked: string;
+      percentageBlocked: string;
+      domainsOnList: string;
+    };
+    charts: {
+      totalQueriesTitle: string;
+      totalQueriesDescription: (count: number) => string;
+      clientActivityTitle: string;
+      clientActivityDescription: (count: number) => string;
+      noData: string;
+    };
+    partial: {
+      title: string;
+      description: (failedCount: number, totalCount: number) => string;
+    };
+    toasts: {
+      instanceFailure: (instanceName: string, message: string) => string;
+      genericInstanceFailure: (instanceName: string) => string;
+    };
   };
 };
 
@@ -355,6 +378,7 @@ const messages: Record<AppLocale, WebMessages> = {
           createSuccess: "Instância cadastrada com sucesso.",
           discoverSuccess: "Descoberta executada.",
           testSuccess: "Conexão validada com sucesso.",
+          reauthenticateSuccess: "Sessão da instância renovada com sucesso.",
         },
         create: {
           title: "Cadastrar instância",
@@ -388,11 +412,22 @@ const messages: Record<AppLocale, WebMessages> = {
           trust: "Trust",
           version: "Versão",
           lastValidation: "Última validação",
+          session: "Sessão",
+          validUntil: "Válida até",
+          lastError: "Último erro",
           actions: "Ações",
           baseline: "Baseline",
           managed: "Instância gerenciada",
+          humanMaster: "Login humano master",
+          storedSecret: "Segredo salvo",
           testIdle: "Testar",
           testLoading: "Testando...",
+          reauthenticateIdle: "Reautenticar",
+          reauthenticateLoading: "Reautenticando...",
+          statusActive: "Ativa",
+          statusExpired: "Expirada",
+          statusMissing: "Sem SID",
+          statusError: "Com erro",
         },
         page: {
           eyebrow: "Infraestrutura gerenciada",
@@ -467,25 +502,44 @@ const messages: Record<AppLocale, WebMessages> = {
       },
     },
     dashboard: {
-      eyebrow: "Primeiro slice operacional do YAPD",
+      eyebrow: "Visão consolidada das instâncias Pi-hole",
       title: "Dashboard",
-      cards: {
-        instances: "Instâncias cadastradas",
-        baseline: "Baseline ativa",
-        session: "Sessão atual",
-        setupHint: "Configure no setup",
-        expiresAt: (formatted) => `Expira em ${formatted}`,
+      scope: {
+        label: "Escopo do dashboard",
+        allInstances: "Todas as instâncias",
+        placeholder: "Selecione uma instância",
       },
-      sliceTitle: "Estado do slice 1",
-      sliceDescription: "O backend já responde setup, sessão e gerenciamento inicial de instâncias.",
-      sliceBodyPrimary:
-        "Use a página de instâncias para cadastrar novos Pi-holes, testar a conectividade e revisar a baseline.",
-      sliceBodySecondary:
-        "O login humano acontece sempre via baseline e o backend guarda apenas a sessão proxy segura.",
-      nextTitle: "Próximos passos",
-      nextDescription: "O que este repositório já preparou para a próxima fase.",
-      nextBodyPrimary: "Sync engine e drift podem ser encaixados sobre o módulo Pi-hole e o estado canônico.",
-      nextBodySecondary: "Auditoria, trust TLS e segredos criptografados já estão estruturados no backend.",
+      cards: {
+        totalQueries: "Total Queries",
+        queriesBlocked: "Queries Blocked",
+        percentageBlocked: "Percentage Blocked",
+        domainsOnList: "Domains on list",
+      },
+      charts: {
+        totalQueriesTitle: "Total Queries",
+        totalQueriesDescription: (count) =>
+          count === 1
+            ? "Últimas 24 horas da instância selecionada, em janelas de 1 hora."
+            : `Últimas 24 horas agregadas entre ${count} instâncias, em janelas de 1 hora.`,
+        clientActivityTitle: "Client activity",
+        clientActivityDescription: (count) =>
+          count === 1
+            ? "Clientes da instância selecionada nas últimas 24 horas, em janelas de 1 hora."
+            : `Top clientes somados entre ${count} instâncias nas últimas 24 horas, em janelas de 1 hora.`,
+        noData: "Sem dados suficientes para montar este gráfico ainda.",
+      },
+      partial: {
+        title: "Dashboard parcial",
+        description: (failedCount, totalCount) =>
+          failedCount === 1
+            ? `1 de ${totalCount} instância falhou ao carregar métricas. Os dados abaixo somam apenas as instâncias saudáveis.`
+            : `${failedCount} de ${totalCount} instâncias falharam ao carregar métricas. Os dados abaixo somam apenas as instâncias saudáveis.`,
+      },
+      toasts: {
+        instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
+        genericInstanceFailure: (instanceName) =>
+          `${instanceName}: não foi possível carregar as métricas desta instância.`,
+      },
     },
   },
   "en-US": {
@@ -602,6 +656,7 @@ const messages: Record<AppLocale, WebMessages> = {
           createSuccess: "Instance created successfully.",
           discoverSuccess: "Discovery completed.",
           testSuccess: "Connection validated successfully.",
+          reauthenticateSuccess: "Instance session renewed successfully.",
         },
         create: {
           title: "Register instance",
@@ -635,11 +690,22 @@ const messages: Record<AppLocale, WebMessages> = {
           trust: "Trust",
           version: "Version",
           lastValidation: "Last validation",
+          session: "Session",
+          validUntil: "Valid until",
+          lastError: "Last error",
           actions: "Actions",
           baseline: "Baseline",
           managed: "Managed instance",
+          humanMaster: "Human master login",
+          storedSecret: "Stored secret",
           testIdle: "Test",
           testLoading: "Testing...",
+          reauthenticateIdle: "Reauthenticate",
+          reauthenticateLoading: "Reauthenticating...",
+          statusActive: "Active",
+          statusExpired: "Expired",
+          statusMissing: "No SID",
+          statusError: "Error",
         },
         page: {
           eyebrow: "Managed infrastructure",
@@ -714,24 +780,43 @@ const messages: Record<AppLocale, WebMessages> = {
       },
     },
     dashboard: {
-      eyebrow: "First operational YAPD slice",
+      eyebrow: "Consolidated view of your Pi-hole instances",
       title: "Dashboard",
-      cards: {
-        instances: "Registered instances",
-        baseline: "Active baseline",
-        session: "Current session",
-        setupHint: "Configure it in setup",
-        expiresAt: (formatted) => `Expires at ${formatted}`,
+      scope: {
+        label: "Dashboard scope",
+        allInstances: "All instances",
+        placeholder: "Select an instance",
       },
-      sliceTitle: "Slice 1 status",
-      sliceDescription: "The backend already responds for setup, session, and initial instance management.",
-      sliceBodyPrimary: "Use the instances page to register new Pi-holes, test connectivity, and review the baseline.",
-      sliceBodySecondary:
-        "Human login always goes through the baseline and the backend stores only the secure proxy session.",
-      nextTitle: "Next steps",
-      nextDescription: "What this repository already prepared for the next phase.",
-      nextBodyPrimary: "A sync engine and drift detection can fit on top of the Pi-hole module and canonical state.",
-      nextBodySecondary: "Audit, TLS trust, and encrypted secrets are already structured in the backend.",
+      cards: {
+        totalQueries: "Total Queries",
+        queriesBlocked: "Queries Blocked",
+        percentageBlocked: "Percentage Blocked",
+        domainsOnList: "Domains on list",
+      },
+      charts: {
+        totalQueriesTitle: "Total Queries",
+        totalQueriesDescription: (count) =>
+          count === 1
+            ? "Last 24 hours for the selected instance, grouped into 1-hour windows."
+            : `Last 24 hours aggregated across ${count} instances, grouped into 1-hour windows.`,
+        clientActivityTitle: "Client activity",
+        clientActivityDescription: (count) =>
+          count === 1
+            ? "Clients for the selected instance over the last 24 hours, grouped into 1-hour windows."
+            : `Top clients aggregated across ${count} instances over the last 24 hours, grouped into 1-hour windows.`,
+        noData: "There is not enough data to draw this chart yet.",
+      },
+      partial: {
+        title: "Partial dashboard data",
+        description: (failedCount, totalCount) =>
+          failedCount === 1
+            ? `1 of ${totalCount} instances failed to load metrics. The dashboard below aggregates only the healthy instances.`
+            : `${failedCount} of ${totalCount} instances failed to load metrics. The dashboard below aggregates only the healthy instances.`,
+      },
+      toasts: {
+        instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
+        genericInstanceFailure: (instanceName) => `${instanceName}: could not load metrics for this instance.`,
+      },
     },
   },
 };

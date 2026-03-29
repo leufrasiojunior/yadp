@@ -19,6 +19,11 @@ enum AppLoginMode {
   YAPD_PASSWORD
 }
 
+enum InstanceSessionAuthSource {
+  HUMAN_MASTER
+  STORED_SECRET
+}
+
 model AppConfig {
   id           String       @id @default("singleton")
   loginMode    AppLoginMode @default(PIHOLE_MASTER)
@@ -38,6 +43,7 @@ model Instance {
   lastKnownVersion String?
   secret           InstanceSecret?
   certificateTrust InstanceCertificateTrust?
+  session          InstanceSession?
 }
 
 model InstanceSecret {
@@ -58,6 +64,24 @@ model InstanceCertificateTrust {
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
   instance          Instance             @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+}
+
+model InstanceSession {
+  id               String                    @id @default(cuid())
+  instanceId       String                    @unique
+  encryptedSid     String
+  encryptedCsrf    String
+  piholeSessionId  Int?
+  loginAt          DateTime?
+  lastActiveAt     DateTime?
+  validUntil       DateTime?
+  authSource       InstanceSessionAuthSource
+  lastErrorKind    String?
+  lastErrorMessage String?
+  lastErrorAt      DateTime?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  instance         Instance                  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {

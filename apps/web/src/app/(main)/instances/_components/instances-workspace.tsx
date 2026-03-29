@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -42,6 +43,7 @@ export function InstancesWorkspace({
   const [createError, setCreateError] = useState<string | null>(null);
   const [discoveries, setDiscoveries] = useState<DiscoverInstanceItem[]>([]);
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [reauthenticatingId, setReauthenticatingId] = useState<string | null>(null);
   const client = useMemo(() => getBrowserApiClient(), []);
   const createForm = useForm<z.infer<typeof createInstanceSchema>>({
     resolver: zodResolver(createInstanceSchema),
@@ -141,6 +143,75 @@ export function InstancesWorkspace({
 
     toast.success(messages.forms.instances.toasts.testSuccess);
     await refreshItems();
+  };
+
+  const reauthenticateInstance = async (instanceId: string) => {
+    setReauthenticatingId(instanceId);
+    const { response } = await client.POST<{
+      ok: true;
+      version: string;
+      checkedAt: string;
+      sessionStatus: InstanceItem["sessionStatus"];
+      sessionLoginAt: string | null;
+      sessionLastActiveAt: string | null;
+      sessionValidUntil: string | null;
+    }>("/instances/{id}/reauthenticate", {
+      headers: {
+        "x-yapd-csrf": csrfToken,
+      },
+      params: {
+        path: {
+          id: instanceId,
+        },
+      },
+    });
+
+    setReauthenticatingId(null);
+
+    if (!response.ok) {
+      toast.error(await getApiErrorMessage(response));
+      return;
+    }
+
+    toast.success(messages.forms.instances.toasts.reauthenticateSuccess);
+    await refreshItems();
+  };
+
+  const getSessionStatusLabel = (status: InstanceItem["sessionStatus"]) => {
+    switch (status) {
+      case "active":
+        return messages.forms.instances.table.statusActive;
+      case "expired":
+        return messages.forms.instances.table.statusExpired;
+      case "error":
+        return messages.forms.instances.table.statusError;
+      default:
+        return messages.forms.instances.table.statusMissing;
+    }
+  };
+
+  const getSessionStatusVariant = (status: InstanceItem["sessionStatus"]) => {
+    switch (status) {
+      case "active":
+        return "secondary" as const;
+      case "error":
+      case "expired":
+        return "destructive" as const;
+      default:
+        return "outline" as const;
+    }
+  };
+
+  const getManagedByLabel = (managedBy: InstanceItem["sessionManagedBy"]) => {
+    if (managedBy === "human-master") {
+      return messages.forms.instances.table.humanMaster;
+    }
+
+    if (managedBy === "stored-secret") {
+      return messages.forms.instances.table.storedSecret;
+    }
+
+    return null;
   };
 
   return (
@@ -331,6 +402,9 @@ export function InstancesWorkspace({
                 <TableHead>{messages.forms.instances.table.trust}</TableHead>
                 <TableHead>{messages.forms.instances.table.version}</TableHead>
                 <TableHead>{messages.forms.instances.table.lastValidation}</TableHead>
+                <TableHead>{messages.forms.instances.table.session}</TableHead>
+                <TableHead>{messages.forms.instances.table.validUntil}</TableHead>
+                <TableHead>{messages.forms.instances.table.lastError}</TableHead>
                 <TableHead className="text-right">{messages.forms.instances.table.actions}</TableHead>
               </TableRow>
             </TableHeader>
@@ -351,17 +425,49 @@ export function InstancesWorkspace({
                   <TableCell>
                     {item.lastValidatedAt ? formatDateTime(item.lastValidatedAt) : messages.common.versionUnavailable}
                   </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <Badge variant={getSessionStatusVariant(item.sessionStatus)}>
+                        {getSessionStatusLabel(item.sessionStatus)}
+                      </Badge>
+                      {getManagedByLabel(item.sessionManagedBy) ? (
+                        <div className="text-muted-foreground text-xs">{getManagedByLabel(item.sessionManagedBy)}</div>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {item.sessionValidUntil
+                      ? formatDateTime(item.sessionValidUntil)
+                      : messages.common.versionUnavailable}
+                  </TableCell>
+                  <TableCell>
+                    <div className="max-w-72 text-sm">
+                      {item.sessionLastErrorMessage ?? messages.common.versionUnavailable}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={testingId === item.id}
-                      onClick={() => void testInstance(item.id)}
-                    >
-                      {testingId === item.id
-                        ? messages.forms.instances.table.testLoading
-                        : messages.forms.instances.table.testIdle}
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={testingId === item.id || reauthenticatingId === item.id}
+                        onClick={() => void testInstance(item.id)}
+                      >
+                        {testingId === item.id
+                          ? messages.forms.instances.table.testLoading
+                          : messages.forms.instances.table.testIdle}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={reauthenticatingId === item.id || testingId === item.id}
+                        onClick={() => void reauthenticateInstance(item.id)}
+                      >
+                        {reauthenticatingId === item.id
+                          ? messages.forms.instances.table.reauthenticateLoading
+                          : messages.forms.instances.table.reauthenticateIdle}
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

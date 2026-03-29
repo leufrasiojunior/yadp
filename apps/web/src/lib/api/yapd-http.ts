@@ -1,12 +1,14 @@
 import { getRuntimeLocale } from "@/lib/i18n/config";
 
 type PathParamValue = string | number | boolean;
+type QueryParamValue = string | number | boolean;
 
 type RequestOptions = {
   body?: unknown;
   headers?: HeadersInit;
   params?: {
     path?: Record<string, PathParamValue>;
+    query?: Record<string, QueryParamValue | null | undefined>;
   };
 };
 
@@ -50,9 +52,15 @@ export function isYapdApiUnavailableResponse(response: Response) {
   return response.headers.get(API_UNAVAILABLE_HEADER) === "1";
 }
 
-function resolvePath(path: string, params?: Record<string, PathParamValue>) {
-  return path.replaceAll(/\{([^}]+)\}/g, (_match, key: string) => {
-    const value = params?.[key];
+function resolveUrl(
+  path: string,
+  params?: {
+    path?: Record<string, PathParamValue>;
+    query?: Record<string, QueryParamValue | null | undefined>;
+  },
+) {
+  const resolvedPath = path.replaceAll(/\{([^}]+)\}/g, (_match, key: string) => {
+    const value = params?.path?.[key];
 
     if (value === undefined) {
       throw new Error(`Missing path parameter: ${key}`);
@@ -60,6 +68,23 @@ function resolvePath(path: string, params?: Record<string, PathParamValue>) {
 
     return encodeURIComponent(String(value));
   });
+
+  if (!params?.query) {
+    return resolvedPath;
+  }
+
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params.query)) {
+    if (value === null || value === undefined) {
+      continue;
+    }
+
+    searchParams.set(key, String(value));
+  }
+
+  const queryString = searchParams.toString();
+  return queryString.length > 0 ? `${resolvedPath}?${queryString}` : resolvedPath;
 }
 
 async function requestJson<T>(
@@ -88,11 +113,15 @@ async function requestJson<T>(
   let response: Response;
 
   try {
-    response = await fetch(`${baseUrl}${resolvePath(path, options?.params?.path)}`, {
+    response = await fetch(`${baseUrl}${resolveUrl(path, options?.params)}`, {
+      // Keep dashboard and instances views fully dynamic.
       method,
       headers,
       credentials: clientInit?.credentials,
       cache: "no-store",
+      next: {
+        revalidate: 0,
+      },
       body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
     });
   } catch (error) {

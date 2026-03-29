@@ -9,6 +9,7 @@ import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-client";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
+import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
 import type { CreateInstanceDto } from "./dto/create-instance.dto";
 import type { DiscoverInstancesDto } from "./dto/discover-instances.dto";
 import type { UpdateInstanceDto } from "./dto/update-instance.dto";
@@ -20,31 +21,47 @@ export class InstancesService {
   constructor(
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CryptoService) private readonly crypto: CryptoService,
+    @Inject(PiholeInstanceSessionService) private readonly instanceSessions: PiholeInstanceSessionService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
   async listInstances() {
-    const instances = await this.prisma.instance.findMany({
-      orderBy: [{ isBaseline: "desc" }, { name: "asc" }],
-      include: {
-        certificateTrust: true,
-      },
-    });
+    const [instances, states] = await Promise.all([
+      this.prisma.instance.findMany({
+        orderBy: [{ isBaseline: "desc" }, { name: "asc" }],
+        include: {
+          certificateTrust: true,
+        },
+      }),
+      this.instanceSessions.listInstanceStates(),
+    ]);
+    const stateMap = new Map(states.map((item) => [item.instanceId, item.summary]));
 
     return {
-      items: instances.map((instance) => ({
-        id: instance.id,
-        name: instance.name,
-        baseUrl: instance.baseUrl,
-        isBaseline: instance.isBaseline,
-        lastKnownVersion: instance.lastKnownVersion,
-        lastValidatedAt: instance.lastValidatedAt,
-        trustMode: instance.certificateTrust?.mode ?? "STRICT",
-        hasCustomCertificate: Boolean(instance.certificateTrust?.certificatePem),
-        createdAt: instance.createdAt,
-        updatedAt: instance.updatedAt,
-      })),
+      items: instances.map((instance) => {
+        const session = stateMap.get(instance.id);
+
+        return {
+          id: instance.id,
+          name: instance.name,
+          baseUrl: instance.baseUrl,
+          isBaseline: instance.isBaseline,
+          lastKnownVersion: instance.lastKnownVersion,
+          lastValidatedAt: instance.lastValidatedAt,
+          trustMode: instance.certificateTrust?.mode ?? "STRICT",
+          hasCustomCertificate: Boolean(instance.certificateTrust?.certificatePem),
+          createdAt: instance.createdAt,
+          updatedAt: instance.updatedAt,
+          sessionStatus: session?.status ?? "missing",
+          sessionManagedBy: session?.managedBy ?? null,
+          sessionLoginAt: session?.loginAt ?? null,
+          sessionLastActiveAt: session?.lastActiveAt ?? null,
+          sessionValidUntil: session?.validUntil ?? null,
+          sessionLastErrorKind: session?.lastErrorKind ?? null,
+          sessionLastErrorMessage: session?.lastErrorMessage ?? null,
+        };
+      }),
     };
   }
 
@@ -134,7 +151,15 @@ export class InstancesService {
         return createdInstance;
       });
 
-      await this.safeLogout(connection, session.sid);
+      await this.instanceSessions.seedSessionFromLogin(
+        instance.id,
+        locale,
+        {
+          sid: session.sid,
+          csrf: session.csrf,
+        },
+        "STORED_SECRET",
+      );
       await this.audit.record({
         action: "instances.create",
         actorType: "session",
@@ -239,7 +264,15 @@ export class InstancesService {
         return updatedInstance;
       });
 
-      await this.safeLogout(connection, session.sid);
+      await this.instanceSessions.seedSessionFromLogin(
+        updated.id,
+        locale,
+        {
+          sid: session.sid,
+          csrf: session.csrf,
+        },
+        "STORED_SECRET",
+      );
       await this.audit.record({
         action: "instances.update",
         actorType: "session",
@@ -281,32 +314,14 @@ export class InstancesService {
 
   async testInstance(instanceId: string, request: Request) {
     const locale = getRequestLocale(request);
-    const instance = await this.prisma.instance.findUnique({
-      where: { id: instanceId },
-      include: {
-        secret: true,
-        certificateTrust: true,
-      },
-    });
-
-    if (!instance || !instance.secret) {
-      throw new NotFoundException(translateApi(locale, "instances.notFound"));
-    }
-
-    const connection = {
-      baseUrl: instance.baseUrl,
-      allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
-      certificatePem: instance.certificateTrust?.certificatePem ?? null,
-      locale,
-    };
     const ipAddress = getRequestIp(request);
 
     try {
-      const session = await this.pihole.authenticate(
-        connection,
-        this.crypto.decryptSecret(instance.secret.encryptedPassword),
+      const health = await this.instanceSessions.withActiveSession(
+        instanceId,
+        locale,
+        async ({ connection, session }) => this.pihole.healthCheck(connection, session),
       );
-      const health = await this.pihole.healthCheck(connection, session);
 
       await this.prisma.instance.update({
         where: { id: instanceId },
@@ -316,7 +331,6 @@ export class InstancesService {
         },
       });
 
-      await this.safeLogout(connection, session.sid);
       await this.audit.record({
         action: "instances.test",
         actorType: "session",
@@ -351,14 +365,58 @@ export class InstancesService {
     }
   }
 
-  private async safeLogout(
-    connection: { baseUrl: string; allowSelfSigned: boolean; certificatePem?: string | null },
-    sid: string,
-  ) {
+  async reauthenticateInstance(instanceId: string, request: Request) {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
+
     try {
-      await this.pihole.logout(connection, sid);
-    } catch {
-      // Service-session cleanup is best-effort.
+      const active = await this.instanceSessions.forceReauthenticate(instanceId, locale);
+      const health = await this.pihole.healthCheck(active.connection, active.session);
+
+      await this.prisma.instance.update({
+        where: { id: instanceId },
+        data: {
+          lastKnownVersion: health.version,
+          lastValidatedAt: new Date(),
+        },
+      });
+
+      await this.audit.record({
+        action: "instances.reauthenticate",
+        actorType: "session",
+        ipAddress,
+        targetType: "instance",
+        targetId: instanceId,
+        result: "SUCCESS",
+        details: {
+          version: health.version,
+          validUntil: active.summary.validUntil,
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      return {
+        ok: true,
+        version: health.version,
+        checkedAt: new Date().toISOString(),
+        sessionStatus: active.summary.status,
+        sessionLoginAt: active.summary.loginAt,
+        sessionLastActiveAt: active.summary.lastActiveAt,
+        sessionValidUntil: active.summary.validUntil,
+      };
+    } catch (error) {
+      await this.audit.record({
+        action: "instances.reauthenticate",
+        actorType: "session",
+        ipAddress,
+        targetType: "instance",
+        targetId: instanceId,
+        result: "FAILURE",
+        details: {
+          error: error instanceof Error ? error.message : "Unknown error",
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      this.mapPiholeError(error, locale);
     }
   }
 
