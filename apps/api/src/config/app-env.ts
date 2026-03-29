@@ -9,6 +9,11 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1).default("postgresql://postgres:postgres@localhost:5432/yapd?schema=public"),
   SESSION_COOKIE_NAME: z.string().min(1).default("yapd_session"),
   SESSION_SECRET: z.string().min(16).default("replace-this-session-secret"),
+  YAPD_SESSION_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(60 * 60 * 12),
   APP_ENCRYPTION_KEY: z.string().min(16).default("replace-this-encryption-key"),
   COOKIE_SECURE: z
     .enum(["true", "false"])

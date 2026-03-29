@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { type StoreApi, useStore } from "zustand";
 
 import { type FontKey, fontRegistry } from "@/lib/fonts/registry";
+import { APP_LOCALES, applyLocaleToDocument } from "@/lib/i18n/config";
 import {
   CONTENT_LAYOUT_VALUES,
   NAVBAR_STYLE_VALUES,
@@ -32,6 +33,7 @@ function readDomState(): Partial<PreferencesState> {
   const resolvedMode = root.classList.contains("dark") ? "dark" : "light";
 
   return {
+    language: getSafeValue(root.getAttribute("data-language"), APP_LOCALES),
     themeMode: themeModeAttr ?? resolvedMode,
     resolvedThemeMode: resolvedMode,
     themePreset: getSafeValue(root.getAttribute("data-theme-preset"), THEME_PRESET_VALUES),
@@ -45,6 +47,7 @@ function readDomState(): Partial<PreferencesState> {
 
 export const PreferencesStoreProvider = ({
   children,
+  language,
   themeMode,
   themePreset,
   font,
@@ -52,6 +55,7 @@ export const PreferencesStoreProvider = ({
   navbarStyle,
 }: {
   children: React.ReactNode;
+  language: PreferencesState["language"];
   themeMode: PreferencesState["themeMode"];
   themePreset: PreferencesState["themePreset"];
   font: PreferencesState["font"];
@@ -60,6 +64,7 @@ export const PreferencesStoreProvider = ({
 }) => {
   const [store] = useState<StoreApi<PreferencesState>>(() =>
     createPreferencesStore({
+      language,
       themeMode,
       themePreset,
       font,
@@ -79,6 +84,25 @@ export const PreferencesStoreProvider = ({
       ...domState,
       isSynced: true,
     }));
+  }, [store]);
+
+  useEffect(() => {
+    const applyLanguage = (nextLanguage: PreferencesState["language"]) => {
+      applyLocaleToDocument(nextLanguage);
+    };
+
+    const startLanguage = domSnapshotRef.current?.language ?? store.getState().language;
+    applyLanguage(startLanguage);
+
+    const unsubscribeStore = store.subscribe((state, previous) => {
+      if (state.language !== previous.language) {
+        applyLanguage(state.language);
+      }
+    });
+
+    return () => {
+      unsubscribeStore();
+    };
   }, [store]);
 
   useEffect(() => {

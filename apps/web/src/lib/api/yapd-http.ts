@@ -1,3 +1,5 @@
+import { getRuntimeLocale } from "@/lib/i18n/config";
+
 type PathParamValue = string | number | boolean;
 
 type RequestOptions = {
@@ -22,10 +24,15 @@ const API_UNAVAILABLE_HEADER = "x-yapd-api-unavailable";
 
 function createApiUnavailableResponse(baseUrl: string, error: unknown) {
   const cause = error instanceof Error ? error.message : "Unknown fetch failure";
+  const locale = getRuntimeLocale();
+  const message =
+    locale === "en-US"
+      ? `Could not connect to the YAPD backend at ${baseUrl}. Start "npm run dev:api" and try again.`
+      : `Nao foi possivel conectar ao backend do YAPD em ${baseUrl}. Inicie "npm run dev:api" e tente novamente.`;
 
   return new Response(
     JSON.stringify({
-      message: `Nao foi possivel conectar ao backend do YAPD em ${baseUrl}. Inicie "npm run dev:api" e tente novamente.`,
+      message,
       error: cause,
     }),
     {
@@ -96,7 +103,7 @@ async function requestJson<T>(
   }
 
   const contentType = response.headers.get("content-type") ?? "";
-  const data = contentType.includes("application/json") ? ((await response.json()) as T) : null;
+  const data = contentType.includes("application/json") ? ((await response.clone().json()) as T) : null;
 
   return {
     data,

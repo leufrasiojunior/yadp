@@ -13,19 +13,29 @@ import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 
-const formSchema = z.object({
-  password: z.string().min(4, "Informe a senha do Pi-hole."),
-  totp: z.string().optional(),
-});
+type PiholeLoginFormCopy = {
+  fields: {
+    password: string;
+    passwordDescription: string;
+    totp: string;
+  };
+  validationPassword: string;
+  submit: {
+    idle: string;
+    loading: string;
+  };
+  successToast: string;
+};
 
 export function PiholeLoginForm({
-  baseline,
+  copy,
 }: Readonly<{
-  baseline: {
-    name: string;
-    baseUrl: string;
-  };
+  copy: PiholeLoginFormCopy;
 }>) {
+  const formSchema = z.object({
+    password: z.string().min(4, copy.validationPassword),
+    totp: z.string().optional(),
+  });
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,7 +59,7 @@ export function PiholeLoginForm({
       return;
     }
 
-    toast.success(`Sessao criada via ${baseline.name}.`);
+    toast.success(copy.successToast);
     router.replace("/dashboard");
     router.refresh();
   };
@@ -62,7 +72,7 @@ export function PiholeLoginForm({
           name="password"
           render={({ field, fieldState }) => (
             <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="pihole-password">Senha do Pi-hole</FieldLabel>
+              <FieldLabel htmlFor="pihole-password">{copy.fields.password}</FieldLabel>
               <Input
                 {...field}
                 id="pihole-password"
@@ -71,9 +81,7 @@ export function PiholeLoginForm({
                 autoComplete="current-password"
                 aria-invalid={fieldState.invalid}
               />
-              <FieldDescription>
-                O backend nao persiste essa senha. Ela so serve para obter o SID atual da interface.
-              </FieldDescription>
+              <FieldDescription>{copy.fields.passwordDescription}</FieldDescription>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
@@ -83,7 +91,7 @@ export function PiholeLoginForm({
           name="totp"
           render={({ field, fieldState }) => (
             <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="pihole-totp">Codigo TOTP opcional</FieldLabel>
+              <FieldLabel htmlFor="pihole-totp">{copy.fields.totp}</FieldLabel>
               <Input {...field} id="pihole-totp" placeholder="123456" aria-invalid={fieldState.invalid} />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -92,7 +100,7 @@ export function PiholeLoginForm({
       </FieldGroup>
 
       <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Abrindo sessao..." : "Entrar no YAPD"}
+        {form.formState.isSubmitting ? copy.submit.loading : copy.submit.idle}
       </Button>
     </form>
   );

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 
 import { AppEnvService } from "../../config/app-env";
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 type EncryptedPayload = {
   ciphertext: string;
@@ -37,6 +37,27 @@ export class CryptoService {
 
   createToken(length = 32) {
     return randomBytes(length).toString("base64url");
+  }
+
+  hashPassword(password: string) {
+    const salt = randomBytes(16);
+    const hash = scryptSync(password, salt, 64);
+
+    return `scrypt$${salt.toString("base64url")}$${hash.toString("base64url")}`;
+  }
+
+  verifyPassword(password: string, storedHash: string) {
+    const [algorithm, saltValue, hashValue] = storedHash.split("$");
+
+    if (algorithm !== "scrypt" || !saltValue || !hashValue) {
+      return false;
+    }
+
+    const salt = Buffer.from(saltValue, "base64url");
+    const expectedHash = Buffer.from(hashValue, "base64url");
+    const candidateHash = scryptSync(password, salt, expectedHash.length);
+
+    return timingSafeEqual(candidateHash, expectedHash);
   }
 
   private deriveKey(secret: string, salt: string) {

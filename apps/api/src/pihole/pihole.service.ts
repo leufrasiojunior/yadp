@@ -1,7 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { Agent, fetch } from "undici";
 
+import { DEFAULT_API_LOCALE } from "../common/i18n/locale";
+import { translateApi } from "../common/i18n/messages";
 import type { PiholeConnection, PiholeDiscoveryResult, PiholeSession, PiholeVersionInfo } from "./pihole.types";
+
+const PIHOLE_REQUEST_TIMEOUT_MS = 8000;
 
 type PiholeErrorPayload = {
   error?: {
@@ -79,7 +83,7 @@ export class PiholeService {
     });
 
     return {
-      summary: this.extractVersionSummary(payload),
+      summary: this.extractVersionSummary(payload, connection.locale),
       raw: payload,
     };
   }
@@ -139,24 +143,47 @@ export class PiholeService {
       headers.set("X-FTL-CSRF", options.csrf);
     }
 
-    const response = await fetch(new URL(`/api${path}`, this.normalizeBaseUrl(connection.baseUrl)), {
-      method: options?.method ?? "GET",
-      headers,
-      body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
-      dispatcher: new Agent({
-        connect: {
-          rejectUnauthorized: !(connection.allowSelfSigned ?? false),
-          ...(connection.certificatePem ? { ca: connection.certificatePem } : {}),
-        },
-      }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PIHOLE_REQUEST_TIMEOUT_MS);
+    let response: Awaited<ReturnType<typeof fetch>>;
+
+    try {
+      response = await fetch(new URL(`/api${path}`, this.normalizeBaseUrl(connection.baseUrl)), {
+        method: options?.method ?? "GET",
+        headers,
+        body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
+        dispatcher: new Agent({
+          connect: {
+            rejectUnauthorized: !(connection.allowSelfSigned ?? false),
+            ...(connection.certificatePem ? { ca: connection.certificatePem } : {}),
+          },
+        }),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      throw new PiholeRequestError(502, this.describeTransportError(connection.baseUrl, error, connection.locale), {
+        cause: this.serializeTransportError(error),
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (response.status === 204) {
       return undefined as T;
     }
 
     const text = await response.text();
-    const payload = text.length > 0 ? (JSON.parse(text) as unknown) : undefined;
+    let payload: unknown;
+
+    if (text.length > 0) {
+      try {
+        payload = JSON.parse(text) as unknown;
+      } catch {
+        payload = {
+          raw: text,
+        };
+      }
+    }
 
     if (!response.ok) {
       const errorPayload = payload as PiholeErrorPayload | undefined;
@@ -166,7 +193,52 @@ export class PiholeService {
     return payload as T;
   }
 
-  private extractVersionSummary(payload: unknown) {
+  private describeTransportError(baseUrl: string, error: unknown, locale = DEFAULT_API_LOCALE) {
+    const reason = this.serializeTransportError(error);
+
+    if (reason.name === "AbortError") {
+      return translateApi(locale, "pihole.timeout", { baseUrl });
+    }
+
+    if (reason.code === "ECONNREFUSED") {
+      return translateApi(locale, "pihole.refused", { baseUrl });
+    }
+
+    if (reason.code === "ENOTFOUND" || reason.code === "EAI_AGAIN") {
+      return translateApi(locale, "pihole.unresolved", { baseUrl });
+    }
+
+    if (reason.code === "ETIMEDOUT" || reason.code === "UND_ERR_CONNECT_TIMEOUT") {
+      return translateApi(locale, "pihole.timeout", { baseUrl });
+    }
+
+    return translateApi(locale, "pihole.unreachable", { baseUrl });
+  }
+
+  private serializeTransportError(error: unknown) {
+    if (error instanceof Error) {
+      const maybeError = error as Error & {
+        code?: string;
+        cause?: {
+          code?: string;
+        };
+      };
+
+      return {
+        name: maybeError.name,
+        message: maybeError.message,
+        code: maybeError.code ?? maybeError.cause?.code,
+      };
+    }
+
+    return {
+      name: "UnknownError",
+      message: "Unknown transport error",
+      code: undefined,
+    };
+  }
+
+  private extractVersionSummary(payload: unknown, locale = DEFAULT_API_LOCALE) {
     if (typeof payload === "object" && payload !== null) {
       const maybeVersion = payload as Record<string, unknown>;
 
@@ -183,7 +255,7 @@ export class PiholeService {
       }
     }
 
-    return "Pi-hole reachable";
+    return translateApi(locale, "pihole.reachable");
   }
 
   private normalizeBaseUrl(baseUrl: string) {

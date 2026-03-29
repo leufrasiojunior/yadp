@@ -1,34 +1,77 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsOptional, IsString, IsUrl, MaxLength } from "class-validator";
+import { Type } from "class-transformer";
+import {
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+  ValidateNested,
+} from "class-validator";
 
-export class CreateBaselineDto {
-  @ApiProperty({ example: "Pi-hole Principal" })
-  @IsString()
-  @MaxLength(120)
-  name!: string;
+export const SETUP_CREDENTIAL_MODES = ["shared", "individual"] as const;
+export type SetupCredentialMode = (typeof SETUP_CREDENTIAL_MODES)[number];
 
-  @ApiProperty({ example: "https://pi.hole" })
-  @IsUrl({ require_tld: false, require_protocol: true, protocols: ["http", "https"] })
-  baseUrl!: string;
+export const SETUP_LOGIN_MODES = ["pihole-master", "yapd-password"] as const;
+export type SetupLoginMode = (typeof SETUP_LOGIN_MODES)[number];
 
-  @ApiProperty({ example: "my-application-password" })
-  @IsString()
-  @MaxLength(512)
-  servicePassword!: string;
-
-  @ApiPropertyOptional({ example: "123456" })
+export class SetupInstanceDto {
+  @ApiPropertyOptional({ example: "Pi-hole Principal" })
   @IsOptional()
   @IsString()
-  @MaxLength(32)
-  totp?: string;
+  @MaxLength(120)
+  name?: string;
+
+  @ApiPropertyOptional({ example: "https://pi.hole" })
+  @IsOptional()
+  @IsUrl({ require_tld: false, require_protocol: true, protocols: ["http", "https"] })
+  baseUrl?: string;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  isMaster?: boolean;
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()
   @IsBoolean()
   allowSelfSigned?: boolean;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "instance-password" })
   @IsOptional()
   @IsString()
-  certificatePem?: string;
+  @MaxLength(512)
+  password?: string;
+}
+
+export class CreateBaselineDto {
+  @ApiProperty({ enum: SETUP_CREDENTIAL_MODES, example: "shared" })
+  @IsIn(SETUP_CREDENTIAL_MODES)
+  credentialsMode!: SetupCredentialMode;
+
+  @ApiPropertyOptional({ example: "shared-application-password" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  sharedPassword?: string;
+
+  @ApiProperty({ type: [SetupInstanceDto] })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => SetupInstanceDto)
+  instances!: SetupInstanceDto[];
+
+  @ApiProperty({ enum: SETUP_LOGIN_MODES, example: "pihole-master" })
+  @IsIn(SETUP_LOGIN_MODES)
+  loginMode!: SetupLoginMode;
+
+  @ApiPropertyOptional({ example: "my-yapd-password" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  yapdPassword?: string;
 }

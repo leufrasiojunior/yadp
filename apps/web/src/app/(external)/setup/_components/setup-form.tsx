@@ -1,164 +1,396 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import { useRouter } from "next/navigation";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
+import { SetupLayoutStep } from "@/app/(external)/setup/_components/setup-layout-step";
+import { SetupLoginStep } from "@/app/(external)/setup/_components/setup-login-step";
+import { SetupPiholesStep } from "@/app/(external)/setup/_components/setup-piholes-step";
+import { SetupWelcomeStep } from "@/app/(external)/setup/_components/setup-welcome-step";
+import { SetupWizardProgress } from "@/app/(external)/setup/_components/setup-wizard-progress";
+import { getSetupCopy } from "@/app/(external)/setup/setup-copy";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import type { SetupBaselineRequest, SetupBaselineResponse } from "@/lib/api/yapd-types";
+import { useWebI18n } from "@/lib/i18n/client";
+import { persistPreference } from "@/lib/preferences/preferences-storage";
 
-const formSchema = z.object({
-  name: z.string().min(2, "Informe um nome para a baseline."),
-  baseUrl: z.string().url("Use uma URL completa, como https://pi.hole."),
-  servicePassword: z.string().min(4, "Informe a senha ou application password do Pi-hole."),
-  totp: z.string().optional(),
-  allowSelfSigned: z.boolean().default(false),
-  certificatePem: z.string().optional(),
-});
+import {
+  buildBaseUrl,
+  createDefaultSetupValues,
+  createEmptyInstance,
+  isBlankInstance,
+  isValidHostPath,
+  normalizeHostPath,
+  normalizeText,
+  TOTAL_STEPS,
+} from "./setup-form.helpers";
+import type { SetupWizardValues } from "./setup-form.types";
 
 export function SetupForm() {
   const router = useRouter();
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "Pi-hole Principal",
-      baseUrl: "https://pi.hole",
-      servicePassword: "",
-      totp: "",
-      allowSelfSigned: false,
-      certificatePem: "",
-    },
+  const { locale, messages } = useWebI18n();
+  const copy = useMemo(() => getSetupCopy(locale), [locale]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const form = useForm<SetupWizardValues>({
+    defaultValues: createDefaultSetupValues(locale),
   });
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "instances",
+  });
+  const watchedValues = useWatch({
+    control: form.control,
+  }) as Partial<SetupWizardValues> | undefined;
+  const credentialsMode = watchedValues?.credentialsMode ?? form.getValues("credentialsMode");
+  const instances = watchedValues?.instances ?? form.getValues("instances");
+  const masterIndex = watchedValues?.masterIndex ?? form.getValues("masterIndex");
+  const loginMode = watchedValues?.loginMode ?? form.getValues("loginMode");
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const client = getBrowserApiClient();
-    const { response } = await client.POST("/setup/baseline", {
-      body: {
-        ...values,
-        totp: values.totp || undefined,
-        certificatePem: values.certificatePem || undefined,
-      },
-    });
+  const clearPiholeErrors = () => {
+    form.clearErrors(["credentialsMode", "masterIndex", "sharedPassword", "instances"]);
+  };
 
-    if (!response.ok) {
-      toast.error(await getApiErrorMessage(response));
+  const clearLoginErrors = () => {
+    form.clearErrors(["loginMode", "yapdPassword", "confirmYapdPassword"]);
+  };
+
+  const validatePiholeStep = () => {
+    clearPiholeErrors();
+    const values = form.getValues();
+    let isValid = true;
+
+    if (values.masterIndex < 0 || values.masterIndex >= values.instances.length) {
+      form.setError("masterIndex", {
+        type: "manual",
+        message: copy.piholes.validation.masterRequired,
+      });
+      return false;
+    }
+
+    for (const [index, instance] of values.instances.entries()) {
+      const label = copy.piholes.rowTitle(index, normalizeText(instance.name) || undefined);
+      const isMaster = index === values.masterIndex;
+      const alias = normalizeText(instance.name);
+      const hostPath = normalizeHostPath(instance.hostPath);
+      const blank = isBlankInstance(instance, values.credentialsMode);
+
+      if (hostPath.length > 0 && !isValidHostPath(instance.scheme, hostPath)) {
+        form.setError(`instances.${index}.hostPath`, {
+          type: "manual",
+          message: copy.piholes.validation.urlFormat,
+        });
+        isValid = false;
+      }
+
+      if (isMaster) {
+        if (alias.length === 0) {
+          form.setError(`instances.${index}.name`, {
+            type: "manual",
+            message: copy.piholes.validation.aliasRequired,
+          });
+          isValid = false;
+        }
+
+        if (hostPath.length === 0) {
+          form.setError(`instances.${index}.hostPath`, {
+            type: "manual",
+            message: copy.piholes.validation.urlRequired,
+          });
+          isValid = false;
+        }
+      } else if (!blank) {
+        if (alias.length === 0) {
+          form.setError(`instances.${index}.name`, {
+            type: "manual",
+            message: copy.piholes.validation.instanceIncomplete(label),
+          });
+          isValid = false;
+        }
+
+        if (hostPath.length === 0) {
+          form.setError(`instances.${index}.hostPath`, {
+            type: "manual",
+            message: copy.piholes.validation.instanceIncomplete(label),
+          });
+          isValid = false;
+        }
+      }
+
+      if (values.credentialsMode === "individual" && (isMaster || !blank)) {
+        if (normalizeText(instance.password).length === 0) {
+          form.setError(`instances.${index}.password`, {
+            type: "manual",
+            message: copy.piholes.validation.instancePassword(label),
+          });
+          isValid = false;
+        }
+      }
+    }
+
+    const selectedMaster = values.instances[values.masterIndex];
+
+    if (
+      !selectedMaster ||
+      normalizeText(selectedMaster.name).length === 0 ||
+      normalizeHostPath(selectedMaster.hostPath).length === 0 ||
+      !isValidHostPath(selectedMaster.scheme, selectedMaster.hostPath)
+    ) {
+      form.setError("masterIndex", {
+        type: "manual",
+        message: copy.piholes.validation.masterRequired,
+      });
+      isValid = false;
+    }
+
+    if (values.credentialsMode === "shared") {
+      const hasFilledInstances = values.instances.some(
+        (instance, index) => index === values.masterIndex || !isBlankInstance(instance, "shared"),
+      );
+
+      if (hasFilledInstances && normalizeText(values.sharedPassword).length === 0) {
+        form.setError("sharedPassword", {
+          type: "manual",
+          message: copy.piholes.validation.sharedPassword,
+        });
+        isValid = false;
+      }
+    }
+
+    return isValid;
+  };
+
+  const validateLoginStep = () => {
+    clearLoginErrors();
+    const values = form.getValues();
+    let isValid = true;
+
+    if (values.loginMode === "yapd-password") {
+      const password = normalizeText(values.yapdPassword);
+      const confirmation = normalizeText(values.confirmYapdPassword);
+
+      if (password.length === 0) {
+        form.setError("yapdPassword", {
+          type: "manual",
+          message: copy.loginMode.validation.passwordRequired,
+        });
+        isValid = false;
+      } else if (password.length < 8) {
+        form.setError("yapdPassword", {
+          type: "manual",
+          message: copy.loginMode.validation.passwordTooShort,
+        });
+        isValid = false;
+      }
+
+      if (confirmation.length === 0) {
+        form.setError("confirmYapdPassword", {
+          type: "manual",
+          message: copy.loginMode.validation.passwordConfirmationRequired,
+        });
+        isValid = false;
+      } else if (confirmation !== password) {
+        form.setError("confirmYapdPassword", {
+          type: "manual",
+          message: copy.loginMode.validation.passwordConfirmationMismatch,
+        });
+        isValid = false;
+      }
+    }
+
+    return isValid;
+  };
+
+  const goToNextStep = () => {
+    setSubmitError(null);
+
+    if (currentStep === 2 && !validatePiholeStep()) {
       return;
     }
 
-    toast.success("Baseline configurada com sucesso.");
+    if (currentStep === 3 && !validateLoginStep()) {
+      return;
+    }
+
+    setCurrentStep((step) => Math.min(step + 1, TOTAL_STEPS));
+  };
+
+  const goToPreviousStep = () => {
+    setSubmitError(null);
+    setCurrentStep((step) => Math.max(step - 1, 1));
+  };
+
+  const removeInstance = (index: number) => {
+    const currentMasterIndex = form.getValues("masterIndex");
+    remove(index);
+
+    if (currentMasterIndex === index) {
+      form.setValue("masterIndex", 0, { shouldDirty: true });
+      return;
+    }
+
+    if (currentMasterIndex > index) {
+      form.setValue("masterIndex", currentMasterIndex - 1, { shouldDirty: true });
+    }
+  };
+
+  const onSubmit = async (values: SetupWizardValues) => {
+    setSubmitError(null);
+
+    if (!validatePiholeStep()) {
+      setCurrentStep(2);
+      return;
+    }
+
+    if (!validateLoginStep()) {
+      setCurrentStep(3);
+      return;
+    }
+
+    const body: SetupBaselineRequest = {
+      credentialsMode: values.credentialsMode,
+      ...(values.credentialsMode === "shared"
+        ? {
+            sharedPassword: normalizeText(values.sharedPassword),
+          }
+        : {}),
+      instances: values.instances
+        .map((instance, index) => ({
+          index,
+          source: instance,
+          name: normalizeText(instance.name),
+          baseUrl: buildBaseUrl(instance.scheme, instance.hostPath),
+          allowSelfSigned: instance.allowSelfSigned,
+          password: normalizeText(instance.password),
+        }))
+        .filter(
+          (instance) =>
+            instance.index === values.masterIndex || !isBlankInstance(instance.source, values.credentialsMode),
+        )
+        .map((instance) => ({
+          name: instance.name || undefined,
+          baseUrl: instance.baseUrl || undefined,
+          isMaster: instance.index === values.masterIndex,
+          allowSelfSigned: instance.allowSelfSigned,
+          ...(values.credentialsMode === "individual"
+            ? {
+                password: instance.password || undefined,
+              }
+            : {}),
+        })),
+      loginMode: values.loginMode,
+      ...(values.loginMode === "yapd-password"
+        ? {
+            yapdPassword: normalizeText(values.yapdPassword),
+          }
+        : {}),
+    };
+
+    const client = getBrowserApiClient();
+    const { data, response } = await client.POST<SetupBaselineResponse>("/setup/baseline", {
+      body,
+    });
+
+    if (!response.ok) {
+      const message = typeof data?.message === "string" ? data.message : await getApiErrorMessage(response);
+      setSubmitError(message);
+      toast.error(message);
+      return;
+    }
+
+    await Promise.all([
+      persistPreference("language", values.applicationLanguage),
+      persistPreference("theme_preset", values.themePreset),
+      persistPreference("font", values.font),
+      persistPreference("theme_mode", values.themeMode),
+      persistPreference("content_layout", values.contentLayout),
+      persistPreference("navbar_style", values.navbarStyle),
+      persistPreference("sidebar_variant", values.sidebarVariant),
+      persistPreference("sidebar_collapsible", values.sidebarCollapsible),
+    ]);
+
+    const message = typeof data?.message === "string" ? data.message : copy.wizard.finish;
+    toast.success(message);
     router.replace("/login");
     router.refresh();
   };
 
-  return (
-    <form noValidate className="space-y-6" onSubmit={form.handleSubmit((values) => void onSubmit(values))}>
-      <FieldGroup className="gap-4">
-        <Controller
-          control={form.control}
-          name="name"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="baseline-name">Nome da baseline</FieldLabel>
-              <Input {...field} id="baseline-name" placeholder="Pi-hole Principal" aria-invalid={fieldState.invalid} />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="baseUrl"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="baseline-url">Base URL</FieldLabel>
-              <Input {...field} id="baseline-url" placeholder="https://pi.hole" aria-invalid={fieldState.invalid} />
-              <FieldDescription>Use o host principal que sera a autoridade de login do produto.</FieldDescription>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="servicePassword"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="service-password">Senha/Application password</FieldLabel>
-              <Input
-                {...field}
-                id="service-password"
-                type="password"
-                placeholder="••••••••"
-                aria-invalid={fieldState.invalid}
-              />
-              <FieldDescription>
-                Essa credencial sera guardada criptografada para operacoes tecnicas do backend.
-              </FieldDescription>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="totp"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="baseline-totp">TOTP opcional</FieldLabel>
-              <Input {...field} id="baseline-totp" placeholder="123456" aria-invalid={fieldState.invalid} />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="allowSelfSigned"
-          render={({ field, fieldState }) => (
-            <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-              <Checkbox
-                id="allow-self-signed"
-                checked={field.value}
-                onCheckedChange={(checked) => field.onChange(Boolean(checked))}
-                aria-invalid={fieldState.invalid}
-              />
-              <FieldContent>
-                <FieldLabel htmlFor="allow-self-signed" className="font-normal">
-                  Permitir certificado self-signed explicitamente
-                </FieldLabel>
-                <FieldDescription>
-                  Use apenas quando o Pi-hole tiver um certificado local que voce confia.
-                </FieldDescription>
-              </FieldContent>
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="certificatePem"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="certificate-pem">CA personalizada opcional</FieldLabel>
-              <Textarea
-                {...field}
-                id="certificate-pem"
-                rows={5}
-                placeholder="-----BEGIN CERTIFICATE-----"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-      </FieldGroup>
+  const handleFinish = form.handleSubmit((values) => void onSubmit(values));
 
-      <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Validando baseline..." : "Salvar baseline"}
-      </Button>
+  return (
+    <form
+      noValidate
+      className="space-y-8"
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      <SetupWizardProgress copy={copy.wizard} currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+
+      {currentStep === 1 ? <SetupWelcomeStep copy={copy.welcome} /> : null}
+
+      {currentStep === 2 ? (
+        <SetupPiholesStep
+          copy={copy.piholes}
+          credentialsMode={credentialsMode}
+          fields={fields}
+          form={form}
+          instances={instances}
+          masterIndex={masterIndex}
+          onAddInstance={() => append(createEmptyInstance())}
+          onRemoveInstance={removeInstance}
+        />
+      ) : null}
+
+      {currentStep === 3 ? <SetupLoginStep copy={copy.loginMode} form={form} loginMode={loginMode} /> : null}
+
+      {currentStep === 4 ? (
+        <SetupLayoutStep
+          copy={copy.layout}
+          form={form}
+          labels={{
+            common: {
+              languagePlaceholder: messages.common.languagePlaceholder,
+            },
+            controls: messages.sidebar.controls,
+          }}
+          locale={locale}
+        />
+      ) : null}
+
+      {submitError ? (
+        <Alert variant="destructive">
+          <AlertTitle>{copy.submit.errorTitle}</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={goToPreviousStep}
+          disabled={currentStep === 1 || form.formState.isSubmitting}
+        >
+          {copy.wizard.back}
+        </Button>
+        {currentStep < TOTAL_STEPS ? (
+          <Button type="button" onClick={goToNextStep}>
+            {copy.wizard.next}
+          </Button>
+        ) : (
+          <Button type="button" disabled={form.formState.isSubmitting} onClick={() => void handleFinish()}>
+            {form.formState.isSubmitting ? copy.wizard.finishing : copy.wizard.finish}
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

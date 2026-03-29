@@ -1,13 +1,43 @@
-import { BadGatewayException, ConflictException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  BadGatewayException,
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import type { Request } from "express";
 
 import { AuditService } from "../audit/audit.service";
+import { DEFAULT_APP_LOGIN_MODE, fromDbLoginMode, toDbLoginMode } from "../common/auth/login-mode";
 import { CryptoService } from "../common/crypto/crypto.service";
 import { getRequestIp } from "../common/http/request-context";
+import { getRequestLocale } from "../common/i18n/locale";
+import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-client";
+import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
-import type { CreateBaselineDto } from "./dto/create-baseline.dto";
+import type { PiholeConnection, PiholeSession } from "../pihole/pihole.types";
+import type { CreateBaselineDto, SetupCredentialMode, SetupInstanceDto } from "./dto/create-baseline.dto";
+
+type PreparedCredentials = {
+  password: string;
+};
+
+type PreparedInstance = {
+  index: number;
+  label: string;
+  name: string;
+  baseUrl: string;
+  isMaster: boolean;
+  allowSelfSigned: boolean;
+  credentials: PreparedCredentials;
+};
+
+type ValidatedInstance = PreparedInstance & {
+  version: string;
+};
 
 @Injectable()
 export class SetupService {
@@ -22,10 +52,12 @@ export class SetupService {
     const baseline = await this.prisma.instance.findFirst({
       where: { isBaseline: true },
     });
+    const appConfig = baseline ? await this.readAppConfigOrNull() : null;
 
     return {
       needsSetup: !baseline,
       baselineConfigured: Boolean(baseline),
+      loginMode: baseline ? fromDbLoginMode(appConfig?.loginMode) : null,
       baseline: baseline
         ? {
             id: baseline.id,
@@ -37,77 +69,124 @@ export class SetupService {
   }
 
   async createBaseline(dto: CreateBaselineDto, request: Request) {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
     const existingBaseline = await this.prisma.instance.findFirst({
       where: { isBaseline: true },
     });
 
     if (existingBaseline) {
-      throw new ConflictException("A baseline instance is already configured.");
+      throw new ConflictException(translateApi(locale, "setup.alreadyConfigured"));
     }
 
-    const connection = {
-      baseUrl: dto.baseUrl,
-      allowSelfSigned: dto.allowSelfSigned ?? false,
-      certificatePem: dto.certificatePem ?? null,
-    };
-    const ipAddress = getRequestIp(request);
-
     try {
-      const session = await this.pihole.authenticate(connection, dto.servicePassword, dto.totp);
-      const version = await this.pihole.readCapabilities(connection, session);
+      const preparedInstances = this.prepareInstances(dto, locale);
+      const validatedInstances = await this.validateInstances(preparedInstances, locale);
+      const baselineCandidate = validatedInstances.find((instance) => instance.isMaster);
+      const passwordHash =
+        dto.loginMode === "yapd-password"
+          ? this.crypto.hashPassword(this.normalizeOptionalString(dto.yapdPassword) as string)
+          : null;
 
-      const instance = await this.prisma.$transaction(async (tx) => {
-        const createdInstance = await tx.instance.create({
-          data: {
-            name: dto.name,
-            baseUrl: dto.baseUrl,
-            isBaseline: true,
-            lastKnownVersion: version.summary,
-            lastValidatedAt: new Date(),
+      if (!baselineCandidate) {
+        throw new BadRequestException(translateApi(locale, "setup.singleMasterRequired"));
+      }
+
+      const createdInstances = await this.prisma.$transaction(async (tx) => {
+        const created = [];
+
+        for (const instance of validatedInstances) {
+          const createdInstance = await tx.instance.create({
+            data: {
+              name: instance.name,
+              baseUrl: instance.baseUrl,
+              isBaseline: instance.isMaster,
+              lastKnownVersion: instance.version,
+              lastValidatedAt: new Date(),
+            },
+          });
+
+          await tx.instanceSecret.create({
+            data: {
+              instanceId: createdInstance.id,
+              encryptedPassword: this.crypto.encryptSecret(instance.credentials.password),
+            },
+          });
+
+          await tx.instanceCertificateTrust.create({
+            data: {
+              instanceId: createdInstance.id,
+              mode: this.resolveTrustMode(instance.allowSelfSigned),
+              certificatePem: null,
+            },
+          });
+
+          created.push({
+            ...createdInstance,
+            version: instance.version,
+          });
+        }
+
+        await tx.appConfig.upsert({
+          where: { id: "singleton" },
+          update: {
+            loginMode: toDbLoginMode(dto.loginMode),
+            passwordHash,
+          },
+          create: {
+            id: "singleton",
+            loginMode: toDbLoginMode(dto.loginMode),
+            passwordHash,
           },
         });
 
-        await tx.instanceSecret.create({
-          data: {
-            instanceId: createdInstance.id,
-            encryptedPassword: this.crypto.encryptSecret(dto.servicePassword),
-          },
-        });
-
-        await tx.instanceCertificateTrust.create({
-          data: {
-            instanceId: createdInstance.id,
-            mode: this.resolveTrustMode(dto.allowSelfSigned ?? false, dto.certificatePem),
-            certificatePem: dto.certificatePem ?? null,
-          },
-        });
-
-        return createdInstance;
+        return created;
       });
+
+      const baseline = createdInstances.find((instance) => instance.isBaseline);
 
       await this.audit.record({
         action: "setup.baseline.create",
         actorType: "bootstrap",
         ipAddress,
         targetType: "instance",
-        targetId: instance.id,
+        targetId: baseline?.id ?? null,
         result: "SUCCESS",
         details: {
-          baseUrl: dto.baseUrl,
-          name: dto.name,
-          version: version.summary,
+          baseline: baseline
+            ? {
+                id: baseline.id,
+                name: baseline.name,
+                baseUrl: baseline.baseUrl,
+                version: baseline.version,
+              }
+            : null,
+          createdCount: createdInstances.length,
+          loginMode: dto.loginMode,
+          instances: createdInstances.map((instance) => ({
+            id: instance.id,
+            name: instance.name,
+            baseUrl: instance.baseUrl,
+            isBaseline: instance.isBaseline,
+            version: instance.version,
+          })),
         } satisfies Prisma.InputJsonObject,
       });
 
-      await this.safeLogout(connection, session.sid);
-
       return {
-        baseline: {
-          id: instance.id,
-          name: instance.name,
-          baseUrl: instance.baseUrl,
-          version: version.summary,
-        },
+        message: translateApi(locale, "setup.batchCreated", {
+          count: String(createdInstances.length),
+        }),
+        baseline: baseline
+          ? {
+              id: baseline.id,
+              name: baseline.name,
+              baseUrl: baseline.baseUrl,
+              version: baseline.version,
+            }
+          : null,
+        createdCount: createdInstances.length,
+        loginMode: dto.loginMode,
       };
     } catch (error) {
       await this.audit.record({
@@ -117,28 +196,217 @@ export class SetupService {
         targetType: "instance",
         result: "FAILURE",
         details: {
-          baseUrl: dto.baseUrl,
-          name: dto.name,
+          credentialsMode: dto.credentialsMode,
+          loginMode: dto.loginMode,
+          instanceCount: dto.instances.length,
+          instances: dto.instances.map((instance, index) => ({
+            index: index + 1,
+            name: this.normalizeOptionalString(instance.name),
+            baseUrl: this.normalizeOptionalString(instance.baseUrl),
+            isMaster: instance.isMaster ?? false,
+          })),
           error: error instanceof Error ? error.message : "Unknown error",
         } satisfies Prisma.InputJsonObject,
       });
 
-      if (error instanceof PiholeRequestError && error.statusCode === 401) {
-        throw new UnauthorizedException("The provided Pi-hole credentials are invalid.");
-      }
+      throw error;
+    }
+  }
 
-      if (error instanceof PiholeRequestError) {
-        throw new BadGatewayException(`Failed to validate the baseline Pi-hole: ${error.message}`);
+  private async readAppConfigOrNull() {
+    try {
+      return await this.prisma.appConfig.findUnique({
+        where: { id: "singleton" },
+      });
+    } catch (error) {
+      if (isPrismaMissingModelTable(error, "AppConfig")) {
+        return null;
       }
 
       throw error;
     }
   }
 
-  private async safeLogout(
-    connection: { baseUrl: string; allowSelfSigned: boolean; certificatePem?: string | null },
-    sid: string,
-  ) {
+  private prepareInstances(dto: CreateBaselineDto, locale: ReturnType<typeof getRequestLocale>) {
+    this.validateLoginMode(dto, locale);
+    const masterCount = dto.instances.filter((instance) => instance.isMaster).length;
+
+    if (masterCount !== 1) {
+      throw new BadRequestException(translateApi(locale, "setup.singleMasterRequired"));
+    }
+
+    const preparedInstances: PreparedInstance[] = [];
+
+    for (const [index, instance] of dto.instances.entries()) {
+      const label = this.resolveInstanceLabel(locale, index, instance.name);
+      const name = this.normalizeOptionalString(instance.name);
+      const baseUrl = this.normalizeOptionalString(instance.baseUrl);
+      const isMaster = instance.isMaster ?? false;
+      const allowSelfSigned = instance.allowSelfSigned ?? false;
+
+      if (!isMaster && this.isBlankOptionalInstance(instance, dto.credentialsMode)) {
+        continue;
+      }
+
+      if (!name || !baseUrl) {
+        if (isMaster) {
+          throw new BadRequestException(translateApi(locale, "setup.masterIncomplete"));
+        }
+
+        throw new BadRequestException(
+          translateApi(locale, "setup.instanceIncomplete", {
+            instance: label,
+          }),
+        );
+      }
+
+      preparedInstances.push({
+        index,
+        label,
+        name,
+        baseUrl,
+        isMaster,
+        allowSelfSigned,
+        credentials: this.resolveCredentials(dto, instance, label, locale),
+      });
+    }
+
+    const master = preparedInstances.find((instance) => instance.isMaster);
+
+    if (!master) {
+      throw new BadRequestException(translateApi(locale, "setup.masterIncomplete"));
+    }
+
+    return preparedInstances;
+  }
+
+  private validateLoginMode(dto: CreateBaselineDto, locale: ReturnType<typeof getRequestLocale>) {
+    const loginMode = dto.loginMode ?? DEFAULT_APP_LOGIN_MODE;
+
+    if (loginMode !== "pihole-master" && loginMode !== "yapd-password") {
+      throw new BadRequestException(translateApi(locale, "setup.loginModeRequired"));
+    }
+
+    if (loginMode === "yapd-password") {
+      const password = this.normalizeOptionalString(dto.yapdPassword);
+
+      if (!password) {
+        throw new BadRequestException(translateApi(locale, "setup.yapdPasswordRequired"));
+      }
+
+      if (password.length < 8) {
+        throw new BadRequestException(translateApi(locale, "setup.yapdPasswordTooShort"));
+      }
+    }
+  }
+
+  private resolveCredentials(
+    dto: CreateBaselineDto,
+    instance: SetupInstanceDto,
+    label: string,
+    locale: ReturnType<typeof getRequestLocale>,
+  ): PreparedCredentials {
+    if (dto.credentialsMode === "shared") {
+      const password = this.normalizeOptionalString(dto.sharedPassword);
+
+      if (!password) {
+        throw new BadRequestException(translateApi(locale, "setup.sharedCredentialsRequired"));
+      }
+
+      return {
+        password,
+      };
+    }
+
+    const password = this.normalizeOptionalString(instance.password);
+
+    if (!password) {
+      throw new BadRequestException(
+        translateApi(locale, "setup.instanceCredentialsRequired", {
+          instance: label,
+        }),
+      );
+    }
+
+    return {
+      password,
+    };
+  }
+
+  private async validateInstances(
+    instances: PreparedInstance[],
+    locale: ReturnType<typeof getRequestLocale>,
+  ): Promise<ValidatedInstance[]> {
+    const validatedInstances: ValidatedInstance[] = [];
+
+    for (const instance of instances) {
+      const connection = {
+        baseUrl: instance.baseUrl,
+        allowSelfSigned: instance.allowSelfSigned,
+        locale,
+      } satisfies PiholeConnection;
+
+      let session: PiholeSession | null = null;
+
+      try {
+        session = await this.pihole.authenticate(connection, instance.credentials.password);
+        const version = await this.pihole.readCapabilities(connection, session);
+
+        validatedInstances.push({
+          ...instance,
+          version: version.summary,
+        });
+      } catch (error) {
+        throw this.toInstanceException(error, locale, instance.label);
+      } finally {
+        if (session) {
+          await this.safeLogout(connection, session.sid);
+        }
+      }
+    }
+
+    return validatedInstances;
+  }
+
+  private toInstanceException(error: unknown, locale: ReturnType<typeof getRequestLocale>, instanceLabel: string) {
+    if (error instanceof PiholeRequestError && error.statusCode === 401) {
+      return new UnauthorizedException(
+        translateApi(locale, "setup.instanceValidationFailed", {
+          instance: instanceLabel,
+          message: translateApi(locale, "setup.invalidCredentials"),
+        }),
+      );
+    }
+
+    if (error instanceof PiholeRequestError) {
+      return new BadGatewayException(
+        translateApi(locale, "setup.instanceValidationFailed", {
+          instance: instanceLabel,
+          message: error.message,
+        }),
+      );
+    }
+
+    if (error instanceof Error) {
+      return new BadGatewayException(
+        translateApi(locale, "setup.instanceValidationFailed", {
+          instance: instanceLabel,
+          message: error.message,
+        }),
+      );
+    }
+
+    return new BadGatewayException(
+      translateApi(locale, "setup.instanceValidationFailed", {
+        instance: instanceLabel,
+        message: translateApi(locale, "pihole.unreachable", {
+          baseUrl: instanceLabel,
+        }),
+      }),
+    );
+  }
+
+  private async safeLogout(connection: PiholeConnection, sid: string) {
     try {
       await this.pihole.logout(connection, sid);
     } catch {
@@ -146,11 +414,35 @@ export class SetupService {
     }
   }
 
-  private resolveTrustMode(allowSelfSigned: boolean, certificatePem?: string | null): CertificateTrustMode {
-    if (certificatePem) {
-      return "CUSTOM_CA";
+  private resolveInstanceLabel(locale: ReturnType<typeof getRequestLocale>, index: number, name?: string) {
+    return this.normalizeOptionalString(name)
+      ? (this.normalizeOptionalString(name) as string)
+      : translateApi(locale, "setup.instanceLabelFallback", {
+          index: String(index + 1),
+        });
+  }
+
+  private normalizeOptionalString(value: string | null | undefined) {
+    const normalized = value?.trim();
+
+    return normalized ? normalized : undefined;
+  }
+
+  private isBlankOptionalInstance(instance: SetupInstanceDto, mode: SetupCredentialMode) {
+    const hasName = Boolean(this.normalizeOptionalString(instance.name));
+    const hasBaseUrl = Boolean(this.normalizeOptionalString(instance.baseUrl));
+    const allowSelfSigned = instance.allowSelfSigned ?? false;
+
+    if (mode === "shared") {
+      return !hasName && !hasBaseUrl && !allowSelfSigned;
     }
 
+    const hasPassword = Boolean(this.normalizeOptionalString(instance.password));
+
+    return !hasName && !hasBaseUrl && !allowSelfSigned && !hasPassword;
+  }
+
+  private resolveTrustMode(allowSelfSigned: boolean): CertificateTrustMode {
     return allowSelfSigned ? "ALLOW_SELF_SIGNED" : "STRICT";
   }
 }

@@ -4,6 +4,8 @@ import type { Request } from "express";
 import { AuditService } from "../audit/audit.service";
 import { CryptoService } from "../common/crypto/crypto.service";
 import { getRequestIp } from "../common/http/request-context";
+import { getRequestLocale } from "../common/i18n/locale";
+import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-client";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
@@ -47,12 +49,14 @@ export class InstancesService {
   }
 
   async discoverInstances(dto: DiscoverInstancesDto, request: Request) {
+    const locale = getRequestLocale(request);
     const candidates = Array.from(new Set(dto.candidates?.length ? dto.candidates : DEFAULT_DISCOVERY_CANDIDATES));
     const results = await Promise.all(
       candidates.map(async (candidate) => {
         try {
           const discovery = await this.pihole.checkAuthenticationRequired({
             baseUrl: candidate,
+            locale,
           });
 
           return {
@@ -88,10 +92,12 @@ export class InstancesService {
   }
 
   async createInstance(dto: CreateInstanceDto, request: Request) {
+    const locale = getRequestLocale(request);
     const connection = {
       baseUrl: dto.baseUrl,
       allowSelfSigned: dto.allowSelfSigned ?? false,
       certificatePem: dto.certificatePem ?? null,
+      locale,
     };
     const ipAddress = getRequestIp(request);
 
@@ -165,11 +171,12 @@ export class InstancesService {
         } satisfies Prisma.InputJsonObject,
       });
 
-      this.mapPiholeError(error);
+      this.mapPiholeError(error, locale);
     }
   }
 
   async updateInstance(instanceId: string, dto: UpdateInstanceDto, request: Request) {
+    const locale = getRequestLocale(request);
     const instance = await this.prisma.instance.findUnique({
       where: { id: instanceId },
       include: {
@@ -179,7 +186,7 @@ export class InstancesService {
     });
 
     if (!instance || !instance.secret) {
-      throw new NotFoundException("Instance not found.");
+      throw new NotFoundException(translateApi(locale, "instances.notFound"));
     }
 
     const existingEncryptedPassword = instance.secret.encryptedPassword;
@@ -188,6 +195,7 @@ export class InstancesService {
       baseUrl: dto.baseUrl ?? instance.baseUrl,
       allowSelfSigned: dto.allowSelfSigned ?? instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
       certificatePem: dto.certificatePem ?? instance.certificateTrust?.certificatePem ?? null,
+      locale,
     };
     const ipAddress = getRequestIp(request);
 
@@ -267,11 +275,12 @@ export class InstancesService {
         } satisfies Prisma.InputJsonObject,
       });
 
-      this.mapPiholeError(error);
+      this.mapPiholeError(error, locale);
     }
   }
 
   async testInstance(instanceId: string, request: Request) {
+    const locale = getRequestLocale(request);
     const instance = await this.prisma.instance.findUnique({
       where: { id: instanceId },
       include: {
@@ -281,13 +290,14 @@ export class InstancesService {
     });
 
     if (!instance || !instance.secret) {
-      throw new NotFoundException("Instance not found.");
+      throw new NotFoundException(translateApi(locale, "instances.notFound"));
     }
 
     const connection = {
       baseUrl: instance.baseUrl,
       allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
       certificatePem: instance.certificateTrust?.certificatePem ?? null,
+      locale,
     };
     const ipAddress = getRequestIp(request);
 
@@ -337,7 +347,7 @@ export class InstancesService {
         } satisfies Prisma.InputJsonObject,
       });
 
-      this.mapPiholeError(error);
+      this.mapPiholeError(error, locale);
     }
   }
 
@@ -352,13 +362,13 @@ export class InstancesService {
     }
   }
 
-  private mapPiholeError(error: unknown): never {
+  private mapPiholeError(error: unknown, locale: ReturnType<typeof getRequestLocale>): never {
     if (error instanceof PiholeRequestError && error.statusCode === 401) {
-      throw new UnauthorizedException("The Pi-hole credentials are invalid.");
+      throw new UnauthorizedException(translateApi(locale, "instances.invalidCredentials"));
     }
 
     if (error instanceof PiholeRequestError) {
-      throw new BadGatewayException(`Failed to reach the Pi-hole instance: ${error.message}`);
+      throw new BadGatewayException(error.message);
     }
 
     throw error;

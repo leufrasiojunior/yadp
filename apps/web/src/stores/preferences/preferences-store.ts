@@ -1,11 +1,13 @@
 import { createStore } from "zustand/vanilla";
 
 import type { FontKey } from "@/lib/fonts/registry";
+import type { AppLocale } from "@/lib/i18n/config";
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import type { ResolvedThemeMode, ThemeMode, ThemePreset } from "@/lib/preferences/theme";
 
 export type PreferencesState = {
+  language: AppLocale;
   themeMode: ThemeMode;
   resolvedThemeMode: ResolvedThemeMode;
   themePreset: ThemePreset;
@@ -14,6 +16,7 @@ export type PreferencesState = {
   navbarStyle: NavbarStyle;
   sidebarVariant: SidebarVariant;
   sidebarCollapsible: SidebarCollapsible;
+  setLanguage: (language: AppLocale) => void;
   setThemeMode: (mode: ThemeMode) => void;
   setResolvedThemeMode: (mode: ResolvedThemeMode) => void;
   setThemePreset: (preset: ThemePreset) => void;
@@ -28,6 +31,7 @@ export type PreferencesState = {
 
 export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
   createStore<PreferencesState>()((set) => ({
+    language: init?.language ?? PREFERENCE_DEFAULTS.language,
     themeMode: init?.themeMode ?? PREFERENCE_DEFAULTS.theme_mode,
     resolvedThemeMode: init?.resolvedThemeMode ?? "light",
     themePreset: init?.themePreset ?? PREFERENCE_DEFAULTS.theme_preset,
@@ -36,6 +40,7 @@ export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
     navbarStyle: init?.navbarStyle ?? PREFERENCE_DEFAULTS.navbar_style,
     sidebarVariant: init?.sidebarVariant ?? PREFERENCE_DEFAULTS.sidebar_variant,
     sidebarCollapsible: init?.sidebarCollapsible ?? PREFERENCE_DEFAULTS.sidebar_collapsible,
+    setLanguage: (language) => set({ language }),
     setThemeMode: (mode) => set({ themeMode: mode }),
     setResolvedThemeMode: (mode) => set({ resolvedThemeMode: mode }),
     setThemePreset: (preset) => set({ themePreset: preset }),

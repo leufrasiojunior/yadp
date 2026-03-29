@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { AppSession } from "@/components/yapd/app-session-provider";
 
 import { getServerApiBaseUrl } from "./base-url";
+import { getApiErrorMessage } from "./error-message";
 import { createYapdHttpClient, isYapdApiUnavailableResponse } from "./yapd-http";
 import type { InstanceListResponse, SetupStatus } from "./yapd-types";
 
@@ -34,9 +35,30 @@ export function isYapdApiUnavailableError(error: unknown): error is YapdApiUnava
   return error instanceof YapdApiUnavailableError;
 }
 
+export class YapdApiResponseError extends Error {
+  constructor(
+    readonly baseUrl: string,
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "YapdApiResponseError";
+  }
+}
+
+export function isYapdApiResponseError(error: unknown): error is YapdApiResponseError {
+  return error instanceof YapdApiResponseError;
+}
+
 function throwIfApiUnavailable(baseUrl: string, response: Response) {
   if (isYapdApiUnavailableResponse(response)) {
     throw new YapdApiUnavailableError(baseUrl);
+  }
+}
+
+async function throwIfApiResponseError(baseUrl: string, response: Response) {
+  if (!response.ok) {
+    throw new YapdApiResponseError(baseUrl, response.status, await getApiErrorMessage(response));
   }
 }
 
@@ -45,9 +67,10 @@ export async function getSetupStatus(): Promise<SetupStatus> {
   const { data, response } = await client.GET<SetupStatus>("/setup/status");
 
   throwIfApiUnavailable(baseUrl, response);
+  await throwIfApiResponseError(baseUrl, response);
 
-  if (!response.ok || !data) {
-    throw new Error("Failed to load setup status.");
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load setup status.");
   }
 
   return data;
@@ -67,8 +90,10 @@ export async function getServerSession(required = false): Promise<AppSession | n
     return null;
   }
 
-  if (!response.ok || !data) {
-    throw new Error("Failed to load the active session.");
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load the active session.");
   }
 
   return data;
@@ -84,8 +109,10 @@ export async function getInstances(): Promise<InstanceListResponse> {
     redirect("/login");
   }
 
-  if (!response.ok || !data) {
-    throw new Error("Failed to load instances.");
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load instances.");
   }
 
   return data;

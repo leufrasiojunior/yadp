@@ -1,7 +1,10 @@
+import type { ApiLocale } from "../common/i18n/locale";
+
 export type PiholeConnection = {
   baseUrl: string;
   allowSelfSigned?: boolean;
   certificatePem?: string | null;
+  locale?: ApiLocale;
 };
 
 export type PiholeSession = {

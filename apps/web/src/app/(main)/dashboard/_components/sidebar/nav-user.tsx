@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { useWebI18n } from "@/lib/i18n/client";
 import { getInitials } from "@/lib/utils";
 
 export function NavUser({
@@ -30,13 +31,14 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const router = useRouter();
+  const { messages } = useWebI18n();
 
   const handleLogout = async () => {
     const client = getBrowserApiClient();
     const { response } = await client.DELETE("/session");
 
     if (!response.ok) {
-      toast.error("Nao foi possivel encerrar a sessao.");
+      toast.error(messages.sidebar.user.logoutError);
       return;
     }
 
@@ -86,21 +88,21 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <CircleUser />
-                Baseline operator
+                {messages.sidebar.user.role}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCard />
-                Session proxy
+                {messages.sidebar.user.proxy}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <MessageSquareDot />
-                Pi-hole authority
+                {messages.sidebar.user.authority}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => void handleLogout()}>
               <LogOut />
-              Log out
+              {messages.sidebar.user.logout}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

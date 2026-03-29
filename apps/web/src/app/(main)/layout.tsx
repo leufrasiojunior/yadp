@@ -7,19 +7,29 @@ import { redirect } from "next/navigation";
 import { Activity, Binary, ShieldCheck } from "lucide-react";
 
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
+import { LayoutControls } from "@/app/(main)/dashboard/_components/sidebar/layout-controls";
 import { SearchDialog } from "@/app/(main)/dashboard/_components/sidebar/search-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ApiErrorScreen } from "@/components/yapd/api-error-screen";
 import { ApiUnavailableScreen } from "@/components/yapd/api-unavailable-screen";
 import { AppSessionProvider } from "@/components/yapd/app-session-provider";
-import { getServerSession, getSetupStatus, isYapdApiUnavailableError } from "@/lib/api/yapd-server";
+import {
+  getServerSession,
+  getSetupStatus,
+  isYapdApiResponseError,
+  isYapdApiUnavailableError,
+} from "@/lib/api/yapd-server";
+import { getServerI18n } from "@/lib/i18n/server";
 import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@/lib/preferences/layout";
 import { cn } from "@/lib/utils";
 import { getPreference } from "@/server/server-actions";
 
 export default async function MainLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const { locale, messages } = await getServerI18n();
+
   try {
     const [setup, session, cookieStore, variant, collapsible] = await Promise.all([
       getSetupStatus(),
@@ -80,15 +90,16 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
                   <Button asChild variant="outline" size="sm">
                     <Link prefetch={false} href="/dashboard">
                       <Activity />
-                      Overview
+                      {messages.layout.overviewButton}
                     </Link>
                   </Button>
                   <Button asChild size="sm">
                     <Link prefetch={false} href="/instances">
                       <Binary />
-                      Instances
+                      {messages.layout.instancesButton}
                     </Link>
                   </Button>
+                  <LayoutControls />
                 </div>
               </div>
             </header>
@@ -102,9 +113,23 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
       return (
         <ApiUnavailableScreen
           apiBaseUrl={error.baseUrl}
-          description="A area autenticada precisa do backend para validar a baseline, ler a sessao atual e responder as rotas de gerenciamento."
+          description={messages.layout.unavailableDescription}
+          locale={locale}
           retryHref="/dashboard"
-          title="O painel nao conseguiu falar com o backend"
+          title={messages.layout.unavailableTitle}
+        />
+      );
+    }
+
+    if (isYapdApiResponseError(error)) {
+      return (
+        <ApiErrorScreen
+          apiBaseUrl={error.baseUrl}
+          locale={locale}
+          message={error.message}
+          retryHref="/dashboard"
+          status={error.status}
+          title={messages.layout.unavailableTitle}
         />
       );
     }

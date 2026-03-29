@@ -7,6 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,26 +19,27 @@ import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import type { DiscoverInstanceItem, InstanceItem, InstanceListResponse } from "@/lib/api/yapd-types";
-
-const createInstanceSchema = z.object({
-  name: z.string().min(2, "Informe um nome."),
-  baseUrl: z.string().url("Use uma URL completa."),
-  servicePassword: z.string().min(4, "Informe a senha ou application password."),
-  allowSelfSigned: z.boolean().default(false),
-  certificatePem: z.string().optional(),
-});
-
-const discoverSchema = z.object({
-  candidates: z.string().optional(),
-});
+import { useWebI18n } from "@/lib/i18n/client";
 
 export function InstancesWorkspace({
   initialItems,
 }: Readonly<{
   initialItems: InstanceItem[];
 }>) {
+  const { messages, formatDateTime } = useWebI18n();
+  const createInstanceSchema = z.object({
+    name: z.string().min(2, messages.forms.instances.validation.name),
+    baseUrl: z.string().url(messages.forms.instances.validation.baseUrl),
+    servicePassword: z.string().min(4, messages.forms.instances.validation.password),
+    allowSelfSigned: z.boolean().default(false),
+    certificatePem: z.string().optional(),
+  });
+  const discoverSchema = z.object({
+    candidates: z.string().optional(),
+  });
   const { csrfToken } = useAppSession();
   const [items, setItems] = useState(initialItems);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [discoveries, setDiscoveries] = useState<DiscoverInstanceItem[]>([]);
   const [testingId, setTestingId] = useState<string | null>(null);
   const client = useMemo(() => getBrowserApiClient(), []);
@@ -62,7 +64,7 @@ export function InstancesWorkspace({
     const { data, response } = await client.GET<InstanceListResponse>("/instances");
 
     if (!response.ok || !data) {
-      toast.error("Nao foi possivel atualizar a lista de instancias.");
+      toast.error(messages.forms.instances.toasts.refreshFailed);
       return;
     }
 
@@ -70,6 +72,7 @@ export function InstancesWorkspace({
   };
 
   const createInstance = async (values: z.infer<typeof createInstanceSchema>) => {
+    setCreateError(null);
     const { response } = await client.POST("/instances", {
       headers: {
         "x-yapd-csrf": csrfToken,
@@ -81,11 +84,14 @@ export function InstancesWorkspace({
     });
 
     if (!response.ok) {
-      toast.error(await getApiErrorMessage(response));
+      const message = await getApiErrorMessage(response);
+      setCreateError(message);
+      toast.error(message);
       return;
     }
 
-    toast.success("Instancia cadastrada com sucesso.");
+    setCreateError(null);
+    toast.success(messages.forms.instances.toasts.createSuccess);
     createForm.reset();
     await refreshItems();
   };
@@ -110,7 +116,7 @@ export function InstancesWorkspace({
     }
 
     setDiscoveries(data.items);
-    toast.success("Descoberta executada.");
+    toast.success(messages.forms.instances.toasts.discoverSuccess);
   };
 
   const testInstance = async (instanceId: string) => {
@@ -133,7 +139,7 @@ export function InstancesWorkspace({
       return;
     }
 
-    toast.success("Conexao validada com sucesso.");
+    toast.success(messages.forms.instances.toasts.testSuccess);
     await refreshItems();
   };
 
@@ -142,8 +148,8 @@ export function InstancesWorkspace({
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Cadastrar instancia</CardTitle>
-            <CardDescription>Salve uma credencial tecnica para o backend operar sobre outro Pi-hole.</CardDescription>
+            <CardTitle>{messages.forms.instances.create.title}</CardTitle>
+            <CardDescription>{messages.forms.instances.create.description}</CardDescription>
           </CardHeader>
           <CardContent>
             <form
@@ -157,7 +163,7 @@ export function InstancesWorkspace({
                   name="name"
                   render={({ field, fieldState }) => (
                     <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="instance-name">Nome</FieldLabel>
+                      <FieldLabel htmlFor="instance-name">{messages.forms.instances.create.name}</FieldLabel>
                       <Input
                         {...field}
                         id="instance-name"
@@ -173,7 +179,7 @@ export function InstancesWorkspace({
                   name="baseUrl"
                   render={({ field, fieldState }) => (
                     <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="instance-url">Base URL</FieldLabel>
+                      <FieldLabel htmlFor="instance-url">{messages.forms.instances.create.baseUrl}</FieldLabel>
                       <Input
                         {...field}
                         id="instance-url"
@@ -189,7 +195,7 @@ export function InstancesWorkspace({
                   name="servicePassword"
                   render={({ field, fieldState }) => (
                     <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="instance-password">Senha/Application password</FieldLabel>
+                      <FieldLabel htmlFor="instance-password">{messages.forms.instances.create.password}</FieldLabel>
                       <Input
                         {...field}
                         id="instance-password"
@@ -197,9 +203,7 @@ export function InstancesWorkspace({
                         placeholder="••••••••"
                         aria-invalid={fieldState.invalid}
                       />
-                      <FieldDescription>
-                        O backend vai testar a autenticacao antes de salvar a instancia.
-                      </FieldDescription>
+                      <FieldDescription>{messages.forms.instances.create.passwordDescription}</FieldDescription>
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -216,7 +220,7 @@ export function InstancesWorkspace({
                       />
                       <FieldContent>
                         <FieldLabel htmlFor="instance-self-signed" className="font-normal">
-                          Permitir self-signed explicitamente
+                          {messages.forms.instances.create.allowSelfSigned}
                         </FieldLabel>
                       </FieldContent>
                     </Field>
@@ -227,7 +231,7 @@ export function InstancesWorkspace({
                   name="certificatePem"
                   render={({ field, fieldState }) => (
                     <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="instance-cert">CA personalizada opcional</FieldLabel>
+                      <FieldLabel htmlFor="instance-cert">{messages.forms.instances.create.certificate}</FieldLabel>
                       <Textarea
                         {...field}
                         id="instance-cert"
@@ -240,8 +244,16 @@ export function InstancesWorkspace({
                   )}
                 />
               </FieldGroup>
+              {createError ? (
+                <Alert variant="destructive">
+                  <AlertTitle>{messages.forms.instances.create.validationFailedTitle}</AlertTitle>
+                  <AlertDescription>{createError}</AlertDescription>
+                </Alert>
+              ) : null}
               <Button type="submit" disabled={createForm.formState.isSubmitting}>
-                {createForm.formState.isSubmitting ? "Validando..." : "Salvar instancia"}
+                {createForm.formState.isSubmitting
+                  ? messages.forms.instances.create.submitLoading
+                  : messages.forms.instances.create.submitIdle}
               </Button>
             </form>
           </CardContent>
@@ -249,8 +261,8 @@ export function InstancesWorkspace({
 
         <Card>
           <CardHeader>
-            <CardTitle>Descoberta assistida</CardTitle>
-            <CardDescription>Informe candidatos para o backend verificar se respondem como Pi-hole.</CardDescription>
+            <CardTitle>{messages.forms.instances.discovery.title}</CardTitle>
+            <CardDescription>{messages.forms.instances.discovery.description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form
@@ -263,7 +275,9 @@ export function InstancesWorkspace({
                 name="candidates"
                 render={({ field, fieldState }) => (
                   <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="discover-candidates">Candidates</FieldLabel>
+                    <FieldLabel htmlFor="discover-candidates">
+                      {messages.forms.instances.discovery.candidates}
+                    </FieldLabel>
                     <Textarea
                       {...field}
                       id="discover-candidates"
@@ -271,29 +285,29 @@ export function InstancesWorkspace({
                       placeholder={"https://pi.hole\nhttps://pihole.lan"}
                       aria-invalid={fieldState.invalid}
                     />
-                    <FieldDescription>Use uma URL por linha ou separadas por virgula.</FieldDescription>
+                    <FieldDescription>{messages.forms.instances.discovery.candidatesDescription}</FieldDescription>
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
               />
               <Button type="submit" variant="outline" disabled={discoverForm.formState.isSubmitting}>
-                {discoverForm.formState.isSubmitting ? "Buscando..." : "Executar descoberta"}
+                {discoverForm.formState.isSubmitting
+                  ? messages.forms.instances.discovery.submitLoading
+                  : messages.forms.instances.discovery.submitIdle}
               </Button>
             </form>
 
             <div className="space-y-3 text-sm">
               {discoveries.length === 0 ? (
-                <p className="text-muted-foreground">
-                  Nenhum resultado ainda. Rode a descoberta para testar candidatos.
-                </p>
+                <p className="text-muted-foreground">{messages.forms.instances.discovery.empty}</p>
               ) : (
                 discoveries.map((item) => (
                   <div key={item.baseUrl} className="rounded-xl border p-3">
                     <p className="font-medium">{item.baseUrl}</p>
                     <p className="text-muted-foreground">
                       {item.reachable
-                        ? "Pi-hole respondeu ao endpoint /auth."
-                        : (item.error ?? "Nao foi possivel conectar.")}
+                        ? messages.forms.instances.discovery.reachable
+                        : (item.error ?? messages.forms.instances.discovery.unreachable)}
                     </p>
                   </div>
                 ))
@@ -305,19 +319,19 @@ export function InstancesWorkspace({
 
       <Card>
         <CardHeader>
-          <CardTitle>Instancias cadastradas</CardTitle>
-          <CardDescription>Teste as conexoes salvas e acompanhe a baseline atual.</CardDescription>
+          <CardTitle>{messages.forms.instances.table.title}</CardTitle>
+          <CardDescription>{messages.forms.instances.table.description}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Base URL</TableHead>
-                <TableHead>Trust</TableHead>
-                <TableHead>Versao</TableHead>
-                <TableHead>Ultima validacao</TableHead>
-                <TableHead className="text-right">Acoes</TableHead>
+                <TableHead>{messages.forms.instances.table.name}</TableHead>
+                <TableHead>{messages.forms.instances.table.baseUrl}</TableHead>
+                <TableHead>{messages.forms.instances.table.trust}</TableHead>
+                <TableHead>{messages.forms.instances.table.version}</TableHead>
+                <TableHead>{messages.forms.instances.table.lastValidation}</TableHead>
+                <TableHead className="text-right">{messages.forms.instances.table.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -326,14 +340,16 @@ export function InstancesWorkspace({
                   <TableCell>
                     <div className="font-medium">{item.name}</div>
                     <div className="text-muted-foreground text-xs">
-                      {item.isBaseline ? "Baseline" : "Managed instance"}
+                      {item.isBaseline
+                        ? messages.forms.instances.table.baseline
+                        : messages.forms.instances.table.managed}
                     </div>
                   </TableCell>
                   <TableCell>{item.baseUrl}</TableCell>
                   <TableCell>{item.trustMode}</TableCell>
-                  <TableCell>{item.lastKnownVersion ?? "-"}</TableCell>
+                  <TableCell>{item.lastKnownVersion ?? messages.common.versionUnavailable}</TableCell>
                   <TableCell>
-                    {item.lastValidatedAt ? new Date(item.lastValidatedAt).toLocaleString("pt-BR") : "-"}
+                    {item.lastValidatedAt ? formatDateTime(item.lastValidatedAt) : messages.common.versionUnavailable}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -342,7 +358,9 @@ export function InstancesWorkspace({
                       disabled={testingId === item.id}
                       onClick={() => void testInstance(item.id)}
                     >
-                      {testingId === item.id ? "Testando..." : "Testar"}
+                      {testingId === item.id
+                        ? messages.forms.instances.table.testLoading
+                        : messages.forms.instances.table.testIdle}
                     </Button>
                   </TableCell>
                 </TableRow>

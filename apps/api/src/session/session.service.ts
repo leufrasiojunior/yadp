@@ -2,10 +2,14 @@ import { Inject, Injectable, PreconditionFailedException, UnauthorizedException 
 import type { Request, Response } from "express";
 
 import { AuditService } from "../audit/audit.service";
+import { fromDbLoginMode } from "../common/auth/login-mode";
 import { CryptoService } from "../common/crypto/crypto.service";
 import { getRequestIp } from "../common/http/request-context";
+import { getRequestLocale } from "../common/i18n/locale";
+import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { Prisma } from "../common/prisma/prisma-client";
+import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
 import { AppEnvService } from "../config/app-env";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
 import type { LoginDto } from "./dto/login.dto";
@@ -22,27 +26,95 @@ export class SessionService {
   ) {}
 
   async login(dto: LoginDto, request: Request, response: Response) {
-    const baseline = await this.prisma.instance.findFirst({
-      where: { isBaseline: true },
-      include: {
-        certificateTrust: true,
-      },
-    });
+    const locale = getRequestLocale(request);
+    const [baseline, appConfig] = await Promise.all([
+      this.prisma.instance.findFirst({
+        where: { isBaseline: true },
+        include: {
+          certificateTrust: true,
+        },
+      }),
+      this.readAppConfigOrNull(),
+    ]);
 
     if (!baseline) {
-      throw new PreconditionFailedException("You must configure the baseline before logging in.");
+      throw new PreconditionFailedException(translateApi(locale, "session.baselineRequired"));
     }
 
+    const loginMode = fromDbLoginMode(appConfig?.loginMode);
     const connection = {
       baseUrl: baseline.baseUrl,
       allowSelfSigned: baseline.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
       certificatePem: baseline.certificateTrust?.certificatePem ?? null,
+      locale,
     };
     const ipAddress = getRequestIp(request);
+
+    if (loginMode === "yapd-password") {
+      if (!appConfig?.passwordHash) {
+        throw new PreconditionFailedException(translateApi(locale, "session.localLoginUnavailable"));
+      }
+
+      const isValidPassword = this.crypto.verifyPassword(dto.password, appConfig.passwordHash);
+
+      if (!isValidPassword) {
+        await this.audit.record({
+          action: "session.login",
+          actorType: "yapd_operator",
+          actorLabel: baseline.name,
+          ipAddress,
+          targetType: "instance",
+          targetId: baseline.id,
+          result: "FAILURE",
+          details: {
+            authMethod: loginMode,
+            error: "Invalid YAPD password",
+          } satisfies Prisma.InputJsonObject,
+        });
+
+        throw new UnauthorizedException(translateApi(locale, "session.localLoginFailed"));
+      }
+
+      const payload: SessionCookiePayload = {
+        authMethod: loginMode,
+        baselineInstanceId: baseline.id,
+        expiresAt: new Date(Date.now() + this.env.values.YAPD_SESSION_TTL_SECONDS * 1000).toISOString(),
+        antiCsrfToken: this.crypto.createToken(),
+      };
+
+      this.writeSessionCookie(response, payload);
+
+      await this.audit.record({
+        action: "session.login",
+        actorType: "yapd_operator",
+        actorLabel: baseline.name,
+        ipAddress,
+        targetType: "instance",
+        targetId: baseline.id,
+        result: "SUCCESS",
+        details: {
+          authMethod: loginMode,
+          validitySeconds: this.env.values.YAPD_SESSION_TTL_SECONDS,
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      return {
+        authenticated: true as const,
+        authMethod: loginMode,
+        baseline: {
+          id: baseline.id,
+          name: baseline.name,
+          baseUrl: baseline.baseUrl,
+        },
+        expiresAt: payload.expiresAt,
+        csrfToken: payload.antiCsrfToken,
+      };
+    }
 
     try {
       const session = await this.pihole.authenticate(connection, dto.password, dto.totp);
       const payload: SessionCookiePayload = {
+        authMethod: loginMode,
         baselineInstanceId: baseline.id,
         sid: session.sid,
         csrf: session.csrf,
@@ -61,12 +133,15 @@ export class SessionService {
         targetId: baseline.id,
         result: "SUCCESS",
         details: {
+          authMethod: loginMode,
           validitySeconds: session.validity,
           usedTotp: Boolean(dto.totp),
         } satisfies Prisma.InputJsonObject,
       });
 
       return {
+        authenticated: true as const,
+        authMethod: loginMode,
         baseline: {
           id: baseline.id,
           name: baseline.name,
@@ -85,12 +160,13 @@ export class SessionService {
         targetId: baseline.id,
         result: "FAILURE",
         details: {
+          authMethod: loginMode,
           error: error instanceof Error ? error.message : "Unknown error",
         } satisfies Prisma.InputJsonObject,
       });
 
       if (error instanceof PiholeRequestError && error.statusCode === 401) {
-        throw new UnauthorizedException("The Pi-hole login failed.");
+        throw new UnauthorizedException(translateApi(locale, "session.loginFailed"));
       }
 
       throw error;
@@ -98,17 +174,19 @@ export class SessionService {
   }
 
   async getCurrentSession(request: Request) {
+    const locale = getRequestLocale(request);
     const payload = this.requireSession(request);
     const baseline = await this.prisma.instance.findUnique({
       where: { id: payload.baselineInstanceId },
     });
 
     if (!baseline) {
-      throw new UnauthorizedException("The baseline instance is no longer available.");
+      throw new UnauthorizedException(translateApi(locale, "session.baselineMissing"));
     }
 
     return {
       authenticated: true,
+      authMethod: payload.authMethod,
       baseline: {
         id: baseline.id,
         name: baseline.name,
@@ -121,6 +199,7 @@ export class SessionService {
 
   async logout(request: Request, response: Response) {
     const payload = this.readSession(request);
+    const locale = getRequestLocale(request);
     const ipAddress = getRequestIp(request);
 
     if (payload) {
@@ -130,27 +209,33 @@ export class SessionService {
       });
 
       if (baseline) {
-        try {
-          await this.pihole.logout(
-            {
-              baseUrl: baseline.baseUrl,
-              allowSelfSigned: baseline.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
-              certificatePem: baseline.certificateTrust?.certificatePem ?? null,
-            },
-            payload.sid,
-          );
-        } catch {
-          // Logging out of Pi-hole is best-effort. We still clear the local session.
+        if (payload.authMethod === "pihole-master" && payload.sid) {
+          try {
+            await this.pihole.logout(
+              {
+                baseUrl: baseline.baseUrl,
+                allowSelfSigned: baseline.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
+                certificatePem: baseline.certificateTrust?.certificatePem ?? null,
+                locale,
+              },
+              payload.sid,
+            );
+          } catch {
+            // Logging out of Pi-hole is best-effort. We still clear the local session.
+          }
         }
 
         await this.audit.record({
           action: "session.logout",
-          actorType: "pihole_operator",
+          actorType: payload.authMethod === "yapd-password" ? "yapd_operator" : "pihole_operator",
           actorLabel: baseline.name,
           ipAddress,
           targetType: "instance",
           targetId: baseline.id,
           result: "SUCCESS",
+          details: {
+            authMethod: payload.authMethod,
+          } satisfies Prisma.InputJsonObject,
         });
       }
     }
@@ -159,14 +244,15 @@ export class SessionService {
   }
 
   requireSession(request: Request) {
+    const locale = getRequestLocale(request);
     const payload = this.readSession(request);
 
     if (!payload) {
-      throw new UnauthorizedException("No active YAPD session was found.");
+      throw new UnauthorizedException(translateApi(locale, "session.noActiveSession"));
     }
 
     if (new Date(payload.expiresAt).getTime() <= Date.now()) {
-      throw new UnauthorizedException("The session has expired.");
+      throw new UnauthorizedException(translateApi(locale, "session.expired"));
     }
 
     return payload;
@@ -180,7 +266,14 @@ export class SessionService {
     }
 
     try {
-      return this.crypto.decryptSession<SessionCookiePayload>(rawCookie);
+      const payload = this.crypto.decryptSession<
+        SessionCookiePayload & { authMethod?: SessionCookiePayload["authMethod"] }
+      >(rawCookie);
+
+      return {
+        ...payload,
+        authMethod: payload.authMethod ?? "pihole-master",
+      };
     } catch {
       return null;
     }
@@ -203,5 +296,19 @@ export class SessionService {
       expires: new Date(payload.expiresAt),
       path: "/",
     });
+  }
+
+  private async readAppConfigOrNull() {
+    try {
+      return await this.prisma.appConfig.findUnique({
+        where: { id: "singleton" },
+      });
+    } catch (error) {
+      if (isPrismaMissingModelTable(error, "AppConfig")) {
+        return null;
+      }
+
+      throw error;
+    }
   }
 }

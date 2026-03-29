@@ -12,6 +12,7 @@
  */
 
 import type { FontKey } from "@/lib/fonts/registry";
+import type { AppLocale } from "@/lib/i18n/config";
 
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "./layout";
 import type { ThemeMode, ThemePreset } from "./theme";
@@ -22,6 +23,7 @@ export type PreferencePersistence = "none" | "client-cookie" | "server-cookie" |
  * All available preference keys and their value types.
  */
 export type PreferenceValueMap = {
+  language: AppLocale;
   theme_mode: ThemeMode;
   theme_preset: ThemePreset;
   font: FontKey;
@@ -66,6 +68,7 @@ type PreferencePersistenceConfig = {
  * Default preference values on first load.
  */
 export const PREFERENCE_DEFAULTS: PreferenceValueMap = {
+  language: "pt-BR",
   theme_mode: "light",
   theme_preset: "default",
   font: "inter",
@@ -80,6 +83,7 @@ export const PREFERENCE_DEFAULTS: PreferenceValueMap = {
  * You can change these per-key.
  */
 export const PREFERENCE_PERSISTENCE: PreferencePersistenceConfig = {
+  language: "client-cookie",
   theme_mode: "client-cookie",
   theme_preset: "client-cookie",
   font: "client-cookie",

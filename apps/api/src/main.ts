@@ -4,9 +4,11 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
+import type { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 
 import { AppModule } from "./app.module";
+import { getRequestLocale } from "./common/i18n/locale";
 import { AppEnvService } from "./config/app-env";
 import { buildOpenApiDocument } from "./openapi";
 
@@ -18,6 +20,10 @@ async function bootstrap() {
   app.setGlobalPrefix("api");
   app.use(cookieParser());
   app.use(helmet());
+  app.use((request: Request, response: Response, next: NextFunction) => {
+    response.setHeader("content-language", getRequestLocale(request));
+    next();
+  });
   app.enableCors({
     origin: [env.values.WEB_ORIGIN],
     credentials: true,

@@ -4,6 +4,7 @@ import { createContext, useContext } from "react";
 
 export type AppSession = {
   authenticated: true;
+  authMethod: "pihole-master" | "yapd-password";
   baseline: {
     id: string;
     name: string;

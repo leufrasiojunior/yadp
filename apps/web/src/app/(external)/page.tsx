@@ -1,9 +1,18 @@
 import { redirect } from "next/navigation";
 
+import { ApiErrorScreen } from "@/components/yapd/api-error-screen";
 import { ApiUnavailableScreen } from "@/components/yapd/api-unavailable-screen";
-import { getServerSession, getSetupStatus, isYapdApiUnavailableError } from "@/lib/api/yapd-server";
+import {
+  getServerSession,
+  getSetupStatus,
+  isYapdApiResponseError,
+  isYapdApiUnavailableError,
+} from "@/lib/api/yapd-server";
+import { getServerLocale } from "@/lib/i18n/server";
 
 export default async function Home() {
+  const locale = await getServerLocale();
+
   try {
     const setup = await getSetupStatus();
 
@@ -20,7 +29,13 @@ export default async function Home() {
     redirect("/login");
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return <ApiUnavailableScreen apiBaseUrl={error.baseUrl} />;
+      return <ApiUnavailableScreen apiBaseUrl={error.baseUrl} locale={locale} />;
+    }
+
+    if (isYapdApiResponseError(error)) {
+      return (
+        <ApiErrorScreen apiBaseUrl={error.baseUrl} locale={locale} message={error.message} status={error.status} />
+      );
     }
 
     throw error;

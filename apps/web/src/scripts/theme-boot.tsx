@@ -3,15 +3,24 @@
  * content layout, navbar style) from cookies or localStorage based on the
  * configured persistence mode.
  *
- * Runs early in <head> to apply the correct data attributes before hydration,
- * preventing layout or theme flicker and keeping RootLayout fully static.
+ * It is inserted into the server HTML outside the hydrated React tree, which
+ * avoids React dev warnings about rendering <script> tags in components while
+ * still running before the app takes over on the client.
  */
-import Script from "next/script";
+"use client";
 
+import { useServerInsertedHTML } from "next/navigation";
+
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
 import { PREFERENCE_DEFAULTS, PREFERENCE_PERSISTENCE } from "@/lib/preferences/preferences-config";
 
+function serializeForInlineScript(value: unknown) {
+  return JSON.stringify(value).replace(/</gu, "\\u003c");
+}
+
 export function ThemeBootScript() {
-  const persistence = JSON.stringify({
+  const persistence = serializeForInlineScript({
+    language: PREFERENCE_PERSISTENCE.language,
     theme_mode: PREFERENCE_PERSISTENCE.theme_mode,
     theme_preset: PREFERENCE_PERSISTENCE.theme_preset,
     font: PREFERENCE_PERSISTENCE.font,
@@ -21,7 +30,8 @@ export function ThemeBootScript() {
     sidebar_collapsible: PREFERENCE_PERSISTENCE.sidebar_collapsible,
   });
 
-  const defaults = JSON.stringify({
+  const defaults = serializeForInlineScript({
+    language: DEFAULT_LOCALE,
     theme_mode: PREFERENCE_DEFAULTS.theme_mode,
     theme_preset: PREFERENCE_DEFAULTS.theme_preset,
     font: PREFERENCE_DEFAULTS.font,
@@ -72,6 +82,7 @@ export function ThemeBootScript() {
           return value;
         }
 
+        var rawLanguage = readPreference("language", root.getAttribute("lang") || DEFAULTS.language);
         var rawMode = readPreference("theme_mode", DEFAULTS.theme_mode);
         var rawPreset = readPreference("theme_preset", DEFAULTS.theme_preset);
         var rawFont = readPreference("font", DEFAULTS.font);
@@ -88,12 +99,15 @@ export function ThemeBootScript() {
             : mode;
         var preset = rawPreset || DEFAULTS.theme_preset;
         var font = rawFont || DEFAULTS.font;
+        var language = rawLanguage || root.getAttribute("lang") || DEFAULTS.language;
         var contentLayout = rawContentLayout || DEFAULTS.content_layout;
         var navbarStyle = rawNavbarStyle || DEFAULTS.navbar_style;
         var sidebarVariant = rawSidebarVariant || DEFAULTS.sidebar_variant;
         var sidebarCollapsible = rawSidebarCollapsible || DEFAULTS.sidebar_collapsible;
 
         root.classList.toggle("dark", resolvedMode === "dark");
+        root.lang = language;
+        root.setAttribute("data-language", language);
         root.setAttribute("data-theme-mode", mode);
         root.setAttribute("data-theme-preset", preset);
         root.setAttribute("data-font", font);
@@ -110,9 +124,16 @@ export function ThemeBootScript() {
     })();
   `;
 
-  return (
-    <Script id="theme-boot" strategy="beforeInteractive">
-      {code}
-    </Script>
-  );
+  useServerInsertedHTML(() => (
+    <script
+      id="theme-boot"
+      suppressHydrationWarning
+      /* biome-ignore lint/security/noDangerouslySetInnerHtml: this boot script is built from static internal constants and must run before hydration. */
+      dangerouslySetInnerHTML={{
+        __html: code,
+      }}
+    />
+  ));
+
+  return null;
 }

@@ -8,6 +8,7 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/AppConfig.js'
 export type * from './models/Instance.js'
 export type * from './models/InstanceSecret.js'
 export type * from './models/InstanceCertificateTrust.js'

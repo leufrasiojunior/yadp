@@ -1,5 +1,7 @@
 import { Activity, Binary, LayoutDashboard, type LucideIcon, ShieldCheck, Waypoints } from "lucide-react";
 
+import type { WebMessages } from "@/lib/i18n/messages";
+
 export interface NavSubItem {
   title: string;
   url: string;
@@ -25,50 +27,52 @@ export interface NavGroup {
   items: NavMainItem[];
 }
 
-export const sidebarItems: NavGroup[] = [
-  {
-    id: 1,
-    label: "Overview",
-    items: [
-      {
-        title: "Dashboard",
-        url: "/dashboard",
-        icon: LayoutDashboard,
-      },
-      {
-        title: "Instances",
-        url: "/instances",
-        icon: Binary,
-      },
-    ],
-  },
-  {
-    id: 2,
-    label: "Operations",
-    items: [
-      {
-        title: "Baseline Login",
-        url: "/login",
-        icon: ShieldCheck,
-        newTab: true,
-      },
-      {
-        title: "Setup Baseline",
-        url: "/setup",
-        icon: Waypoints,
-        newTab: true,
-      },
-    ],
-  },
-  {
-    id: 3,
-    label: "Status",
-    items: [
-      {
-        title: "API Health",
-        url: "/dashboard",
-        icon: Activity,
-      },
-    ],
-  },
-];
+export function getSidebarItems(messages: WebMessages): NavGroup[] {
+  return [
+    {
+      id: 1,
+      label: messages.sidebar.groups.overview,
+      items: [
+        {
+          title: messages.sidebar.items.dashboard,
+          url: "/dashboard",
+          icon: LayoutDashboard,
+        },
+        {
+          title: messages.sidebar.items.instances,
+          url: "/instances",
+          icon: Binary,
+        },
+      ],
+    },
+    {
+      id: 2,
+      label: messages.sidebar.groups.operations,
+      items: [
+        {
+          title: messages.sidebar.items.baselineLogin,
+          url: "/login",
+          icon: ShieldCheck,
+          newTab: true,
+        },
+        {
+          title: messages.sidebar.items.setupBaseline,
+          url: "/setup",
+          icon: Waypoints,
+          newTab: true,
+        },
+      ],
+    },
+    {
+      id: 3,
+      label: messages.sidebar.groups.status,
+      items: [
+        {
+          title: messages.sidebar.items.apiHealth,
+          url: "/dashboard",
+          icon: Activity,
+        },
+      ],
+    },
+  ];
+}

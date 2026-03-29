@@ -16,3 +16,11 @@ export const CertificateTrustMode = {
 } as const
 
 export type CertificateTrustMode = (typeof CertificateTrustMode)[keyof typeof CertificateTrustMode]
+
+
+export const AppLoginMode = {
+  PIHOLE_MASTER: 'PIHOLE_MASTER',
+  YAPD_PASSWORD: 'YAPD_PASSWORD'
+} as const
+
+export type AppLoginMode = (typeof AppLoginMode)[keyof typeof AppLoginMode]

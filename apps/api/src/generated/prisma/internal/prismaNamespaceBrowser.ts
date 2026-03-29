@@ -51,6 +51,7 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  AppConfig: 'AppConfig',
   Instance: 'Instance',
   InstanceSecret: 'InstanceSecret',
   InstanceCertificateTrust: 'InstanceCertificateTrust',
@@ -71,6 +72,17 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const AppConfigScalarFieldEnum = {
+  id: 'id',
+  loginMode: 'loginMode',
+  passwordHash: 'passwordHash',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppConfigScalarFieldEnum = (typeof AppConfigScalarFieldEnum)[keyof typeof AppConfigScalarFieldEnum]
 
 
 export const InstanceScalarFieldEnum = {
