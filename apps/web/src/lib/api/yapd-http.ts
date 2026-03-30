@@ -145,6 +145,9 @@ export function createYapdHttpClient(baseUrl: string, init?: ClientInit) {
     GET<T>(path: string, options?: Omit<RequestOptions, "body">) {
       return requestJson<T>(baseUrl, "GET", path, init, options);
     },
+    PUT<T>(path: string, options?: RequestOptions) {
+      return requestJson<T>(baseUrl, "PUT", path, init, options);
+    },
     POST<T>(path: string, options?: RequestOptions) {
       return requestJson<T>(baseUrl, "POST", path, init, options);
     },

@@ -121,7 +121,7 @@ export class PiholeInstanceSessionService {
     return instances.map((instance) => ({
       id: instance.id,
       name: instance.name,
-      baseUrl: instance.baseUrl,
+      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
     }));
   }
 
@@ -142,7 +142,7 @@ export class PiholeInstanceSessionService {
     return {
       id: instance.id,
       name: instance.name,
-      baseUrl: instance.baseUrl,
+      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
     };
   }
 
@@ -313,15 +313,24 @@ export class PiholeInstanceSessionService {
     execute: (context: ActiveInstanceSessionContext) => Promise<T>,
   ): Promise<T> {
     let context = await this.ensureActiveSession(instanceId, locale);
+    this.logger.verbose(
+      `Executing authenticated Pi-hole work for "${context.instance.name}" (${context.instance.id}) using baseUrl=${context.instance.baseUrl}.`,
+    );
 
     try {
       const result = await execute(context);
       await this.refreshSessionLease(context.instance.id);
+      this.logger.verbose(
+        `Authenticated Pi-hole work completed successfully for "${context.instance.name}" (${context.instance.id}).`,
+      );
       return result;
     } catch (error) {
       if (!this.shouldReauthenticate(error)) {
         const failure = this.mapFailure(context.instance, error, locale);
         await this.recordSessionError(context.instance.id, failure.kind, failure.message);
+        this.logger.warn(
+          `Authenticated Pi-hole work failed for "${context.instance.name}" (${context.instance.id}) without reauthentication. kind=${failure.kind} message="${failure.message}"`,
+        );
         throw error;
       }
 
@@ -572,7 +581,7 @@ export class PiholeInstanceSessionService {
     locale: ApiLocale,
   ): PiholeConnection {
     return {
-      baseUrl: instance.baseUrl,
+      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
       allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
       certificatePem: instance.certificateTrust?.certificatePem ?? null,
       locale,
@@ -590,8 +599,22 @@ export class PiholeInstanceSessionService {
     return {
       id: instance.id,
       name: instance.name,
-      baseUrl: instance.baseUrl,
+      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
     };
+  }
+
+  private normalizeConfiguredBaseUrl(baseUrl: string) {
+    const trimmedBaseUrl = baseUrl.trim();
+    const normalizedScheme = trimmedBaseUrl.replace(/^([a-z][a-z0-9+.-]*:)\/*/i, "$1//");
+    const parsed = new URL(normalizedScheme);
+    const normalizedPath = parsed.pathname.replaceAll(/\/{2,}/g, "/");
+
+    parsed.pathname =
+      normalizedPath.length > 1 && normalizedPath.endsWith("/") ? normalizedPath.slice(0, -1) : normalizedPath;
+    parsed.search = "";
+    parsed.hash = "";
+
+    return parsed.toString().replace(/\/$/, "");
   }
 
   private mapStoredSessionSummary(session: InstanceRecord["session"]): InstanceSessionSummary {

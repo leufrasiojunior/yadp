@@ -63,6 +63,19 @@ export type PiholeManagedInstanceSummary = {
   baseUrl: string;
 };
 
+export type PiholeBlockingStatus = "enabled" | "disabled";
+
+export type PiholeBlockingConfig = {
+  blocking: PiholeBlockingStatus;
+  timer: number | null;
+  took: number;
+};
+
+export type PiholeBlockingRequest = {
+  blocking: boolean;
+  timer: number | null;
+};
+
 export type PiholeMetricsSummary = {
   totalQueries: number;
   queriesBlocked: number;

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { LockKeyhole, ShieldCheck, Workflow } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 import { PiholeLoginForm } from "@/app/(external)/login/_components/pihole-login-form";
 import { YapdPasswordLoginForm } from "@/app/(external)/login/_components/yapd-password-login-form";
@@ -43,46 +43,39 @@ export default async function LoginPage() {
     };
 
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center px-6 py-12">
-        <div className="w-full space-y-6">
+      <main className="mx-auto flex min-h-screen w-full max-w-3xl items-center justify-center px-6 py-12">
+        <div className="w-full max-w-xl space-y-6">
           <div className="flex justify-end">
             <LanguageSelect triggerClassName="min-w-52" />
           </div>
-          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <Card className="border-primary/20 bg-primary/5">
-              <CardHeader className="space-y-4">
-                <div className="flex items-center gap-3 text-primary">
-                  <ShieldCheck className="size-5" />
-                  <span className="font-medium text-sm uppercase tracking-[0.24em]">{modeCopy.badge}</span>
-                </div>
-                <CardTitle className="text-4xl tracking-tight">{modeCopy.title}</CardTitle>
-                <CardDescription className="max-w-xl text-base leading-7">{modeCopy.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm leading-6">
-                <div className="flex items-start gap-3 rounded-xl border bg-background/70 p-4">
-                  <LockKeyhole className="mt-0.5 size-4 text-primary" />
-                  <p>{modeCopy.primaryNote}</p>
-                </div>
-                <div className="flex items-start gap-3 rounded-xl border bg-background/70 p-4">
-                  <Workflow className="mt-0.5 size-4 text-primary" />
-                  <p>{modeCopy.secondaryNote}</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>{modeCopy.cardTitle(setup.baseline.name)}</CardTitle>
-                <CardDescription>{modeCopy.cardDescription(setup.baseline.baseUrl)}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {setup.loginMode === "pihole-master" ? (
-                  <PiholeLoginForm copy={formCopy} />
-                ) : (
-                  <YapdPasswordLoginForm copy={formCopy} />
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="border-border/80 shadow-sm">
+            <CardHeader className="space-y-5">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-primary">
+                <ShieldCheck className="size-4" />
+                <span className="font-medium text-xs uppercase tracking-[0.24em]">{modeCopy.badge}</span>
+              </div>
+
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                <p className="font-medium text-primary text-xs uppercase tracking-[0.24em]">
+                  {copy.primaryInstanceLabel}
+                </p>
+                <p className="mt-2 font-semibold text-2xl tracking-tight">{setup.baseline.name}</p>
+                <p className="mt-1 break-all text-muted-foreground text-sm">{setup.baseline.baseUrl}</p>
+              </div>
+
+              <div className="space-y-1">
+                <CardTitle>{formCopy.fields.password}</CardTitle>
+                <CardDescription>{formCopy.fields.passwordDescription}</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {setup.loginMode === "pihole-master" ? (
+                <PiholeLoginForm copy={formCopy} />
+              ) : (
+                <YapdPasswordLoginForm copy={formCopy} />
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
     );

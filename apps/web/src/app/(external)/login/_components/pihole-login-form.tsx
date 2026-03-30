@@ -19,7 +19,6 @@ type PiholeLoginFormCopy = {
   fields: {
     password: string;
     passwordDescription: string;
-    totp: string;
   };
   validationPassword: string;
   submit: {
@@ -36,7 +35,6 @@ export function PiholeLoginForm({
 }>) {
   const formSchema = z.object({
     password: z.string().min(4, copy.validationPassword),
-    totp: z.string().optional(),
   });
   const router = useRouter();
   const { messages } = useWebI18n();
@@ -44,7 +42,6 @@ export function PiholeLoginForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       password: "",
-      totp: "",
     },
   });
 
@@ -53,7 +50,6 @@ export function PiholeLoginForm({
     const { data, response } = await client.POST<AppSession>("/session/login", {
       body: {
         password: values.password,
-        totp: values.totp || undefined,
       },
     });
 
@@ -97,17 +93,6 @@ export function PiholeLoginForm({
                 aria-invalid={fieldState.invalid}
               />
               <FieldDescription>{copy.fields.passwordDescription}</FieldDescription>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="totp"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="pihole-totp">{copy.fields.totp}</FieldLabel>
-              <Input {...field} id="pihole-totp" placeholder="123456" aria-invalid={fieldState.invalid} />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}

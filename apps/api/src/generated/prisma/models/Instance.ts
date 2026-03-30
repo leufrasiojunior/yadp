@@ -209,6 +209,7 @@ export type InstanceWhereInput = {
   secret?: Prisma.XOR<Prisma.InstanceSecretNullableScalarRelationFilter, Prisma.InstanceSecretWhereInput> | null
   certificateTrust?: Prisma.XOR<Prisma.InstanceCertificateTrustNullableScalarRelationFilter, Prisma.InstanceCertificateTrustWhereInput> | null
   session?: Prisma.XOR<Prisma.InstanceSessionNullableScalarRelationFilter, Prisma.InstanceSessionWhereInput> | null
+  syncAttempts?: Prisma.SyncAttemptListRelationFilter
 }
 
 export type InstanceOrderByWithRelationInput = {
@@ -223,6 +224,7 @@ export type InstanceOrderByWithRelationInput = {
   secret?: Prisma.InstanceSecretOrderByWithRelationInput
   certificateTrust?: Prisma.InstanceCertificateTrustOrderByWithRelationInput
   session?: Prisma.InstanceSessionOrderByWithRelationInput
+  syncAttempts?: Prisma.SyncAttemptOrderByRelationAggregateInput
 }
 
 export type InstanceWhereUniqueInput = Prisma.AtLeast<{
@@ -240,6 +242,7 @@ export type InstanceWhereUniqueInput = Prisma.AtLeast<{
   secret?: Prisma.XOR<Prisma.InstanceSecretNullableScalarRelationFilter, Prisma.InstanceSecretWhereInput> | null
   certificateTrust?: Prisma.XOR<Prisma.InstanceCertificateTrustNullableScalarRelationFilter, Prisma.InstanceCertificateTrustWhereInput> | null
   session?: Prisma.XOR<Prisma.InstanceSessionNullableScalarRelationFilter, Prisma.InstanceSessionWhereInput> | null
+  syncAttempts?: Prisma.SyncAttemptListRelationFilter
 }, "id">
 
 export type InstanceOrderByWithAggregationInput = {
@@ -282,6 +285,7 @@ export type InstanceCreateInput = {
   secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
   certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateInput = {
@@ -296,6 +300,7 @@ export type InstanceUncheckedCreateInput = {
   secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUpdateInput = {
@@ -310,6 +315,7 @@ export type InstanceUpdateInput = {
   secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
   certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateInput = {
@@ -324,6 +330,7 @@ export type InstanceUncheckedUpdateInput = {
   secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateManyInput = {
@@ -447,6 +454,20 @@ export type InstanceUpdateOneRequiredWithoutSessionNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutSessionInput, Prisma.InstanceUpdateWithoutSessionInput>, Prisma.InstanceUncheckedUpdateWithoutSessionInput>
 }
 
+export type InstanceCreateNestedOneWithoutSyncAttemptsInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutSyncAttemptsInput, Prisma.InstanceUncheckedCreateWithoutSyncAttemptsInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutSyncAttemptsInput
+  connect?: Prisma.InstanceWhereUniqueInput
+}
+
+export type InstanceUpdateOneRequiredWithoutSyncAttemptsNestedInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutSyncAttemptsInput, Prisma.InstanceUncheckedCreateWithoutSyncAttemptsInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutSyncAttemptsInput
+  upsert?: Prisma.InstanceUpsertWithoutSyncAttemptsInput
+  connect?: Prisma.InstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutSyncAttemptsInput, Prisma.InstanceUpdateWithoutSyncAttemptsInput>, Prisma.InstanceUncheckedUpdateWithoutSyncAttemptsInput>
+}
+
 export type InstanceCreateWithoutSecretInput = {
   id?: string
   name: string
@@ -458,6 +479,7 @@ export type InstanceCreateWithoutSecretInput = {
   lastKnownVersion?: string | null
   certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSecretInput = {
@@ -471,6 +493,7 @@ export type InstanceUncheckedCreateWithoutSecretInput = {
   lastKnownVersion?: string | null
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSecretInput = {
@@ -500,6 +523,7 @@ export type InstanceUpdateWithoutSecretInput = {
   lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSecretInput = {
@@ -513,6 +537,7 @@ export type InstanceUncheckedUpdateWithoutSecretInput = {
   lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutCertificateTrustInput = {
@@ -526,6 +551,7 @@ export type InstanceCreateWithoutCertificateTrustInput = {
   lastKnownVersion?: string | null
   secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
@@ -539,6 +565,7 @@ export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
   lastKnownVersion?: string | null
   secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutCertificateTrustInput = {
@@ -568,6 +595,7 @@ export type InstanceUpdateWithoutCertificateTrustInput = {
   lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
@@ -581,6 +609,7 @@ export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
   lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutSessionInput = {
@@ -594,6 +623,7 @@ export type InstanceCreateWithoutSessionInput = {
   lastKnownVersion?: string | null
   secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
   certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSessionInput = {
@@ -607,6 +637,7 @@ export type InstanceUncheckedCreateWithoutSessionInput = {
   lastKnownVersion?: string | null
   secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSessionInput = {
@@ -636,6 +667,7 @@ export type InstanceUpdateWithoutSessionInput = {
   lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
   certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSessionInput = {
@@ -649,8 +681,110 @@ export type InstanceUncheckedUpdateWithoutSessionInput = {
   lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
+export type InstanceCreateWithoutSyncAttemptsInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+}
+
+export type InstanceUncheckedCreateWithoutSyncAttemptsInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+}
+
+export type InstanceCreateOrConnectWithoutSyncAttemptsInput = {
+  where: Prisma.InstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutSyncAttemptsInput, Prisma.InstanceUncheckedCreateWithoutSyncAttemptsInput>
+}
+
+export type InstanceUpsertWithoutSyncAttemptsInput = {
+  update: Prisma.XOR<Prisma.InstanceUpdateWithoutSyncAttemptsInput, Prisma.InstanceUncheckedUpdateWithoutSyncAttemptsInput>
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutSyncAttemptsInput, Prisma.InstanceUncheckedCreateWithoutSyncAttemptsInput>
+  where?: Prisma.InstanceWhereInput
+}
+
+export type InstanceUpdateToOneWithWhereWithoutSyncAttemptsInput = {
+  where?: Prisma.InstanceWhereInput
+  data: Prisma.XOR<Prisma.InstanceUpdateWithoutSyncAttemptsInput, Prisma.InstanceUncheckedUpdateWithoutSyncAttemptsInput>
+}
+
+export type InstanceUpdateWithoutSyncAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+}
+
+export type InstanceUncheckedUpdateWithoutSyncAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
+}
+
+
+/**
+ * Count Type InstanceCountOutputType
+ */
+
+export type InstanceCountOutputType = {
+  syncAttempts: number
+}
+
+export type InstanceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  syncAttempts?: boolean | InstanceCountOutputTypeCountSyncAttemptsArgs
+}
+
+/**
+ * InstanceCountOutputType without action
+ */
+export type InstanceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the InstanceCountOutputType
+   */
+  select?: Prisma.InstanceCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * InstanceCountOutputType without action
+ */
+export type InstanceCountOutputTypeCountSyncAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SyncAttemptWhereInput
+}
 
 
 export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -665,6 +799,8 @@ export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   secret?: boolean | Prisma.Instance$secretArgs<ExtArgs>
   certificateTrust?: boolean | Prisma.Instance$certificateTrustArgs<ExtArgs>
   session?: boolean | Prisma.Instance$sessionArgs<ExtArgs>
+  syncAttempts?: boolean | Prisma.Instance$syncAttemptsArgs<ExtArgs>
+  _count?: boolean | Prisma.InstanceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instance"]>
 
 export type InstanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -705,6 +841,8 @@ export type InstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   secret?: boolean | Prisma.Instance$secretArgs<ExtArgs>
   certificateTrust?: boolean | Prisma.Instance$certificateTrustArgs<ExtArgs>
   session?: boolean | Prisma.Instance$sessionArgs<ExtArgs>
+  syncAttempts?: boolean | Prisma.Instance$syncAttemptsArgs<ExtArgs>
+  _count?: boolean | Prisma.InstanceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InstanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 export type InstanceIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -715,6 +853,7 @@ export type $InstancePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     secret: Prisma.$InstanceSecretPayload<ExtArgs> | null
     certificateTrust: Prisma.$InstanceCertificateTrustPayload<ExtArgs> | null
     session: Prisma.$InstanceSessionPayload<ExtArgs> | null
+    syncAttempts: Prisma.$SyncAttemptPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1122,6 +1261,7 @@ export interface Prisma__InstanceClient<T, Null = never, ExtArgs extends runtime
   secret<T extends Prisma.Instance$secretArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$secretArgs<ExtArgs>>): Prisma.Prisma__InstanceSecretClient<runtime.Types.Result.GetResult<Prisma.$InstanceSecretPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   certificateTrust<T extends Prisma.Instance$certificateTrustArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$certificateTrustArgs<ExtArgs>>): Prisma.Prisma__InstanceCertificateTrustClient<runtime.Types.Result.GetResult<Prisma.$InstanceCertificateTrustPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   session<T extends Prisma.Instance$sessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$sessionArgs<ExtArgs>>): Prisma.Prisma__InstanceSessionClient<runtime.Types.Result.GetResult<Prisma.$InstanceSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  syncAttempts<T extends Prisma.Instance$syncAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$syncAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SyncAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1606,6 +1746,30 @@ export type Instance$sessionArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   include?: Prisma.InstanceSessionInclude<ExtArgs> | null
   where?: Prisma.InstanceSessionWhereInput
+}
+
+/**
+ * Instance.syncAttempts
+ */
+export type Instance$syncAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SyncAttempt
+   */
+  select?: Prisma.SyncAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SyncAttempt
+   */
+  omit?: Prisma.SyncAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SyncAttemptInclude<ExtArgs> | null
+  where?: Prisma.SyncAttemptWhereInput
+  orderBy?: Prisma.SyncAttemptOrderByWithRelationInput | Prisma.SyncAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.SyncAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SyncAttemptScalarFieldEnum | Prisma.SyncAttemptScalarFieldEnum[]
 }
 
 /**

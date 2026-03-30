@@ -394,6 +394,393 @@
         },
         "tags": ["setup"]
       }
+    },
+    "/sync/operations/blocking": {
+      "get": {
+        "operationId": "SyncController_getBlockingStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "aggregate": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": ["enabled", "disabled", "mixed", "partial"]
+                        },
+                        "timerSeconds": {
+                          "type": "number",
+                          "nullable": true
+                        }
+                      },
+                      "required": ["status", "timerSeconds"]
+                    },
+                    "instances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "instanceAddress": {
+                            "type": "string"
+                          },
+                          "blocking": {
+                            "type": "string",
+                            "enum": ["enabled", "disabled"],
+                            "nullable": true
+                          },
+                          "timerSeconds": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "reachable": {
+                            "type": "boolean"
+                          },
+                          "message": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "instanceId",
+                          "instanceName",
+                          "instanceAddress",
+                          "blocking",
+                          "timerSeconds",
+                          "reachable"
+                        ]
+                      }
+                    },
+                    "presets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "timerSeconds": {
+                            "type": "number"
+                          },
+                          "sortOrder": {
+                            "type": "number"
+                          }
+                        },
+                        "required": ["id", "name", "timerSeconds", "sortOrder"]
+                      }
+                    }
+                  },
+                  "required": ["aggregate", "instances", "presets"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["sync"]
+      }
+    },
+    "/sync/operations/blocking/presets": {
+      "put": {
+        "operationId": "SyncController_updateBlockingPresets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "presets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "timerSeconds": {
+                            "type": "number"
+                          },
+                          "sortOrder": {
+                            "type": "number"
+                          }
+                        },
+                        "required": ["id", "name", "timerSeconds", "sortOrder"]
+                      }
+                    }
+                  },
+                  "required": ["presets"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["sync"]
+      }
+    },
+    "/sync/operations/blocking/preview": {
+      "post": {
+        "operationId": "SyncController_previewBlocking",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "desiredConfig": {
+                      "type": "object",
+                      "properties": {
+                        "blocking": {
+                          "type": "boolean"
+                        },
+                        "timerSeconds": {
+                          "type": "number",
+                          "nullable": true
+                        }
+                      },
+                      "required": ["blocking", "timerSeconds"]
+                    },
+                    "aggregate": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": ["enabled", "disabled", "mixed", "partial"]
+                        },
+                        "timerSeconds": {
+                          "type": "number",
+                          "nullable": true
+                        }
+                      },
+                      "required": ["status", "timerSeconds"]
+                    },
+                    "readyInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "blocking": {
+                            "type": "string",
+                            "enum": ["enabled", "disabled"]
+                          },
+                          "timerSeconds": {
+                            "type": "number",
+                            "nullable": true
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "blocking", "timerSeconds"]
+                      }
+                    },
+                    "noopInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "blocking": {
+                            "type": "string",
+                            "enum": ["enabled", "disabled"]
+                          },
+                          "timerSeconds": {
+                            "type": "number",
+                            "nullable": true
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "blocking", "timerSeconds"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["desiredConfig", "aggregate", "readyInstances", "noopInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["sync"]
+      }
+    },
+    "/sync/operations/blocking/apply": {
+      "post": {
+        "operationId": "SyncController_applyBlocking",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "operationKey": {
+                          "type": "string",
+                          "enum": ["BLOCKING"]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["SUCCESS", "PARTIAL", "FAILURE"]
+                        },
+                        "startedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "finishedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        }
+                      },
+                      "required": ["id", "operationKey", "status", "startedAt", "finishedAt"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        },
+                        "noopCount": {
+                          "type": "number"
+                        },
+                        "skippedCount": {
+                          "type": "number"
+                        },
+                        "totalInstances": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["successfulCount", "failedCount", "noopCount", "skippedCount", "totalInstances"]
+                    },
+                    "instances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["SUCCESS", "FAILURE", "NOOP", "SKIPPED"]
+                          },
+                          "message": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "blocking": {
+                            "type": "string",
+                            "enum": ["enabled", "disabled"],
+                            "nullable": true
+                          },
+                          "timerSeconds": {
+                            "type": "number",
+                            "nullable": true
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "status", "message", "blocking", "timerSeconds"]
+                      }
+                    }
+                  },
+                  "required": ["job", "summary", "instances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["sync"]
+      }
     }
   },
   "info": {

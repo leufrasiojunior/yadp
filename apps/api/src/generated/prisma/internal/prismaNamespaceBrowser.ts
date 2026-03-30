@@ -56,7 +56,10 @@ export const ModelName = {
   InstanceSecret: 'InstanceSecret',
   InstanceCertificateTrust: 'InstanceCertificateTrust',
   InstanceSession: 'InstanceSession',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  SyncOperationPreset: 'SyncOperationPreset',
+  SyncJob: 'SyncJob',
+  SyncAttempt: 'SyncAttempt'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -160,6 +163,48 @@ export const AuditLogScalarFieldEnum = {
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
+export const SyncOperationPresetScalarFieldEnum = {
+  id: 'id',
+  operationKey: 'operationKey',
+  name: 'name',
+  timerSeconds: 'timerSeconds',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SyncOperationPresetScalarFieldEnum = (typeof SyncOperationPresetScalarFieldEnum)[keyof typeof SyncOperationPresetScalarFieldEnum]
+
+
+export const SyncJobScalarFieldEnum = {
+  id: 'id',
+  operationKey: 'operationKey',
+  scope: 'scope',
+  requestedConfig: 'requestedConfig',
+  status: 'status',
+  summary: 'summary',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type SyncJobScalarFieldEnum = (typeof SyncJobScalarFieldEnum)[keyof typeof SyncJobScalarFieldEnum]
+
+
+export const SyncAttemptScalarFieldEnum = {
+  id: 'id',
+  syncJobId: 'syncJobId',
+  instanceId: 'instanceId',
+  attemptNumber: 'attemptNumber',
+  status: 'status',
+  message: 'message',
+  requestPayload: 'requestPayload',
+  responsePayload: 'responsePayload',
+  createdAt: 'createdAt'
+} as const
+
+export type SyncAttemptScalarFieldEnum = (typeof SyncAttemptScalarFieldEnum)[keyof typeof SyncAttemptScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -174,6 +219,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

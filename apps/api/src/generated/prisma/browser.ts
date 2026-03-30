@@ -47,3 +47,18 @@ export type InstanceSession = Prisma.InstanceSessionModel
  * 
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model SyncOperationPreset
+ * 
+ */
+export type SyncOperationPreset = Prisma.SyncOperationPresetModel
+/**
+ * Model SyncJob
+ * 
+ */
+export type SyncJob = Prisma.SyncJobModel
+/**
+ * Model SyncAttempt
+ * 
+ */
+export type SyncAttempt = Prisma.SyncAttemptModel

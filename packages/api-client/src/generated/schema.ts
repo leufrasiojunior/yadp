@@ -180,6 +180,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/sync/operations/blocking": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["SyncController_getBlockingStatus"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/sync/operations/blocking/presets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["SyncController_updateBlockingPresets"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/sync/operations/blocking/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SyncController_previewBlocking"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/sync/operations/blocking/apply": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SyncController_applyBlocking"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -473,6 +537,178 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  SyncController_getBlockingStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            aggregate: {
+              /** @enum {string} */
+              status: "enabled" | "disabled" | "mixed" | "partial";
+              timerSeconds: number | null;
+            };
+            instances: {
+              instanceId: string;
+              instanceName: string;
+              instanceAddress: string;
+              /** @enum {string|null} */
+              blocking: "enabled" | "disabled" | null;
+              timerSeconds: number | null;
+              reachable: boolean;
+              message?: string | null;
+            }[];
+            presets: {
+              id: string;
+              name: string;
+              timerSeconds: number;
+              sortOrder: number;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  SyncController_updateBlockingPresets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            presets: {
+              id: string;
+              name: string;
+              timerSeconds: number;
+              sortOrder: number;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  SyncController_previewBlocking: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            desiredConfig: {
+              blocking: boolean;
+              timerSeconds: number | null;
+            };
+            aggregate: {
+              /** @enum {string} */
+              status: "enabled" | "disabled" | "mixed" | "partial";
+              timerSeconds: number | null;
+            };
+            readyInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              blocking: "enabled" | "disabled";
+              timerSeconds: number | null;
+            }[];
+            noopInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              blocking: "enabled" | "disabled";
+              timerSeconds: number | null;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  SyncController_applyBlocking: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            job: {
+              id: string;
+              /** @enum {string} */
+              operationKey: "BLOCKING";
+              /** @enum {string} */
+              status: "SUCCESS" | "PARTIAL" | "FAILURE";
+              /** Format: date-time */
+              startedAt: string;
+              /** Format: date-time */
+              finishedAt: string | null;
+            };
+            summary: {
+              successfulCount: number;
+              failedCount: number;
+              noopCount: number;
+              skippedCount: number;
+              totalInstances: number;
+            };
+            instances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              status: "SUCCESS" | "FAILURE" | "NOOP" | "SKIPPED";
+              message: string | null;
+              /** @enum {string|null} */
+              blocking: "enabled" | "disabled" | null;
+              timerSeconds: number | null;
+            }[];
+          };
+        };
       };
     };
   };

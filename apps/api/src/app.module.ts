@@ -10,6 +10,7 @@ import { InstancesModule } from "./instances/instances.module";
 import { PiholeModule } from "./pihole/pihole.module";
 import { SessionModule } from "./session/session.module";
 import { SetupModule } from "./setup/setup.module";
+import { SyncModule } from "./sync/sync.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SetupModule } from "./setup/setup.module";
     PrismaModule,
     SessionModule,
     SetupModule,
+    SyncModule,
   ],
 })
 export class AppModule {}

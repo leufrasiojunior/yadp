@@ -32,3 +32,30 @@ export const InstanceSessionAuthSource = {
 } as const
 
 export type InstanceSessionAuthSource = (typeof InstanceSessionAuthSource)[keyof typeof InstanceSessionAuthSource]
+
+
+export const SyncOperationKey = {
+  BLOCKING: 'BLOCKING'
+} as const
+
+export type SyncOperationKey = (typeof SyncOperationKey)[keyof typeof SyncOperationKey]
+
+
+export const SyncJobStatus = {
+  RUNNING: 'RUNNING',
+  SUCCESS: 'SUCCESS',
+  PARTIAL: 'PARTIAL',
+  FAILURE: 'FAILURE'
+} as const
+
+export type SyncJobStatus = (typeof SyncJobStatus)[keyof typeof SyncJobStatus]
+
+
+export const SyncAttemptStatus = {
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE',
+  NOOP: 'NOOP',
+  SKIPPED: 'SKIPPED'
+} as const
+
+export type SyncAttemptStatus = (typeof SyncAttemptStatus)[keyof typeof SyncAttemptStatus]

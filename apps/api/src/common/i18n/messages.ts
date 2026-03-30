@@ -13,6 +13,7 @@ type ApiMessageKey =
   | "pihole.invalidTechnicalCredentials"
   | "pihole.refused"
   | "pihole.reachable"
+  | "pihole.socketClosed"
   | "pihole.tls"
   | "pihole.timeout"
   | "pihole.unresolved"
@@ -24,6 +25,12 @@ type ApiMessageKey =
   | "session.localLoginUnavailable"
   | "session.loginFailed"
   | "session.noActiveSession"
+  | "sync.blockingEnableTimerInvalid"
+  | "sync.blockingAlreadyDesired"
+  | "sync.emptyTargetSelection"
+  | "sync.invalidTargetInstances"
+  | "sync.noInstances"
+  | "sync.precheckFailedSkip"
   | "setup.alreadyConfigured"
   | "setup.batchCreated"
   | "setup.created"
@@ -54,6 +61,8 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "pihole.refused": ({ baseUrl }) =>
       `A conexão foi recusada por ${baseUrl}. Verifique o host, a porta e se o Pi-hole está em execução.`,
     "pihole.reachable": "Pi-hole alcançável",
+    "pihole.socketClosed": ({ baseUrl }) =>
+      `A instância em ${baseUrl} encerrou a conexão antes de concluir a resposta. Isso costuma indicar instabilidade momentânea no serviço, proxy reverso ou excesso de requisições simultâneas.`,
     "pihole.tls": ({ baseUrl }) => `O certificado TLS apresentado por ${baseUrl} não é confiável para esta instância.`,
     "pihole.timeout": ({ baseUrl }) =>
       `A conexão com ${baseUrl} expirou. Verifique se o Pi-hole está online e acessível pelo backend.`,
@@ -68,6 +77,12 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "session.localLoginUnavailable": "O login local do YAPD não está configurado.",
     "session.loginFailed": "O login do Pi-hole falhou.",
     "session.noActiveSession": "Nenhuma sessão ativa do YAPD foi encontrada.",
+    "sync.blockingEnableTimerInvalid": "Ao reabilitar o blocking, o timer deve ser nulo.",
+    "sync.blockingAlreadyDesired": "A instância já estava com o blocking no estado desejado.",
+    "sync.emptyTargetSelection": "Nenhuma instância pronta foi selecionada para aplicar o sincronismo.",
+    "sync.invalidTargetInstances": "A seleção de instâncias para o sincronismo é inválida ou está desatualizada.",
+    "sync.noInstances": "Nenhuma instância Pi-hole gerenciada está disponível para sincronismo.",
+    "sync.precheckFailedSkip": "Ignorada porque falhou na pré-checagem e não foi confirmada para execução.",
     "setup.alreadyConfigured": "Uma instância baseline já está configurada.",
     "setup.batchCreated": ({ count }) =>
       Number(count) === 1
@@ -101,6 +116,8 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "pihole.refused": ({ baseUrl }) =>
       `Connection refused by ${baseUrl}. Check the host, port, and whether the Pi-hole is running.`,
     "pihole.reachable": "Pi-hole reachable",
+    "pihole.socketClosed": ({ baseUrl }) =>
+      `The instance at ${baseUrl} closed the connection before completing the response. This usually indicates a transient service issue, reverse proxy behavior, or too many simultaneous requests.`,
     "pihole.tls": ({ baseUrl }) => `The TLS certificate presented by ${baseUrl} is not trusted for this instance.`,
     "pihole.timeout": ({ baseUrl }) =>
       `Timed out while connecting to ${baseUrl}. Check if the Pi-hole is online and reachable from the backend.`,
@@ -115,6 +132,12 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "session.localLoginUnavailable": "Local YAPD login is not configured.",
     "session.loginFailed": "The Pi-hole login failed.",
     "session.noActiveSession": "No active YAPD session was found.",
+    "sync.blockingEnableTimerInvalid": "When re-enabling blocking, the timer must be null.",
+    "sync.blockingAlreadyDesired": "The instance already matched the desired blocking state.",
+    "sync.emptyTargetSelection": "No ready instance was selected to apply the sync.",
+    "sync.invalidTargetInstances": "The selected sync instances are invalid or stale.",
+    "sync.noInstances": "No managed Pi-hole instance is available for sync.",
+    "sync.precheckFailedSkip": "Skipped because precheck failed and it was not confirmed for execution.",
     "setup.alreadyConfigured": "A baseline instance is already configured.",
     "setup.batchCreated": ({ count }) =>
       Number(count) === 1

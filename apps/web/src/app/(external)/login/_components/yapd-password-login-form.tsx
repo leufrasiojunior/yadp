@@ -19,7 +19,6 @@ type YapdPasswordLoginFormCopy = {
   fields: {
     password: string;
     passwordDescription: string;
-    totp: string;
   };
   validationPassword: string;
   submit: {

@@ -389,7 +389,10 @@ export const ModelName = {
   InstanceSecret: 'InstanceSecret',
   InstanceCertificateTrust: 'InstanceCertificateTrust',
   InstanceSession: 'InstanceSession',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  SyncOperationPreset: 'SyncOperationPreset',
+  SyncJob: 'SyncJob',
+  SyncAttempt: 'SyncAttempt'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -405,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog"
+    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "syncOperationPreset" | "syncJob" | "syncAttempt"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -853,6 +856,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SyncOperationPreset: {
+      payload: Prisma.$SyncOperationPresetPayload<ExtArgs>
+      fields: Prisma.SyncOperationPresetFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SyncOperationPresetFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SyncOperationPresetFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>
+        }
+        findFirst: {
+          args: Prisma.SyncOperationPresetFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SyncOperationPresetFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>
+        }
+        findMany: {
+          args: Prisma.SyncOperationPresetFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>[]
+        }
+        create: {
+          args: Prisma.SyncOperationPresetCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>
+        }
+        createMany: {
+          args: Prisma.SyncOperationPresetCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SyncOperationPresetCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>[]
+        }
+        delete: {
+          args: Prisma.SyncOperationPresetDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>
+        }
+        update: {
+          args: Prisma.SyncOperationPresetUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>
+        }
+        deleteMany: {
+          args: Prisma.SyncOperationPresetDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SyncOperationPresetUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SyncOperationPresetUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>[]
+        }
+        upsert: {
+          args: Prisma.SyncOperationPresetUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncOperationPresetPayload>
+        }
+        aggregate: {
+          args: Prisma.SyncOperationPresetAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSyncOperationPreset>
+        }
+        groupBy: {
+          args: Prisma.SyncOperationPresetGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SyncOperationPresetGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SyncOperationPresetCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SyncOperationPresetCountAggregateOutputType> | number
+        }
+      }
+    }
+    SyncJob: {
+      payload: Prisma.$SyncJobPayload<ExtArgs>
+      fields: Prisma.SyncJobFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SyncJobFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SyncJobFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
+        }
+        findFirst: {
+          args: Prisma.SyncJobFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SyncJobFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
+        }
+        findMany: {
+          args: Prisma.SyncJobFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>[]
+        }
+        create: {
+          args: Prisma.SyncJobCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
+        }
+        createMany: {
+          args: Prisma.SyncJobCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SyncJobCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>[]
+        }
+        delete: {
+          args: Prisma.SyncJobDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
+        }
+        update: {
+          args: Prisma.SyncJobUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
+        }
+        deleteMany: {
+          args: Prisma.SyncJobDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SyncJobUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SyncJobUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>[]
+        }
+        upsert: {
+          args: Prisma.SyncJobUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncJobPayload>
+        }
+        aggregate: {
+          args: Prisma.SyncJobAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSyncJob>
+        }
+        groupBy: {
+          args: Prisma.SyncJobGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SyncJobGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SyncJobCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SyncJobCountAggregateOutputType> | number
+        }
+      }
+    }
+    SyncAttempt: {
+      payload: Prisma.$SyncAttemptPayload<ExtArgs>
+      fields: Prisma.SyncAttemptFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SyncAttemptFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SyncAttemptFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>
+        }
+        findFirst: {
+          args: Prisma.SyncAttemptFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SyncAttemptFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>
+        }
+        findMany: {
+          args: Prisma.SyncAttemptFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>[]
+        }
+        create: {
+          args: Prisma.SyncAttemptCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>
+        }
+        createMany: {
+          args: Prisma.SyncAttemptCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SyncAttemptCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>[]
+        }
+        delete: {
+          args: Prisma.SyncAttemptDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>
+        }
+        update: {
+          args: Prisma.SyncAttemptUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>
+        }
+        deleteMany: {
+          args: Prisma.SyncAttemptDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SyncAttemptUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SyncAttemptUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>[]
+        }
+        upsert: {
+          args: Prisma.SyncAttemptUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SyncAttemptPayload>
+        }
+        aggregate: {
+          args: Prisma.SyncAttemptAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSyncAttempt>
+        }
+        groupBy: {
+          args: Prisma.SyncAttemptGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SyncAttemptGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SyncAttemptCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SyncAttemptCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -977,6 +1202,48 @@ export const AuditLogScalarFieldEnum = {
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
+export const SyncOperationPresetScalarFieldEnum = {
+  id: 'id',
+  operationKey: 'operationKey',
+  name: 'name',
+  timerSeconds: 'timerSeconds',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SyncOperationPresetScalarFieldEnum = (typeof SyncOperationPresetScalarFieldEnum)[keyof typeof SyncOperationPresetScalarFieldEnum]
+
+
+export const SyncJobScalarFieldEnum = {
+  id: 'id',
+  operationKey: 'operationKey',
+  scope: 'scope',
+  requestedConfig: 'requestedConfig',
+  status: 'status',
+  summary: 'summary',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type SyncJobScalarFieldEnum = (typeof SyncJobScalarFieldEnum)[keyof typeof SyncJobScalarFieldEnum]
+
+
+export const SyncAttemptScalarFieldEnum = {
+  id: 'id',
+  syncJobId: 'syncJobId',
+  instanceId: 'instanceId',
+  attemptNumber: 'attemptNumber',
+  status: 'status',
+  message: 'message',
+  requestPayload: 'requestPayload',
+  responsePayload: 'responsePayload',
+  createdAt: 'createdAt'
+} as const
+
+export type SyncAttemptScalarFieldEnum = (typeof SyncAttemptScalarFieldEnum)[keyof typeof SyncAttemptScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -991,6 +1258,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1130,6 +1404,48 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
+ * Reference to a field of type 'SyncOperationKey'
+ */
+export type EnumSyncOperationKeyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncOperationKey'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncOperationKey[]'
+ */
+export type ListEnumSyncOperationKeyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncOperationKey[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncJobStatus'
+ */
+export type EnumSyncJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncJobStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncJobStatus[]'
+ */
+export type ListEnumSyncJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncJobStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncAttemptStatus'
+ */
+export type EnumSyncAttemptStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncAttemptStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SyncAttemptStatus[]'
+ */
+export type ListEnumSyncAttemptStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SyncAttemptStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1243,6 +1559,9 @@ export type GlobalOmitConfig = {
   instanceCertificateTrust?: Prisma.InstanceCertificateTrustOmit
   instanceSession?: Prisma.InstanceSessionOmit
   auditLog?: Prisma.AuditLogOmit
+  syncOperationPreset?: Prisma.SyncOperationPresetOmit
+  syncJob?: Prisma.SyncJobOmit
+  syncAttempt?: Prisma.SyncAttemptOmit
 }
 
 /* Types for Logging */

@@ -177,6 +177,7 @@ type WebMessages = {
       overview: string;
       operations: string;
       status: string;
+      sync: string;
     };
     items: {
       dashboard: string;
@@ -227,6 +228,76 @@ type WebMessages = {
       icon: string;
       offcanvas: string;
       restore: string;
+    };
+    sync: {
+      title: string;
+      blocking: string;
+      statusTitle: string;
+      disableBlocking: string;
+      enableBlocking: string;
+      refresh: string;
+      loading: string;
+      refreshLoading: string;
+      quickIndefinite: string;
+      quick10Seconds: string;
+      quick30Seconds: string;
+      quick5Minutes: string;
+      savedPreset: string;
+      configurePreset: string;
+      custom: string;
+      missingPreset: string;
+      aggregateEnabled: string;
+      aggregateDisabled: string;
+      aggregateMixed: string;
+      aggregatePartial: string;
+      instanceEnabled: string;
+      instanceDisabled: string;
+      instanceUnavailable: string;
+      timerLabel: string;
+      messageLabel: string;
+      valueLabel: string;
+      unitLabel: string;
+      unitSeconds: string;
+      unitMinutes: string;
+      invalidValue: string;
+      normalizedTimer: (timerLabel: string) => string;
+      presetDescription: string;
+      presetsManagerTitle: string;
+      presetsManagerDescription: string;
+      presetAliasLabel: string;
+      addPreset: string;
+      removePreset: string;
+      movePresetUp: string;
+      movePresetDown: string;
+      emptyPresets: string;
+      savePresets: string;
+      savingPresets: string;
+      customDescription: string;
+      previewTitle: string;
+      readyInstances: (count: number) => string;
+      noopInstances: (count: number) => string;
+      failedInstances: (count: number) => string;
+      noReadyInstances: string;
+      desiredEnable: string;
+      desiredDisable: (timerLabel: string) => string;
+      applyReady: (count: number) => string;
+      applyPartial: (count: number) => string;
+      savePreset: string;
+      savingPreset: string;
+      previewing: string;
+      applying: string;
+      cancel: string;
+      close: string;
+      statusRefreshError: string;
+      toasts: {
+        presetSaved: string;
+        alreadyDesired: string;
+        applySuccess: (count: number) => string;
+        applyPartial: (successfulCount: number, failedCount: number) => string;
+        applyFailure: string;
+        instanceFailure: (instanceName: string, message: string) => string;
+        masterMismatch: (instanceName: string, instanceAddress: string) => string;
+      };
     };
   };
   dashboard: {
@@ -449,6 +520,7 @@ const messages: Record<AppLocale, WebMessages> = {
         overview: "Visão geral",
         operations: "Operações",
         status: "Status",
+        sync: "Sync",
       },
       items: {
         dashboard: "Dashboard",
@@ -499,6 +571,80 @@ const messages: Record<AppLocale, WebMessages> = {
         icon: "Ícone",
         offcanvas: "Offcanvas",
         restore: "Restaurar padrões",
+      },
+      sync: {
+        title: "Sync",
+        blocking: "Blocking",
+        statusTitle: "Estado atual",
+        disableBlocking: "Disable Blocking",
+        enableBlocking: "Reabilitar blocking",
+        refresh: "Atualizar",
+        loading: "Carregando status...",
+        refreshLoading: "Atualizando...",
+        quickIndefinite: "Indefinido",
+        quick10Seconds: "10 segundos",
+        quick30Seconds: "30 segundos",
+        quick5Minutes: "5 minutos",
+        savedPreset: "Preset salvo",
+        configurePreset: "Gerenciar presets",
+        custom: "Customizado",
+        missingPreset: "Nenhum preset salvo ainda.",
+        aggregateEnabled: "Enabled",
+        aggregateDisabled: "Disabled",
+        aggregateMixed: "Mixed",
+        aggregatePartial: "Partial",
+        instanceEnabled: "Enabled",
+        instanceDisabled: "Disabled",
+        instanceUnavailable: "Sem leitura",
+        timerLabel: "Timer",
+        messageLabel: "Motivo",
+        valueLabel: "Valor",
+        unitLabel: "Unidade",
+        unitSeconds: "Segundos",
+        unitMinutes: "Minutos",
+        invalidValue: "Informe um valor inteiro positivo.",
+        normalizedTimer: (timerLabel) => `Será enviado como ${timerLabel}.`,
+        presetDescription: "Use presets salvos para aplicar tempos recorrentes com um clique.",
+        presetsManagerTitle: "Gerenciar presets",
+        presetsManagerDescription: "Reordene, renomeie, crie e remova os presets de duração do blocking.",
+        presetAliasLabel: "Alias do preset",
+        addPreset: "Adicionar preset",
+        removePreset: "Apagar",
+        movePresetUp: "Mover para cima",
+        movePresetDown: "Mover para baixo",
+        emptyPresets: "Nenhum preset configurado.",
+        savePresets: "Salvar presets",
+        savingPresets: "Salvando presets...",
+        customDescription:
+          "Informe uma duração personalizada. O frontend sempre converte para segundos antes do envio.",
+        previewTitle: "Confirmar sincronismo",
+        readyInstances: (count) => `${count} prontas`,
+        noopInstances: (count) => `${count} sem alteração`,
+        failedInstances: (count) => `${count} com falha`,
+        noReadyInstances: "Nenhuma instância pronta para aplicar agora.",
+        desiredEnable: "Reabilitar blocking em todas as instâncias prontas.",
+        desiredDisable: (timerLabel) => `Desabilitar blocking por ${timerLabel} nas instâncias prontas.`,
+        applyReady: (count) => `Aplicar em ${count} instâncias prontas`,
+        applyPartial: (count) => `Aplicar parcialmente em ${count} instâncias`,
+        savePreset: "Salvar preset",
+        savingPreset: "Salvando...",
+        previewing: "Validando...",
+        applying: "Aplicando...",
+        cancel: "Cancelar",
+        close: "Fechar",
+        statusRefreshError: "Não foi possível atualizar o status do blocking.",
+        toasts: {
+          presetSaved: "Presets de blocking salvos com sucesso.",
+          alreadyDesired: "As instâncias já estavam no estado desejado.",
+          applySuccess: (count) =>
+            count === 1 ? "Blocking sincronizado em 1 instância." : `Blocking sincronizado em ${count} instâncias.`,
+          applyPartial: (successfulCount, failedCount) =>
+            `${successfulCount} instâncias foram atualizadas e ${failedCount} falharam durante o sincronismo.`,
+          applyFailure: "Não foi possível aplicar o sincronismo de blocking.",
+          instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
+          masterMismatch: (instanceName, instanceAddress) =>
+            `${instanceName} (${instanceAddress}) não está com o mesmo estado de blocking da instância master.`,
+        },
       },
     },
     dashboard: {
@@ -727,6 +873,7 @@ const messages: Record<AppLocale, WebMessages> = {
         overview: "Overview",
         operations: "Operations",
         status: "Status",
+        sync: "Sync",
       },
       items: {
         dashboard: "Dashboard",
@@ -777,6 +924,79 @@ const messages: Record<AppLocale, WebMessages> = {
         icon: "Icon",
         offcanvas: "Offcanvas",
         restore: "Restore defaults",
+      },
+      sync: {
+        title: "Sync",
+        blocking: "Blocking",
+        statusTitle: "Current state",
+        disableBlocking: "Disable Blocking",
+        enableBlocking: "Enable blocking",
+        refresh: "Refresh",
+        loading: "Loading status...",
+        refreshLoading: "Refreshing...",
+        quickIndefinite: "Indefinite",
+        quick10Seconds: "10 seconds",
+        quick30Seconds: "30 seconds",
+        quick5Minutes: "5 minutes",
+        savedPreset: "Saved preset",
+        configurePreset: "Manage presets",
+        custom: "Custom",
+        missingPreset: "No saved preset yet.",
+        aggregateEnabled: "Enabled",
+        aggregateDisabled: "Disabled",
+        aggregateMixed: "Mixed",
+        aggregatePartial: "Partial",
+        instanceEnabled: "Enabled",
+        instanceDisabled: "Disabled",
+        instanceUnavailable: "Unavailable",
+        timerLabel: "Timer",
+        messageLabel: "Reason",
+        valueLabel: "Value",
+        unitLabel: "Unit",
+        unitSeconds: "Seconds",
+        unitMinutes: "Minutes",
+        invalidValue: "Enter a positive integer value.",
+        normalizedTimer: (timerLabel) => `It will be sent as ${timerLabel}.`,
+        presetDescription: "Use saved presets to apply recurring blocking durations with one click.",
+        presetsManagerTitle: "Manage presets",
+        presetsManagerDescription: "Reorder, rename, create, and remove the blocking duration presets.",
+        presetAliasLabel: "Preset alias",
+        addPreset: "Add preset",
+        removePreset: "Delete",
+        movePresetUp: "Move up",
+        movePresetDown: "Move down",
+        emptyPresets: "No presets configured.",
+        savePresets: "Save presets",
+        savingPresets: "Saving presets...",
+        customDescription: "Provide a custom duration. The frontend always converts it to seconds before sending.",
+        previewTitle: "Confirm sync",
+        readyInstances: (count) => `${count} ready`,
+        noopInstances: (count) => `${count} unchanged`,
+        failedInstances: (count) => `${count} failed`,
+        noReadyInstances: "There are no ready instances to apply right now.",
+        desiredEnable: "Enable blocking on all ready instances.",
+        desiredDisable: (timerLabel) => `Disable blocking for ${timerLabel} on the ready instances.`,
+        applyReady: (count) => `Apply to ${count} ready instances`,
+        applyPartial: (count) => `Apply partially to ${count} instances`,
+        savePreset: "Save preset",
+        savingPreset: "Saving...",
+        previewing: "Validating...",
+        applying: "Applying...",
+        cancel: "Cancel",
+        close: "Close",
+        statusRefreshError: "Could not refresh blocking status.",
+        toasts: {
+          presetSaved: "Blocking presets saved successfully.",
+          alreadyDesired: "The instances already matched the desired state.",
+          applySuccess: (count) =>
+            count === 1 ? "Blocking synchronized on 1 instance." : `Blocking synchronized on ${count} instances.`,
+          applyPartial: (successfulCount, failedCount) =>
+            `${successfulCount} instances were updated and ${failedCount} failed during sync.`,
+          applyFailure: "Could not apply the blocking sync.",
+          instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
+          masterMismatch: (instanceName, instanceAddress) =>
+            `${instanceName} (${instanceAddress}) does not match the blocking state defined by the master instance.`,
+        },
       },
     },
     dashboard: {

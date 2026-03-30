@@ -240,7 +240,8 @@ export class SetupService {
     for (const [index, instance] of dto.instances.entries()) {
       const label = this.resolveInstanceLabel(locale, index, instance.name);
       const name = this.normalizeOptionalString(instance.name);
-      const baseUrl = this.normalizeOptionalString(instance.baseUrl);
+      const baseUrlInput = this.normalizeOptionalString(instance.baseUrl);
+      const baseUrl = baseUrlInput ? this.normalizeConfiguredBaseUrl(baseUrlInput) : undefined;
       const isMaster = instance.isMaster ?? false;
       const allowSelfSigned = instance.allowSelfSigned ?? false;
 
@@ -426,6 +427,19 @@ export class SetupService {
     const normalized = value?.trim();
 
     return normalized ? normalized : undefined;
+  }
+
+  private normalizeConfiguredBaseUrl(baseUrl: string) {
+    const normalizedScheme = baseUrl.replace(/^([a-z][a-z0-9+.-]*:)\/*/i, "$1//");
+    const parsed = new URL(normalizedScheme);
+    const normalizedPath = parsed.pathname.replaceAll(/\/{2,}/g, "/");
+
+    parsed.pathname =
+      normalizedPath.length > 1 && normalizedPath.endsWith("/") ? normalizedPath.slice(0, -1) : normalizedPath;
+    parsed.search = "";
+    parsed.hash = "";
+
+    return parsed.toString().replace(/\/$/, "");
   }
 
   private isBlankOptionalInstance(instance: SetupInstanceDto, mode: SetupCredentialMode) {

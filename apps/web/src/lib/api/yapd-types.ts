@@ -134,4 +134,86 @@ export type DashboardOverviewResponse = {
   };
 };
 
+export type SyncBlockingAggregateStatus = "enabled" | "disabled" | "mixed" | "partial";
+
+export type SyncBlockingPresetItem = {
+  id: string;
+  name: string;
+  timerSeconds: number;
+  sortOrder: number;
+};
+
+export type SyncBlockingInstanceStatus = {
+  instanceId: string;
+  instanceName: string;
+  instanceAddress: string;
+  blocking: "enabled" | "disabled" | null;
+  timerSeconds: number | null;
+  reachable: boolean;
+  message?: string;
+};
+
+export type SyncBlockingStatusResponse = {
+  aggregate: {
+    status: SyncBlockingAggregateStatus;
+    timerSeconds: number | null;
+  };
+  instances: SyncBlockingInstanceStatus[];
+  presets: SyncBlockingPresetItem[];
+};
+
+export type SyncBlockingPreviewResponse = {
+  desiredConfig: {
+    blocking: boolean;
+    timerSeconds: number | null;
+  };
+  aggregate: {
+    status: SyncBlockingAggregateStatus;
+    timerSeconds: number | null;
+  };
+  readyInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    blocking: "enabled" | "disabled";
+    timerSeconds: number | null;
+  }>;
+  noopInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    blocking: "enabled" | "disabled";
+    timerSeconds: number | null;
+  }>;
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
+export type SyncBlockingApplyResponse = {
+  job: {
+    id: string;
+    operationKey: "BLOCKING";
+    status: "SUCCESS" | "PARTIAL" | "FAILURE";
+    startedAt: string;
+    finishedAt: string | null;
+  };
+  summary: {
+    successfulCount: number;
+    failedCount: number;
+    noopCount: number;
+    skippedCount: number;
+    totalInstances: number;
+  };
+  instances: Array<{
+    instanceId: string;
+    instanceName: string;
+    status: "SUCCESS" | "FAILURE" | "NOOP" | "SKIPPED";
+    message: string | null;
+    blocking: "enabled" | "disabled" | null;
+    timerSeconds: number | null;
+  }>;
+};
+
 export type YapdSession = AppSession;

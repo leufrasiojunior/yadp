@@ -6,6 +6,8 @@ import { translateApi } from "../common/i18n/messages";
 import { AppEnvService } from "../config/app-env";
 import type {
   PiholeAuthSessionRecord,
+  PiholeBlockingConfig,
+  PiholeBlockingRequest,
   PiholeClientActivitySeries,
   PiholeClientHistoryBucket,
   PiholeConnection,
@@ -42,6 +44,13 @@ type SerializedTransportError = {
   name: string;
   message: string;
   code?: string;
+  causeName?: string;
+  causeMessage?: string;
+  causeCode?: string;
+  errno?: number;
+  syscall?: string;
+  address?: string;
+  port?: number;
 };
 
 type ClientSeriesAccumulator = {
@@ -137,6 +146,8 @@ function normalizeClientSeriesKey(label: string) {
 
   return normalized.length > 0 ? normalized : "client";
 }
+
+let piholeRequestSequence = 0;
 
 export class PiholeRequestError extends Error {
   constructor(
@@ -262,10 +273,7 @@ export class PiholeService {
 
   async fetchSnapshot(connection: PiholeConnection, session: Pick<PiholeSession, "sid" | "csrf">) {
     const [blocking, groups] = await Promise.all([
-      this.request<unknown>(connection, "/dns/blocking", {
-        sid: session.sid,
-        csrf: session.csrf,
-      }),
+      this.getBlocking(connection, session),
       this.request<unknown>(connection, "/groups", {
         sid: session.sid,
         csrf: session.csrf,
@@ -276,6 +284,36 @@ export class PiholeService {
       blocking,
       groups,
     };
+  }
+
+  async getBlocking(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeBlockingConfig> {
+    const payload = await this.request<unknown>(connection, "/dns/blocking", {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeBlockingConfig(payload, connection, "/dns/blocking");
+  }
+
+  async setBlocking(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    config: PiholeBlockingRequest,
+  ): Promise<PiholeBlockingConfig> {
+    const payload = await this.request<unknown>(connection, "/dns/blocking", {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        blocking: config.blocking,
+        timer: config.timer,
+      },
+    });
+
+    return this.normalizeBlockingConfig(payload, connection, "/dns/blocking");
   }
 
   async getStatsSummary(
@@ -334,6 +372,10 @@ export class PiholeService {
     },
   ): Promise<T> {
     const method = options?.method ?? "GET";
+    const requestId = ++piholeRequestSequence;
+    const startedAt = Date.now();
+    const normalizedBaseUrl = this.normalizeBaseUrl(connection.baseUrl);
+    const displayBaseUrl = normalizedBaseUrl.endsWith("/") ? normalizedBaseUrl.slice(0, -1) : normalizedBaseUrl;
     const headers = new Headers({
       Accept: "application/json",
       "User-Agent": PIHOLE_USER_AGENT,
@@ -351,7 +393,7 @@ export class PiholeService {
       headers.set("X-FTL-CSRF", options.csrf);
     }
 
-    const url = new URL(`/api${path}`, this.normalizeBaseUrl(connection.baseUrl));
+    const url = new URL(`/api${path}`, normalizedBaseUrl);
 
     if (options?.query) {
       for (const [key, value] of Object.entries(options.query)) {
@@ -366,8 +408,9 @@ export class PiholeService {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.requestTimeoutMs);
     let response: Awaited<ReturnType<typeof fetch>>;
-    this.logger.debug(
-      `Pi-hole request ${method} ${connection.baseUrl}/api${path} (timeout=${this.requestTimeoutMs}ms)`,
+    this.logger.debug(`Pi-hole request ${method} ${url.toString()} (timeout=${this.requestTimeoutMs}ms)`);
+    this.logger.verbose(
+      `[req:${requestId}] Pi-hole request start method=${method} requestUrl=${url.toString()} configuredBaseUrl=${connection.baseUrl} normalizedBaseUrl=${displayBaseUrl}`,
     );
 
     try {
@@ -384,14 +427,21 @@ export class PiholeService {
         signal: controller.signal,
       });
     } catch (error) {
-      const transport = this.describeTransportError(connection.baseUrl, error, connection.locale);
+      const transport = this.describeTransportError(displayBaseUrl, error, connection.locale);
       this.logger.error(
-        `Pi-hole transport error for ${method} ${connection.baseUrl}/api${path}: ${transport.kind} - ${transport.message}`,
+        `Pi-hole transport error for ${method} ${url.toString()}: ${transport.kind} - ${transport.message}`,
         error instanceof Error ? error.stack : undefined,
+      );
+      this.logger.warn(
+        `[req:${requestId}] Pi-hole transport failure after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} configuredBaseUrl=${connection.baseUrl} normalizedBaseUrl=${displayBaseUrl} kind=${transport.kind} raw=${JSON.stringify(transport.rawCause)}`,
       );
 
       throw new PiholeRequestError(502, transport.message, transport.kind, {
         cause: this.serializeTransportError(error),
+        requestId,
+        requestUrl: url.toString(),
+        configuredBaseUrl: connection.baseUrl,
+        normalizedBaseUrl: displayBaseUrl,
       });
     } finally {
       clearTimeout(timeout);
@@ -419,14 +469,18 @@ export class PiholeService {
       const kind = path === "/auth" && response.status === 401 ? "invalid_credentials" : "pihole_response_error";
       const message = errorPayload?.error?.message ?? response.statusText;
       this.logger.warn(
-        `Pi-hole response error for ${method} ${connection.baseUrl}/api${path}: HTTP ${response.status} (${kind}) - ${message}`,
+        `Pi-hole response error for ${method} ${url.toString()}: HTTP ${response.status} (${kind}) - ${message}`,
+      );
+      this.logger.warn(
+        `[req:${requestId}] Pi-hole response failure after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} status=${response.status} kind=${kind}`,
       );
 
       throw new PiholeRequestError(response.status, message, kind, payload);
     }
 
+    this.logger.verbose(`Pi-hole request ${method} ${url.toString()} completed with HTTP ${response.status}.`);
     this.logger.verbose(
-      `Pi-hole request ${method} ${connection.baseUrl}/api${path} completed with HTTP ${response.status}.`,
+      `[req:${requestId}] Pi-hole request success after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} status=${response.status}`,
     );
 
     return payload as T;
@@ -436,13 +490,26 @@ export class PiholeService {
     baseUrl: string,
     error: unknown,
     locale = DEFAULT_API_LOCALE,
-  ): { kind: PiholeRequestErrorKind; message: string } {
+  ): { kind: PiholeRequestErrorKind; message: string; rawCause: SerializedTransportError } {
     const reason = this.serializeTransportError(error);
+
+    if (
+      reason.code === "UND_ERR_SOCKET" ||
+      reason.causeCode === "UND_ERR_SOCKET" ||
+      reason.causeMessage?.toLowerCase().includes("other side closed")
+    ) {
+      return {
+        kind: "unknown",
+        message: translateApi(locale, "pihole.socketClosed", { baseUrl }),
+        rawCause: reason,
+      };
+    }
 
     if (reason.name === "AbortError" || reason.code === "ETIMEDOUT" || reason.code === "UND_ERR_CONNECT_TIMEOUT") {
       return {
         kind: "timeout",
         message: translateApi(locale, "pihole.timeout", { baseUrl }),
+        rawCause: reason,
       };
     }
 
@@ -450,6 +517,7 @@ export class PiholeService {
       return {
         kind: "connection_refused",
         message: translateApi(locale, "pihole.refused", { baseUrl }),
+        rawCause: reason,
       };
     }
 
@@ -457,6 +525,7 @@ export class PiholeService {
       return {
         kind: "dns_error",
         message: translateApi(locale, "pihole.unresolved", { baseUrl }),
+        rawCause: reason,
       };
     }
 
@@ -464,12 +533,14 @@ export class PiholeService {
       return {
         kind: "tls_error",
         message: translateApi(locale, "pihole.tls", { baseUrl }),
+        rawCause: reason,
       };
     }
 
     return {
       kind: "unknown",
       message: translateApi(locale, "pihole.unreachable", { baseUrl }),
+      rawCause: reason,
     };
   }
 
@@ -477,8 +548,17 @@ export class PiholeService {
     if (error instanceof Error) {
       const maybeError = error as Error & {
         code?: string;
+        errno?: number;
+        syscall?: string;
+        address?: string;
+        port?: number;
         cause?: {
+          name?: string;
           code?: string;
+          errno?: number;
+          syscall?: string;
+          address?: string;
+          port?: number;
           message?: string;
         };
       };
@@ -487,6 +567,13 @@ export class PiholeService {
         name: maybeError.name,
         message: maybeError.message,
         code: maybeError.code ?? maybeError.cause?.code,
+        causeName: maybeError.cause?.name,
+        causeMessage: maybeError.cause?.message,
+        causeCode: maybeError.cause?.code,
+        errno: maybeError.errno ?? maybeError.cause?.errno,
+        syscall: maybeError.syscall ?? maybeError.cause?.syscall,
+        address: maybeError.address ?? maybeError.cause?.address,
+        port: maybeError.port ?? maybeError.cause?.port,
       };
     }
 
@@ -536,6 +623,30 @@ export class PiholeService {
       queriesBlocked,
       percentageBlocked: percentageBlocked ?? (totalQueries > 0 ? (queriesBlocked / totalQueries) * 100 : 0),
       domainsOnList,
+    };
+  }
+
+  private normalizeBlockingConfig(payload: unknown, connection: PiholeConnection, path: string): PiholeBlockingConfig {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const blockingValue = readString(payload.blocking);
+    const timerValue = payload.timer === null ? null : readNumber(payload.timer);
+    const took = readNumber(payload.took);
+
+    if ((blockingValue !== "enabled" && blockingValue !== "disabled") || took === null) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    if (payload.timer !== null && timerValue === null) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      blocking: blockingValue,
+      timer: timerValue === null ? null : Math.max(0, Math.floor(timerValue)),
+      took,
     };
   }
 
@@ -779,7 +890,16 @@ export class PiholeService {
   }
 
   private normalizeBaseUrl(baseUrl: string) {
-    return baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+    const trimmedBaseUrl = baseUrl.trim();
+    const normalizedScheme = trimmedBaseUrl.replace(/^([a-z][a-z0-9+.-]*:)\/*/i, "$1//");
+    const parsed = new URL(normalizedScheme);
+    const normalizedPath = parsed.pathname.replaceAll(/\/{2,}/g, "/");
+
+    parsed.pathname = normalizedPath.endsWith("/") ? normalizedPath : `${normalizedPath}/`;
+    parsed.search = "";
+    parsed.hash = "";
+
+    return parsed.toString();
   }
 
   private getClientHistoryEntries(payload: unknown): PiholeClientHistoryBucket[] {

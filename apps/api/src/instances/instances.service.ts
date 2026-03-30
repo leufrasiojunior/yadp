@@ -110,8 +110,9 @@ export class InstancesService {
 
   async createInstance(dto: CreateInstanceDto, request: Request) {
     const locale = getRequestLocale(request);
+    const normalizedBaseUrl = this.normalizeConfiguredBaseUrl(dto.baseUrl);
     const connection = {
-      baseUrl: dto.baseUrl,
+      baseUrl: normalizedBaseUrl,
       allowSelfSigned: dto.allowSelfSigned ?? false,
       certificatePem: dto.certificatePem ?? null,
       locale,
@@ -126,7 +127,7 @@ export class InstancesService {
         const createdInstance = await tx.instance.create({
           data: {
             name: dto.name,
-            baseUrl: dto.baseUrl,
+            baseUrl: normalizedBaseUrl,
             isBaseline: false,
             lastKnownVersion: version.summary,
             lastValidatedAt: new Date(),
@@ -168,7 +169,7 @@ export class InstancesService {
         targetId: instance.id,
         result: "SUCCESS",
         details: {
-          baseUrl: dto.baseUrl,
+          baseUrl: normalizedBaseUrl,
           name: dto.name,
           version: version.summary,
         } satisfies Prisma.InputJsonObject,
@@ -190,7 +191,7 @@ export class InstancesService {
         targetType: "instance",
         result: "FAILURE",
         details: {
-          baseUrl: dto.baseUrl,
+          baseUrl: normalizedBaseUrl,
           name: dto.name,
           error: error instanceof Error ? error.message : "Unknown error",
         } satisfies Prisma.InputJsonObject,
@@ -216,8 +217,9 @@ export class InstancesService {
 
     const existingEncryptedPassword = instance.secret.encryptedPassword;
     const servicePassword = dto.servicePassword ?? this.crypto.decryptSecret(existingEncryptedPassword);
+    const normalizedBaseUrl = this.normalizeConfiguredBaseUrl(dto.baseUrl ?? instance.baseUrl);
     const connection = {
-      baseUrl: dto.baseUrl ?? instance.baseUrl,
+      baseUrl: normalizedBaseUrl,
       allowSelfSigned: dto.allowSelfSigned ?? instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
       certificatePem: dto.certificatePem ?? instance.certificateTrust?.certificatePem ?? null,
       locale,
@@ -233,7 +235,7 @@ export class InstancesService {
           where: { id: instanceId },
           data: {
             name: dto.name ?? instance.name,
-            baseUrl: dto.baseUrl ?? instance.baseUrl,
+            baseUrl: normalizedBaseUrl,
             lastKnownVersion: version.summary,
             lastValidatedAt: new Date(),
           },
@@ -438,5 +440,19 @@ export class InstancesService {
     }
 
     return allowSelfSigned ? "ALLOW_SELF_SIGNED" : "STRICT";
+  }
+
+  private normalizeConfiguredBaseUrl(baseUrl: string) {
+    const trimmedBaseUrl = baseUrl.trim();
+    const normalizedScheme = trimmedBaseUrl.replace(/^([a-z][a-z0-9+.-]*:)\/*/i, "$1//");
+    const parsed = new URL(normalizedScheme);
+    const normalizedPath = parsed.pathname.replaceAll(/\/{2,}/g, "/");
+
+    parsed.pathname =
+      normalizedPath.length > 1 && normalizedPath.endsWith("/") ? normalizedPath.slice(0, -1) : normalizedPath;
+    parsed.search = "";
+    parsed.hash = "";
+
+    return parsed.toString().replace(/\/$/, "");
   }
 }

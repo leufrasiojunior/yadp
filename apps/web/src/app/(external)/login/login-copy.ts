@@ -13,7 +13,6 @@ type LoginModeCopy = {
   fields: {
     password: string;
     passwordDescription: string;
-    totp: string;
   };
   validationPassword: string;
   submit: {
@@ -23,6 +22,7 @@ type LoginModeCopy = {
 };
 
 type LoginCopy = {
+  primaryInstanceLabel: string;
   unavailableTitle: string;
   unavailableDescription: string;
   modes: Record<SetupLoginMode, LoginModeCopy>;
@@ -30,6 +30,7 @@ type LoginCopy = {
 
 const loginCopy: Record<AppLocale, LoginCopy> = {
   "pt-BR": {
+    primaryInstanceLabel: "Pi-hole principal",
     unavailableTitle: "Não foi possível abrir o login",
     unavailableDescription:
       "O login depende do backend para consultar a baseline, validar o modo de autenticação configurado e gravar o cookie seguro do YAPD.",
@@ -50,7 +51,6 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
           password: "Senha do Pi-hole",
           passwordDescription:
             "Use a senha do Pi-hole master para autorizar a sessão inicial da baseline e liberar o painel.",
-          totp: "Código TOTP opcional",
         },
         validationPassword: "Informe a senha do Pi-hole.",
         submit: {
@@ -72,7 +72,6 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
         fields: {
           password: "Senha do YAPD",
           passwordDescription: "Use a senha definida no passo 3 do setup inicial.",
-          totp: "",
         },
         validationPassword: "Informe a senha do YAPD.",
         submit: {
@@ -83,6 +82,7 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
     },
   },
   "en-US": {
+    primaryInstanceLabel: "Primary Pi-hole",
     unavailableTitle: "Could not open login",
     unavailableDescription:
       "Login depends on the backend to query the baseline, validate the configured authentication mode, and store the secure YAPD cookie.",
@@ -102,7 +102,6 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
           password: "Pi-hole password",
           passwordDescription:
             "Use the master Pi-hole password to authorize the baseline session and unlock the panel.",
-          totp: "Optional TOTP code",
         },
         validationPassword: "Provide the Pi-hole password.",
         submit: {
@@ -124,7 +123,6 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
         fields: {
           password: "YAPD password",
           passwordDescription: "Use the password defined in step 3 of the initial setup.",
-          totp: "",
         },
         validationPassword: "Provide the YAPD password.",
         submit: {

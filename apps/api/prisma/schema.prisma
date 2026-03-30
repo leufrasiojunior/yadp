@@ -24,6 +24,24 @@ enum InstanceSessionAuthSource {
   STORED_SECRET
 }
 
+enum SyncOperationKey {
+  BLOCKING
+}
+
+enum SyncJobStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILURE
+}
+
+enum SyncAttemptStatus {
+  SUCCESS
+  FAILURE
+  NOOP
+  SKIPPED
+}
+
 model AppConfig {
   id           String       @id @default("singleton")
   loginMode    AppLoginMode @default(PIHOLE_MASTER)
@@ -44,6 +62,7 @@ model Instance {
   secret           InstanceSecret?
   certificateTrust InstanceCertificateTrust?
   session          InstanceSession?
+  syncAttempts     SyncAttempt[]
 }
 
 model InstanceSecret {
@@ -95,4 +114,44 @@ model AuditLog {
   result     String
   details    Json?
   createdAt  DateTime @default(now())
+}
+
+model SyncOperationPreset {
+  id           String           @id @default(cuid())
+  operationKey SyncOperationKey
+  name         String           @default("Saved preset")
+  timerSeconds Int
+  sortOrder    Int              @default(1000)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([operationKey, sortOrder])
+}
+
+model SyncJob {
+  id              String           @id @default(cuid())
+  operationKey    SyncOperationKey
+  scope           String
+  requestedConfig Json
+  status          SyncJobStatus
+  summary         Json?
+  startedAt       DateTime         @default(now())
+  finishedAt      DateTime?
+  attempts        SyncAttempt[]
+}
+
+model SyncAttempt {
+  id             String            @id @default(cuid())
+  syncJobId      String
+  instanceId     String
+  attemptNumber  Int
+  status         SyncAttemptStatus
+  message        String?
+  requestPayload Json?
+  responsePayload Json?
+  createdAt      DateTime          @default(now())
+  syncJob        SyncJob           @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+  instance       Instance          @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@unique([syncJobId, instanceId, attemptNumber])
 }

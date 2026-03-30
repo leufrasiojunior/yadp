@@ -38,10 +38,17 @@ type TotalQueriesAccumulator = {
   forwardedQueries: number;
 };
 
+type MetricsAttemptContext = {
+  overviewId: number;
+  attemptNumber: number;
+};
+
 const DASHBOARD_HISTORY_BUCKET_COUNT = 24;
 const DASHBOARD_HISTORY_BUCKET_SECONDS = 60 * 60;
 const DASHBOARD_HISTORY_BUCKET_START_MINUTE = 5;
 const DASHBOARD_INSTANCE_RETRY_DELAY_MS = 400;
+
+let dashboardOverviewSequence = 0;
 
 @Injectable()
 export class DashboardService {
@@ -54,7 +61,11 @@ export class DashboardService {
 
   async getOverview(query: GetDashboardOverviewDto, request: Request): Promise<DashboardOverviewResponse> {
     const locale = getRequestLocale(request);
-    this.logger.log(`Loading dashboard overview with scope="${query.scope}" instanceId="${query.instanceId ?? "-"}".`);
+    const overviewId = ++dashboardOverviewSequence;
+    const startedAt = Date.now();
+    this.logger.log(
+      `[overview:${overviewId}] Loading dashboard overview with scope="${query.scope}" instanceId="${query.instanceId ?? "-"}".`,
+    );
 
     if (query.scope === "instance") {
       if (!query.instanceId) {
@@ -65,7 +76,14 @@ export class DashboardService {
       const instance = await this.instanceSessions.getInstanceSummary(query.instanceId, locale);
 
       try {
-        const source = await this.loadInstanceMetrics(instance.id, locale);
+        const source = await this.loadInstanceMetrics(instance, locale, {
+          overviewId,
+          attemptNumber: 1,
+        });
+
+        this.logger.debug(
+          `[overview:${overviewId}] Instance dashboard overview finished successfully for "${instance.name}" in ${Date.now() - startedAt}ms.`,
+        );
 
         return this.buildOverview(
           {
@@ -80,7 +98,7 @@ export class DashboardService {
       } catch (error) {
         const failure = this.mapInstanceFailure(instance, error, locale);
         this.logger.error(
-          `Dashboard overview failed for instance "${failure.instanceName}" (${failure.instanceId}): ${failure.message}`,
+          `[overview:${overviewId}] Dashboard overview failed for instance "${failure.instanceName}" (${failure.instanceId}) after ${Date.now() - startedAt}ms: ${failure.message}`,
           error instanceof Error ? error.stack : undefined,
         );
         throw new BadGatewayException(`${failure.instanceName}: ${failure.message}`);
@@ -95,7 +113,12 @@ export class DashboardService {
     }
 
     const settled = await Promise.allSettled(
-      instances.map((instance) => this.loadInstanceMetrics(instance.id, locale)),
+      instances.map((instance) =>
+        this.loadInstanceMetrics(instance, locale, {
+          overviewId,
+          attemptNumber: 1,
+        }),
+      ),
     );
     const successful: DashboardInstanceMetricsSource[] = [];
     const failed: DashboardInstanceFailure[] = [];
@@ -117,7 +140,7 @@ export class DashboardService {
 
     if (failed.length > 0) {
       this.logger.warn(
-        `Dashboard overview completed with partial failures: ${failed
+        `[overview:${overviewId}] Dashboard overview completed with partial failures after ${Date.now() - startedAt}ms: ${failed
           .map((item) => `${item.instanceName}=${item.kind}`)
           .join(", ")}`,
       );
@@ -129,12 +152,14 @@ export class DashboardService {
         details.length > 0
           ? `${translateApi(locale, "dashboard.allInstancesFailed")} ${details}`
           : translateApi(locale, "dashboard.allInstancesFailed");
-      this.logger.error(`Dashboard overview failed for all instances. ${details}`);
+      this.logger.error(
+        `[overview:${overviewId}] Dashboard overview failed for all instances after ${Date.now() - startedAt}ms. ${details}`,
+      );
       throw new BadGatewayException(message);
     }
 
     this.logger.debug(
-      `Dashboard overview loaded with ${successful.length} successful instance(s) and ${failed.length} failed instance(s).`,
+      `[overview:${overviewId}] Dashboard overview loaded with ${successful.length} successful instance(s) and ${failed.length} failed instance(s) in ${Date.now() - startedAt}ms.`,
     );
 
     return this.buildOverview(
@@ -149,20 +174,32 @@ export class DashboardService {
     );
   }
 
-  private async loadInstanceMetrics(instanceId: string, locale: ReturnType<typeof getRequestLocale>) {
-    this.logger.verbose(`Fetching dashboard metrics for instance "${instanceId}".`);
+  private async loadInstanceMetrics(
+    instance: PiholeManagedInstanceSummary,
+    locale: ReturnType<typeof getRequestLocale>,
+    context: MetricsAttemptContext,
+  ) {
+    this.logger.verbose(
+      `[overview:${context.overviewId}] Fetching dashboard metrics for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber}.`,
+    );
     try {
-      return await this.loadInstanceMetricsOnce(instanceId, locale);
+      return await this.loadInstanceMetricsOnce(instance, locale, context);
     } catch (error) {
       if (!this.isTransientMetricsError(error)) {
+        this.logger.warn(
+          `[overview:${context.overviewId}] Non-transient dashboard metrics failure for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber}: ${this.describeDashboardErrorForLog(error)}`,
+        );
         throw error;
       }
 
       this.logger.warn(
-        `Transient dashboard metrics failure for instance "${instanceId}". Retrying once after ${DASHBOARD_INSTANCE_RETRY_DELAY_MS}ms.`,
+        `[overview:${context.overviewId}] Transient dashboard metrics failure for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber}. Retrying once after ${DASHBOARD_INSTANCE_RETRY_DELAY_MS}ms. Details: ${this.describeDashboardErrorForLog(error)}`,
       );
       await this.delay(DASHBOARD_INSTANCE_RETRY_DELAY_MS);
-      return this.loadInstanceMetricsOnce(instanceId, locale);
+      return this.loadInstanceMetricsOnce(instance, locale, {
+        overviewId: context.overviewId,
+        attemptNumber: context.attemptNumber + 1,
+      });
     }
   }
 
@@ -386,23 +423,85 @@ export class DashboardService {
     return new Date(timestamp * 1000).toISOString();
   }
 
-  private async loadInstanceMetricsOnce(instanceId: string, locale: ReturnType<typeof getRequestLocale>) {
-    return this.instanceSessions.withActiveSession(instanceId, locale, async ({ instance, connection, session }) => {
-      const [summary, totalQueries, clientActivity] = await Promise.all([
-        this.pihole.getStatsSummary(connection, session),
-        this.pihole.getHistory(connection, session),
-        this.pihole.getHistoryClients(connection, session, {
-          maxClients: 0,
-        }),
-      ]);
+  private async loadInstanceMetricsOnce(
+    requestedInstance: PiholeManagedInstanceSummary,
+    locale: ReturnType<typeof getRequestLocale>,
+    context: MetricsAttemptContext,
+  ) {
+    const startedAt = Date.now();
 
-      return {
-        instance,
-        summary,
-        totalQueries,
-        clientActivity,
-      } satisfies DashboardInstanceMetricsSource;
-    });
+    return this.instanceSessions.withActiveSession(
+      requestedInstance.id,
+      locale,
+      async ({ instance, connection, session }) => {
+        this.logger.debug(
+          `[overview:${context.overviewId}] Instance "${instance.name}" (${instance.id}) session ready attempt=${context.attemptNumber} baseUrl=${instance.baseUrl} connectionBaseUrl=${connection.baseUrl}`,
+        );
+        const summary = await this.runMetricsStep("stats/summary", instance, context, () =>
+          this.pihole.getStatsSummary(connection, session),
+        );
+        const totalQueries = await this.runMetricsStep("history", instance, context, () =>
+          this.pihole.getHistory(connection, session),
+        );
+        const clientActivity = await this.runMetricsStep("history/clients", instance, context, () =>
+          this.pihole.getHistoryClients(connection, session, {
+            maxClients: 0,
+          }),
+        );
+
+        this.logger.debug(
+          `[overview:${context.overviewId}] Instance "${instance.name}" (${instance.id}) metrics collected successfully on attempt=${context.attemptNumber} in ${Date.now() - startedAt}ms.`,
+        );
+
+        return {
+          instance,
+          summary,
+          totalQueries,
+          clientActivity,
+        } satisfies DashboardInstanceMetricsSource;
+      },
+    );
+  }
+
+  private async runMetricsStep<T>(
+    route: "stats/summary" | "history" | "history/clients",
+    instance: PiholeManagedInstanceSummary,
+    context: MetricsAttemptContext,
+    execute: () => Promise<T>,
+  ) {
+    const startedAt = Date.now();
+    this.logger.verbose(
+      `[overview:${context.overviewId}] Route "${route}" start for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber}.`,
+    );
+
+    try {
+      const result = await execute();
+      this.logger.verbose(
+        `[overview:${context.overviewId}] Route "${route}" success for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber} durationMs=${Date.now() - startedAt}.`,
+      );
+      return result;
+    } catch (error) {
+      this.logger.warn(
+        `[overview:${context.overviewId}] Route "${route}" failed for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber} durationMs=${Date.now() - startedAt}. ${this.describeDashboardErrorForLog(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  private describeDashboardErrorForLog(error: unknown) {
+    if (error instanceof PiholeRequestError) {
+      const payload = error.payload;
+      const payloadDetails =
+        typeof payload === "object" && payload !== null ? ` payload=${JSON.stringify(payload)}` : "";
+
+      return `kind=${error.kind} status=${error.statusCode} message="${error.message}"${payloadDetails}`;
+    }
+
+    if (error instanceof Error) {
+      return `name=${error.name} message="${error.message}"`;
+    }
+
+    return "unknown error";
   }
 
   private isTransientMetricsError(error: unknown) {
