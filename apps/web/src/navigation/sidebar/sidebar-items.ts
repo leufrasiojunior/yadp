@@ -1,4 +1,4 @@
-import { Activity, Binary, LayoutDashboard, type LucideIcon, ShieldCheck, Waypoints } from "lucide-react";
+import { Activity, Binary, FileText, LayoutDashboard, type LucideIcon, ShieldCheck, Waypoints } from "lucide-react";
 
 import type { WebMessages } from "@/lib/i18n/messages";
 
@@ -37,6 +37,11 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
           title: messages.sidebar.items.dashboard,
           url: "/dashboard",
           icon: LayoutDashboard,
+        },
+        {
+          title: messages.sidebar.items.queries,
+          url: "/queries",
+          icon: FileText,
         },
         {
           title: messages.sidebar.items.instances,

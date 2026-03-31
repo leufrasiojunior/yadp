@@ -1,0 +1,1 @@
+export const QUERIES_LIVE_UPDATE_INTERVAL_MS = 2_000;

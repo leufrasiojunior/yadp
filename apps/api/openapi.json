@@ -371,6 +371,376 @@
         "tags": ["instances"]
       }
     },
+    "/queries": {
+      "get": {
+        "operationId": "QueriesController_getQueries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "queries": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "number"
+                          },
+                          "time": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "type": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "status": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "dnssec": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "domain": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "upstream": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "reply": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "time": {
+                                "type": "number",
+                                "nullable": true
+                              }
+                            },
+                            "required": ["type", "time"]
+                          },
+                          "client": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "ip": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": ["ip", "name"]
+                          },
+                          "listId": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "ede": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "code": {
+                                "type": "number",
+                                "nullable": true
+                              },
+                              "text": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": ["code", "text"]
+                          },
+                          "cname": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "instanceId",
+                          "instanceName",
+                          "id",
+                          "time",
+                          "type",
+                          "status",
+                          "dnssec",
+                          "domain",
+                          "upstream",
+                          "reply",
+                          "client",
+                          "listId",
+                          "ede",
+                          "cname"
+                        ]
+                      }
+                    },
+                    "cursor": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "recordsTotal": {
+                      "type": "number"
+                    },
+                    "recordsFiltered": {
+                      "type": "number"
+                    },
+                    "earliestTimestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "earliestTimestampDisk": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "took": {
+                      "type": "number"
+                    },
+                    "sources": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          }
+                        },
+                        "failedInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "invalid_credentials",
+                                  "tls_error",
+                                  "timeout",
+                                  "dns_error",
+                                  "connection_refused",
+                                  "pihole_response_error",
+                                  "unknown"
+                                ]
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName", "kind", "message"]
+                          }
+                        }
+                      },
+                      "required": ["totalInstances", "successfulInstances", "failedInstances"]
+                    }
+                  },
+                  "required": [
+                    "queries",
+                    "cursor",
+                    "recordsTotal",
+                    "recordsFiltered",
+                    "earliestTimestamp",
+                    "earliestTimestampDisk",
+                    "took",
+                    "sources"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["queries"]
+      }
+    },
+    "/queries/suggestions": {
+      "get": {
+        "operationId": "QueriesController_getQuerySuggestions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "suggestions": {
+                      "type": "object",
+                      "properties": {
+                        "domain": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "client_ip": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "client_name": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "upstream": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "type": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "status": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "reply": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "dnssec": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "domain",
+                        "client_ip",
+                        "client_name",
+                        "upstream",
+                        "type",
+                        "status",
+                        "reply",
+                        "dnssec"
+                      ]
+                    },
+                    "took": {
+                      "type": "number"
+                    },
+                    "sources": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          }
+                        },
+                        "failedInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "invalid_credentials",
+                                  "tls_error",
+                                  "timeout",
+                                  "dns_error",
+                                  "connection_refused",
+                                  "pihole_response_error",
+                                  "unknown"
+                                ]
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName", "kind", "message"]
+                          }
+                        }
+                      },
+                      "required": ["totalInstances", "successfulInstances", "failedInstances"]
+                    }
+                  },
+                  "required": ["suggestions", "took", "sources"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["queries"]
+      }
+    },
     "/setup/status": {
       "get": {
         "operationId": "SetupController_getStatus",

@@ -168,6 +168,7 @@ type WebMessages = {
   };
   layout: {
     overviewButton: string;
+    queriesButton: string;
     instancesButton: string;
     unavailableTitle: string;
     unavailableDescription: string;
@@ -181,6 +182,7 @@ type WebMessages = {
     };
     items: {
       dashboard: string;
+      queries: string;
       instances: string;
       baselineLogin: string;
       setupBaseline: string;
@@ -328,6 +330,73 @@ type WebMessages = {
     toasts: {
       instanceFailure: (instanceName: string, message: string) => string;
       genericInstanceFailure: (instanceName: string) => string;
+    };
+  };
+  queries: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    responsiveInstances: (successfulCount: number, totalCount: number) => string;
+    liveInterval: string;
+    filters: {
+      title: string;
+      description: string;
+      show: string;
+      hide: string;
+      from: string;
+      until: string;
+      length: string;
+      domain: string;
+      clientIp: string;
+      upstream: string;
+      type: string;
+      status: string;
+      reply: string;
+      dnssec: string;
+      disk: string;
+      diskDescription: string;
+      apply: string;
+      applying: string;
+      clear: string;
+      suggestionsLoading: string;
+      suggestionPlaceholder: string;
+    };
+    table: {
+      title: string;
+      description: string;
+      liveToggle: string;
+      liveNavigationWarning: string;
+      rowsPerPage: string;
+      live: string;
+      refreshing: string;
+      time: string;
+      instance: string;
+      client: string;
+      domain: string;
+      type: string;
+      status: string;
+      reply: string;
+      upstream: string;
+      details: string;
+      showing: (start: number, end: number, total: number) => string;
+      previous: string;
+      next: string;
+      noResultsTitle: string;
+      noResultsDescription: string;
+    };
+    details: {
+      dnssec: string;
+      listId: string;
+      ede: string;
+      cname: string;
+    };
+    statusTypes: {
+      cache: string;
+      forwarded: string;
+      cacheStale: string;
+      gravity: string;
+      unknown: (status: string) => string;
+      unavailable: string;
     };
   };
 };
@@ -510,6 +579,7 @@ const messages: Record<AppLocale, WebMessages> = {
     },
     layout: {
       overviewButton: "Visão geral",
+      queriesButton: "Queries",
       instancesButton: "Instâncias",
       unavailableTitle: "O painel não conseguiu falar com o backend",
       unavailableDescription:
@@ -524,6 +594,7 @@ const messages: Record<AppLocale, WebMessages> = {
       },
       items: {
         dashboard: "Dashboard",
+        queries: "Queries",
         instances: "Instâncias",
         baselineLogin: "Login da baseline",
         setupBaseline: "Setup da baseline",
@@ -651,7 +722,7 @@ const messages: Record<AppLocale, WebMessages> = {
       eyebrow: "Visão consolidada das instâncias Pi-hole",
       title: "Dashboard",
       scope: {
-        label: "Escopo do dashboard",
+        label: "Escopo",
         allInstances: "Todas as instâncias",
         placeholder: "Selecione uma instância",
       },
@@ -685,6 +756,79 @@ const messages: Record<AppLocale, WebMessages> = {
         instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
         genericInstanceFailure: (instanceName) =>
           `${instanceName}: não foi possível carregar as métricas desta instância.`,
+      },
+    },
+    queries: {
+      eyebrow: "Logs compartilhados entre instâncias Pi-hole",
+      title: "Queries",
+      description: "Acompanhe as consultas DNS mais recentes com filtros, sugestões e atualização contínua.",
+      responsiveInstances: (successfulCount, totalCount) =>
+        totalCount === 0
+          ? "Nenhuma instância cadastrada."
+          : successfulCount === 1
+            ? "1 instância contribuiu com dados nesta leitura."
+            : `${successfulCount} instâncias contribuíram com dados nesta leitura.`,
+      liveInterval: "Live update a cada 2 segundos.",
+      filters: {
+        title: "Filtros",
+        description: "Combine período, origem e tipos de resposta para recortar a tabela.",
+        show: "Mostrar filtros",
+        hide: "Ocultar filtros",
+        from: "De",
+        until: "Até",
+        length: "Quantidade",
+        domain: "Domínio",
+        clientIp: "Client IP",
+        upstream: "Upstream",
+        type: "Tipo",
+        status: "Status",
+        reply: "Reply",
+        dnssec: "DNSSEC",
+        disk: "Buscar no banco em disco",
+        diskDescription:
+          "Consulta dados on-disk. Isso é bem mais lento, mas necessário se você quiser obter queries com mais de 24 horas. Esta opção desativa o live update.",
+        apply: "Aplicar filtros",
+        applying: "Aplicando...",
+        clear: "Limpar",
+        suggestionsLoading: "Carregando sugestões...",
+        suggestionPlaceholder: "Digite ou escolha da lista",
+      },
+      table: {
+        title: "Tabela de queries",
+        description: "A tabela agrega somente as instâncias que responderem ao recorte atual.",
+        liveToggle: "Live",
+        liveNavigationWarning: "Desative o modo live para navegar entre as páginas.",
+        rowsPerPage: "Itens por página",
+        live: "Ao vivo",
+        refreshing: "Atualizando...",
+        time: "Horário",
+        instance: "Instância",
+        client: "Cliente",
+        domain: "Domínio",
+        type: "Tipo",
+        status: "Status",
+        reply: "Reply",
+        upstream: "Upstream",
+        details: "Detalhes",
+        showing: (start, end, total) => `Mostrando ${start}-${end} de ${total}`,
+        previous: "Anterior",
+        next: "Próxima",
+        noResultsTitle: "Nenhuma query encontrada",
+        noResultsDescription: "Ajuste os filtros ou aguarde novas consultas chegarem pelas instâncias selecionadas.",
+      },
+      details: {
+        dnssec: "DNSSEC",
+        listId: "List ID",
+        ede: "EDE",
+        cname: "CNAME",
+      },
+      statusTypes: {
+        cache: "CACHE: resposta servida diretamente do cache.",
+        forwarded: "FORWARDED: consulta encaminhada para o servidor upstream.",
+        cacheStale: "CACHE_STALE: resposta servida do cache expirado.",
+        gravity: "GRAVITY: consulta bloqueada pelo Gravity.",
+        unknown: (status) => `${status}: status retornado pela instância Pi-hole.`,
+        unavailable: "Status indisponível.",
       },
     },
   },
@@ -863,6 +1007,7 @@ const messages: Record<AppLocale, WebMessages> = {
     },
     layout: {
       overviewButton: "Overview",
+      queriesButton: "Queries",
       instancesButton: "Instances",
       unavailableTitle: "The dashboard could not reach the backend",
       unavailableDescription:
@@ -877,6 +1022,7 @@ const messages: Record<AppLocale, WebMessages> = {
       },
       items: {
         dashboard: "Dashboard",
+        queries: "Queries",
         instances: "Instances",
         baselineLogin: "Baseline login",
         setupBaseline: "Baseline setup",
@@ -1003,7 +1149,7 @@ const messages: Record<AppLocale, WebMessages> = {
       eyebrow: "Consolidated view of your Pi-hole instances",
       title: "Dashboard",
       scope: {
-        label: "Dashboard scope",
+        label: "Scope",
         allInstances: "All instances",
         placeholder: "Select an instance",
       },
@@ -1036,6 +1182,79 @@ const messages: Record<AppLocale, WebMessages> = {
       toasts: {
         instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
         genericInstanceFailure: (instanceName) => `${instanceName}: could not load metrics for this instance.`,
+      },
+    },
+    queries: {
+      eyebrow: "Shared logs across your Pi-hole instances",
+      title: "Queries",
+      description: "Track recent DNS queries with filters, suggestions, and continuous updates.",
+      responsiveInstances: (successfulCount, totalCount) =>
+        totalCount === 0
+          ? "There are no registered instances yet."
+          : successfulCount === 1
+            ? "1 instance contributed data to this snapshot."
+            : `${successfulCount} instances contributed data to this snapshot.`,
+      liveInterval: "Live update every 2 seconds.",
+      filters: {
+        title: "Filters",
+        description: "Combine time range, origin, and response types to narrow the table.",
+        show: "Show filters",
+        hide: "Hide filters",
+        from: "From",
+        until: "Until",
+        length: "Length",
+        domain: "Domain",
+        clientIp: "Client IP",
+        upstream: "Upstream",
+        type: "Type",
+        status: "Status",
+        reply: "Reply",
+        dnssec: "DNSSEC",
+        disk: "Load from on-disk database",
+        diskDescription:
+          "Query on-disk data. This is a lot slower but necessary if you want to obtain queries older than 24 hours. This option disables live update.",
+        apply: "Apply filters",
+        applying: "Applying...",
+        clear: "Clear",
+        suggestionsLoading: "Loading suggestions...",
+        suggestionPlaceholder: "Type or pick from the list",
+      },
+      table: {
+        title: "Queries table",
+        description: "The grid aggregates only the instances that responded for the current slice.",
+        liveToggle: "Live",
+        liveNavigationWarning: "Turn off live mode to navigate between pages.",
+        rowsPerPage: "Rows per page",
+        live: "Live",
+        refreshing: "Refreshing...",
+        time: "Time",
+        instance: "Instance",
+        client: "Client",
+        domain: "Domain",
+        type: "Type",
+        status: "Status",
+        reply: "Reply",
+        upstream: "Upstream",
+        details: "Details",
+        showing: (start, end, total) => `Showing ${start}-${end} of ${total}`,
+        previous: "Previous",
+        next: "Next",
+        noResultsTitle: "No queries found",
+        noResultsDescription: "Adjust the filters or wait for new queries to arrive from the selected instances.",
+      },
+      details: {
+        dnssec: "DNSSEC",
+        listId: "List ID",
+        ede: "EDE",
+        cname: "CNAME",
+      },
+      statusTypes: {
+        cache: "CACHE: response served directly from cache.",
+        forwarded: "FORWARDED: query forwarded to the upstream server.",
+        cacheStale: "CACHE_STALE: response served from stale cache.",
+        gravity: "GRAVITY: query blocked by Gravity.",
+        unknown: (status) => `${status}: status returned by the Pi-hole instance.`,
+        unavailable: "Status unavailable.",
       },
     },
   },

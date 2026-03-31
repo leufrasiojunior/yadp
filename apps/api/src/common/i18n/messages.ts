@@ -18,6 +18,7 @@ type ApiMessageKey =
   | "pihole.timeout"
   | "pihole.unresolved"
   | "pihole.unreachable"
+  | "queries.instanceIdRequired"
   | "session.baselineMissing"
   | "session.baselineRequired"
   | "session.expired"
@@ -70,6 +71,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
       `Não foi possível resolver ${baseUrl}. Verifique o hostname ou use o IP correto.`,
     "pihole.unreachable": ({ baseUrl }) =>
       `Não foi possível alcançar ${baseUrl}. Verifique a URL, a rede e as configurações de TLS desta instância.`,
+    "queries.instanceIdRequired": "Selecione uma instância válida para carregar as queries.",
     "session.baselineMissing": "A instância baseline não está mais disponível.",
     "session.baselineRequired": "Configure a baseline antes de fazer login.",
     "session.expired": "A sessão expirou.",
@@ -125,6 +127,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
       `Could not resolve ${baseUrl}. Check the hostname or use the correct IP address.`,
     "pihole.unreachable": ({ baseUrl }) =>
       `Could not reach ${baseUrl}. Check the URL, network path, and TLS settings for this instance.`,
+    "queries.instanceIdRequired": "Select a valid instance to load queries.",
     "session.baselineMissing": "The baseline instance is no longer available.",
     "session.baselineRequired": "You must configure the baseline before logging in.",
     "session.expired": "The session has expired.",

@@ -8,6 +8,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { HealthModule } from "./health/health.module";
 import { InstancesModule } from "./instances/instances.module";
 import { PiholeModule } from "./pihole/pihole.module";
+import { QueriesModule } from "./queries/queries.module";
 import { SessionModule } from "./session/session.module";
 import { SetupModule } from "./setup/setup.module";
 import { SyncModule } from "./sync/sync.module";
@@ -22,6 +23,7 @@ import { SyncModule } from "./sync/sync.module";
     InstancesModule,
     PiholeModule,
     PrismaModule,
+    QueriesModule,
     SessionModule,
     SetupModule,
     SyncModule,

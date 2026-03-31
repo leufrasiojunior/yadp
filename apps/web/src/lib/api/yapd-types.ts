@@ -134,6 +134,80 @@ export type DashboardOverviewResponse = {
   };
 };
 
+export type QueriesResponse = {
+  queries: Array<{
+    instanceId: string;
+    instanceName: string;
+    id: number;
+    time: string;
+    type: string | null;
+    status: string | null;
+    dnssec: string | null;
+    domain: string | null;
+    upstream: string | null;
+    reply: {
+      type: string | null;
+      time: number | null;
+    } | null;
+    client: {
+      ip: string | null;
+      name: string | null;
+    } | null;
+    listId: number | null;
+    ede: {
+      code: number | null;
+      text: string | null;
+    } | null;
+    cname: string | null;
+  }>;
+  cursor: number | null;
+  recordsTotal: number;
+  recordsFiltered: number;
+  earliestTimestamp: string | null;
+  earliestTimestampDisk: string | null;
+  took: number;
+  sources: {
+    totalInstances: number;
+    successfulInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    failedInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+      kind: DashboardInstanceErrorKind;
+      message: string;
+    }>;
+  };
+};
+
+export type QuerySuggestionsResponse = {
+  suggestions: {
+    domain: string[];
+    client_ip: string[];
+    client_name: string[];
+    upstream: string[];
+    type: string[];
+    status: string[];
+    reply: string[];
+    dnssec: string[];
+  };
+  took: number;
+  sources: {
+    totalInstances: number;
+    successfulInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    failedInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+      kind: DashboardInstanceErrorKind;
+      message: string;
+    }>;
+  };
+};
+
 export type SyncBlockingAggregateStatus = "enabled" | "disabled" | "mixed" | "partial";
 
 export type SyncBlockingPresetItem = {

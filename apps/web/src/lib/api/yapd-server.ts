@@ -6,7 +6,7 @@ import type { AppSession } from "@/components/yapd/app-session-provider";
 import { getServerApiBaseUrl } from "./base-url";
 import { getApiErrorMessage } from "./error-message";
 import { createYapdHttpClient, isYapdApiUnavailableResponse } from "./yapd-http";
-import type { DashboardOverviewResponse, InstanceListResponse, SetupStatus } from "./yapd-types";
+import type { DashboardOverviewResponse, InstanceListResponse, QueriesResponse, SetupStatus } from "./yapd-types";
 
 async function createServerApiClient() {
   const baseUrl = getServerApiBaseUrl();
@@ -142,6 +142,61 @@ export async function getDashboardOverview(query: {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load dashboard overview.");
+  }
+
+  return data;
+}
+
+export async function getQueries(query: {
+  scope: "all" | "instance";
+  instanceId?: string;
+  from?: number;
+  until?: number;
+  length?: number;
+  start?: number;
+  cursor?: number;
+  domain?: string;
+  client_ip?: string;
+  upstream?: string;
+  type?: string;
+  status?: string;
+  reply?: string;
+  dnssec?: string;
+  disk?: boolean;
+}): Promise<QueriesResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<QueriesResponse>("/queries", {
+    params: {
+      query: {
+        scope: query.scope,
+        ...(query.instanceId ? { instanceId: query.instanceId } : {}),
+        ...(query.from !== undefined ? { from: query.from } : {}),
+        ...(query.until !== undefined ? { until: query.until } : {}),
+        ...(query.length !== undefined ? { length: query.length } : {}),
+        ...(query.start !== undefined ? { start: query.start } : {}),
+        ...(query.cursor !== undefined ? { cursor: query.cursor } : {}),
+        ...(query.domain ? { domain: query.domain } : {}),
+        ...(query.client_ip ? { client_ip: query.client_ip } : {}),
+        ...(query.upstream ? { upstream: query.upstream } : {}),
+        ...(query.type ? { type: query.type } : {}),
+        ...(query.status ? { status: query.status } : {}),
+        ...(query.reply ? { reply: query.reply } : {}),
+        ...(query.dnssec ? { dnssec: query.dnssec } : {}),
+        ...(query.disk !== undefined ? { disk: query.disk } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load queries.");
   }
 
   return data;

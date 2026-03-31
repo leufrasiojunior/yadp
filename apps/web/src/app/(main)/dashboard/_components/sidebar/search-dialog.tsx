@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Binary, LayoutDashboard, Search, ShieldCheck, Waypoints } from "lucide-react";
+import { Binary, FileText, LayoutDashboard, Search, ShieldCheck, Waypoints } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,12 @@ export function SearchDialog() {
         icon: LayoutDashboard,
         label: messages.sidebar.items.dashboard,
         href: "/dashboard",
+      },
+      {
+        group: messages.sidebar.search.group,
+        icon: FileText,
+        label: messages.sidebar.items.queries,
+        href: "/queries",
       },
       {
         group: messages.sidebar.search.group,

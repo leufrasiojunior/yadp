@@ -1,4 +1,5 @@
 export const APP_LOCALES = ["pt-BR", "en-US"] as const;
+export const DEFAULT_TIME_ZONE = "UTC";
 
 export type AppLocale = (typeof APP_LOCALES)[number];
 
@@ -67,9 +68,34 @@ export function getRuntimeLocale(): AppLocale {
   return DEFAULT_LOCALE;
 }
 
-export function formatLocaleDateTime(locale: AppLocale, value: string | Date) {
+export function getConfiguredTimeZone() {
+  return process.env.NEXT_PUBLIC_TZ ?? process.env.TZ ?? DEFAULT_TIME_ZONE;
+}
+
+export function getRuntimeTimeZone() {
+  if (typeof Intl !== "undefined") {
+    const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    if (browserTimeZone) {
+      return browserTimeZone;
+    }
+  }
+
+  if (typeof document !== "undefined") {
+    const documentTimeZone = document.documentElement.getAttribute("data-timezone");
+
+    if (documentTimeZone) {
+      return documentTimeZone;
+    }
+  }
+
+  return getConfiguredTimeZone();
+}
+
+export function formatLocaleDateTime(locale: AppLocale, value: string | Date, timeZone: string = getRuntimeTimeZone()) {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone,
   }).format(typeof value === "string" ? new Date(value) : value);
 }

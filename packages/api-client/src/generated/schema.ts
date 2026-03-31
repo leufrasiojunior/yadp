@@ -148,6 +148,38 @@ export interface paths {
     patch: operations["InstancesController_updateInstance"];
     trace?: never;
   };
+  "/queries": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["QueriesController_getQueries"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/queries/suggestions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["QueriesController_getQuerySuggestions"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/setup/status": {
     parameters: {
       query?: never;
@@ -503,6 +535,133 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  QueriesController_getQueries: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            queries: {
+              instanceId: string;
+              instanceName: string;
+              id: number;
+              /** Format: date-time */
+              time: string;
+              type: string | null;
+              status: string | null;
+              dnssec: string | null;
+              domain: string | null;
+              upstream: string | null;
+              reply: {
+                type: string | null;
+                time: number | null;
+              } | null;
+              client: {
+                ip: string | null;
+                name: string | null;
+              } | null;
+              listId: number | null;
+              ede: {
+                code: number | null;
+                text: string | null;
+              } | null;
+              cname: string | null;
+            }[];
+            cursor: number | null;
+            recordsTotal: number;
+            recordsFiltered: number;
+            /** Format: date-time */
+            earliestTimestamp: string | null;
+            /** Format: date-time */
+            earliestTimestampDisk: string | null;
+            took: number;
+            sources: {
+              totalInstances: number;
+              successfulInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+              failedInstances: {
+                instanceId: string;
+                instanceName: string;
+                /** @enum {string} */
+                kind:
+                  | "invalid_credentials"
+                  | "tls_error"
+                  | "timeout"
+                  | "dns_error"
+                  | "connection_refused"
+                  | "pihole_response_error"
+                  | "unknown";
+                message: string;
+              }[];
+            };
+          };
+        };
+      };
+    };
+  };
+  QueriesController_getQuerySuggestions: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            suggestions: {
+              domain: string[];
+              client_ip: string[];
+              client_name: string[];
+              upstream: string[];
+              type: string[];
+              status: string[];
+              reply: string[];
+              dnssec: string[];
+            };
+            took: number;
+            sources: {
+              totalInstances: number;
+              successfulInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+              failedInstances: {
+                instanceId: string;
+                instanceName: string;
+                /** @enum {string} */
+                kind:
+                  | "invalid_credentials"
+                  | "tls_error"
+                  | "timeout"
+                  | "dns_error"
+                  | "connection_refused"
+                  | "pihole_response_error"
+                  | "unknown";
+                message: string;
+              }[];
+            };
+          };
+        };
       };
     };
   };

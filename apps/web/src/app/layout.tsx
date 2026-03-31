@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { APP_CONFIG } from "@/config/app-config";
 import { fontVars } from "@/lib/fonts/registry";
+import { getConfiguredTimeZone } from "@/lib/i18n/config";
 import { getServerLocale } from "@/lib/i18n/server";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { ThemeBootScript } from "@/scripts/theme-boot";
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const locale = await getServerLocale();
+  const timeZone = getConfiguredTimeZone();
   const {
     language,
     theme_mode,
@@ -45,6 +47,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       data-sidebar-variant={sidebar_variant}
       data-sidebar-collapsible={sidebar_collapsible}
       data-font={font}
+      data-timezone={timeZone}
       suppressHydrationWarning
     >
       <head />

@@ -14,10 +14,16 @@ import type {
   PiholeDiscoveryResult,
   PiholeHistoryPoint,
   PiholeMetricsSummary,
+  PiholeQueryListRequest,
+  PiholeQueryListResult,
+  PiholeQueryLogEntry,
+  PiholeQuerySuggestions,
+  PiholeQuerySuggestionsResult,
   PiholeRequestErrorKind,
   PiholeSession,
   PiholeVersionInfo,
 } from "./pihole.types";
+import { PIHOLE_QUERY_SUGGESTION_KEYS } from "./pihole.types";
 
 const PIHOLE_USER_AGENT = "YAPD";
 
@@ -58,6 +64,8 @@ type ClientSeriesAccumulator = {
   totalQueries: number;
   points: Map<number, number>;
 };
+
+type NormalizedLookup = Map<string, unknown>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -135,6 +143,65 @@ function readNumericArray(value: unknown): number[] | null {
   }
 
   return numbers;
+}
+
+function readStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const items: string[] = [];
+
+  for (const item of value) {
+    const normalized = readString(item);
+
+    if (!normalized) {
+      continue;
+    }
+
+    items.push(normalized);
+  }
+
+  return items;
+}
+
+function normalizeLookupKey(value: string) {
+  return value.replaceAll(/[^a-z0-9]+/gi, "").toLowerCase();
+}
+
+function createLookup(record: Record<string, unknown>): NormalizedLookup {
+  const lookup: NormalizedLookup = new Map();
+
+  for (const [key, value] of Object.entries(record)) {
+    lookup.set(normalizeLookupKey(key), value);
+  }
+
+  return lookup;
+}
+
+function readLookupValue(lookup: NormalizedLookup, aliases: string[]) {
+  for (const alias of aliases) {
+    const value = lookup.get(normalizeLookupKey(alias));
+
+    if (value !== undefined) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function readLookupString(lookup: NormalizedLookup, aliases: string[]) {
+  return readString(readLookupValue(lookup, aliases));
+}
+
+function readLookupNumber(lookup: NormalizedLookup, aliases: string[]) {
+  return readNumber(readLookupValue(lookup, aliases));
+}
+
+function readLookupRecord(lookup: NormalizedLookup, aliases: string[]) {
+  const value = readLookupValue(lookup, aliases);
+  return isRecord(value) ? value : null;
 }
 
 function normalizeClientSeriesKey(label: string) {
@@ -354,6 +421,46 @@ export class PiholeService {
     });
 
     return this.normalizeClientActivity(payload, connection, "/history/clients");
+  }
+
+  async getQueries(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    filters?: PiholeQueryListRequest,
+  ): Promise<PiholeQueryListResult> {
+    const payload = await this.request<unknown>(connection, "/queries", {
+      sid: session.sid,
+      csrf: session.csrf,
+      query: {
+        ...(filters?.from !== undefined ? { from: filters.from } : {}),
+        ...(filters?.until !== undefined ? { until: filters.until } : {}),
+        ...(filters?.length !== undefined ? { length: filters.length } : {}),
+        ...(filters?.start !== undefined ? { start: filters.start } : {}),
+        ...(filters?.cursor !== undefined ? { cursor: filters.cursor } : {}),
+        ...(filters?.domain ? { domain: filters.domain } : {}),
+        ...(filters?.clientIp ? { client_ip: filters.clientIp } : {}),
+        ...(filters?.upstream ? { upstream: filters.upstream } : {}),
+        ...(filters?.type ? { type: filters.type } : {}),
+        ...(filters?.status ? { status: filters.status } : {}),
+        ...(filters?.reply ? { reply: filters.reply } : {}),
+        ...(filters?.dnssec ? { dnssec: filters.dnssec } : {}),
+        ...(filters?.disk !== undefined ? { disk: filters.disk } : {}),
+      },
+    });
+
+    return this.normalizeQueryList(payload, connection, "/queries");
+  }
+
+  async getQuerySuggestions(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeQuerySuggestionsResult> {
+    const payload = await this.request<unknown>(connection, "/queries/suggestions", {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeQuerySuggestions(payload, connection, "/queries/suggestions");
   }
 
   async applyCanonicalConfig() {
@@ -648,6 +755,169 @@ export class PiholeService {
       timer: timerValue === null ? null : Math.max(0, Math.floor(timerValue)),
       took,
     };
+  }
+
+  private normalizeQueryList(payload: unknown, connection: PiholeConnection, path: string): PiholeQueryListResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const lookup = createLookup(payload);
+    const rawQueries = readLookupValue(lookup, ["queries", "query", "items", "results"]);
+
+    if (!Array.isArray(rawQueries)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const queries: PiholeQueryLogEntry[] = [];
+
+    for (const rawQuery of rawQueries) {
+      if (!isRecord(rawQuery)) {
+        throw this.createInvalidResponseError(connection, path, payload);
+      }
+
+      queries.push(this.normalizeQueryEntry(rawQuery, connection, path, payload));
+    }
+
+    return {
+      queries: queries.sort((left, right) => right.time - left.time || right.id - left.id),
+      cursor: readLookupNumber(lookup, ["cursor", "next_cursor", "latest_cursor"]),
+      recordsTotal:
+        readLookupNumber(lookup, ["recordsTotal", "records_total", "total", "total_records"]) ?? queries.length,
+      recordsFiltered:
+        readLookupNumber(lookup, ["recordsFiltered", "records_filtered", "filtered", "filtered_records"]) ??
+        queries.length,
+      earliestTimestamp:
+        readLookupNumber(lookup, ["earliestTimestamp", "earliest_timestamp", "firstTimestamp", "first_timestamp"]) ??
+        null,
+      earliestTimestampDisk:
+        readLookupNumber(lookup, [
+          "earliestTimestampDisk",
+          "earliest_timestamp_disk",
+          "firstTimestampDisk",
+          "first_timestamp_disk",
+        ]) ?? null,
+      took: readLookupNumber(lookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeQueryEntry(
+    payload: Record<string, unknown>,
+    connection: PiholeConnection,
+    path: string,
+    fullPayload: unknown,
+  ): PiholeQueryLogEntry {
+    const lookup = createLookup(payload);
+    const id = readLookupNumber(lookup, ["id", "query_id", "queryId"]);
+    const time = readLookupNumber(lookup, ["time", "timestamp", "ts"]);
+
+    if (id === null || time === null) {
+      throw this.createInvalidResponseError(connection, path, fullPayload);
+    }
+
+    const replyRecord = readLookupRecord(lookup, ["reply", "response", "answer"]);
+    const clientRecord = readLookupRecord(lookup, ["client", "requester", "source"]);
+    const edeRecord = readLookupRecord(lookup, ["ede", "extended_dns_error", "extendedDnsError"]);
+    const rawReplyValue = readLookupValue(lookup, ["reply", "response", "answer"]);
+    const rawClientValue = readLookupValue(lookup, ["client", "requester", "source"]);
+
+    return {
+      id,
+      time,
+      type: readLookupString(lookup, ["type", "query_type", "queryType"]),
+      status: readLookupString(lookup, ["status", "query_status", "queryStatus"]),
+      dnssec: readLookupString(lookup, ["dnssec", "dnssec_status", "dnssecStatus"]),
+      domain: readLookupString(lookup, ["domain", "query", "name", "hostname"]),
+      upstream: readLookupString(lookup, ["upstream", "resolver", "forwarded_to", "forwardedTo"]),
+      reply: replyRecord
+        ? {
+            type: readFirstString(replyRecord, ["type", "reply_type", "replyType", "kind"]),
+            time: readFirstNumber(replyRecord, ["time", "took", "duration", "elapsed"]),
+          }
+        : readString(rawReplyValue)
+          ? {
+              type: readString(rawReplyValue),
+              time: null,
+            }
+          : null,
+      client: clientRecord
+        ? {
+            ip: readFirstString(clientRecord, ["ip", "client_ip", "clientIp", "address"]),
+            name: readFirstString(clientRecord, ["name", "client_name", "clientName", "hostname"]),
+          }
+        : readString(rawClientValue)
+          ? {
+              ip: readString(rawClientValue),
+              name: null,
+            }
+          : null,
+      listId: readLookupNumber(lookup, ["list_id", "listId", "list"]),
+      ede: edeRecord
+        ? {
+            code: readFirstNumber(edeRecord, ["code", "ede_code", "edeCode", "id"]),
+            text: readFirstString(edeRecord, ["text", "message", "description"]),
+          }
+        : null,
+      cname: readLookupString(lookup, ["cname", "canonical_name", "canonicalName"]),
+    };
+  }
+
+  private normalizeQuerySuggestions(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeQuerySuggestionsResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawSuggestions =
+      readLookupRecord(payloadLookup, ["suggestions", "filters", "values"]) ??
+      (Object.keys(payload).length > 0 ? payload : null);
+
+    if (!rawSuggestions) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const suggestionsLookup = createLookup(rawSuggestions);
+    const suggestions = {} as PiholeQuerySuggestions;
+
+    for (const key of PIHOLE_QUERY_SUGGESTION_KEYS) {
+      suggestions[key] = this.readSuggestionValues(suggestionsLookup, key);
+    }
+
+    return {
+      suggestions,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private readSuggestionValues(lookup: NormalizedLookup, key: (typeof PIHOLE_QUERY_SUGGESTION_KEYS)[number]) {
+    switch (key) {
+      case "domain":
+        return readStringArray(readLookupValue(lookup, ["domain", "domains"])) ?? [];
+      case "client_ip":
+        return readStringArray(readLookupValue(lookup, ["client_ip", "clientip", "clientips", "client_ips"])) ?? [];
+      case "client_name":
+        return (
+          readStringArray(readLookupValue(lookup, ["client_name", "clientname", "client_names", "clientnames"])) ?? []
+        );
+      case "upstream":
+        return readStringArray(readLookupValue(lookup, ["upstream", "upstreams"])) ?? [];
+      case "type":
+        return readStringArray(readLookupValue(lookup, ["type", "types", "query_type", "query_types"])) ?? [];
+      case "status":
+        return readStringArray(readLookupValue(lookup, ["status", "statuses", "query_status", "query_statuses"])) ?? [];
+      case "reply":
+        return readStringArray(readLookupValue(lookup, ["reply", "replies", "reply_type", "reply_types"])) ?? [];
+      case "dnssec":
+        return (
+          readStringArray(readLookupValue(lookup, ["dnssec", "dnssecs", "dnssec_status", "dnssec_statuses"])) ?? []
+        );
+      default:
+        return [];
+    }
   }
 
   private normalizeHistoryPoints(payload: unknown, connection: PiholeConnection, path: string): PiholeHistoryPoint[] {

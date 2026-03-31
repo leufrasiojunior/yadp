@@ -1,0 +1,2311 @@
+{
+  "queries": [
+    {
+      "id": 15219553,
+      "time": 1774911318.7305148,
+      "type": "A",
+      "status": "CACHE_STALE",
+      "dnssec": "UNKNOWN",
+      "domain": "www.google.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.0020544528961181641
+      },
+      "client": {
+        "ip": "192.168.31.34",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219552,
+      "time": 1774911317.5941689,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "br.tv.global.mi.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00883793830871582
+      },
+      "client": {
+        "ip": "192.168.31.12",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219551,
+      "time": 1774911315.8795617,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "fitness.googleapis.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.064703226089477539
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219550,
+      "time": 1774911314.2546329,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "mapi.speedtest.net",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00581049919128418
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219549,
+      "time": 1774911313.719291,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "geomobileservices-pa.googleapis.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.00770425796508789
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219548,
+      "time": 1774911313.6803756,
+      "type": "A",
+      "status": "CACHE_STALE",
+      "dnssec": "UNKNOWN",
+      "domain": "p2p-gru1.discovery.steamserver.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.0024111270904541016
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219547,
+      "time": 1774911307.5186343,
+      "type": "A",
+      "status": "GRAVITY",
+      "dnssec": "UNKNOWN",
+      "domain": "scribe.logs.roku.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.0026085376739501953
+      },
+      "client": {
+        "ip": "192.168.31.7",
+        "name": null
+      },
+      "list_id": -3,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219546,
+      "time": 1774911305.2778437,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "mobile.events.data.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 4.4107437133789062e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219545,
+      "time": 1774911305.0101428,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.1682510375976562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219544,
+      "time": 1774911305.0092463,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.3828277587890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219543,
+      "time": 1774911304.99962,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.3140182495117188e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219542,
+      "time": 1774911304.9001646,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.33514404296875e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219541,
+      "time": 1774911304.8992052,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.5524368286132812e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219540,
+      "time": 1774911304.87207,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.814697265625e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219539,
+      "time": 1774911304.6714675,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.2636184692382812e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219538,
+      "time": 1774911304.6705012,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.2186508178710938e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219537,
+      "time": 1774911304.6611989,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.8385391235351562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219536,
+      "time": 1774911304.6221144,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.3828277587890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219535,
+      "time": 1774911304.6210747,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.5047531127929688e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219534,
+      "time": 1774911304.5938818,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 4.1723251342773438e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219533,
+      "time": 1774911304.446739,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "edge.microsoft.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "CNAME",
+        "time": 0.0098621845245361328
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219532,
+      "time": 1774911303.8098361,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "pgl.yoyo.org",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00017142295837402344
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219531,
+      "time": 1774911303.8089306,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "pgl.yoyo.org",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 3.24249267578125e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219530,
+      "time": 1774911303.7821817,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "pgl.yoyo.org",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00031685829162597656
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219529,
+      "time": 1774911303.76811,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "pgl.yoyo.org",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 1.3828277587890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219528,
+      "time": 1774911303.767144,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "pgl.yoyo.org",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.000311136245727539
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219527,
+      "time": 1774911303.7512062,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "pgl.yoyo.org",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00520801544189453
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219526,
+      "time": 1774911303.4763575,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.239776611328125e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219525,
+      "time": 1774911303.4757226,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.4570693969726562e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219524,
+      "time": 1774911303.4489331,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.3140182495117188e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219523,
+      "time": 1774911303.4444911,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.33514404296875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219522,
+      "time": 1774911303.44383,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.7908554077148438e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219521,
+      "time": 1774911303.4339125,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.6954879760742188e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219520,
+      "time": 1774911303.1769249,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.5497207641601562e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219519,
+      "time": 1774911303.1759319,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.4570693969726562e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219518,
+      "time": 1774911303.14845,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.7908554077148438e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219517,
+      "time": 1774911303.1102982,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "mobile-data.onetrust.io",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.010096073150634766
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219516,
+      "time": 1774911303.0914021,
+      "type": "A",
+      "status": "GRAVITY",
+      "dnssec": "UNKNOWN",
+      "domain": "www.google-analytics.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.0002765655517578125
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": -3,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219515,
+      "time": 1774911303.0274494,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.811981201171875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219514,
+      "time": 1774911303.02644,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.337860107421875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219513,
+      "time": 1774911303.0170505,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.6954879760742188e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219512,
+      "time": 1774911302.999346,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.2159347534179688e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219511,
+      "time": 1774911302.998729,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.3140182495117188e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219510,
+      "time": 1774911302.9715016,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.5762786865234375e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219509,
+      "time": 1774911302.7706289,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.3589859008789062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219508,
+      "time": 1774911302.770031,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 2.3126602172851562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219507,
+      "time": 1774911302.7611322,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.528594970703125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219506,
+      "time": 1774911302.3892388,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 2.09808349609375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219505,
+      "time": 1774911302.3882,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.00032520294189453125
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219504,
+      "time": 1774911302.3781538,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.00032377243041992188
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219503,
+      "time": 1774911302.3594391,
+      "type": "AAAA",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.010282516479492188
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219502,
+      "time": 1774911302.3588269,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.3855438232421875e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219501,
+      "time": 1774911302.3214273,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "v.firebog.net",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.011246919631958008
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219500,
+      "time": 1774911301.7443523,
+      "type": "AAAA",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "adaway.org",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "NODATA",
+        "time": 0.20342254638671875
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219499,
+      "time": 1774911301.7433972,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "adaway.org",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.3617019653320312e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219498,
+      "time": 1774911301.7283547,
+      "type": "AAAA",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "adaway.org",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "NODATA",
+        "time": 0.39493131637573242
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219497,
+      "time": 1774911301.7269969,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "adaway.org",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.000291585922241211
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219496,
+      "time": 1774911301.5880222,
+      "type": "A",
+      "status": "IN_PROGRESS",
+      "dnssec": "UNKNOWN",
+      "domain": "adaway.org",
+      "upstream": null,
+      "reply": {
+        "type": "UNKNOWN",
+        "time": 0
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219495,
+      "time": 1774911301.5336437,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "chatgpt.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.4543533325195312e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219494,
+      "time": 1774911301.5330126,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "chatgpt.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.4332275390625e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219493,
+      "time": 1774911301.3214831,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "adaway.org",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.39498686790466309
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219492,
+      "time": 1774911301.2707322,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 2.0503997802734375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219491,
+      "time": 1774911301.2704792,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 4.0292739868164062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219490,
+      "time": 1774911301.2610922,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.00029063224792480469
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219489,
+      "time": 1774911301.0000627,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.5020370483398438e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219488,
+      "time": 1774911300.9988754,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.00032782554626464844
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219487,
+      "time": 1774911300.9196546,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 1.0967254638671875e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219486,
+      "time": 1774911300.9194613,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.5762786865234375e-5
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219485,
+      "time": 1774911300.8895218,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.0039622783660888672
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219484,
+      "time": 1774911300.6242232,
+      "type": "AAAA",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "raw.githubusercontent.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.013636589050292969
+      },
+      "client": {
+        "ip": "192.168.31.16",
+        "name": "pi.hole"
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219483,
+      "time": 1774911299.77364,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "play-fe.googleapis.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.0058965682983398438
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219482,
+      "time": 1774911299.4078808,
+      "type": "A",
+      "status": "GRAVITY",
+      "dnssec": "UNKNOWN",
+      "domain": "firebaselogging.googleapis.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.000532388687133789
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": -3,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219481,
+      "time": 1774911298.6063716,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "graph.facebook.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "CNAME",
+        "time": 0.025594234466552734
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219480,
+      "time": 1774911298.5569088,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "g.whatsapp.net",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00055837631225585938
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219479,
+      "time": 1774911298.4676166,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "chat-e2ee-mini.facebook.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "CNAME",
+        "time": 0.014145374298095703
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219478,
+      "time": 1774911298.43194,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "web.facebook.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "CNAME",
+        "time": 0.017659425735473633
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219477,
+      "time": 1774911296.7401824,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 2.6702880859375e-5
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219476,
+      "time": 1774911296.7366178,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 2.7418136596679688e-5
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219475,
+      "time": 1774911296.7333255,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 2.6226043701171875e-5
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219474,
+      "time": 1774911296.7329519,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 3.24249267578125e-5
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219473,
+      "time": 1774911296.7157092,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 2.7179718017578125e-5
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219472,
+      "time": 1774911296.7140119,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 4.00543212890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219471,
+      "time": 1774911296.6983192,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00034022331237792969
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219470,
+      "time": 1774911296.6777976,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.019990205764770508
+      },
+      "client": {
+        "ip": "192.168.31.32",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219469,
+      "time": 1774911296.5203857,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 3.8862228393554688e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219468,
+      "time": 1774911296.4998825,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "relay.communication.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00097799301147460938
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219467,
+      "time": 1774911295.2106333,
+      "type": "A",
+      "status": "IN_PROGRESS",
+      "dnssec": "UNKNOWN",
+      "domain": "o427061.ingest.sentry.io",
+      "upstream": null,
+      "reply": {
+        "type": "UNKNOWN",
+        "time": 0
+      },
+      "client": {
+        "ip": "192.168.31.47",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219466,
+      "time": 1774911295.2100508,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "o427061.ingest.sentry.io",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.0054857730865478516
+      },
+      "client": {
+        "ip": "192.168.31.47",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219465,
+      "time": 1774911295.2098882,
+      "type": "AAAA",
+      "status": "IN_PROGRESS",
+      "dnssec": "UNKNOWN",
+      "domain": "o427061.ingest.sentry.io",
+      "upstream": null,
+      "reply": {
+        "type": "UNKNOWN",
+        "time": 0
+      },
+      "client": {
+        "ip": "192.168.31.47",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219464,
+      "time": 1774911295.1779959,
+      "type": "AAAA",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "o427061.ingest.sentry.io",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.037242889404296875
+      },
+      "client": {
+        "ip": "192.168.31.47",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219463,
+      "time": 1774911294.2670257,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "chatgpt.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.0517578125e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219462,
+      "time": 1774911294.2666271,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "chatgpt.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 5.6982040405273438e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219461,
+      "time": 1774911288.7360723,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "chatgpt.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 3.0517578125e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219460,
+      "time": 1774911288.7357321,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "chatgpt.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 4.6491622924804688e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219459,
+      "time": 1774911288.672014,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "www.google.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.0072014331817626953
+      },
+      "client": {
+        "ip": "192.168.31.34",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219458,
+      "time": 1774911287.7649589,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "android.googleapis.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.0055689811706542969
+      },
+      "client": {
+        "ip": "192.168.31.34",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219457,
+      "time": 1774911287.7416663,
+      "type": "A",
+      "status": "FORWARDED",
+      "dnssec": "UNKNOWN",
+      "domain": "proactivebackend-pa.googleapis.com",
+      "upstream": "8.8.4.4#53",
+      "reply": {
+        "type": "IP",
+        "time": 0.11892104148864746
+      },
+      "client": {
+        "ip": "192.168.31.34",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219456,
+      "time": 1774911286.4188855,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "mobile.events.data.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00034856796264648438
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219455,
+      "time": 1774911286.4066181,
+      "type": "HTTPS",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "mobile.events.data.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.011577129364013672
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 15219454,
+      "time": 1774911284.1329269,
+      "type": "A",
+      "status": "CACHE_STALE",
+      "dnssec": "UNKNOWN",
+      "domain": "vscode-sync.trafficmanager.net",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00031781196594238281
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    }
+  ],
+  "cursor": 15219553,
+  "recordsTotal": 171701,
+  "recordsFiltered": 171701,
+  "draw": 0,
+  "earliest_timestamp": 1774824756.3491113,
+  "earliest_timestamp_disk": 1771772711.8708653,
+  "took": 0.0013899803161621094
+}

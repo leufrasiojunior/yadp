@@ -115,3 +115,79 @@ export type PiholeClientHistoryBucket = {
   timestamp: number;
   data: Record<string, number>;
 };
+
+export type PiholeQueryListRequest = {
+  from?: number;
+  until?: number;
+  length?: number;
+  start?: number;
+  cursor?: number;
+  domain?: string;
+  clientIp?: string;
+  upstream?: string;
+  type?: string;
+  status?: string;
+  reply?: string;
+  dnssec?: string;
+  disk?: boolean;
+};
+
+export type PiholeQueryLogReply = {
+  type: string | null;
+  time: number | null;
+};
+
+export type PiholeQueryLogClient = {
+  ip: string | null;
+  name: string | null;
+};
+
+export type PiholeQueryLogEde = {
+  code: number | null;
+  text: string | null;
+};
+
+export type PiholeQueryLogEntry = {
+  id: number;
+  time: number;
+  type: string | null;
+  status: string | null;
+  dnssec: string | null;
+  domain: string | null;
+  upstream: string | null;
+  reply: PiholeQueryLogReply | null;
+  client: PiholeQueryLogClient | null;
+  listId: number | null;
+  ede: PiholeQueryLogEde | null;
+  cname: string | null;
+};
+
+export type PiholeQueryListResult = {
+  queries: PiholeQueryLogEntry[];
+  cursor: number | null;
+  recordsTotal: number;
+  recordsFiltered: number;
+  earliestTimestamp: number | null;
+  earliestTimestampDisk: number | null;
+  took: number | null;
+};
+
+export const PIHOLE_QUERY_SUGGESTION_KEYS = [
+  "domain",
+  "client_ip",
+  "client_name",
+  "upstream",
+  "type",
+  "status",
+  "reply",
+  "dnssec",
+] as const;
+
+export type PiholeQuerySuggestionKey = (typeof PIHOLE_QUERY_SUGGESTION_KEYS)[number];
+
+export type PiholeQuerySuggestions = Record<PiholeQuerySuggestionKey, string[]>;
+
+export type PiholeQuerySuggestionsResult = {
+  suggestions: PiholeQuerySuggestions;
+  took: number | null;
+};

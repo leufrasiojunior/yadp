@@ -38,7 +38,7 @@ export function DashboardScopeSelector({
     setClientCookie(DASHBOARD_SCOPE_COOKIE, nextValue);
 
     startTransition(() => {
-      if (pathname?.startsWith("/dashboard")) {
+      if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/queries")) {
         router.refresh();
         return;
       }
