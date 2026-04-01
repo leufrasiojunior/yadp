@@ -390,6 +390,19 @@ type WebMessages = {
       ede: string;
       cname: string;
     };
+    actions: {
+      block: string;
+      blockDomain: string;
+      blockRegex: string;
+      allow: string;
+      applying: string;
+    };
+    toasts: {
+      actionSuccess: (action: string, count: number) => string;
+      actionPartial: (action: string, successCount: number, failedCount: number) => string;
+      instanceFailure: (instanceName: string, message: string) => string;
+      genericInstanceFailure: (instanceName: string) => string;
+    };
     statusTypes: {
       cache: string;
       forwarded: string;
@@ -594,7 +607,7 @@ const messages: Record<AppLocale, WebMessages> = {
       },
       items: {
         dashboard: "Dashboard",
-        queries: "Queries",
+        queries: "Queries Log",
         instances: "Instâncias",
         baselineLogin: "Login da baseline",
         setupBaseline: "Setup da baseline",
@@ -822,6 +835,21 @@ const messages: Record<AppLocale, WebMessages> = {
         ede: "EDE",
         cname: "CNAME",
       },
+      actions: {
+        block: "Bloquear",
+        blockDomain: "Bloquear domínio",
+        blockRegex: "Bloquear via regex",
+        allow: "Permitir",
+        applying: "Aplicando...",
+      },
+      toasts: {
+        actionSuccess: (action, count) =>
+          count === 1 ? `${action} aplicado em 1 instância.` : `${action} aplicado em ${count} instâncias.`,
+        actionPartial: (action, successCount, failedCount) =>
+          `${action} concluído em ${successCount} instâncias, com falha em ${failedCount}.`,
+        instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
+        genericInstanceFailure: (instanceName) => `${instanceName}: a ação de domínio falhou.`,
+      },
       statusTypes: {
         cache: "CACHE: resposta servida diretamente do cache.",
         forwarded: "FORWARDED: consulta encaminhada para o servidor upstream.",
@@ -1022,7 +1050,7 @@ const messages: Record<AppLocale, WebMessages> = {
       },
       items: {
         dashboard: "Dashboard",
-        queries: "Queries",
+        queries: "Queries Log",
         instances: "Instances",
         baselineLogin: "Baseline login",
         setupBaseline: "Baseline setup",
@@ -1247,6 +1275,21 @@ const messages: Record<AppLocale, WebMessages> = {
         listId: "List ID",
         ede: "EDE",
         cname: "CNAME",
+      },
+      actions: {
+        block: "Block",
+        blockDomain: "Block domain",
+        blockRegex: "Block via regex",
+        allow: "Allow",
+        applying: "Applying...",
+      },
+      toasts: {
+        actionSuccess: (action, count) =>
+          count === 1 ? `${action} applied to 1 instance.` : `${action} applied to ${count} instances.`,
+        actionPartial: (action, successCount, failedCount) =>
+          `${action} completed on ${successCount} instances, with ${failedCount} failures.`,
+        instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
+        genericInstanceFailure: (instanceName) => `${instanceName}: the domain action failed.`,
       },
       statusTypes: {
         cache: "CACHE: response served directly from cache.",

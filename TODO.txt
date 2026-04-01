@@ -1,1 +1,24 @@
 Filtrar por Grupo nas páginas do log
+
+em configuracoes, salvar no BD de acordo com o MAC (ver alguma rota que retorna o MAC) um nome para o dispositivo, e se possivel mostrar isso onde for necessario (ripo a pagina de queries)
+admin/groups/domains permitir exportar em formato de lista txt
+Top Blocked Domains by period(pagina especifica)
+
+
+Regex para mais tipos de bloqueio: 
+(^|\.)bets(\.[a-z]{2,})+$ ::::: Bloquear um nome exato com qualquer TLD
+
+(^|\.)facebook\.com$ ::::: Bloquear um nome exato com TLD específico
+
+
+-----
+
+mandar o codex
+melhorar os icones do botao de acao (ajustar tamanho fixo e nao deixar cada um de um tamanho)
+por algum motivo quando passo por exemplo da pagina 1 para a 2 estao vindo TODOS os registros, mesmo sem alterar a quantidade de itens para serem mostrados na tabela
+remover o aviso do checkbox de atualizando, e deixar um simples spiner ao lado.(como somente indicativo que esta atualizando)
+
+alterar os filtros
+Alterar para o elemtno do shadcn: Periodo de data uisando o DatePickerRange com selecao de horario
+
+alterar os filtros para usar o combobox do shadcn com a opcao de clear por item, e a opcao de busca ativa, com o Input inside popup(consultar documentacao https://base-ui.com/react/components/combobox#ComboboxRoot-autoComplete)

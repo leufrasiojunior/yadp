@@ -52,6 +52,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/domains/{type}/{kind}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["DomainsController_applyDomainOperation"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -414,6 +430,71 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  DomainsController_applyDomainOperation: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            request: {
+              /** @enum {string} */
+              type: "allow" | "deny";
+              /** @enum {string} */
+              kind: "exact" | "regex";
+              domain: string;
+              value: string;
+              comment: string;
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+            };
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+              processed: {
+                errors: {
+                  item: string | null;
+                  message: string | null;
+                }[];
+                success: {
+                  item: string | null;
+                }[];
+              };
+              took: number | null;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
       };
     };
   };

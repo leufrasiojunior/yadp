@@ -3,9 +3,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function QueriesPageSkeleton() {
   const filterKeys = Array.from({ length: 8 }, (_value, index) => `filter-${index}`);
-  const headerKeys = Array.from({ length: 6 }, (_value, index) => `header-${index}`);
+  const headerKeys = Array.from({ length: 7 }, (_value, index) => `header-${index}`);
   const rowKeys = Array.from({ length: 10 }, (_value, index) => `row-${index}`);
-  const columnKeys = Array.from({ length: 6 }, (_value, index) => `column-${index}`);
+  const columnKeys = Array.from({ length: 7 }, (_value, index) => `column-${index}`);
 
   return (
     <div className="space-y-6">
@@ -38,13 +38,13 @@ export function QueriesPageSkeleton() {
           <Skeleton className="h-4 w-72 max-w-full" />
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-[1.3fr_1fr_0.4fr_0.7fr_1.8fr_1.2fr] gap-2">
+          <div className="grid grid-cols-[1.3fr_1fr_0.4fr_0.7fr_1.8fr_1.2fr_0.9fr] gap-2">
             {headerKeys.map((key) => (
               <Skeleton key={key} className="h-4 w-full" />
             ))}
           </div>
           {rowKeys.map((rowKey) => (
-            <div key={rowKey} className="grid grid-cols-[1.3fr_1fr_0.4fr_0.7fr_1.8fr_1.2fr] gap-2">
+            <div key={rowKey} className="grid grid-cols-[1.3fr_1fr_0.4fr_0.7fr_1.8fr_1.2fr_0.9fr] gap-2">
               {columnKeys.map((columnKey) => (
                 <Skeleton key={`${rowKey}-${columnKey}`} className="h-10 w-full" />
               ))}

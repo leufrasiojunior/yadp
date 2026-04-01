@@ -3,21 +3,44 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import type { LucideIcon } from "lucide-react";
-import { Ban, ChevronDown, Clock3, Database, Globe, Info } from "lucide-react";
+import {
+  Ban,
+  Cast,
+  CheckLine,
+  ChevronDown,
+  Clock3,
+  Database,
+  Globe,
+  Info,
+  Radio,
+  RadioIcon,
+  RegexIcon,
+  ShieldBan,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAppSession } from "@/components/yapd/app-session-provider";
+import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
-import type { QueriesResponse, QuerySuggestionsResponse } from "@/lib/api/yapd-types";
+import type { DomainOperationResponse, QueriesResponse, QuerySuggestionsResponse } from "@/lib/api/yapd-types";
 import type { DashboardScope } from "@/lib/dashboard/dashboard-scope";
 import { useWebI18n } from "@/lib/i18n/client";
 import type { WebMessages } from "@/lib/i18n/messages";
@@ -44,9 +67,9 @@ const EMPTY_SUGGESTIONS: QuerySuggestionsResponse["suggestions"] = {
   reply: [],
   dnssec: [],
 };
-const QUERY_TABLE_HEADER_SKELETON_KEYS = Array.from({ length: 6 }, (_value, index) => `query-header-${index}`);
+const QUERY_TABLE_HEADER_SKELETON_KEYS = Array.from({ length: 7 }, (_value, index) => `query-header-${index}`);
 const QUERY_TABLE_ROW_SKELETON_KEYS = Array.from({ length: 12 }, (_value, index) => `query-row-${index}`);
-const QUERY_TABLE_COLUMN_SKELETON_KEYS = Array.from({ length: 6 }, (_value, index) => `query-column-${index}`);
+const QUERY_TABLE_COLUMN_SKELETON_KEYS = Array.from({ length: 7 }, (_value, index) => `query-column-${index}`);
 const FILTER_SUGGESTION_SKELETON_KEYS = Array.from({ length: 7 }, (_value, index) => `query-filter-${index}`);
 const EMPTY_SELECT_VALUE = "__any__";
 
@@ -73,6 +96,8 @@ function getRowTintClass(status: string | null, index: number) {
     case "CACHE_STALE":
       return even ? "bg-emerald-500/12 hover:bg-emerald-500/16" : "bg-emerald-500/14 hover:bg-emerald-500/18";
     case "GRAVITY":
+      return even ? "bg-red-500/7 hover:bg-red-500/11" : "bg-red-500/9 hover:bg-red-500/13";
+    case "DENYLIST":
       return even ? "bg-red-500/7 hover:bg-red-500/11" : "bg-red-500/9 hover:bg-red-500/13";
     default:
       return "";
@@ -121,13 +146,13 @@ function buildVisiblePages(totalPages: number, currentPage: number) {
 function QueriesTableSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-[1.3fr_1fr_0.4fr_0.7fr_1.8fr_1.2fr] gap-2">
+      <div className="grid grid-cols-[1.3fr_1fr_0.4fr_0.7fr_1.8fr_1.2fr_0.9fr] gap-2">
         {QUERY_TABLE_HEADER_SKELETON_KEYS.map((key) => (
           <Skeleton key={key} className="h-4 w-full" />
         ))}
       </div>
       {QUERY_TABLE_ROW_SKELETON_KEYS.map((rowKey) => (
-        <div key={rowKey} className="grid grid-cols-[1.3fr_1fr_0.4fr_0.7fr_1.8fr_1.2fr] gap-2">
+        <div key={rowKey} className="grid grid-cols-[1.3fr_1fr_0.4fr_0.7fr_1.8fr_1.2fr_0.9fr] gap-2">
           {QUERY_TABLE_COLUMN_SKELETON_KEYS.map((columnKey) => (
             <Skeleton key={`${rowKey}-${columnKey}`} className="h-11 w-full" />
           ))}
@@ -160,6 +185,9 @@ type StatusVisual = {
   iconClassName: string;
   tooltip: string;
 };
+
+type DomainActionType = DomainOperationResponse["request"]["type"];
+type DomainActionKind = DomainOperationResponse["request"]["kind"];
 
 function SuggestionInput({
   inputId,
@@ -255,6 +283,12 @@ function getStatusVisual(status: string | null, messages: WebMessages): StatusVi
         iconClassName: "bg-red-500/14 text-red-700 ring-1 ring-red-500/20 dark:text-red-200",
         tooltip: messages.queries.statusTypes.gravity,
       };
+    case "DENYLIST":
+      return {
+        Icon: Ban,
+        iconClassName: "bg-red-500/14 text-red-700 ring-1 ring-red-500/20 dark:text-red-200",
+        tooltip: messages.queries.statusTypes.gravity,
+      };
     default:
       if (!status) {
         return null;
@@ -266,6 +300,14 @@ function getStatusVisual(status: string | null, messages: WebMessages): StatusVi
         tooltip: messages.queries.statusTypes.unknown(status),
       };
   }
+}
+
+function getDomainActionLabel(messages: WebMessages, type: DomainActionType, kind: DomainActionKind) {
+  if (type === "allow") {
+    return messages.queries.actions.allow;
+  }
+
+  return kind === "regex" ? messages.queries.actions.blockRegex : messages.queries.actions.blockDomain;
 }
 
 function QueryStatusCell({
@@ -311,6 +353,7 @@ export function QueriesWorkspace({
   initialData: QueriesResponse;
   scope: DashboardScope;
 }>) {
+  const { csrfToken } = useAppSession();
   const client = useMemo(() => getBrowserApiClient(), []);
   const { messages, timeZone } = useWebI18n();
   const datalistPrefix = useId();
@@ -336,6 +379,7 @@ export function QueriesWorkspace({
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(true);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isLiveEnabled, setIsLiveEnabled] = useState(false);
+  const [pendingDomainActionKeys, setPendingDomainActionKeys] = useState<string[]>([]);
   const [tableDomainFilter, setTableDomainFilter] = useState("");
   const [tableClientFilter, setTableClientFilter] = useState("");
   const [newRowKeys, setNewRowKeys] = useState<string[]>([]);
@@ -648,6 +692,159 @@ export function QueriesWorkspace({
     void refreshQueries(nextFilters, { preserveTable: true });
   }
 
+  function buildDomainActionKey(
+    query: QueriesResponse["queries"][number],
+    type: DomainActionType,
+    kind: DomainActionKind,
+  ) {
+    return `${buildRowKey(query)}:${type}:${kind}`;
+  }
+
+  function isDomainActionPending(
+    query: QueriesResponse["queries"][number],
+    type: DomainActionType,
+    kind: DomainActionKind,
+  ) {
+    return pendingDomainActionKeys.includes(buildDomainActionKey(query, type, kind));
+  }
+
+  function isAnyDomainActionPending(query: QueriesResponse["queries"][number]) {
+    const prefix = `${buildRowKey(query)}:`;
+    return pendingDomainActionKeys.some((key) => key.startsWith(prefix));
+  }
+
+  async function submitDomainAction(
+    query: QueriesResponse["queries"][number],
+    type: DomainActionType,
+    kind: DomainActionKind,
+    retryInstanceId?: string,
+  ) {
+    const domain = trimOrEmpty(query.domain ?? "");
+
+    if (!domain) {
+      return;
+    }
+
+    const actionKey = buildDomainActionKey(query, type, kind);
+    const actionLabel = getDomainActionLabel(messages, type, kind);
+    const scopeMode: DomainOperationResponse["request"]["scope"] = retryInstanceId
+      ? "instance"
+      : type === "deny" && kind === "exact"
+        ? "all"
+        : scope.kind === "all"
+          ? "all"
+          : "instance";
+    const instanceId =
+      retryInstanceId ?? (scopeMode === "instance" && scope.kind === "instance" ? scope.instanceId : undefined);
+
+    setPendingDomainActionKeys((current) => (current.includes(actionKey) ? current : [...current, actionKey]));
+
+    try {
+      const { data, response } = await client.POST<DomainOperationResponse>("/domains/{type}/{kind}", {
+        headers: {
+          "x-yapd-csrf": csrfToken,
+        },
+        params: {
+          path: {
+            type,
+            kind,
+          },
+        },
+        body: {
+          domain,
+          scope: scopeMode,
+          ...(instanceId ? { instanceId } : {}),
+        },
+      });
+
+      if (!response.ok || !data) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      if (data.summary.failedCount === 0 && data.summary.successfulCount > 0) {
+        toast.success(messages.queries.toasts.actionSuccess(actionLabel, data.summary.successfulCount));
+      } else if (data.summary.successfulCount > 0 && data.summary.failedCount > 0) {
+        toast.warning(
+          messages.queries.toasts.actionPartial(actionLabel, data.summary.successfulCount, data.summary.failedCount),
+        );
+      }
+
+      data.failedInstances.forEach((failure) => {
+        const message =
+          failure.message.trim().length > 0
+            ? messages.queries.toasts.instanceFailure(failure.instanceName, failure.message)
+            : messages.queries.toasts.genericInstanceFailure(failure.instanceName);
+
+        toast.error(message, {
+          id: `query-domain-action-${type}-${kind}-${failure.instanceId}-${domain}`,
+          action: {
+            label: messages.common.retry,
+            onClick: () => {
+              void submitDomainAction(query, type, kind, failure.instanceId);
+            },
+          },
+        });
+      });
+    } finally {
+      setPendingDomainActionKeys((current) => current.filter((key) => key !== actionKey));
+    }
+  }
+
+  function renderActionCell(query: QueriesResponse["queries"][number]) {
+    const domain = trimOrEmpty(query.domain ?? "");
+
+    if (!domain) {
+      return null;
+    }
+
+    const normalizedStatus = normalizeStatus(query.status);
+    const rowPending = isAnyDomainActionPending(query);
+
+    if (normalizedStatus === "CACHE" || normalizedStatus === "FORWARDED" || normalizedStatus === "CACHE_STALE") {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1.5" disabled={rowPending}>
+              <ShieldBan color="#940a0a" />
+              {rowPending ? messages.queries.actions.applying : messages.queries.actions.block}
+              <ChevronDown className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-49">
+            <DropdownMenuItem onSelect={() => void submitDomainAction(query, "deny", "exact")}>
+              <Globe />
+              {messages.queries.actions.blockDomain}
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => void submitDomainAction(query, "deny", "regex")}>
+              <RegexIcon />
+              {messages.queries.actions.blockRegex}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+
+    if (normalizedStatus === "GRAVITY" || normalizedStatus === "DENYLIST") {
+      return (
+        <Button
+          variant="outline"
+          className="w-full"
+          size="sm"
+          disabled={isDomainActionPending(query, "allow", "exact")}
+          onClick={() => void submitDomainAction(query, "allow", "exact")}
+        >
+          <CheckLine color="#239721" />
+          {isDomainActionPending(query, "allow", "exact")
+            ? messages.queries.actions.applying
+            : messages.queries.actions.allow}
+        </Button>
+      );
+    }
+
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <Card className="transition-colors hover:bg-muted/20">
@@ -704,7 +901,7 @@ export function QueriesWorkspace({
 
                   {isSuggestionsLoading ? (
                     FILTER_SUGGESTION_SKELETON_KEYS.map((key) => (
-                      <Skeleton key={key} className="h-[68px] w-full rounded-xl" />
+                      <Skeleton key={key} className="h-17 w-full rounded-xl" />
                     ))
                   ) : (
                     <>
@@ -820,9 +1017,8 @@ export function QueriesWorkspace({
                 onCheckedChange={(checked) => setIsLiveEnabled(checked === true)}
               />
               <span className="font-medium">{messages.queries.table.liveToggle}</span>
-              {isRefreshing ? (
-                <span className="text-muted-foreground text-xs">{messages.queries.table.refreshing}</span>
-              ) : null}
+              <RadioIcon color="#ffffff" />
+              {isRefreshing ? <Spinner /> : null}
             </label>
           </CardAction>
         </CardHeader>
@@ -842,7 +1038,8 @@ export function QueriesWorkspace({
                       </TableHead>
                       <TableHead className="border-r text-center">{messages.queries.table.type}</TableHead>
                       <TableHead className="border-r text-center">{messages.queries.table.domain}</TableHead>
-                      <TableHead className="text-center">{messages.queries.table.client}</TableHead>
+                      <TableHead className="border-r text-center">{messages.queries.table.client}</TableHead>
+                      <TableHead className="w-34 text-center" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -870,9 +1067,10 @@ export function QueriesWorkspace({
                         <TableCell className="max-w-96 truncate border-r text-center">
                           {query.domain ?? messages.common.versionUnavailable}
                         </TableCell>
-                        <TableCell className="max-w-72 truncate text-center">
+                        <TableCell className="max-w-72 truncate border-r text-center">
                           {getClientLabel(query, messages.common.versionUnavailable)}
                         </TableCell>
+                        <TableCell className="text-center">{renderActionCell(query)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -898,6 +1096,7 @@ export function QueriesWorkspace({
                           onChange={(event) => setTableClientFilter(event.target.value)}
                         />
                       </TableCell>
+                      <TableCell />
                     </TableRow>
                   </TableFooter>
                 </Table>
@@ -919,7 +1118,7 @@ export function QueriesWorkspace({
                       value={`${normalizeQueryPageSize(activeFilters.length)}`}
                       onValueChange={(value) => changePageSize(Number(value) || DEFAULT_QUERIES_LENGTH)}
                     >
-                      <SelectTrigger className="w-[96px]">
+                      <SelectTrigger className="w-24">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

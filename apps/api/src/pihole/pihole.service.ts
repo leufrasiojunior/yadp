@@ -12,7 +12,10 @@ import type {
   PiholeClientHistoryBucket,
   PiholeConnection,
   PiholeDiscoveryResult,
+  PiholeDomainOperationRequest,
+  PiholeDomainOperationResult,
   PiholeHistoryPoint,
+  PiholeManagedDomainEntry,
   PiholeMetricsSummary,
   PiholeQueryListRequest,
   PiholeQueryListResult,
@@ -463,6 +466,27 @@ export class PiholeService {
     return this.normalizeQuerySuggestions(payload, connection, "/queries/suggestions");
   }
 
+  async applyDomainOperation(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    operation: PiholeDomainOperationRequest,
+  ): Promise<PiholeDomainOperationResult> {
+    const path = `/domains/${operation.type}/${operation.kind}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        domain: operation.value,
+        ...(operation.comment !== undefined ? { comment: operation.comment } : {}),
+        groups: operation.groups ?? [0],
+        enabled: operation.enabled ?? true,
+      },
+    });
+
+    return this.normalizeDomainOperation(payload, connection, path);
+  }
+
   async applyCanonicalConfig() {
     throw new Error("Canonical config sync is not implemented in slice 1");
   }
@@ -891,6 +915,122 @@ export class PiholeService {
       suggestions,
       took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
     };
+  }
+
+  private normalizeDomainOperation(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeDomainOperationResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawDomains = readLookupValue(payloadLookup, ["domains", "domain", "items", "results"]);
+    const rawProcessed = readLookupRecord(payloadLookup, ["processed", "result", "summary"]);
+    const domains = Array.isArray(rawDomains)
+      ? rawDomains
+          .filter((item): item is Record<string, unknown> => isRecord(item))
+          .map((item) => this.normalizeManagedDomain(item))
+      : [];
+    const processed = this.normalizeDomainOperationProcessed(rawProcessed);
+
+    if (domains.length === 0 && processed.errors.length === 0 && processed.success.length === 0) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      domains,
+      processed,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeManagedDomain(payload: Record<string, unknown>): PiholeManagedDomainEntry {
+    const lookup = createLookup(payload);
+
+    return {
+      domain: readLookupString(lookup, ["domain", "item", "value", "name"]),
+      unicode:
+        readLookupString(lookup, ["unicode", "unicode_domain", "unicodeDomain"]) ??
+        readLookupString(lookup, ["domain", "item", "value", "name"]),
+      type: readLookupString(lookup, ["type"]),
+      kind: readLookupString(lookup, ["kind"]),
+      comment: readLookupString(lookup, ["comment", "note", "description"]),
+      groups: readNumericArray(readLookupValue(lookup, ["groups", "group_ids", "groupIds"])) ?? [],
+      enabled: readBoolean(readLookupValue(lookup, ["enabled", "active"])),
+      id: readLookupNumber(lookup, ["id"]),
+      dateAdded: readLookupNumber(lookup, ["date_added", "dateAdded", "created_at", "createdAt"]),
+      dateModified: readLookupNumber(lookup, ["date_modified", "dateModified", "updated_at", "updatedAt"]),
+    };
+  }
+
+  private normalizeDomainOperationProcessed(payload: Record<string, unknown> | null) {
+    if (!payload) {
+      return {
+        errors: [],
+        success: [],
+      };
+    }
+
+    const lookup = createLookup(payload);
+
+    return {
+      errors: this.readDomainProcessedErrors(readLookupValue(lookup, ["errors", "failed", "failures"])),
+      success: this.readDomainProcessedSuccess(readLookupValue(lookup, ["success", "successful", "succeeded"])),
+    };
+  }
+
+  private readDomainProcessedErrors(value: unknown) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.map((item) => {
+      if (isRecord(item)) {
+        return {
+          item: readFirstString(item, ["item", "domain", "value", "name"]),
+          message: readFirstString(item, ["message", "error", "description", "detail"]),
+        };
+      }
+
+      if (typeof item === "string") {
+        return {
+          item: null,
+          message: readString(item),
+        };
+      }
+
+      return {
+        item: null,
+        message: null,
+      };
+    });
+  }
+
+  private readDomainProcessedSuccess(value: unknown) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value.map((item) => {
+      if (isRecord(item)) {
+        return {
+          item: readFirstString(item, ["item", "domain", "value", "name"]),
+        };
+      }
+
+      if (typeof item === "string") {
+        return {
+          item: readString(item),
+        };
+      }
+
+      return {
+        item: null,
+      };
+    });
   }
 
   private readSuggestionValues(lookup: NormalizedLookup, key: (typeof PIHOLE_QUERY_SUGGESTION_KEYS)[number]) {

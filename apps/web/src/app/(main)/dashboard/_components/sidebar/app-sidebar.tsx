@@ -20,7 +20,6 @@ import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import { SidebarSupportCard } from "./sidebar-support-card";
 import { SidebarSyncBlocking } from "./sidebar-sync-blocking";
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
@@ -68,7 +67,6 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
-        <SidebarSupportCard />
         <NavUser user={{ name: session.baseline.name, email: session.baseline.baseUrl, avatar: "" }} />
       </SidebarFooter>
     </Sidebar>

@@ -208,6 +208,43 @@ export type QuerySuggestionsResponse = {
   };
 };
 
+export type DomainOperationResponse = {
+  request: {
+    type: "allow" | "deny";
+    kind: "exact" | "regex";
+    domain: string;
+    value: string;
+    comment: string;
+    scope: "all" | "instance";
+    instanceId: string | null;
+  };
+  summary: {
+    totalInstances: number;
+    successfulCount: number;
+    failedCount: number;
+  };
+  successfulInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    processed: {
+      errors: Array<{
+        item: string | null;
+        message: string | null;
+      }>;
+      success: Array<{
+        item: string | null;
+      }>;
+    };
+    took: number | null;
+  }>;
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
 export type SyncBlockingAggregateStatus = "enabled" | "disabled" | "mixed" | "partial";
 
 export type SyncBlockingPresetItem = {

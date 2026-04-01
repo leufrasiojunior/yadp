@@ -7,6 +7,8 @@ type ApiMessageKey =
   | "dashboard.allInstancesFailed"
   | "dashboard.instanceIdRequired"
   | "dashboard.noInstances"
+  | "domains.instanceIdRequired"
+  | "domains.operationRejected"
   | "instances.invalidCredentials"
   | "instances.notFound"
   | "pihole.invalidResponse"
@@ -53,6 +55,8 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.allInstancesFailed": "Nenhuma instância retornou métricas válidas.",
     "dashboard.instanceIdRequired": "Selecione uma instância válida para carregar o dashboard.",
     "dashboard.noInstances": "Nenhuma instância Pi-hole está cadastrada no YAPD.",
+    "domains.instanceIdRequired": "Selecione uma instância válida para aplicar esta ação de domínio.",
+    "domains.operationRejected": ({ baseUrl }) => `O Pi-hole em ${baseUrl} recusou a alteração de domínio.`,
     "instances.invalidCredentials": "As credenciais do Pi-hole são inválidas.",
     "instances.notFound": "Instância não encontrada.",
     "pihole.invalidResponse": ({ baseUrl, path }) =>
@@ -109,6 +113,8 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.allInstancesFailed": "No instance returned valid dashboard metrics.",
     "dashboard.instanceIdRequired": "Select a valid instance to load the dashboard.",
     "dashboard.noInstances": "No Pi-hole instance is registered in YAPD.",
+    "domains.instanceIdRequired": "Select a valid instance to apply this domain action.",
+    "domains.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the domain change.`,
     "instances.invalidCredentials": "The Pi-hole credentials are invalid.",
     "instances.notFound": "Instance not found.",
     "pihole.invalidResponse": ({ baseUrl, path }) =>

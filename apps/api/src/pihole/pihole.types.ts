@@ -191,3 +191,49 @@ export type PiholeQuerySuggestionsResult = {
   suggestions: PiholeQuerySuggestions;
   took: number | null;
 };
+
+export const PIHOLE_DOMAIN_OPERATION_TYPES = ["allow", "deny"] as const;
+export const PIHOLE_DOMAIN_OPERATION_KINDS = ["exact", "regex"] as const;
+
+export type PiholeDomainOperationType = (typeof PIHOLE_DOMAIN_OPERATION_TYPES)[number];
+export type PiholeDomainOperationKind = (typeof PIHOLE_DOMAIN_OPERATION_KINDS)[number];
+
+export type PiholeDomainOperationRequest = {
+  type: PiholeDomainOperationType;
+  kind: PiholeDomainOperationKind;
+  value: string;
+  comment?: string;
+  groups?: number[];
+  enabled?: boolean;
+};
+
+export type PiholeManagedDomainEntry = {
+  domain: string | null;
+  unicode: string | null;
+  type: string | null;
+  kind: string | null;
+  comment: string | null;
+  groups: number[];
+  enabled: boolean | null;
+  id: number | null;
+  dateAdded: number | null;
+  dateModified: number | null;
+};
+
+export type PiholeDomainOperationProcessedSuccess = {
+  item: string | null;
+};
+
+export type PiholeDomainOperationProcessedError = {
+  item: string | null;
+  message: string | null;
+};
+
+export type PiholeDomainOperationResult = {
+  domains: PiholeManagedDomainEntry[];
+  processed: {
+    errors: PiholeDomainOperationProcessedError[];
+    success: PiholeDomainOperationProcessedSuccess[];
+  };
+  took: number | null;
+};
