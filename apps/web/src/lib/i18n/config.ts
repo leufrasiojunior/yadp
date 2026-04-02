@@ -99,3 +99,20 @@ export function formatLocaleDateTime(locale: AppLocale, value: string | Date, ti
     timeZone,
   }).format(typeof value === "string" ? new Date(value) : value);
 }
+
+/**
+ * Formats a date in a technical, ISO-like format (YYYY-MM-DD HH:mm:ss)
+ * but respecting the provided or runtime timezone.
+ */
+export function formatFullDateTime(value: string | Date, timeZone: string = getRuntimeTimeZone()) {
+  return new Intl.DateTimeFormat("sv-SE", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    timeZone,
+  }).format(typeof value === "string" ? new Date(value) : value);
+}

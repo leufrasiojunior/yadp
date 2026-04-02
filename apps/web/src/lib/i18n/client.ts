@@ -1,6 +1,6 @@
 "use client";
 
-import { formatLocaleDateTime, getRuntimeTimeZone } from "@/lib/i18n/config";
+import { formatFullDateTime, formatLocaleDateTime, getRuntimeTimeZone } from "@/lib/i18n/config";
 import { getWebMessages } from "@/lib/i18n/messages";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
@@ -18,6 +18,9 @@ export function useWebI18n() {
     messages: getWebMessages(locale),
     formatDateTime(value: string | Date) {
       return formatLocaleDateTime(locale, value, timeZone);
+    },
+    formatFullDateTime(value: string | Date) {
+      return formatFullDateTime(value, timeZone);
     },
   };
 }

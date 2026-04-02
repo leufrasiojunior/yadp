@@ -15,8 +15,10 @@ Regex para mais tipos de bloqueio:
 
 mandar o codex
 melhorar os icones do botao de acao (ajustar tamanho fixo e nao deixar cada um de um tamanho)
-por algum motivo quando passo por exemplo da pagina 1 para a 2 estao vindo TODOS os registros, mesmo sem alterar a quantidade de itens para serem mostrados na tabela
+por algum motivo quando passo por exemplo da pagina 1 para a 2 estao vindo 1000 registros na tabela, somente quando seleciono Todas as instancias, mesmo sem alterar a quantidade de itens para serem mostrados na tabela
 remover o aviso do checkbox de atualizando, e deixar um simples spiner ao lado.(como somente indicativo que esta atualizando)
+quando acionar o modo live fora da pagina 1, retornar para a pagina 1.
+
 
 alterar os filtros
 Alterar para o elemtno do shadcn: Periodo de data uisando o DatePickerRange com selecao de horario
