@@ -13,7 +13,6 @@ import { useWebI18n } from "@/lib/i18n/client";
 import {
   clampQueryLength,
   createDefaultQueryFilters,
-  DEFAULT_QUERIES_LENGTH,
   datetimeLocalToUnixSeconds,
   normalizeQueryPageSize,
   type QueryFilters,
@@ -42,6 +41,36 @@ function buildRowKey(query: QueriesResponse["queries"][number]) {
   return `${query.instanceId}:${query.id}`;
 }
 
+function normalizeQueriesResponse(data: QueriesResponse, filters: Pick<QueryFilters, "length">): QueriesResponse {
+  const pageSize = clampQueryLength(filters.length);
+  const uniqueQueries: QueriesResponse["queries"] = [];
+  const seenKeys = new Set<string>();
+
+  for (const query of data.queries) {
+    const key = buildRowKey(query);
+
+    if (seenKeys.has(key)) {
+      continue;
+    }
+
+    seenKeys.add(key);
+    uniqueQueries.push(query);
+
+    if (uniqueQueries.length >= pageSize) {
+      break;
+    }
+  }
+
+  if (uniqueQueries.length === data.queries.length) {
+    return data;
+  }
+
+  return {
+    ...data,
+    queries: uniqueQueries,
+  };
+}
+
 export function QueriesWorkspace({
   initialData,
   scope,
@@ -49,12 +78,13 @@ export function QueriesWorkspace({
   initialData: QueriesResponse;
   scope: DashboardScope;
 }>) {
+  const defaultFilters = createDefaultQueryFilters();
   const { csrfToken } = useAppSession();
   const client = useMemo(() => getBrowserApiClient(), []);
   const { messages, timeZone } = useWebI18n();
-  const currentDataRef = useRef(initialData);
+  const currentDataRef = useRef(normalizeQueriesResponse(initialData, defaultFilters));
   const refreshInFlightRef = useRef(false);
-  const activeFiltersRef = useRef<QueryFilters>(createDefaultQueryFilters());
+  const activeFiltersRef = useRef<QueryFilters>(defaultFilters);
   const refreshQueriesRef = useRef<
     | ((
         filters: QueryFilters,
@@ -64,9 +94,9 @@ export function QueriesWorkspace({
   >(null);
   const mountedRef = useRef(true);
   const newRowsTimeoutRef = useRef<number | null>(null);
-  const [queryData, setQueryData] = useState(initialData);
-  const [draftFilters, setDraftFilters] = useState<QueryFilters>(createDefaultQueryFilters());
-  const [activeFilters, setActiveFilters] = useState<QueryFilters>(createDefaultQueryFilters());
+  const [queryData, setQueryData] = useState(() => normalizeQueriesResponse(initialData, defaultFilters));
+  const [draftFilters, setDraftFilters] = useState<QueryFilters>(defaultFilters);
+  const [activeFilters, setActiveFilters] = useState<QueryFilters>(defaultFilters);
   const [suggestions, setSuggestions] = useState<QuerySuggestionsResponse["suggestions"]>(EMPTY_SUGGESTIONS);
   const [isReloading, setIsReloading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -155,7 +185,9 @@ export function QueriesWorkspace({
   }, [tableClientFilter, tableDomainFilter]);
 
   useEffect(() => {
-    setQueryData(initialData);
+    const normalizedData = normalizeQueriesResponse(initialData, activeFiltersRef.current);
+
+    setQueryData(normalizedData);
   }, [initialData]);
 
   useEffect(() => {
@@ -251,9 +283,11 @@ export function QueriesWorkspace({
         return;
       }
 
+      const normalizedData = normalizeQueriesResponse(data, filters);
+
       if (options?.highlightNew && filters.start === 0) {
         const currentKeys = new Set(currentDataRef.current.queries.map(buildRowKey));
-        const insertedKeys = data.queries.map(buildRowKey).filter((key) => !currentKeys.has(key));
+        const insertedKeys = normalizedData.queries.map(buildRowKey).filter((key) => !currentKeys.has(key));
 
         if (insertedKeys.length > 0) {
           setNewRowKeys(insertedKeys);
@@ -268,7 +302,7 @@ export function QueriesWorkspace({
         }
       }
 
-      setQueryData(data);
+      setQueryData(normalizedData);
     } finally {
       if (mountedRef.current) {
         setIsReloading(false);
@@ -376,6 +410,37 @@ export function QueriesWorkspace({
     setActiveFilters(nextFilters);
     setNewRowKeys([]);
     void refreshQueries(nextFilters, { preserveTable: true });
+  }
+
+  function handleLiveEnabledChange(enabled: boolean) {
+    if (!enabled) {
+      setIsLiveEnabled(false);
+      return;
+    }
+
+    const currentFilters = activeFiltersRef.current;
+
+    if (currentFilters.disk) {
+      setIsLiveEnabled(false);
+      return;
+    }
+
+    if (currentFilters.start === 0) {
+      setIsLiveEnabled(true);
+      return;
+    }
+
+    const nextFilters = {
+      ...currentFilters,
+      start: 0,
+    } satisfies QueryFilters;
+
+    activeFiltersRef.current = nextFilters;
+    setDraftFilters(nextFilters);
+    setActiveFilters(nextFilters);
+    setNewRowKeys([]);
+    setIsLiveEnabled(true);
+    void refreshQueries(nextFilters, { preserveTable: true, silent: true });
   }
 
   function buildDomainActionKey(
@@ -494,7 +559,7 @@ export function QueriesWorkspace({
         messages={messages}
         responsiveSummary={responsiveSummary}
         setIsFiltersOpen={setIsFiltersOpen}
-        setIsLiveEnabled={setIsLiveEnabled}
+        setIsLiveEnabled={handleLiveEnabledChange}
         suggestions={suggestions}
         updateDraft={updateDraft}
       />
@@ -511,7 +576,7 @@ export function QueriesWorkspace({
         messages={messages}
         newRowKeys={newRowKeys}
         queryData={queryData}
-        setIsLiveEnabled={setIsLiveEnabled}
+        setIsLiveEnabled={handleLiveEnabledChange}
         setTableClientFilter={setTableClientFilter}
         setTableDomainFilter={setTableDomainFilter}
         submitDomainAction={submitDomainAction}
