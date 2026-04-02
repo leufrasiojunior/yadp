@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +12,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import type { AppSession } from "@/components/yapd/app-session-provider";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
@@ -36,6 +39,7 @@ export function PiholeLoginForm({
   const formSchema = z.object({
     password: z.string().min(4, copy.validationPassword),
   });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
   const { messages } = useWebI18n();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -46,6 +50,7 @@ export function PiholeLoginForm({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
     const client = getBrowserApiClient();
     const { data, response } = await client.POST<AppSession>("/session/login", {
       body: {
@@ -54,6 +59,7 @@ export function PiholeLoginForm({
     });
 
     if (!response.ok) {
+      setIsLoading(false);
       toast.error(await getApiErrorMessage(response));
       return;
     }
@@ -71,6 +77,7 @@ export function PiholeLoginForm({
       });
     });
 
+    setIsLoading(false);
     router.replace("/dashboard");
     router.refresh();
   };
@@ -99,8 +106,8 @@ export function PiholeLoginForm({
         />
       </FieldGroup>
 
-      <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? copy.submit.loading : copy.submit.idle}
+      <Button className="w-full" type="submit" disabled={isLoading}>
+        {isLoading ? <Spinner /> : copy.submit.idle}
       </Button>
     </form>
   );
