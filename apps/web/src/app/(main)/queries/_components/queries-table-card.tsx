@@ -133,6 +133,16 @@ export function QueriesTableCard({
           <QueriesTableSkeleton />
         ) : hasRows ? (
           <>
+            <QueriesPagination
+              activeFilters={activeFilters}
+              changePageSize={changePageSize}
+              goToPage={goToPage}
+              isLiveEnabled={isLiveEnabled}
+              isReloading={isReloading}
+              messages={messages}
+              totalRecords={queryData.recordsFiltered}
+            />
+
             <div className="overflow-hidden rounded-xl border">
               <Table>
                 <TableHeader>

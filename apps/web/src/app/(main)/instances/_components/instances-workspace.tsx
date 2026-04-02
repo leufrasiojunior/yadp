@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,17 +18,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
-import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
-  DiscoverInstanceItem,
-  DiscoverInstancesResponse,
   InstanceDetailResponse,
   InstanceItem,
   InstanceListResponse,
@@ -38,26 +33,14 @@ import type {
 } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
 
+import { CreateInstanceDialog } from "./create-instance-dialog";
 import { InstanceConnectionFields } from "./instance-connection-fields";
 import {
-  buildDiscoverySchema,
   buildInstanceFormSchema,
+  DEFAULT_INSTANCE_FORM_VALUES,
   type InstanceFormValues,
-  parseDiscoveryCandidatesInput,
   toInstanceRequestBody,
 } from "./instance-form-schema";
-
-const DEFAULT_INSTANCE_FORM_VALUES: InstanceFormValues = {
-  name: "",
-  baseUrl: "",
-  servicePassword: "",
-  allowSelfSigned: false,
-  certificatePem: "",
-};
-
-type DiscoveryFormValues = {
-  candidates?: string;
-};
 
 export function InstancesWorkspace({
   initialItems,
@@ -67,12 +50,8 @@ export function InstancesWorkspace({
   const { messages, formatDateTime } = useWebI18n();
   const { csrfToken } = useAppSession();
   const client = useMemo(() => getBrowserApiClient(), []);
-  const createInstanceSchema = useMemo(() => buildInstanceFormSchema(messages, { requirePassword: true }), [messages]);
   const editInstanceSchema = useMemo(() => buildInstanceFormSchema(messages, { requirePassword: false }), [messages]);
-  const discoverySchema = useMemo(() => buildDiscoverySchema(messages), [messages]);
   const [items, setItems] = useState(initialItems);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [discoveries, setDiscoveries] = useState<DiscoverInstanceItem[]>([]);
   const [testingId, setTestingId] = useState<string | null>(null);
   const [reauthenticatingId, setReauthenticatingId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -82,27 +61,9 @@ export function InstancesWorkspace({
   const [editSaveError, setEditSaveError] = useState<string | null>(null);
   const [isEditLoading, setIsEditLoading] = useState(false);
   const editRequestIdRef = useRef(0);
-  const createForm = useForm<InstanceFormValues>({
-    resolver: zodResolver(createInstanceSchema),
-    defaultValues: DEFAULT_INSTANCE_FORM_VALUES,
-  });
   const editForm = useForm<InstanceFormValues>({
     resolver: zodResolver(editInstanceSchema),
     defaultValues: DEFAULT_INSTANCE_FORM_VALUES,
-  });
-  const discoverForm = useForm<DiscoveryFormValues>({
-    resolver: zodResolver(discoverySchema),
-    defaultValues: {
-      candidates: "https://pi.hole",
-    },
-  });
-  const createCertificatePem = useWatch({
-    control: createForm.control,
-    name: "certificatePem",
-  });
-  const createAllowSelfSigned = useWatch({
-    control: createForm.control,
-    name: "allowSelfSigned",
   });
   const editCertificatePem = useWatch({
     control: editForm.control,
@@ -112,17 +73,7 @@ export function InstancesWorkspace({
     control: editForm.control,
     name: "allowSelfSigned",
   });
-  const isCreateAllowSelfSignedDisabled = (createCertificatePem ?? "").trim().length > 0;
   const isEditAllowSelfSignedDisabled = (editCertificatePem ?? "").trim().length > 0;
-
-  useEffect(() => {
-    if (isCreateAllowSelfSignedDisabled && createAllowSelfSigned) {
-      createForm.setValue("allowSelfSigned", false, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    }
-  }, [createAllowSelfSigned, createForm, isCreateAllowSelfSignedDisabled]);
 
   useEffect(() => {
     if (isEditAllowSelfSignedDisabled && editAllowSelfSigned) {
@@ -213,28 +164,6 @@ export function InstancesWorkspace({
     void loadEditDetails(instanceId);
   };
 
-  const createInstance = async (values: InstanceFormValues) => {
-    setCreateError(null);
-    const { response } = await client.POST<InstanceMutationResponse>("/instances", {
-      headers: {
-        "x-yapd-csrf": csrfToken,
-      },
-      body: toInstanceRequestBody(values),
-    });
-
-    if (!response.ok) {
-      const message = await getApiErrorMessage(response);
-      setCreateError(message);
-      toast.error(message);
-      return;
-    }
-
-    setCreateError(null);
-    toast.success(messages.forms.instances.toasts.createSuccess);
-    createForm.reset(DEFAULT_INSTANCE_FORM_VALUES);
-    await refreshItems();
-  };
-
   const updateInstance = async (values: InstanceFormValues) => {
     if (!editingInstanceId) {
       return;
@@ -263,26 +192,6 @@ export function InstancesWorkspace({
     toast.success(messages.forms.instances.toasts.updateSuccess);
     resetEditDialog();
     await refreshItems();
-  };
-
-  const discoverInstances = async (values: DiscoveryFormValues) => {
-    const parsedCandidates = parseDiscoveryCandidatesInput(values.candidates);
-    const { data, response } = await client.POST<DiscoverInstancesResponse>("/instances/discover", {
-      headers: {
-        "x-yapd-csrf": csrfToken,
-      },
-      body: {
-        candidates: parsedCandidates.candidates.length > 0 ? parsedCandidates.candidates : undefined,
-      },
-    });
-
-    if (!response.ok || !data) {
-      toast.error(await getApiErrorMessage(response));
-      return;
-    }
-
-    setDiscoveries(data.items);
-    toast.success(messages.forms.instances.toasts.discoverSuccess);
   };
 
   const testInstance = async (instanceId: string) => {
@@ -376,106 +285,13 @@ export function InstancesWorkspace({
   return (
     <>
       <div className="space-y-6">
-        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>{messages.forms.instances.create.title}</CardTitle>
-              <CardDescription>{messages.forms.instances.create.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form
-                noValidate
-                className="space-y-6"
-                onSubmit={createForm.handleSubmit((values) => void createInstance(values))}
-              >
-                <InstanceConnectionFields
-                  form={createForm}
-                  idPrefix="instance-create"
-                  isAllowSelfSignedDisabled={isCreateAllowSelfSignedDisabled}
-                  messages={messages}
-                  passwordDescription={messages.forms.instances.create.passwordDescription}
-                />
-                {createError ? (
-                  <Alert variant="destructive">
-                    <AlertTitle>{messages.forms.instances.create.validationFailedTitle}</AlertTitle>
-                    <AlertDescription>{createError}</AlertDescription>
-                  </Alert>
-                ) : null}
-                <Button type="submit" disabled={createForm.formState.isSubmitting}>
-                  {createForm.formState.isSubmitting
-                    ? messages.forms.instances.create.submitLoading
-                    : messages.forms.instances.create.submitIdle}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{messages.forms.instances.discovery.title}</CardTitle>
-              <CardDescription>{messages.forms.instances.discovery.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <form
-                noValidate
-                className="space-y-4"
-                onSubmit={discoverForm.handleSubmit((values) => void discoverInstances(values))}
-              >
-                <Controller
-                  control={discoverForm.control}
-                  name="candidates"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="discover-candidates">
-                        {messages.forms.instances.discovery.candidates}
-                      </FieldLabel>
-                      <Textarea
-                        {...field}
-                        id="discover-candidates"
-                        rows={6}
-                        placeholder={"https://pi.hole\nhttps://pihole.lan"}
-                        aria-invalid={fieldState.invalid}
-                      />
-                      <FieldDescription>
-                        {messages.forms.instances.discovery.candidatesDescription(
-                          FRONTEND_CONFIG.instances.discoveryCandidateLimit,
-                        )}
-                      </FieldDescription>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-                <Button type="submit" variant="outline" disabled={discoverForm.formState.isSubmitting}>
-                  {discoverForm.formState.isSubmitting
-                    ? messages.forms.instances.discovery.submitLoading
-                    : messages.forms.instances.discovery.submitIdle}
-                </Button>
-              </form>
-
-              <div className="space-y-3 text-sm">
-                {discoveries.length === 0 ? (
-                  <p className="text-muted-foreground">{messages.forms.instances.discovery.empty}</p>
-                ) : (
-                  discoveries.map((item) => (
-                    <div key={item.baseUrl} className="rounded-xl border p-3">
-                      <p className="font-medium">{item.baseUrl}</p>
-                      <p className="text-muted-foreground">
-                        {item.reachable
-                          ? messages.forms.instances.discovery.reachable
-                          : (item.error ?? messages.forms.instances.discovery.unreachable)}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         <Card>
-          <CardHeader>
-            <CardTitle>{messages.forms.instances.table.title}</CardTitle>
-            <CardDescription>{messages.forms.instances.table.description}</CardDescription>
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-1.5">
+              <CardTitle>{messages.forms.instances.table.title}</CardTitle>
+              <CardDescription>{messages.forms.instances.table.description}</CardDescription>
+            </div>
+            <CreateInstanceDialog onCreated={refreshItems} />
           </CardHeader>
           <CardContent>
             <Table>

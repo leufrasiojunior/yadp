@@ -21,21 +21,28 @@ type QueriesPaginationProps = {
 };
 
 function buildVisiblePages(totalPages: number, currentPage: number) {
-  if (totalPages <= 4) {
+  if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_value, index) => index + 1);
   }
 
   const pages = new Set<number>([1, totalPages]);
 
-  if (currentPage <= 2) {
+  for (let page = currentPage - 1; page <= currentPage + 1; page += 1) {
+    if (page > 1 && page < totalPages) {
+      pages.add(page);
+    }
+  }
+
+  if (currentPage <= 3) {
     pages.add(2);
     pages.add(3);
-  } else if (currentPage >= totalPages - 1) {
+    pages.add(4);
+  }
+
+  if (currentPage >= totalPages - 2) {
+    pages.add(totalPages - 3);
     pages.add(totalPages - 2);
     pages.add(totalPages - 1);
-  } else {
-    pages.add(currentPage);
-    pages.add(currentPage + 1);
   }
 
   return [...pages].filter((page) => page >= 1 && page <= totalPages).sort((left, right) => left - right);

@@ -116,8 +116,11 @@ type WebMessages = {
         updateSuccess: string;
       };
       create: {
+        openModal: string;
         title: string;
         description: string;
+        manualTab: string;
+        discoveryTab: string;
         name: string;
         baseUrl: string;
         password: string;
@@ -125,6 +128,7 @@ type WebMessages = {
         allowSelfSigned: string;
         certificate: string;
         validationFailedTitle: string;
+        cancel: string;
         submitIdle: string;
         submitLoading: string;
       };
@@ -147,6 +151,9 @@ type WebMessages = {
         empty: string;
         reachable: string;
         unreachable: string;
+        useAddressHint: string;
+        useDiscoveredAddress: string;
+        invalidSelection: string;
         submitIdle: string;
         submitLoading: string;
       };
@@ -560,8 +567,11 @@ const messages: Record<AppLocale, WebMessages> = {
           updateSuccess: "Instância atualizada com sucesso.",
         },
         create: {
+          openModal: "Cadastrar instância",
           title: "Cadastrar instância",
           description: "Salve uma credencial técnica para o backend operar sobre outro Pi-hole.",
+          manualTab: "Manual",
+          discoveryTab: "Descoberta",
           name: "Nome",
           baseUrl: "Base URL",
           password: "Senha/Application password",
@@ -569,6 +579,7 @@ const messages: Record<AppLocale, WebMessages> = {
           allowSelfSigned: "Permitir self-signed explicitamente",
           certificate: "CA personalizada opcional",
           validationFailedTitle: "Falha ao validar a instância",
+          cancel: "Cancelar",
           submitIdle: "Salvar instância",
           submitLoading: "Validando...",
         },
@@ -592,6 +603,9 @@ const messages: Record<AppLocale, WebMessages> = {
           empty: "Nenhum resultado ainda. Rode a descoberta para testar candidatos.",
           reachable: "Pi-hole respondeu ao endpoint /auth.",
           unreachable: "Não foi possível conectar.",
+          useAddressHint: "Use um resultado alcançável para preencher a Base URL na aba manual.",
+          useDiscoveredAddress: "Usar este endereço",
+          invalidSelection: "O resultado selecionado não contém uma URL válida.",
           submitIdle: "Executar descoberta",
           submitLoading: "Buscando...",
         },
@@ -1024,8 +1038,11 @@ const messages: Record<AppLocale, WebMessages> = {
           updateSuccess: "Instance updated successfully.",
         },
         create: {
+          openModal: "Register instance",
           title: "Register instance",
           description: "Store a technical credential so the backend can operate on another Pi-hole.",
+          manualTab: "Manual",
+          discoveryTab: "Discovery",
           name: "Name",
           baseUrl: "Base URL",
           password: "Password/Application password",
@@ -1033,6 +1050,7 @@ const messages: Record<AppLocale, WebMessages> = {
           allowSelfSigned: "Explicitly allow self-signed",
           certificate: "Optional custom CA",
           validationFailedTitle: "Instance validation failed",
+          cancel: "Cancel",
           submitIdle: "Save instance",
           submitLoading: "Validating...",
         },
@@ -1056,6 +1074,9 @@ const messages: Record<AppLocale, WebMessages> = {
           empty: "No results yet. Run discovery to test candidates.",
           reachable: "Pi-hole responded to the /auth endpoint.",
           unreachable: "Could not connect.",
+          useAddressHint: "Use a reachable result to populate the Base URL in the manual tab.",
+          useDiscoveredAddress: "Use this address",
+          invalidSelection: "The selected result does not contain a valid URL.",
           submitIdle: "Run discovery",
           submitLoading: "Searching...",
         },

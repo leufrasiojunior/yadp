@@ -27,5 +27,3 @@ Tambem adicionar um alternador do tema claro/escuro no top bar
 
 adicionar um passo opcional no setup, depois de configurar as instancias, ja perguntar se quer sincronizar
 (perguntar 2x, pois pode ser uma acao destrutiva, quando aceitar.)
-
-mover as constants para um local melhor, e mais facil de achar caso precise editar algo.

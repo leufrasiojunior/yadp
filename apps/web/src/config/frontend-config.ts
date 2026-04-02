@@ -1,4 +1,3 @@
-// Central place for frontend defaults and limits that may need quick adjustments.
 export const FRONTEND_CONFIG = {
   dashboard: {
     autoRefreshIntervalMs: 5_000,

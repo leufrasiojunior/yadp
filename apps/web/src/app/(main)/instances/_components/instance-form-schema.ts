@@ -15,11 +15,19 @@ export type InstanceFormValues = {
   certificatePem: string;
 };
 
+export const DEFAULT_INSTANCE_FORM_VALUES: InstanceFormValues = {
+  name: "",
+  baseUrl: "",
+  servicePassword: "",
+  allowSelfSigned: false,
+  certificatePem: "",
+};
+
 function normalizeText(value: string) {
   return value.trim();
 }
 
-function isValidHttpUrl(value: string) {
+export function isValidHttpUrl(value: string) {
   try {
     const parsed = new URL(value);
     return parsed.protocol === "http:" || parsed.protocol === "https:";
