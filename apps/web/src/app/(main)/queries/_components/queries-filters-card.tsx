@@ -7,7 +7,6 @@ import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import type { QuerySuggestionsResponse } from "@/lib/api/yapd-types";
@@ -15,7 +14,7 @@ import type { WebMessages } from "@/lib/i18n/messages";
 import type { QueryFilters } from "@/lib/queries/queries-filters";
 import { cn } from "@/lib/utils";
 
-import { SuggestionInput, SuggestionSelectInput } from "./query-filters-fields";
+import { DateTimeRangePicker, SuggestionCombobox } from "./query-filters-fields";
 
 const FILTER_SUGGESTION_SKELETON_KEYS = Array.from({ length: 7 }, (_value, index) => `query-filter-${index}`);
 
@@ -79,27 +78,18 @@ export function QueriesFiltersCard({
               }}
             >
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div className="space-y-2">
-                  <label className="font-medium text-sm" htmlFor={`${datalistPrefix}-from`}>
-                    {messages.queries.filters.from}
-                  </label>
-                  <Input
-                    id={`${datalistPrefix}-from`}
-                    type="datetime-local"
-                    value={draftFilters.from}
-                    onChange={(event) => updateDraft("from", event.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="font-medium text-sm" htmlFor={`${datalistPrefix}-until`}>
-                    {messages.queries.filters.until}
-                  </label>
-                  <Input
-                    id={`${datalistPrefix}-until`}
-                    type="datetime-local"
-                    value={draftFilters.until}
-                    onChange={(event) => updateDraft("until", event.target.value)}
+                <div className="md:col-span-2 xl:col-span-2">
+                  <DateTimeRangePicker
+                    clearLabel={messages.queries.filters.clear}
+                    fromLabel={messages.queries.filters.from}
+                    fromValue={draftFilters.from}
+                    label={`${messages.queries.filters.from} - ${messages.queries.filters.until}`}
+                    onChange={(nextValue) => {
+                      updateDraft("from", nextValue.from);
+                      updateDraft("until", nextValue.until);
+                    }}
+                    untilLabel={messages.queries.filters.until}
+                    untilValue={draftFilters.until}
                   />
                 </div>
 
@@ -109,7 +99,8 @@ export function QueriesFiltersCard({
                   ))
                 ) : (
                   <>
-                    <SuggestionInput
+                    <SuggestionCombobox
+                      emptyText={messages.queries.filters.empty}
                       inputId={`${datalistPrefix}-domain`}
                       label={messages.queries.filters.domain}
                       placeholder={messages.queries.filters.suggestionPlaceholder}
@@ -117,7 +108,8 @@ export function QueriesFiltersCard({
                       value={draftFilters.domain}
                       onChange={(value) => updateDraft("domain", value)}
                     />
-                    <SuggestionInput
+                    <SuggestionCombobox
+                      emptyText={messages.queries.filters.empty}
                       inputId={`${datalistPrefix}-client-ip`}
                       label={messages.queries.filters.clientIp}
                       placeholder={messages.queries.filters.suggestionPlaceholder}
@@ -125,7 +117,8 @@ export function QueriesFiltersCard({
                       value={draftFilters.clientIp}
                       onChange={(value) => updateDraft("clientIp", value)}
                     />
-                    <SuggestionInput
+                    <SuggestionCombobox
+                      emptyText={messages.queries.filters.empty}
                       inputId={`${datalistPrefix}-upstream`}
                       label={messages.queries.filters.upstream}
                       placeholder={messages.queries.filters.suggestionPlaceholder}
@@ -133,7 +126,8 @@ export function QueriesFiltersCard({
                       value={draftFilters.upstream}
                       onChange={(value) => updateDraft("upstream", value)}
                     />
-                    <SuggestionSelectInput
+                    <SuggestionCombobox
+                      emptyText={messages.queries.filters.empty}
                       inputId={`${datalistPrefix}-type`}
                       label={messages.queries.filters.type}
                       placeholder={messages.queries.filters.suggestionPlaceholder}
@@ -141,7 +135,8 @@ export function QueriesFiltersCard({
                       value={draftFilters.type}
                       onChange={(value) => updateDraft("type", value)}
                     />
-                    <SuggestionSelectInput
+                    <SuggestionCombobox
+                      emptyText={messages.queries.filters.empty}
                       inputId={`${datalistPrefix}-status`}
                       label={messages.queries.filters.status}
                       placeholder={messages.queries.filters.suggestionPlaceholder}
@@ -149,7 +144,8 @@ export function QueriesFiltersCard({
                       value={draftFilters.status}
                       onChange={(value) => updateDraft("status", value)}
                     />
-                    <SuggestionSelectInput
+                    <SuggestionCombobox
+                      emptyText={messages.queries.filters.empty}
                       inputId={`${datalistPrefix}-reply`}
                       label={messages.queries.filters.reply}
                       placeholder={messages.queries.filters.suggestionPlaceholder}
@@ -157,7 +153,8 @@ export function QueriesFiltersCard({
                       value={draftFilters.reply}
                       onChange={(value) => updateDraft("reply", value)}
                     />
-                    <SuggestionSelectInput
+                    <SuggestionCombobox
+                      emptyText={messages.queries.filters.empty}
                       inputId={`${datalistPrefix}-dnssec`}
                       label={messages.queries.filters.dnssec}
                       placeholder={messages.queries.filters.suggestionPlaceholder}

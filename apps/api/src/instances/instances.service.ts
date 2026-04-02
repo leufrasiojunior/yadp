@@ -1,4 +1,11 @@
-import { BadGatewayException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import {
+  BadGatewayException,
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import type { Request } from "express";
 
 import { AuditService } from "../audit/audit.service";
@@ -65,6 +72,33 @@ export class InstancesService {
     };
   }
 
+  async getInstance(instanceId: string, request: Request) {
+    const locale = getRequestLocale(request);
+    const instance = await this.prisma.instance.findUnique({
+      where: { id: instanceId },
+      include: {
+        certificateTrust: true,
+      },
+    });
+
+    if (!instance) {
+      throw new NotFoundException(translateApi(locale, "instances.notFound"));
+    }
+
+    return {
+      instance: {
+        id: instance.id,
+        name: instance.name,
+        baseUrl: instance.baseUrl,
+        isBaseline: instance.isBaseline,
+        trustMode: instance.certificateTrust?.mode ?? "STRICT",
+        hasCustomCertificate: Boolean(instance.certificateTrust?.certificatePem),
+        allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
+        certificatePem: instance.certificateTrust?.certificatePem ?? null,
+      },
+    };
+  }
+
   async discoverInstances(dto: DiscoverInstancesDto, request: Request) {
     const locale = getRequestLocale(request);
     const candidates = Array.from(new Set(dto.candidates?.length ? dto.candidates : DEFAULT_DISCOVERY_CANDIDATES));
@@ -118,6 +152,8 @@ export class InstancesService {
       locale,
     };
     const ipAddress = getRequestIp(request);
+
+    this.assertTrustConfiguration(locale, connection.allowSelfSigned ?? false, connection.certificatePem);
 
     try {
       const session = await this.pihole.authenticate(connection, dto.servicePassword);
@@ -225,6 +261,8 @@ export class InstancesService {
       locale,
     };
     const ipAddress = getRequestIp(request);
+
+    this.assertTrustConfiguration(locale, connection.allowSelfSigned ?? false, connection.certificatePem);
 
     try {
       const session = await this.pihole.authenticate(connection, servicePassword);
@@ -440,6 +478,16 @@ export class InstancesService {
     }
 
     return allowSelfSigned ? "ALLOW_SELF_SIGNED" : "STRICT";
+  }
+
+  private assertTrustConfiguration(
+    locale: ReturnType<typeof getRequestLocale>,
+    allowSelfSigned: boolean,
+    certificatePem?: string | null,
+  ) {
+    if (allowSelfSigned && certificatePem) {
+      throw new BadRequestException(translateApi(locale, "instances.invalidTrustConfiguration"));
+    }
   }
 
   private normalizeConfiguredBaseUrl(baseUrl: string) {

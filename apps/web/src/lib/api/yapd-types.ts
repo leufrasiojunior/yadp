@@ -10,6 +10,8 @@ export type BaselineSummary = {
   baseUrl: string;
 };
 
+export type InstanceTrustMode = "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
+
 export type SetupStatus = {
   needsSetup: boolean;
   baselineConfigured: boolean;
@@ -47,7 +49,7 @@ export type InstanceItem = {
   isBaseline: boolean;
   lastKnownVersion: string | null;
   lastValidatedAt: string | null;
-  trustMode: string;
+  trustMode: InstanceTrustMode;
   hasCustomCertificate: boolean;
   createdAt: string;
   updatedAt: string;
@@ -64,6 +66,28 @@ export type InstanceListResponse = {
   items: InstanceItem[];
 };
 
+export type InstanceDetailResponse = {
+  instance: {
+    id: string;
+    name: string;
+    baseUrl: string;
+    isBaseline: boolean;
+    trustMode: InstanceTrustMode;
+    hasCustomCertificate: boolean;
+    allowSelfSigned: boolean;
+    certificatePem: string | null;
+  };
+};
+
+export type InstanceMutationResponse = {
+  instance: {
+    id: string;
+    name: string;
+    baseUrl: string;
+    version: string;
+  };
+};
+
 export type DiscoverInstanceItem = {
   baseUrl: string;
   reachable: boolean;
@@ -73,6 +97,22 @@ export type DiscoverInstanceItem = {
 
 export type DiscoverInstancesResponse = {
   items: DiscoverInstanceItem[];
+};
+
+export type InstanceTestResponse = {
+  ok: true;
+  version: string;
+  checkedAt: string;
+};
+
+export type InstanceReauthenticateResponse = {
+  ok: true;
+  version: string;
+  checkedAt: string;
+  sessionStatus: InstanceItem["sessionStatus"];
+  sessionLoginAt: string | null;
+  sessionLastActiveAt: string | null;
+  sessionValidUntil: string | null;
 };
 
 export type DashboardInstanceErrorKind =

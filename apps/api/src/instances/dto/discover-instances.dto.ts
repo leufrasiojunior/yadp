@@ -1,12 +1,15 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { ArrayMaxSize, IsArray, IsOptional, IsString, IsUrl } from "class-validator";
 
+import { NormalizeDiscoveryCandidates } from "./instance-validation";
+
 export class DiscoverInstancesDto {
   @ApiPropertyOptional({
     type: [String],
     example: ["https://pi.hole", "https://pihole.lan"],
   })
   @IsOptional()
+  @NormalizeDiscoveryCandidates()
   @IsArray()
   @ArrayMaxSize(20)
   @IsString({ each: true })

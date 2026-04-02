@@ -172,10 +172,23 @@ function ComboboxGroup({ className, ...props }: ComboboxPrimitive.Group.Props) {
 function ComboboxLabel({
   className,
   ...props
+}: ComboboxPrimitive.Label.Props) {
+  return (
+    <ComboboxPrimitive.Label
+      data-slot="combobox-label"
+      className={cn(className)}
+      {...props}
+    />
+  )
+}
+
+function ComboboxGroupLabel({
+  className,
+  ...props
 }: ComboboxPrimitive.GroupLabel.Props) {
   return (
     <ComboboxPrimitive.GroupLabel
-      data-slot="combobox-label"
+      data-slot="combobox-group-label"
       className={cn("px-2 py-1.5 text-xs text-muted-foreground", className)}
       {...props}
     />
@@ -287,6 +300,7 @@ export {
   ComboboxItem,
   ComboboxGroup,
   ComboboxLabel,
+  ComboboxGroupLabel,
   ComboboxCollection,
   ComboboxEmpty,
   ComboboxSeparator,

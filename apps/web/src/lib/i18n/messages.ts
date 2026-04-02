@@ -101,13 +101,19 @@ type WebMessages = {
         name: string;
         baseUrl: string;
         password: string;
+        certificatePem: string;
+        trustMode: string;
+        candidates: string;
+        candidatesLimit: string;
       };
       toasts: {
         refreshFailed: string;
         createSuccess: string;
         discoverSuccess: string;
+        detailsLoadFailed: string;
         testSuccess: string;
         reauthenticateSuccess: string;
+        updateSuccess: string;
       };
       create: {
         title: string;
@@ -119,6 +125,17 @@ type WebMessages = {
         allowSelfSigned: string;
         certificate: string;
         validationFailedTitle: string;
+        submitIdle: string;
+        submitLoading: string;
+      };
+      edit: {
+        title: string;
+        description: string;
+        passwordDescription: string;
+        validationFailedTitle: string;
+        loadFailedTitle: string;
+        loading: string;
+        cancel: string;
         submitIdle: string;
         submitLoading: string;
       };
@@ -149,6 +166,8 @@ type WebMessages = {
         managed: string;
         humanMaster: string;
         storedSecret: string;
+        editIdle: string;
+        editLoading: string;
         testIdle: string;
         testLoading: string;
         reauthenticateIdle: string;
@@ -360,6 +379,7 @@ type WebMessages = {
       clear: string;
       suggestionsLoading: string;
       suggestionPlaceholder: string;
+      empty: string;
     };
     table: {
       title: string;
@@ -525,13 +545,19 @@ const messages: Record<AppLocale, WebMessages> = {
           name: "Informe um nome.",
           baseUrl: "Use uma URL completa.",
           password: "Informe a senha ou application password.",
+          certificatePem: "Informe um certificado PEM valido.",
+          trustMode: "Use CA personalizada ou self-signed explicito, mas nao os dois ao mesmo tempo.",
+          candidates: "Use apenas URLs http/https validas, uma por linha ou separadas por virgula.",
+          candidatesLimit: "Informe no maximo 20 candidatos por descoberta.",
         },
         toasts: {
           refreshFailed: "Não foi possível atualizar a lista de instâncias.",
           createSuccess: "Instância cadastrada com sucesso.",
           discoverSuccess: "Descoberta executada.",
+          detailsLoadFailed: "Não foi possível carregar os detalhes da instância.",
           testSuccess: "Conexão validada com sucesso.",
           reauthenticateSuccess: "Sessão da instância renovada com sucesso.",
+          updateSuccess: "Instância atualizada com sucesso.",
         },
         create: {
           title: "Cadastrar instância",
@@ -546,11 +572,22 @@ const messages: Record<AppLocale, WebMessages> = {
           submitIdle: "Salvar instância",
           submitLoading: "Validando...",
         },
+        edit: {
+          title: "Editar instância",
+          description: "Atualize a conexão técnica e revalide a instância antes de salvar.",
+          passwordDescription: "Deixe em branco para manter a credencial técnica atual.",
+          validationFailedTitle: "Falha ao atualizar a instância",
+          loadFailedTitle: "Falha ao carregar a instância",
+          loading: "Carregando detalhes da instância...",
+          cancel: "Cancelar",
+          submitIdle: "Salvar alterações",
+          submitLoading: "Salvando...",
+        },
         discovery: {
           title: "Descoberta assistida",
           description: "Informe candidatos para o backend verificar se respondem como Pi-hole.",
           candidates: "Candidatos",
-          candidatesDescription: "Use uma URL por linha ou separadas por vírgula.",
+          candidatesDescription: "Use uma URL por linha ou separadas por vírgula, com limite de 20 candidatos.",
           empty: "Nenhum resultado ainda. Rode a descoberta para testar candidatos.",
           reachable: "Pi-hole respondeu ao endpoint /auth.",
           unreachable: "Não foi possível conectar.",
@@ -573,6 +610,8 @@ const messages: Record<AppLocale, WebMessages> = {
           managed: "Instância gerenciada",
           humanMaster: "Login humano master",
           storedSecret: "Segredo salvo",
+          editIdle: "Editar",
+          editLoading: "Abrindo...",
           testIdle: "Testar",
           testLoading: "Testando...",
           reauthenticateIdle: "Reautenticar",
@@ -805,6 +844,7 @@ const messages: Record<AppLocale, WebMessages> = {
         clear: "Limpar",
         suggestionsLoading: "Carregando sugestões...",
         suggestionPlaceholder: "Digite ou escolha da lista",
+        empty: "Nenhuma opção encontrada.",
       },
       table: {
         title: "Tabela de queries",
@@ -968,13 +1008,19 @@ const messages: Record<AppLocale, WebMessages> = {
           name: "Provide a name.",
           baseUrl: "Use a full URL.",
           password: "Provide the password or application password.",
+          certificatePem: "Provide a valid PEM certificate bundle.",
+          trustMode: "Use either a custom CA or explicit self-signed trust, but not both at the same time.",
+          candidates: "Use only valid http/https URLs, one per line or separated with commas.",
+          candidatesLimit: "Provide at most 20 discovery candidates.",
         },
         toasts: {
           refreshFailed: "Could not refresh the instance list.",
           createSuccess: "Instance created successfully.",
           discoverSuccess: "Discovery completed.",
+          detailsLoadFailed: "Could not load the instance details.",
           testSuccess: "Connection validated successfully.",
           reauthenticateSuccess: "Instance session renewed successfully.",
+          updateSuccess: "Instance updated successfully.",
         },
         create: {
           title: "Register instance",
@@ -989,11 +1035,22 @@ const messages: Record<AppLocale, WebMessages> = {
           submitIdle: "Save instance",
           submitLoading: "Validating...",
         },
+        edit: {
+          title: "Edit instance",
+          description: "Update the technical connection and revalidate the instance before saving.",
+          passwordDescription: "Leave blank to keep the current technical credential.",
+          validationFailedTitle: "Failed to update the instance",
+          loadFailedTitle: "Failed to load the instance",
+          loading: "Loading instance details...",
+          cancel: "Cancel",
+          submitIdle: "Save changes",
+          submitLoading: "Saving...",
+        },
         discovery: {
           title: "Guided discovery",
           description: "Provide candidates for the backend to verify as Pi-hole endpoints.",
           candidates: "Candidates",
-          candidatesDescription: "Use one URL per line or separate them with commas.",
+          candidatesDescription: "Use one URL per line or separate them with commas, up to 20 candidates.",
           empty: "No results yet. Run discovery to test candidates.",
           reachable: "Pi-hole responded to the /auth endpoint.",
           unreachable: "Could not connect.",
@@ -1016,6 +1073,8 @@ const messages: Record<AppLocale, WebMessages> = {
           managed: "Managed instance",
           humanMaster: "Human master login",
           storedSecret: "Stored secret",
+          editIdle: "Edit",
+          editLoading: "Opening...",
           testIdle: "Test",
           testLoading: "Testing...",
           reauthenticateIdle: "Reauthenticate",
@@ -1246,6 +1305,7 @@ const messages: Record<AppLocale, WebMessages> = {
         clear: "Clear",
         suggestionsLoading: "Loading suggestions...",
         suggestionPlaceholder: "Type or pick from the list",
+        empty: "No options found.",
       },
       table: {
         title: "Queries table",

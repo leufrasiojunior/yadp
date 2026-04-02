@@ -14,13 +14,18 @@ Regex para mais tipos de bloqueio:
 -----
 
 mandar o codex
-melhorar os icones do botao de acao (ajustar tamanho fixo e nao deixar cada um de um tamanho)
 por algum motivo quando passo por exemplo da pagina 1 para a 2 estao vindo 1000 registros na tabela, somente quando seleciono Todas as instancias, mesmo sem alterar a quantidade de itens para serem mostrados na tabela
 remover o aviso do checkbox de atualizando, e deixar um simples spiner ao lado.(como somente indicativo que esta atualizando)
-quando acionar o modo live fora da pagina 1, retornar para a pagina 1.
+Botao de atualizar a tabela
 
 
-alterar os filtros
-Alterar para o elemtno do shadcn: Periodo de data uisando o DatePickerRange com selecao de horario
+Separar idiomas, e types em locais apropriados
+apps/web/src/lib/i18n/messages.ts
 
-alterar os filtros para usar o combobox do shadcn com a opcao de clear por item, e a opcao de busca ativa, com o Input inside popup(consultar documentacao https://base-ui.com/react/components/combobox#ComboboxRoot-autoComplete)
+Adicionar bandeiras no seletor de idiomas
+Tambem adicionar um alternador do tema claro/escuro no top bar
+
+adicionar um passo opcional no setup, depois de configurar as instancias, ja perguntar se quer sincronizar
+(perguntar 2x, pois pode ser uma acao destrutiva, quando aceitar.)
+
+mover as constants para um local melhor, e mais facil de achar caso precise editar algo.

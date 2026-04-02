@@ -435,7 +435,121 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "baseUrl": {
+                            "type": "string"
+                          },
+                          "isBaseline": {
+                            "type": "boolean"
+                          },
+                          "lastKnownVersion": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "lastValidatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "trustMode": {
+                            "type": "string",
+                            "enum": ["STRICT", "CUSTOM_CA", "ALLOW_SELF_SIGNED"]
+                          },
+                          "hasCustomCertificate": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "sessionStatus": {
+                            "type": "string",
+                            "enum": ["active", "expired", "missing", "error"]
+                          },
+                          "sessionManagedBy": {
+                            "type": "string",
+                            "enum": ["human-master", "stored-secret"],
+                            "nullable": true
+                          },
+                          "sessionLoginAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "sessionLastActiveAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "sessionValidUntil": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "sessionLastErrorKind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ],
+                            "nullable": true
+                          },
+                          "sessionLastErrorMessage": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "baseUrl",
+                          "isBaseline",
+                          "lastKnownVersion",
+                          "lastValidatedAt",
+                          "trustMode",
+                          "hasCustomCertificate",
+                          "createdAt",
+                          "updatedAt",
+                          "sessionStatus",
+                          "sessionManagedBy",
+                          "sessionLoginAt",
+                          "sessionLastActiveAt",
+                          "sessionValidUntil",
+                          "sessionLastErrorKind",
+                          "sessionLastErrorMessage"
+                        ]
+                      }
+                    }
+                  },
+                  "required": ["items"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -448,9 +562,241 @@
       "post": {
         "operationId": "InstancesController_createInstance",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120,
+                    "example": "Pi-hole Sala"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://pihole.lan"
+                  },
+                  "servicePassword": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 512,
+                    "example": "service-password"
+                  },
+                  "allowSelfSigned": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "certificatePem": {
+                    "type": "string",
+                    "example": "-----BEGIN CERTIFICATE-----"
+                  }
+                },
+                "required": ["name", "baseUrl", "servicePassword"]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "instance": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "baseUrl": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["id", "name", "baseUrl", "version"]
+                    }
+                  },
+                  "required": ["instance"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      }
+    },
+    "/instances/{id}": {
+      "get": {
+        "operationId": "InstancesController_getInstance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "instance": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "baseUrl": {
+                          "type": "string"
+                        },
+                        "isBaseline": {
+                          "type": "boolean"
+                        },
+                        "trustMode": {
+                          "type": "string",
+                          "enum": ["STRICT", "CUSTOM_CA", "ALLOW_SELF_SIGNED"]
+                        },
+                        "hasCustomCertificate": {
+                          "type": "boolean"
+                        },
+                        "allowSelfSigned": {
+                          "type": "boolean"
+                        },
+                        "certificatePem": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "baseUrl",
+                        "isBaseline",
+                        "trustMode",
+                        "hasCustomCertificate",
+                        "allowSelfSigned",
+                        "certificatePem"
+                      ]
+                    }
+                  },
+                  "required": ["instance"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      },
+      "patch": {
+        "operationId": "InstancesController_updateInstance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120,
+                    "example": "Pi-hole Sala"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://pihole.lan"
+                  },
+                  "servicePassword": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 512,
+                    "example": "service-password"
+                  },
+                  "allowSelfSigned": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "certificatePem": {
+                    "type": "string",
+                    "example": "-----BEGIN CERTIFICATE-----"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "instance": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "baseUrl": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["id", "name", "baseUrl", "version"]
+                    }
+                  },
+                  "required": ["instance"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -465,9 +811,61 @@
       "post": {
         "operationId": "InstancesController_discoverInstances",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "candidates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "maxItems": 20,
+                    "example": ["https://pi.hole", "https://pihole.lan"]
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "baseUrl": {
+                            "type": "string"
+                          },
+                          "reachable": {
+                            "type": "boolean"
+                          },
+                          "authRequired": {
+                            "type": "boolean"
+                          },
+                          "error": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["baseUrl", "reachable", "authRequired"]
+                      }
+                    }
+                  },
+                  "required": ["items"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -481,10 +879,39 @@
     "/instances/{id}/test": {
       "post": {
         "operationId": "InstancesController_testInstance",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": ["ok", "version", "checkedAt"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -498,27 +925,66 @@
     "/instances/{id}/reauthenticate": {
       "post": {
         "operationId": "InstancesController_reauthenticateInstance",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
+        "parameters": [
           {
-            "cookie": []
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
-        "tags": ["instances"]
-      }
-    },
-    "/instances/{id}": {
-      "patch": {
-        "operationId": "InstancesController_updateInstance",
-        "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionStatus": {
+                      "type": "string",
+                      "enum": ["active", "expired", "missing", "error"]
+                    },
+                    "sessionLoginAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "sessionLastActiveAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "sessionValidUntil": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "version",
+                    "checkedAt",
+                    "sessionStatus",
+                    "sessionLoginAt",
+                    "sessionLastActiveAt",
+                    "sessionValidUntil"
+                  ]
+                }
+              }
+            }
           }
         },
         "security": [

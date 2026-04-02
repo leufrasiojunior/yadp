@@ -100,6 +100,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/instances/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["InstancesController_getInstance"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["InstancesController_updateInstance"];
+    trace?: never;
+  };
   "/instances/discover": {
     parameters: {
       query?: never;
@@ -146,22 +162,6 @@ export interface paths {
     options?: never;
     head?: never;
     patch?: never;
-    trace?: never;
-  };
-  "/instances/{id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["InstancesController_updateInstance"];
     trace?: never;
   };
   "/queries": {
@@ -530,7 +530,47 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            items: {
+              id: string;
+              name: string;
+              baseUrl: string;
+              isBaseline: boolean;
+              lastKnownVersion: string | null;
+              /** Format: date-time */
+              lastValidatedAt: string | null;
+              /** @enum {string} */
+              trustMode: "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
+              hasCustomCertificate: boolean;
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+              /** @enum {string} */
+              sessionStatus: "active" | "expired" | "missing" | "error";
+              /** @enum {string|null} */
+              sessionManagedBy: "human-master" | "stored-secret" | null;
+              /** Format: date-time */
+              sessionLoginAt: string | null;
+              /** Format: date-time */
+              sessionLastActiveAt: string | null;
+              /** Format: date-time */
+              sessionValidUntil: string | null;
+              /** @enum {string|null} */
+              sessionLastErrorKind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown"
+                | null;
+              sessionLastErrorMessage: string | null;
+            }[];
+          };
+        };
       };
     };
   };
@@ -541,13 +581,119 @@ export interface operations {
       path?: never;
       cookie?: never;
     };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @example Pi-hole Sala */
+          name: string;
+          /**
+           * Format: uri
+           * @example https://pihole.lan
+           */
+          baseUrl: string;
+          /** @example service-password */
+          servicePassword: string;
+          /** @default false */
+          allowSelfSigned?: boolean;
+          /** @example -----BEGIN CERTIFICATE----- */
+          certificatePem?: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            instance: {
+              id: string;
+              name: string;
+              baseUrl: string;
+              version: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  InstancesController_getInstance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
     requestBody?: never;
     responses: {
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            instance: {
+              id: string;
+              name: string;
+              baseUrl: string;
+              isBaseline: boolean;
+              /** @enum {string} */
+              trustMode: "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
+              hasCustomCertificate: boolean;
+              allowSelfSigned: boolean;
+              certificatePem: string | null;
+            };
+          };
+        };
+      };
+    };
+  };
+  InstancesController_updateInstance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @example Pi-hole Sala */
+          name?: string;
+          /**
+           * Format: uri
+           * @example https://pihole.lan
+           */
+          baseUrl?: string;
+          /** @example service-password */
+          servicePassword?: string;
+          /** @default false */
+          allowSelfSigned?: boolean;
+          /** @example -----BEGIN CERTIFICATE----- */
+          certificatePem?: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            instance: {
+              id: string;
+              name: string;
+              baseUrl: string;
+              version: string;
+            };
+          };
+        };
       };
     };
   };
@@ -558,13 +704,34 @@ export interface operations {
       path?: never;
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * @example [
+           *       "https://pi.hole",
+           *       "https://pihole.lan"
+           *     ]
+           */
+          candidates?: string[];
+        };
+      };
+    };
     responses: {
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            items: {
+              baseUrl: string;
+              reachable: boolean;
+              authRequired: boolean;
+              error?: string;
+            }[];
+          };
+        };
       };
     };
   };
@@ -572,7 +739,9 @@ export interface operations {
     parameters: {
       query?: never;
       header?: never;
-      path?: never;
+      path: {
+        id: string;
+      };
       cookie?: never;
     };
     requestBody?: never;
@@ -581,7 +750,14 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            ok: boolean;
+            version: string;
+            /** Format: date-time */
+            checkedAt: string;
+          };
+        };
       };
     };
   };
@@ -589,24 +765,9 @@ export interface operations {
     parameters: {
       query?: never;
       header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+      path: {
+        id: string;
       };
-    };
-  };
-  InstancesController_updateInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
       cookie?: never;
     };
     requestBody?: never;
@@ -615,7 +776,22 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            ok: boolean;
+            version: string;
+            /** Format: date-time */
+            checkedAt: string;
+            /** @enum {string} */
+            sessionStatus: "active" | "expired" | "missing" | "error";
+            /** Format: date-time */
+            sessionLoginAt: string | null;
+            /** Format: date-time */
+            sessionLastActiveAt: string | null;
+            /** Format: date-time */
+            sessionValidUntil: string | null;
+          };
+        };
       };
     };
   };

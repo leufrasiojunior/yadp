@@ -9,6 +9,7 @@ type ApiMessageKey =
   | "dashboard.noInstances"
   | "domains.instanceIdRequired"
   | "domains.operationRejected"
+  | "instances.invalidTrustConfiguration"
   | "instances.invalidCredentials"
   | "instances.notFound"
   | "pihole.invalidResponse"
@@ -57,6 +58,8 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.noInstances": "Nenhuma instância Pi-hole está cadastrada no YAPD.",
     "domains.instanceIdRequired": "Selecione uma instância válida para aplicar esta ação de domínio.",
     "domains.operationRejected": ({ baseUrl }) => `O Pi-hole em ${baseUrl} recusou a alteração de domínio.`,
+    "instances.invalidTrustConfiguration":
+      "Use CA personalizada ou self-signed explícito, mas não os dois ao mesmo tempo.",
     "instances.invalidCredentials": "As credenciais do Pi-hole são inválidas.",
     "instances.notFound": "Instância não encontrada.",
     "pihole.invalidResponse": ({ baseUrl, path }) =>
@@ -115,6 +118,8 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.noInstances": "No Pi-hole instance is registered in YAPD.",
     "domains.instanceIdRequired": "Select a valid instance to apply this domain action.",
     "domains.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the domain change.`,
+    "instances.invalidTrustConfiguration":
+      "Use either a custom CA or explicit self-signed trust, but not both at the same time.",
     "instances.invalidCredentials": "The Pi-hole credentials are invalid.",
     "instances.notFound": "Instance not found.",
     "pihole.invalidResponse": ({ baseUrl, path }) =>
