@@ -14,7 +14,6 @@ Regex para mais tipos de bloqueio:
 -----
 
 mandar o codex
-por algum motivo quando passo por exemplo da pagina 1 para a 2 estao vindo 1000 registros na tabela, somente quando seleciono Todas as instancias, mesmo sem alterar a quantidade de itens para serem mostrados na tabela
 remover o aviso do checkbox de atualizando, e deixar um simples spiner ao lado.(como somente indicativo que esta atualizando)
 Botao de atualizar a tabela
 
