@@ -1,6 +1,8 @@
-export const QUERY_PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 500, 1000] as const;
-export const DEFAULT_QUERIES_LENGTH = 10;
-export const MAX_QUERIES_LENGTH = 1000;
+import { FRONTEND_CONFIG } from "@/config/frontend-config";
+
+export const QUERY_PAGE_SIZE_OPTIONS = FRONTEND_CONFIG.queries.pageSizeOptions;
+export const DEFAULT_QUERIES_LENGTH = FRONTEND_CONFIG.queries.defaultPageSize;
+export const MAX_QUERIES_LENGTH = FRONTEND_CONFIG.queries.maxPageSize;
 
 export type QueryFilters = {
   from: string;

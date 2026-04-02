@@ -2,9 +2,9 @@
 
 import { z } from "zod";
 
+import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import type { WebMessages } from "@/lib/i18n/messages";
 
-const DISCOVERY_CANDIDATE_LIMIT = 20;
 const PEM_CERTIFICATE_PATTERN = /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/;
 
 export type InstanceFormValues = {
@@ -109,7 +109,7 @@ export function parseDiscoveryCandidatesInput(value: string | undefined) {
   return {
     candidates,
     invalidValues,
-    exceedsLimit: candidates.length > DISCOVERY_CANDIDATE_LIMIT,
+    exceedsLimit: candidates.length > FRONTEND_CONFIG.instances.discoveryCandidateLimit,
   };
 }
 
@@ -131,7 +131,9 @@ export function buildDiscoverySchema(messages: WebMessages) {
         if (parsed.exceedsLimit) {
           context.addIssue({
             code: z.ZodIssueCode.custom,
-            message: messages.forms.instances.validation.candidatesLimit,
+            message: messages.forms.instances.validation.candidatesLimit(
+              FRONTEND_CONFIG.instances.discoveryCandidateLimit,
+            ),
           });
         }
       }),

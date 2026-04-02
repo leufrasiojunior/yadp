@@ -104,7 +104,7 @@ type WebMessages = {
         certificatePem: string;
         trustMode: string;
         candidates: string;
-        candidatesLimit: string;
+        candidatesLimit: (limit: number) => string;
       };
       toasts: {
         refreshFailed: string;
@@ -143,7 +143,7 @@ type WebMessages = {
         title: string;
         description: string;
         candidates: string;
-        candidatesDescription: string;
+        candidatesDescription: (limit: number) => string;
         empty: string;
         reachable: string;
         unreachable: string;
@@ -548,7 +548,7 @@ const messages: Record<AppLocale, WebMessages> = {
           certificatePem: "Informe um certificado PEM valido.",
           trustMode: "Use CA personalizada ou self-signed explicito, mas nao os dois ao mesmo tempo.",
           candidates: "Use apenas URLs http/https validas, uma por linha ou separadas por virgula.",
-          candidatesLimit: "Informe no maximo 20 candidatos por descoberta.",
+          candidatesLimit: (limit) => `Informe no maximo ${limit} candidatos por descoberta.`,
         },
         toasts: {
           refreshFailed: "Não foi possível atualizar a lista de instâncias.",
@@ -587,7 +587,8 @@ const messages: Record<AppLocale, WebMessages> = {
           title: "Descoberta assistida",
           description: "Informe candidatos para o backend verificar se respondem como Pi-hole.",
           candidates: "Candidatos",
-          candidatesDescription: "Use uma URL por linha ou separadas por vírgula, com limite de 20 candidatos.",
+          candidatesDescription: (limit) =>
+            `Use uma URL por linha ou separadas por vírgula, com limite de ${limit} candidatos.`,
           empty: "Nenhum resultado ainda. Rode a descoberta para testar candidatos.",
           reachable: "Pi-hole respondeu ao endpoint /auth.",
           unreachable: "Não foi possível conectar.",
@@ -1011,7 +1012,7 @@ const messages: Record<AppLocale, WebMessages> = {
           certificatePem: "Provide a valid PEM certificate bundle.",
           trustMode: "Use either a custom CA or explicit self-signed trust, but not both at the same time.",
           candidates: "Use only valid http/https URLs, one per line or separated with commas.",
-          candidatesLimit: "Provide at most 20 discovery candidates.",
+          candidatesLimit: (limit) => `Provide at most ${limit} discovery candidates.`,
         },
         toasts: {
           refreshFailed: "Could not refresh the instance list.",
@@ -1050,7 +1051,8 @@ const messages: Record<AppLocale, WebMessages> = {
           title: "Guided discovery",
           description: "Provide candidates for the backend to verify as Pi-hole endpoints.",
           candidates: "Candidates",
-          candidatesDescription: "Use one URL per line or separate them with commas, up to 20 candidates.",
+          candidatesDescription: (limit) =>
+            `Use one URL per line or separate them with commas, up to ${limit} candidates.`,
           empty: "No results yet. Run discovery to test candidates.",
           reachable: "Pi-hole responded to the /auth endpoint.",
           unreachable: "Could not connect.",

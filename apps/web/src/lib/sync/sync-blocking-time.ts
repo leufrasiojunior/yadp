@@ -1,7 +1,9 @@
+import { FRONTEND_CONFIG } from "@/config/frontend-config";
+
 export type SyncBlockingTimeUnit = "seconds" | "minutes";
 
-export const SYNC_BLOCKING_STATUS_SYNC_INTERVAL_MS = 10_000;
-export const SYNC_BLOCKING_COUNTDOWN_TICK_INTERVAL_MS = 1_000;
+export const SYNC_BLOCKING_STATUS_SYNC_INTERVAL_MS = FRONTEND_CONFIG.sync.blocking.statusRefreshIntervalMs;
+export const SYNC_BLOCKING_COUNTDOWN_TICK_INTERVAL_MS = FRONTEND_CONFIG.sync.blocking.countdownTickIntervalMs;
 
 export function toSyncBlockingTimerSeconds(value: number, unit: SyncBlockingTimeUnit) {
   return unit === "minutes" ? value * 60 : value;

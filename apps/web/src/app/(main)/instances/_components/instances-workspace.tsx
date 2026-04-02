@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
+import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
@@ -435,7 +436,11 @@ export function InstancesWorkspace({
                         placeholder={"https://pi.hole\nhttps://pihole.lan"}
                         aria-invalid={fieldState.invalid}
                       />
-                      <FieldDescription>{messages.forms.instances.discovery.candidatesDescription}</FieldDescription>
+                      <FieldDescription>
+                        {messages.forms.instances.discovery.candidatesDescription(
+                          FRONTEND_CONFIG.instances.discoveryCandidateLimit,
+                        )}
+                      </FieldDescription>
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
