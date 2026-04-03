@@ -7,10 +7,11 @@ import {
   IsIn,
   IsOptional,
   IsString,
-  IsUrl,
   MaxLength,
   ValidateNested,
 } from "class-validator";
+
+import { IsManagedInstanceBaseUrl } from "../../instances/dto/instance-validation";
 
 export const SETUP_CREDENTIAL_MODES = ["shared", "individual"] as const;
 export type SetupCredentialMode = (typeof SETUP_CREDENTIAL_MODES)[number];
@@ -27,7 +28,7 @@ export class SetupInstanceDto {
 
   @ApiPropertyOptional({ example: "https://pi.hole" })
   @IsOptional()
-  @IsUrl({ require_tld: false, require_protocol: true, protocols: ["http", "https"] })
+  @IsManagedInstanceBaseUrl()
   baseUrl?: string;
 
   @ApiPropertyOptional({ default: false })

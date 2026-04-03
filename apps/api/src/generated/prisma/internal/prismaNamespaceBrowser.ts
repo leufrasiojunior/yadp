@@ -94,6 +94,7 @@ export const InstanceScalarFieldEnum = {
   name: 'name',
   baseUrl: 'baseUrl',
   isBaseline: 'isBaseline',
+  syncEnabled: 'syncEnabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   lastValidatedAt: 'lastValidatedAt',

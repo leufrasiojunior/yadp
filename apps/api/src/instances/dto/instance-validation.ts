@@ -6,6 +6,8 @@ import {
   ValidatorConstraint,
 } from "class-validator";
 
+import { isManagedInstanceBaseUrl } from "../../common/url/managed-instance-base-url";
+
 const PEM_CERTIFICATE_PATTERN = /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/;
 
 export function TrimRequiredString() {
@@ -111,6 +113,32 @@ export function IsExclusiveTrustConfiguration(validationOptions?: ValidationOpti
       propertyName,
       options: validationOptions,
       validator: InstanceTrustConfigurationConstraint,
+    });
+  };
+}
+
+@ValidatorConstraint({ name: "managedInstanceBaseUrl", async: false })
+class ManagedInstanceBaseUrlConstraint {
+  validate(value: unknown) {
+    if (value === undefined || value === null) {
+      return true;
+    }
+
+    return isManagedInstanceBaseUrl(value);
+  }
+
+  defaultMessage() {
+    return "baseUrl must be a valid http:// or https:// URL with host and optional path.";
+  }
+}
+
+export function IsManagedInstanceBaseUrl(validationOptions?: ValidationOptions) {
+  return (target: object, propertyName: string) => {
+    registerDecorator({
+      target: target.constructor,
+      propertyName,
+      options: validationOptions,
+      validator: ManagedInstanceBaseUrlConstraint,
     });
   };
 }

@@ -1,10 +1,11 @@
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { CryptoService } from "../common/crypto/crypto.service";
 import type { ApiLocale } from "../common/i18n/locale";
 import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { InstanceSessionAuthSource } from "../common/prisma/prisma-client";
+import { normalizeManagedInstanceBaseUrl } from "../common/url/managed-instance-base-url";
 import { PiholeRequestError, PiholeService } from "./pihole.service";
 import type {
   PiholeAuthSessionRecord,
@@ -59,6 +60,7 @@ type InstanceRecord = {
   name: string;
   baseUrl: string;
   isBaseline: boolean;
+  syncEnabled: boolean;
   certificateTrust: {
     mode: string;
     certificatePem: string | null;
@@ -96,6 +98,14 @@ type ReauthenticateOptions = {
   totp?: string;
 };
 
+type ManagedInstanceAccessOptions = {
+  allowDisabled?: boolean;
+};
+
+type ManagedInstanceListOptions = {
+  includeDisabled?: boolean;
+};
+
 const PIHOLE_SESSION_ACTIVITY_WINDOW_MS = 30 * 60 * 1000;
 const PIHOLE_SESSION_REVALIDATION_BUFFER_MS = 2 * 60 * 1000;
 
@@ -110,8 +120,9 @@ export class PiholeInstanceSessionService {
     @Inject(PiholeWorkCoordinatorService) private readonly coordinator: PiholeWorkCoordinatorService,
   ) {}
 
-  async listInstanceSummaries(): Promise<PiholeManagedInstanceSummary[]> {
+  async listInstanceSummaries(options?: ManagedInstanceListOptions): Promise<PiholeManagedInstanceSummary[]> {
     const instances = await this.prisma.instance.findMany({
+      ...(options?.includeDisabled ? {} : { where: { syncEnabled: true } }),
       orderBy: [{ isBaseline: "desc" }, { name: "asc" }],
       select: {
         id: true,
@@ -123,17 +134,22 @@ export class PiholeInstanceSessionService {
     return instances.map((instance) => ({
       id: instance.id,
       name: instance.name,
-      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
+      baseUrl: normalizeManagedInstanceBaseUrl(instance.baseUrl),
     }));
   }
 
-  async getInstanceSummary(instanceId: string, locale: ApiLocale): Promise<PiholeManagedInstanceSummary> {
+  async getInstanceSummary(
+    instanceId: string,
+    locale: ApiLocale,
+    options?: ManagedInstanceAccessOptions,
+  ): Promise<PiholeManagedInstanceSummary> {
     const instance = await this.prisma.instance.findUnique({
       where: { id: instanceId },
       select: {
         id: true,
         name: true,
         baseUrl: true,
+        syncEnabled: true,
       },
     });
 
@@ -141,10 +157,12 @@ export class PiholeInstanceSessionService {
       throw new NotFoundException(translateApi(locale, "instances.notFound"));
     }
 
+    this.assertInstanceEnabledForOperation(instance, locale, options);
+
     return {
       id: instance.id,
       name: instance.name,
-      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
+      baseUrl: normalizeManagedInstanceBaseUrl(instance.baseUrl),
     };
   }
 
@@ -221,23 +239,45 @@ export class PiholeInstanceSessionService {
     locale: ApiLocale,
     session: Pick<PiholeSession, "sid" | "csrf">,
     authSource: InstanceSessionAuthSource,
+    options?: ManagedInstanceAccessOptions,
   ) {
-    return this.runForManagedInstance(instanceId, locale, "session.seed", (instance) =>
-      this.persistExistingSessionUnsafe(instance, locale, session, authSource),
+    return this.runForManagedInstance(
+      instanceId,
+      locale,
+      "session.seed",
+      (instance) => this.persistExistingSessionUnsafe(instance, locale, session, authSource),
+      options,
     );
   }
 
-  async ensureActiveSession(instanceId: string, locale: ApiLocale): Promise<ActiveInstanceSessionContext> {
-    return this.runForManagedInstance(instanceId, locale, "session.ensure", (instance) =>
-      this.ensureActiveSessionUnsafe(instance, locale),
+  async ensureActiveSession(
+    instanceId: string,
+    locale: ApiLocale,
+    options?: ManagedInstanceAccessOptions,
+  ): Promise<ActiveInstanceSessionContext> {
+    return this.runForManagedInstance(
+      instanceId,
+      locale,
+      "session.ensure",
+      (instance) => this.ensureActiveSessionUnsafe(instance, locale),
+      options,
     );
   }
 
-  async forceReauthenticate(instanceId: string, locale: ApiLocale): Promise<ActiveInstanceSessionContext> {
-    return this.runForManagedInstance(instanceId, locale, "session.reauthenticate", (instance) =>
-      this.authenticateAndPersist(instance, locale, {
-        authSource: instance.session?.authSource ?? "STORED_SECRET",
-      }),
+  async forceReauthenticate(
+    instanceId: string,
+    locale: ApiLocale,
+    options?: ManagedInstanceAccessOptions,
+  ): Promise<ActiveInstanceSessionContext> {
+    return this.runForManagedInstance(
+      instanceId,
+      locale,
+      "session.reauthenticate",
+      (instance) =>
+        this.authenticateAndPersist(instance, locale, {
+          authSource: instance.session?.authSource ?? "STORED_SECRET",
+        }),
+      options,
     );
   }
 
@@ -245,43 +285,50 @@ export class PiholeInstanceSessionService {
     instanceId: string,
     locale: ApiLocale,
     execute: (context: ActiveInstanceSessionContext) => Promise<T>,
+    options?: ManagedInstanceAccessOptions,
   ): Promise<T> {
-    return this.runForManagedInstance(instanceId, locale, "session.active", async (instance) => {
-      let context = await this.ensureActiveSessionUnsafe(instance, locale);
-      this.logger.verbose(
-        `Executing authenticated Pi-hole work for "${context.instance.name}" (${context.instance.id}) using baseUrl=${context.instance.baseUrl}.`,
-      );
-
-      try {
-        const result = await execute(context);
-        await this.refreshSessionLease(context.instance.id);
+    return this.runForManagedInstance(
+      instanceId,
+      locale,
+      "session.active",
+      async (instance) => {
+        let context = await this.ensureActiveSessionUnsafe(instance, locale);
         this.logger.verbose(
-          `Authenticated Pi-hole work completed successfully for "${context.instance.name}" (${context.instance.id}).`,
+          `Executing authenticated Pi-hole work for "${context.instance.name}" (${context.instance.id}) using baseUrl=${context.instance.baseUrl}.`,
         );
-        return result;
-      } catch (error) {
-        if (!this.shouldReauthenticate(error)) {
-          const failure = this.mapFailure(context.instance, error, locale);
-          await this.recordSessionError(context.instance.id, failure.kind, failure.message);
-          this.logger.warn(
-            `Authenticated Pi-hole work failed for "${context.instance.name}" (${context.instance.id}) without reauthentication. kind=${failure.kind} message="${failure.message}"`,
+
+        try {
+          const result = await execute(context);
+          await this.refreshSessionLease(context.instance.id);
+          this.logger.verbose(
+            `Authenticated Pi-hole work completed successfully for "${context.instance.name}" (${context.instance.id}).`,
           );
-          throw error;
+          return result;
+        } catch (error) {
+          if (!this.shouldReauthenticate(error)) {
+            const failure = this.mapFailure(context.instance, error, locale);
+            await this.recordSessionError(context.instance.id, failure.kind, failure.message);
+            this.logger.warn(
+              `Authenticated Pi-hole work failed for "${context.instance.name}" (${context.instance.id}) without reauthentication. kind=${failure.kind} message="${failure.message}"`,
+            );
+            throw error;
+          }
+
+          this.logger.warn(
+            `Authenticated Pi-hole request for "${context.instance.name}" failed with auth error. Reauthenticating once.`,
+          );
+          const reauthenticationInstance = await this.loadManagedInstance(instanceId, locale, options);
+          context = await this.authenticateAndPersist(reauthenticationInstance, locale, {
+            authSource: context.authSource,
+          });
+
+          const result = await execute(context);
+          await this.refreshSessionLease(context.instance.id);
+          return result;
         }
-
-        this.logger.warn(
-          `Authenticated Pi-hole request for "${context.instance.name}" failed with auth error. Reauthenticating once.`,
-        );
-        const reauthenticationInstance = await this.loadManagedInstance(instanceId, locale);
-        context = await this.authenticateAndPersist(reauthenticationInstance, locale, {
-          authSource: context.authSource,
-        });
-
-        const result = await execute(context);
-        await this.refreshSessionLease(context.instance.id);
-        return result;
-      }
-    });
+      },
+      options,
+    );
   }
 
   private async ensureActiveSessionUnsafe(
@@ -366,12 +413,13 @@ export class PiholeInstanceSessionService {
     locale: ApiLocale,
     operation: string,
     execute: (instance: InstanceRecord) => Promise<T>,
+    options?: ManagedInstanceAccessOptions,
   ) {
-    const instance = await this.loadManagedInstance(instanceId, locale);
+    const instance = await this.loadManagedInstance(instanceId, locale, options);
     const connection = this.buildConnection(instance, locale);
 
     return this.coordinator.runForInstance(instance.id, connection, operation, async () => {
-      const latestInstance = await this.loadManagedInstance(instanceId, locale);
+      const latestInstance = await this.loadManagedInstance(instanceId, locale, options);
       return execute(latestInstance);
     });
   }
@@ -612,7 +660,7 @@ export class PiholeInstanceSessionService {
     locale: ApiLocale,
   ): PiholeConnection {
     return {
-      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
+      baseUrl: normalizeManagedInstanceBaseUrl(instance.baseUrl),
       allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
       certificatePem: instance.certificateTrust?.certificatePem ?? null,
       locale,
@@ -630,22 +678,8 @@ export class PiholeInstanceSessionService {
     return {
       id: instance.id,
       name: instance.name,
-      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
+      baseUrl: normalizeManagedInstanceBaseUrl(instance.baseUrl),
     };
-  }
-
-  private normalizeConfiguredBaseUrl(baseUrl: string) {
-    const trimmedBaseUrl = baseUrl.trim();
-    const normalizedScheme = trimmedBaseUrl.replace(/^([a-z][a-z0-9+.-]*:)\/*/i, "$1//");
-    const parsed = new URL(normalizedScheme);
-    const normalizedPath = parsed.pathname.replaceAll(/\/{2,}/g, "/");
-
-    parsed.pathname =
-      normalizedPath.length > 1 && normalizedPath.endsWith("/") ? normalizedPath.slice(0, -1) : normalizedPath;
-    parsed.search = "";
-    parsed.hash = "";
-
-    return parsed.toString().replace(/\/$/, "");
   }
 
   private mapStoredSessionSummary(session: InstanceRecord["session"]): InstanceSessionSummary {
@@ -692,8 +726,9 @@ export class PiholeInstanceSessionService {
     }
   }
 
-  private async loadAllManagedInstances(): Promise<InstanceRecord[]> {
+  private async loadAllManagedInstances(options?: ManagedInstanceListOptions): Promise<InstanceRecord[]> {
     return this.prisma.instance.findMany({
+      ...(options?.includeDisabled ? {} : { where: { syncEnabled: true } }),
       orderBy: [{ isBaseline: "desc" }, { name: "asc" }],
       include: {
         certificateTrust: {
@@ -725,7 +760,11 @@ export class PiholeInstanceSessionService {
     });
   }
 
-  private async loadManagedInstance(instanceId: string, locale: ApiLocale): Promise<InstanceRecord> {
+  private async loadManagedInstance(
+    instanceId: string,
+    locale: ApiLocale,
+    options?: ManagedInstanceAccessOptions,
+  ): Promise<InstanceRecord> {
     const instance = await this.prisma.instance.findUnique({
       where: { id: instanceId },
       include: {
@@ -761,6 +800,18 @@ export class PiholeInstanceSessionService {
       throw new NotFoundException(translateApi(locale, "instances.notFound"));
     }
 
+    this.assertInstanceEnabledForOperation(instance, locale, options);
+
     return instance;
+  }
+
+  private assertInstanceEnabledForOperation(
+    instance: Pick<InstanceRecord, "syncEnabled">,
+    locale: ApiLocale,
+    options?: ManagedInstanceAccessOptions,
+  ) {
+    if (!options?.allowDisabled && !instance.syncEnabled) {
+      throw new BadRequestException(translateApi(locale, "instances.disabledForSync"));
+    }
   }
 }

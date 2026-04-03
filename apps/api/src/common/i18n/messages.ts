@@ -17,9 +17,12 @@ type ApiMessageKey =
   | "groups.noInstances"
   | "groups.notFound"
   | "groups.operationRejected"
+  | "instances.disabledForSync"
+  | "instances.invalidBaseUrl"
   | "instances.invalidTrustConfiguration"
   | "instances.invalidCredentials"
   | "instances.notFound"
+  | "instances.syncBaselineRequired"
   | "pihole.invalidResponse"
   | "pihole.invalidTechnicalCredentials"
   | "pihole.refused"
@@ -76,10 +79,15 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "groups.noInstances": "Nenhuma instância Pi-hole gerenciada está disponível para operar grupos.",
     "groups.notFound": ({ name }) => `O grupo "${name}" não foi encontrado em todas as instâncias necessárias.`,
     "groups.operationRejected": ({ baseUrl }) => `O Pi-hole em ${baseUrl} recusou a alteração do grupo.`,
+    "instances.disabledForSync":
+      "A instância selecionada está desativada para sync e não pode participar desta operação.",
+    "instances.invalidBaseUrl":
+      "Use uma Base URL válida com http:// ou https://, host obrigatório e caminho opcional, sem protocolo duplicado.",
     "instances.invalidTrustConfiguration":
       "Use CA personalizada ou self-signed explícito, mas não os dois ao mesmo tempo.",
     "instances.invalidCredentials": "As credenciais do Pi-hole são inválidas.",
     "instances.notFound": "Instância não encontrada.",
+    "instances.syncBaselineRequired": "A instância baseline precisa permanecer ativa para sync.",
     "pihole.invalidResponse": ({ baseUrl, path }) =>
       `O Pi-hole em ${baseUrl} respondeu em um formato inesperado para ${path}.`,
     "pihole.invalidTechnicalCredentials": ({ baseUrl }) =>
@@ -146,10 +154,14 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "groups.noInstances": "No managed Pi-hole instance is available for group operations.",
     "groups.notFound": ({ name }) => `The group "${name}" was not found on all required instances.`,
     "groups.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the group change.`,
+    "instances.disabledForSync": "The selected instance is disabled for sync and cannot participate in this operation.",
+    "instances.invalidBaseUrl":
+      "Use a valid Base URL with http:// or https://, a required host, and an optional path, without duplicate protocol.",
     "instances.invalidTrustConfiguration":
       "Use either a custom CA or explicit self-signed trust, but not both at the same time.",
     "instances.invalidCredentials": "The Pi-hole credentials are invalid.",
     "instances.notFound": "Instance not found.",
+    "instances.syncBaselineRequired": "The baseline instance must remain enabled for sync.",
     "pihole.invalidResponse": ({ baseUrl, path }) =>
       `The Pi-hole at ${baseUrl} returned an unexpected payload for ${path}.`,
     "pihole.invalidTechnicalCredentials": ({ baseUrl }) =>

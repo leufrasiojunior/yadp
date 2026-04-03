@@ -25,4 +25,4 @@ Adicionar bandeiras no seletor de idiomas
 Tambem adicionar um alternador do tema claro/escuro no top bar
 
 adicionar um passo opcional no setup, depois de configurar as instancias, ja perguntar se quer sincronizar
-(perguntar 2x, pois pode ser uma acao destrutiva, quando aceitar.)
+(perguntar 2x, pois pode ser uma acao destrutiva, ou seja, quando aceitar a primeira vez, perguntar de novo com titulo diferente. Usar a rota de export para exportar e depois importar em todas as instancias. Lembrar de apagar o ZIP gerado)

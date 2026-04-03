@@ -47,6 +47,7 @@ export type InstanceItem = {
   name: string;
   baseUrl: string;
   isBaseline: boolean;
+  syncEnabled: boolean;
   lastKnownVersion: string | null;
   lastValidatedAt: string | null;
   trustMode: InstanceTrustMode;
@@ -72,6 +73,7 @@ export type InstanceDetailResponse = {
     name: string;
     baseUrl: string;
     isBaseline: boolean;
+    syncEnabled: boolean;
     trustMode: InstanceTrustMode;
     hasCustomCertificate: boolean;
     allowSelfSigned: boolean;
@@ -85,6 +87,14 @@ export type InstanceMutationResponse = {
     name: string;
     baseUrl: string;
     version: string;
+  };
+};
+
+export type InstanceSyncToggleResponse = {
+  instance: {
+    id: string;
+    name: string;
+    syncEnabled: boolean;
   };
 };
 

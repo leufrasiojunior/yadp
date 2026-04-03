@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 
+import { normalizeManagedInstanceBaseUrl } from "../common/url/managed-instance-base-url";
 import { AppEnvService } from "../config/app-env";
 import type { PiholeConnection } from "./pihole.types";
 import { AsyncLocalStorage } from "node:async_hooks";
@@ -175,7 +176,7 @@ export class PiholeWorkCoordinatorService {
   }
 
   private buildTargetKey(connection: PiholeConnection) {
-    return `target:${this.normalizeConfiguredBaseUrl(connection.baseUrl)}:${this.buildTrustFingerprint(connection)}`;
+    return `target:${normalizeManagedInstanceBaseUrl(connection.baseUrl)}:${this.buildTrustFingerprint(connection)}`;
   }
 
   private buildTrustFingerprint(connection: PiholeConnection) {
@@ -191,19 +192,5 @@ export class PiholeWorkCoordinatorService {
     }
 
     return "strict";
-  }
-
-  private normalizeConfiguredBaseUrl(baseUrl: string) {
-    const trimmedBaseUrl = baseUrl.trim();
-    const normalizedScheme = trimmedBaseUrl.replace(/^([a-z][a-z0-9+.-]*:)\/*/i, "$1//");
-    const parsed = new URL(normalizedScheme);
-    const normalizedPath = parsed.pathname.replaceAll(/\/{2,}/g, "/");
-
-    parsed.pathname =
-      normalizedPath.length > 1 && normalizedPath.endsWith("/") ? normalizedPath.slice(0, -1) : normalizedPath;
-    parsed.search = "";
-    parsed.hash = "";
-
-    return parsed.toString().replace(/\/$/, "");
   }
 }

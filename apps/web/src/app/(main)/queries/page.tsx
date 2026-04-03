@@ -12,7 +12,7 @@ export default async function QueriesPage() {
   const { locale, messages } = await getServerI18n();
 
   try {
-    const [instances, cookieStore] = await Promise.all([getInstances(), cookies()]);
+    const [instances, cookieStore] = await Promise.all([getInstances({ operationalOnly: true }), cookies()]);
     const selectedScope = resolveDashboardScope(
       parseDashboardScope(cookieStore.get(DASHBOARD_SCOPE_COOKIE)?.value),
       instances.items,

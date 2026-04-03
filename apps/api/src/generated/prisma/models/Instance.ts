@@ -29,6 +29,7 @@ export type InstanceMinAggregateOutputType = {
   name: string | null
   baseUrl: string | null
   isBaseline: boolean | null
+  syncEnabled: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   lastValidatedAt: Date | null
@@ -40,6 +41,7 @@ export type InstanceMaxAggregateOutputType = {
   name: string | null
   baseUrl: string | null
   isBaseline: boolean | null
+  syncEnabled: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   lastValidatedAt: Date | null
@@ -51,6 +53,7 @@ export type InstanceCountAggregateOutputType = {
   name: number
   baseUrl: number
   isBaseline: number
+  syncEnabled: number
   createdAt: number
   updatedAt: number
   lastValidatedAt: number
@@ -64,6 +67,7 @@ export type InstanceMinAggregateInputType = {
   name?: true
   baseUrl?: true
   isBaseline?: true
+  syncEnabled?: true
   createdAt?: true
   updatedAt?: true
   lastValidatedAt?: true
@@ -75,6 +79,7 @@ export type InstanceMaxAggregateInputType = {
   name?: true
   baseUrl?: true
   isBaseline?: true
+  syncEnabled?: true
   createdAt?: true
   updatedAt?: true
   lastValidatedAt?: true
@@ -86,6 +91,7 @@ export type InstanceCountAggregateInputType = {
   name?: true
   baseUrl?: true
   isBaseline?: true
+  syncEnabled?: true
   createdAt?: true
   updatedAt?: true
   lastValidatedAt?: true
@@ -170,6 +176,7 @@ export type InstanceGroupByOutputType = {
   name: string
   baseUrl: string
   isBaseline: boolean
+  syncEnabled: boolean
   createdAt: Date
   updatedAt: Date
   lastValidatedAt: Date | null
@@ -202,6 +209,7 @@ export type InstanceWhereInput = {
   name?: Prisma.StringFilter<"Instance"> | string
   baseUrl?: Prisma.StringFilter<"Instance"> | string
   isBaseline?: Prisma.BoolFilter<"Instance"> | boolean
+  syncEnabled?: Prisma.BoolFilter<"Instance"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Instance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Instance"> | Date | string
   lastValidatedAt?: Prisma.DateTimeNullableFilter<"Instance"> | Date | string | null
@@ -217,6 +225,7 @@ export type InstanceOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   baseUrl?: Prisma.SortOrder
   isBaseline?: Prisma.SortOrder
+  syncEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastValidatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -235,6 +244,7 @@ export type InstanceWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Instance"> | string
   baseUrl?: Prisma.StringFilter<"Instance"> | string
   isBaseline?: Prisma.BoolFilter<"Instance"> | boolean
+  syncEnabled?: Prisma.BoolFilter<"Instance"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Instance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Instance"> | Date | string
   lastValidatedAt?: Prisma.DateTimeNullableFilter<"Instance"> | Date | string | null
@@ -250,6 +260,7 @@ export type InstanceOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   baseUrl?: Prisma.SortOrder
   isBaseline?: Prisma.SortOrder
+  syncEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastValidatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -267,6 +278,7 @@ export type InstanceScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Instance"> | string
   baseUrl?: Prisma.StringWithAggregatesFilter<"Instance"> | string
   isBaseline?: Prisma.BoolWithAggregatesFilter<"Instance"> | boolean
+  syncEnabled?: Prisma.BoolWithAggregatesFilter<"Instance"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Instance"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Instance"> | Date | string
   lastValidatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Instance"> | Date | string | null
@@ -278,6 +290,7 @@ export type InstanceCreateInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -293,6 +306,7 @@ export type InstanceUncheckedCreateInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -308,6 +322,7 @@ export type InstanceUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -323,6 +338,7 @@ export type InstanceUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -338,6 +354,7 @@ export type InstanceCreateManyInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -349,6 +366,7 @@ export type InstanceUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -360,6 +378,7 @@ export type InstanceUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -371,6 +390,7 @@ export type InstanceCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   baseUrl?: Prisma.SortOrder
   isBaseline?: Prisma.SortOrder
+  syncEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastValidatedAt?: Prisma.SortOrder
@@ -382,6 +402,7 @@ export type InstanceMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   baseUrl?: Prisma.SortOrder
   isBaseline?: Prisma.SortOrder
+  syncEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastValidatedAt?: Prisma.SortOrder
@@ -393,6 +414,7 @@ export type InstanceMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   baseUrl?: Prisma.SortOrder
   isBaseline?: Prisma.SortOrder
+  syncEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lastValidatedAt?: Prisma.SortOrder
@@ -473,6 +495,7 @@ export type InstanceCreateWithoutSecretInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -487,6 +510,7 @@ export type InstanceUncheckedCreateWithoutSecretInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -517,6 +541,7 @@ export type InstanceUpdateWithoutSecretInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -531,6 +556,7 @@ export type InstanceUncheckedUpdateWithoutSecretInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -545,6 +571,7 @@ export type InstanceCreateWithoutCertificateTrustInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -559,6 +586,7 @@ export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -589,6 +617,7 @@ export type InstanceUpdateWithoutCertificateTrustInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -603,6 +632,7 @@ export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -617,6 +647,7 @@ export type InstanceCreateWithoutSessionInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -631,6 +662,7 @@ export type InstanceUncheckedCreateWithoutSessionInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -661,6 +693,7 @@ export type InstanceUpdateWithoutSessionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -675,6 +708,7 @@ export type InstanceUncheckedUpdateWithoutSessionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -689,6 +723,7 @@ export type InstanceCreateWithoutSyncAttemptsInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -703,6 +738,7 @@ export type InstanceUncheckedCreateWithoutSyncAttemptsInput = {
   name: string
   baseUrl: string
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   lastValidatedAt?: Date | string | null
@@ -733,6 +769,7 @@ export type InstanceUpdateWithoutSyncAttemptsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -747,6 +784,7 @@ export type InstanceUncheckedUpdateWithoutSyncAttemptsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -792,6 +830,7 @@ export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   name?: boolean
   baseUrl?: boolean
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lastValidatedAt?: boolean
@@ -808,6 +847,7 @@ export type InstanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   name?: boolean
   baseUrl?: boolean
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lastValidatedAt?: boolean
@@ -819,6 +859,7 @@ export type InstanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   name?: boolean
   baseUrl?: boolean
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lastValidatedAt?: boolean
@@ -830,13 +871,14 @@ export type InstanceSelectScalar = {
   name?: boolean
   baseUrl?: boolean
   isBaseline?: boolean
+  syncEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lastValidatedAt?: boolean
   lastKnownVersion?: boolean
 }
 
-export type InstanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "baseUrl" | "isBaseline" | "createdAt" | "updatedAt" | "lastValidatedAt" | "lastKnownVersion", ExtArgs["result"]["instance"]>
+export type InstanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "baseUrl" | "isBaseline" | "syncEnabled" | "createdAt" | "updatedAt" | "lastValidatedAt" | "lastKnownVersion", ExtArgs["result"]["instance"]>
 export type InstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   secret?: boolean | Prisma.Instance$secretArgs<ExtArgs>
   certificateTrust?: boolean | Prisma.Instance$certificateTrustArgs<ExtArgs>
@@ -860,6 +902,7 @@ export type $InstancePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     name: string
     baseUrl: string
     isBaseline: boolean
+    syncEnabled: boolean
     createdAt: Date
     updatedAt: Date
     lastValidatedAt: Date | null
@@ -1295,6 +1338,7 @@ export interface InstanceFieldRefs {
   readonly name: Prisma.FieldRef<"Instance", 'String'>
   readonly baseUrl: Prisma.FieldRef<"Instance", 'String'>
   readonly isBaseline: Prisma.FieldRef<"Instance", 'Boolean'>
+  readonly syncEnabled: Prisma.FieldRef<"Instance", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Instance", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Instance", 'DateTime'>
   readonly lastValidatedAt: Prisma.FieldRef<"Instance", 'DateTime'>

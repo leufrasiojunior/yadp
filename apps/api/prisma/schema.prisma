@@ -55,6 +55,7 @@ model Instance {
   name             String
   baseUrl          String
   isBaseline       Boolean                    @default(false)
+  syncEnabled      Boolean                    @default(true)
   createdAt        DateTime                   @default(now())
   updatedAt        DateTime                   @updatedAt
   lastValidatedAt  DateTime?

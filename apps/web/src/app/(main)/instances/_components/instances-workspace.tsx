@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Activity, CircleAlert, Pencil, RefreshCw } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppSession } from "@/components/yapd/app-session-provider";
+import { StatusToggle } from "@/components/yapd/status-toggle";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
@@ -29,9 +31,12 @@ import type {
   InstanceListResponse,
   InstanceMutationResponse,
   InstanceReauthenticateResponse,
+  InstanceSyncToggleResponse,
   InstanceTestResponse,
 } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
+import { splitManagedInstanceBaseUrl } from "@/lib/instances/managed-instance-base-url";
+import { cn } from "@/lib/utils";
 
 import { CreateInstanceDialog } from "./create-instance-dialog";
 import { InstanceConnectionFields } from "./instance-connection-fields";
@@ -41,6 +46,51 @@ import {
   type InstanceFormValues,
   toInstanceRequestBody,
 } from "./instance-form-schema";
+
+function inferInstanceErrorKind(message: string | null): NonNullable<InstanceItem["sessionLastErrorKind"]> {
+  const normalized = message?.toLowerCase() ?? "";
+
+  if (
+    normalized.includes("credential") ||
+    normalized.includes("senha") ||
+    normalized.includes("unauthorized") ||
+    normalized.includes("401") ||
+    normalized.includes("403")
+  ) {
+    return "invalid_credentials";
+  }
+
+  if (normalized.includes("tls") || normalized.includes("certificate") || normalized.includes("ssl")) {
+    return "tls_error";
+  }
+
+  if (normalized.includes("timeout") || normalized.includes("timed out") || normalized.includes("abort")) {
+    return "timeout";
+  }
+
+  if (
+    normalized.includes("dns") ||
+    normalized.includes("resolve") ||
+    normalized.includes("enotfound") ||
+    normalized.includes("getaddrinfo")
+  ) {
+    return "dns_error";
+  }
+
+  if (normalized.includes("refused") || normalized.includes("econnrefused")) {
+    return "connection_refused";
+  }
+
+  if (normalized.includes("payload") || normalized.includes("format") || normalized.includes("/auth")) {
+    return "pihole_response_error";
+  }
+
+  return "unknown";
+}
+
+function resolveInstanceErrorKind(item: Pick<InstanceItem, "sessionLastErrorKind" | "sessionLastErrorMessage">) {
+  return item.sessionLastErrorKind ?? inferInstanceErrorKind(item.sessionLastErrorMessage);
+}
 
 export function InstancesWorkspace({
   initialItems,
@@ -54,12 +104,14 @@ export function InstancesWorkspace({
   const [items, setItems] = useState(initialItems);
   const [testingId, setTestingId] = useState<string | null>(null);
   const [reauthenticatingId, setReauthenticatingId] = useState<string | null>(null);
+  const [syncUpdatingId, setSyncUpdatingId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingInstanceId, setEditingInstanceId] = useState<string | null>(null);
   const [editDetails, setEditDetails] = useState<InstanceDetailResponse["instance"] | null>(null);
   const [editLoadError, setEditLoadError] = useState<string | null>(null);
   const [editSaveError, setEditSaveError] = useState<string | null>(null);
   const [isEditLoading, setIsEditLoading] = useState(false);
+  const [errorDetailsItem, setErrorDetailsItem] = useState<InstanceItem | null>(null);
   const editRequestIdRef = useRef(0);
   const editForm = useForm<InstanceFormValues>({
     resolver: zodResolver(editInstanceSchema),
@@ -149,9 +201,18 @@ export function InstancesWorkspace({
 
     setEditDetails(data.instance);
     setIsEditLoading(false);
+    const splitBaseUrl = splitManagedInstanceBaseUrl(data.instance.baseUrl);
+
+    if (!splitBaseUrl) {
+      setIsEditLoading(false);
+      setEditLoadError(messages.forms.instances.validation.baseUrl);
+      return;
+    }
+
     editForm.reset({
       name: data.instance.name,
-      baseUrl: data.instance.baseUrl,
+      scheme: splitBaseUrl.scheme,
+      hostPath: splitBaseUrl.hostPath,
       servicePassword: "",
       allowSelfSigned: data.instance.allowSelfSigned,
       certificatePem: data.instance.certificatePem ?? "",
@@ -242,6 +303,42 @@ export function InstancesWorkspace({
     await refreshItems();
   };
 
+  const updateInstanceSync = async (item: InstanceItem, enabled: boolean) => {
+    if (item.isBaseline && !enabled) {
+      toast.error(messages.forms.instances.table.syncLocked);
+      return;
+    }
+
+    setSyncUpdatingId(item.id);
+    const { response } = await client.PATCH<InstanceSyncToggleResponse>("/instances/{id}/sync", {
+      headers: {
+        "x-yapd-csrf": csrfToken,
+      },
+      params: {
+        path: {
+          id: item.id,
+        },
+      },
+      body: {
+        enabled,
+      },
+    });
+
+    setSyncUpdatingId(null);
+
+    if (!response.ok) {
+      toast.error(await getApiErrorMessage(response));
+      return;
+    }
+
+    toast.success(
+      enabled
+        ? messages.forms.instances.toasts.syncEnabledSuccess
+        : messages.forms.instances.toasts.syncDisabledSuccess,
+    );
+    await refreshItems();
+  };
+
   const getSessionStatusLabel = (status: InstanceItem["sessionStatus"]) => {
     switch (status) {
       case "active":
@@ -267,31 +364,38 @@ export function InstancesWorkspace({
     }
   };
 
-  const getManagedByLabel = (managedBy: InstanceItem["sessionManagedBy"]) => {
-    if (managedBy === "human-master") {
-      return messages.forms.instances.table.humanMaster;
-    }
-
-    if (managedBy === "stored-secret") {
-      return messages.forms.instances.table.storedSecret;
-    }
-
-    return null;
-  };
-
   const isRowEditBusy = (instanceId: string) =>
     editingInstanceId === instanceId && (isEditLoading || editForm.formState.isSubmitting);
+
+  const isRowBusy = (instanceId: string) =>
+    isRowEditBusy(instanceId) ||
+    testingId === instanceId ||
+    reauthenticatingId === instanceId ||
+    syncUpdatingId === instanceId;
+
+  const getErrorCopy = (item: Pick<InstanceItem, "name" | "sessionLastErrorKind" | "sessionLastErrorMessage">) => {
+    const resolvedKind = resolveInstanceErrorKind(item);
+
+    return {
+      ...messages.forms.instances.errorDetails[resolvedKind],
+      technicalDetails:
+        item.sessionLastErrorMessage?.trim() || messages.forms.instances.errorDetails.noTechnicalDetails,
+    };
+  };
 
   return (
     <>
       <div className="space-y-6">
         <Card>
-          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-1.5">
+          <CardHeader className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
+            <div className="hidden sm:block" aria-hidden />
+            <div className="space-y-1.5 text-center">
               <CardTitle>{messages.forms.instances.table.title}</CardTitle>
               <CardDescription>{messages.forms.instances.table.description}</CardDescription>
             </div>
-            <CreateInstanceDialog onCreated={refreshItems} />
+            <div className="sm:justify-self-end">
+              <CreateInstanceDialog onCreated={refreshItems} />
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -304,6 +408,7 @@ export function InstancesWorkspace({
                   <TableHead>{messages.forms.instances.table.lastValidation}</TableHead>
                   <TableHead>{messages.forms.instances.table.session}</TableHead>
                   <TableHead>{messages.forms.instances.table.validUntil}</TableHead>
+                  <TableHead>{messages.forms.instances.table.sync}</TableHead>
                   <TableHead>{messages.forms.instances.table.lastError}</TableHead>
                   <TableHead className="text-right">{messages.forms.instances.table.actions}</TableHead>
                 </TableRow>
@@ -312,11 +417,11 @@ export function InstancesWorkspace({
                 {items.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-muted-foreground text-xs">
-                        {item.isBaseline
-                          ? messages.forms.instances.table.baseline
-                          : messages.forms.instances.table.managed}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{item.name}</span>
+                        {item.isBaseline ? (
+                          <Badge variant="outline">{messages.forms.instances.table.baselineBadge}</Badge>
+                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell>{item.baseUrl}</TableCell>
@@ -326,15 +431,10 @@ export function InstancesWorkspace({
                       {item.lastValidatedAt ? formatDateTime(item.lastValidatedAt) : messages.common.versionUnavailable}
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
+                      <div>
                         <Badge variant={getSessionStatusVariant(item.sessionStatus)}>
                           {getSessionStatusLabel(item.sessionStatus)}
                         </Badge>
-                        {getManagedByLabel(item.sessionManagedBy) ? (
-                          <div className="text-muted-foreground text-xs">
-                            {getManagedByLabel(item.sessionManagedBy)}
-                          </div>
-                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -343,41 +443,73 @@ export function InstancesWorkspace({
                         : messages.common.versionUnavailable}
                     </TableCell>
                     <TableCell>
-                      <div className="max-w-72 text-sm">
-                        {item.sessionLastErrorMessage ?? messages.common.versionUnavailable}
+                      <div title={item.isBaseline ? messages.forms.instances.table.syncLocked : undefined}>
+                        <StatusToggle
+                          checked={item.syncEnabled}
+                          disabled={item.isBaseline || isRowBusy(item.id)}
+                          activeLabel={
+                            syncUpdatingId === item.id && item.syncEnabled
+                              ? messages.forms.instances.table.syncDisabling
+                              : messages.forms.instances.table.syncEnabled
+                          }
+                          inactiveLabel={
+                            syncUpdatingId === item.id && !item.syncEnabled
+                              ? messages.forms.instances.table.syncEnabling
+                              : messages.forms.instances.table.syncDisabled
+                          }
+                          onCheckedChange={(checked) => void updateInstanceSync(item, checked)}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex max-w-72 items-start gap-2 text-sm">
+                        <span className={cn(!item.sessionLastErrorMessage && "text-muted-foreground")}>
+                          {item.sessionLastErrorMessage ? getErrorCopy(item).title : messages.common.versionUnavailable}
+                        </span>
+                        {item.sessionLastErrorMessage ? (
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={messages.forms.instances.table.errorDetails}
+                            title={messages.forms.instances.table.errorDetails}
+                            onClick={() => setErrorDetailsItem(item)}
+                          >
+                            <CircleAlert />
+                          </Button>
+                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
-                          size="sm"
+                          size="icon-sm"
                           variant="outline"
-                          disabled={isRowEditBusy(item.id) || testingId === item.id || reauthenticatingId === item.id}
+                          aria-label={messages.forms.instances.table.editIdle}
+                          title={messages.forms.instances.table.editIdle}
+                          disabled={isRowBusy(item.id)}
                           onClick={() => openEditDialog(item.id)}
                         >
-                          {isRowEditBusy(item.id)
-                            ? messages.forms.instances.table.editLoading
-                            : messages.forms.instances.table.editIdle}
+                          <Pencil />
                         </Button>
                         <Button
-                          size="sm"
+                          size="icon-sm"
                           variant="outline"
-                          disabled={isRowEditBusy(item.id) || testingId === item.id || reauthenticatingId === item.id}
+                          aria-label={messages.forms.instances.table.testIdle}
+                          title={messages.forms.instances.table.testIdle}
+                          disabled={isRowBusy(item.id)}
                           onClick={() => void testInstance(item.id)}
                         >
-                          {testingId === item.id
-                            ? messages.forms.instances.table.testLoading
-                            : messages.forms.instances.table.testIdle}
+                          <Activity className={cn(testingId === item.id && "animate-pulse")} />
                         </Button>
                         <Button
-                          size="sm"
+                          size="icon-sm"
                           variant="outline"
-                          disabled={isRowEditBusy(item.id) || reauthenticatingId === item.id || testingId === item.id}
+                          aria-label={messages.forms.instances.table.reauthenticateIdle}
+                          title={messages.forms.instances.table.reauthenticateIdle}
+                          disabled={isRowBusy(item.id)}
                           onClick={() => void reauthenticateInstance(item.id)}
                         >
-                          {reauthenticatingId === item.id
-                            ? messages.forms.instances.table.reauthenticateLoading
-                            : messages.forms.instances.table.reauthenticateIdle}
+                          <RefreshCw className={cn(reauthenticatingId === item.id && "animate-spin")} />
                         </Button>
                       </div>
                     </TableCell>
@@ -459,6 +591,57 @@ export function InstancesWorkspace({
                 </Button>
               </DialogFooter>
             </form>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(errorDetailsItem)} onOpenChange={(open) => !open && setErrorDetailsItem(null)}>
+        <DialogContent className="sm:max-w-xl">
+          {errorDetailsItem ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>{messages.forms.instances.errorDetails.title}</DialogTitle>
+                <DialogDescription>
+                  {messages.forms.instances.errorDetails.description(errorDetailsItem.name)}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <p className="text-muted-foreground text-sm">{messages.forms.instances.errorDetails.summary}</p>
+                  <p className="font-medium">{getErrorCopy(errorDetailsItem).title}</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-muted-foreground text-sm">{messages.forms.instances.errorDetails.possibleCause}</p>
+                  <p className="text-sm leading-6">{getErrorCopy(errorDetailsItem).cause}</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-muted-foreground text-sm">{messages.forms.instances.errorDetails.whatToCheck}</p>
+                  <ul className="list-disc space-y-1 pl-5 text-sm leading-6">
+                    {getErrorCopy(errorDetailsItem).checks.map((check) => (
+                      <li key={check}>{check}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-muted-foreground text-sm">
+                    {messages.forms.instances.errorDetails.technicalDetails}
+                  </p>
+                  <div className="rounded-lg border bg-muted/30 px-3 py-3 font-mono text-xs leading-6">
+                    {getErrorCopy(errorDetailsItem).technicalDetails}
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setErrorDetailsItem(null)}>
+                  {messages.forms.instances.errorDetails.close}
+                </Button>
+              </DialogFooter>
+            </>
           ) : null}
         </DialogContent>
       </Dialog>

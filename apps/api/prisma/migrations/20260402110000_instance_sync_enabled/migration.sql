@@ -1,0 +1,2 @@
+ALTER TABLE "Instance"
+ADD COLUMN "syncEnabled" BOOLEAN NOT NULL DEFAULT true;

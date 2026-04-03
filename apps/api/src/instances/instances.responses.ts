@@ -13,6 +13,7 @@ const instanceSummarySchema = {
     name: { type: "string" },
     baseUrl: { type: "string" },
     isBaseline: { type: "boolean" },
+    syncEnabled: { type: "boolean" },
     lastKnownVersion: { type: "string", nullable: true },
     lastValidatedAt: { type: "string", format: "date-time", nullable: true },
     trustMode: { type: "string", enum: [...INSTANCE_TRUST_MODE_VALUES] },
@@ -32,6 +33,7 @@ const instanceSummarySchema = {
     "name",
     "baseUrl",
     "isBaseline",
+    "syncEnabled",
     "lastKnownVersion",
     "lastValidatedAt",
     "trustMode",
@@ -111,6 +113,7 @@ export const INSTANCE_DETAIL_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
           name: { type: "string" },
           baseUrl: { type: "string" },
           isBaseline: { type: "boolean" },
+          syncEnabled: { type: "boolean" },
           trustMode: { type: "string", enum: [...INSTANCE_TRUST_MODE_VALUES] },
           hasCustomCertificate: { type: "boolean" },
           allowSelfSigned: { type: "boolean" },
@@ -121,6 +124,7 @@ export const INSTANCE_DETAIL_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
           "name",
           "baseUrl",
           "isBaseline",
+          "syncEnabled",
           "trustMode",
           "hasCustomCertificate",
           "allowSelfSigned",
@@ -159,6 +163,24 @@ export const INSTANCE_MUTATION_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
     type: "object",
     properties: {
       instance: instanceMutationSchema,
+    },
+    required: ["instance"],
+  },
+};
+
+export const INSTANCE_SYNC_MUTATION_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      instance: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          syncEnabled: { type: "boolean" },
+        },
+        required: ["id", "name", "syncEnabled"],
+      },
     },
     required: ["instance"],
   },
@@ -229,5 +251,18 @@ export const UPDATE_INSTANCE_API_BODY: ApiBodyOptions = {
   schema: {
     type: "object",
     properties: instanceWriteProperties,
+  },
+};
+
+export const UPDATE_INSTANCE_SYNC_API_BODY: ApiBodyOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      enabled: {
+        type: "boolean",
+        default: true,
+      },
+    },
+    required: ["enabled"],
   },
 };

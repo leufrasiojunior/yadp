@@ -12,16 +12,20 @@ import { DiscoverInstancesDto } from "./dto/discover-instances.dto";
 import { InstanceIdParamsDto } from "./dto/instance-id-params.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { UpdateInstanceDto } from "./dto/update-instance.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { UpdateInstanceSyncDto } from "./dto/update-instance-sync.dto";
 import {
   CREATE_INSTANCE_API_BODY,
   DISCOVER_INSTANCES_API_BODY,
   INSTANCE_DETAIL_API_OK_RESPONSE,
   INSTANCE_MUTATION_API_OK_RESPONSE,
   INSTANCE_REAUTHENTICATE_API_OK_RESPONSE,
+  INSTANCE_SYNC_MUTATION_API_OK_RESPONSE,
   INSTANCE_TEST_API_OK_RESPONSE,
   INSTANCES_DISCOVER_API_OK_RESPONSE,
   INSTANCES_LIST_API_OK_RESPONSE,
   UPDATE_INSTANCE_API_BODY,
+  UPDATE_INSTANCE_SYNC_API_BODY,
 } from "./instances.responses";
 import { InstancesService } from "./instances.service";
 
@@ -96,5 +100,18 @@ export class InstancesController {
   @ApiOkResponse(INSTANCE_MUTATION_API_OK_RESPONSE)
   updateInstance(@Param() params: InstanceIdParamsDto, @Body() body: UpdateInstanceDto, @Req() request: Request) {
     return this.instancesService.updateInstance(params.id, body, request);
+  }
+
+  @Patch(":id/sync")
+  @UseGuards(CsrfGuard)
+  @ApiParam(InstancesController.INSTANCE_ID_PARAM)
+  @ApiBody(UPDATE_INSTANCE_SYNC_API_BODY)
+  @ApiOkResponse(INSTANCE_SYNC_MUTATION_API_OK_RESPONSE)
+  updateInstanceSync(
+    @Param() params: InstanceIdParamsDto,
+    @Body() body: UpdateInstanceSyncDto,
+    @Req() request: Request,
+  ) {
+    return this.instancesService.updateInstanceSync(params.id, body, request);
   }
 }

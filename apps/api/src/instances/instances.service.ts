@@ -1,6 +1,7 @@
 import {
   BadGatewayException,
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -15,6 +16,10 @@ import { getRequestLocale } from "../common/i18n/locale";
 import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-client";
+import {
+  InvalidManagedInstanceBaseUrlError,
+  normalizeManagedInstanceBaseUrl,
+} from "../common/url/managed-instance-base-url";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
 import type { PiholeConnection } from "../pihole/pihole.types";
 import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
@@ -22,6 +27,7 @@ import { PiholeWorkCoordinatorService } from "../pihole/pihole-work-coordinator.
 import type { CreateInstanceDto } from "./dto/create-instance.dto";
 import type { DiscoverInstancesDto } from "./dto/discover-instances.dto";
 import type { UpdateInstanceDto } from "./dto/update-instance.dto";
+import type { UpdateInstanceSyncDto } from "./dto/update-instance-sync.dto";
 
 const DEFAULT_DISCOVERY_CANDIDATES = ["https://pi.hole", "http://pi.hole"];
 
@@ -57,6 +63,7 @@ export class InstancesService {
           name: instance.name,
           baseUrl: instance.baseUrl,
           isBaseline: instance.isBaseline,
+          syncEnabled: instance.syncEnabled,
           lastKnownVersion: instance.lastKnownVersion,
           lastValidatedAt: instance.lastValidatedAt,
           trustMode: instance.certificateTrust?.mode ?? "STRICT",
@@ -94,6 +101,7 @@ export class InstancesService {
         name: instance.name,
         baseUrl: instance.baseUrl,
         isBaseline: instance.isBaseline,
+        syncEnabled: instance.syncEnabled,
         trustMode: instance.certificateTrust?.mode ?? "STRICT",
         hasCustomCertificate: Boolean(instance.certificateTrust?.certificatePem),
         allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
@@ -155,7 +163,7 @@ export class InstancesService {
 
   async createInstance(dto: CreateInstanceDto, request: Request) {
     const locale = getRequestLocale(request);
-    const normalizedBaseUrl = this.normalizeConfiguredBaseUrl(dto.baseUrl);
+    const normalizedBaseUrl = this.normalizeConfiguredBaseUrl(dto.baseUrl, locale);
     const connection = {
       baseUrl: normalizedBaseUrl,
       allowSelfSigned: dto.allowSelfSigned ?? false,
@@ -269,7 +277,7 @@ export class InstancesService {
       throw new NotFoundException(translateApi(locale, "instances.notFound"));
     }
 
-    const normalizedBaseUrl = this.normalizeConfiguredBaseUrl(dto.baseUrl ?? instance.baseUrl);
+    const normalizedBaseUrl = this.normalizeConfiguredBaseUrl(dto.baseUrl ?? instance.baseUrl, locale);
     const connection = {
       baseUrl: normalizedBaseUrl,
       allowSelfSigned: dto.allowSelfSigned ?? instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
@@ -295,7 +303,7 @@ export class InstancesService {
         }
 
         const effectiveConnection = {
-          baseUrl: this.normalizeConfiguredBaseUrl(dto.baseUrl ?? currentInstance.baseUrl),
+          baseUrl: this.normalizeConfiguredBaseUrl(dto.baseUrl ?? currentInstance.baseUrl, locale),
           allowSelfSigned: dto.allowSelfSigned ?? currentInstance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
           certificatePem: dto.certificatePem ?? currentInstance.certificateTrust?.certificatePem ?? null,
           locale,
@@ -362,6 +370,7 @@ export class InstancesService {
             csrf: session.csrf,
           },
           "STORED_SECRET",
+          { allowDisabled: true },
         );
 
         return {
@@ -417,6 +426,7 @@ export class InstancesService {
         instanceId,
         locale,
         async ({ connection, session }) => this.pihole.healthCheck(connection, session),
+        { allowDisabled: true },
       );
 
       await this.prisma.instance.update({
@@ -472,7 +482,9 @@ export class InstancesService {
         connection,
         "instances.reauthenticate",
         async () => {
-          const refreshedSession = await this.instanceSessions.forceReauthenticate(instanceId, locale);
+          const refreshedSession = await this.instanceSessions.forceReauthenticate(instanceId, locale, {
+            allowDisabled: true,
+          });
           const sessionHealth = await this.pihole.healthCheck(refreshedSession.connection, refreshedSession.session);
 
           return {
@@ -529,6 +541,57 @@ export class InstancesService {
     }
   }
 
+  async updateInstanceSync(instanceId: string, dto: UpdateInstanceSyncDto, request: Request) {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
+    const instance = await this.prisma.instance.findUnique({
+      where: { id: instanceId },
+      select: {
+        id: true,
+        name: true,
+        isBaseline: true,
+        syncEnabled: true,
+      },
+    });
+
+    if (!instance) {
+      throw new NotFoundException(translateApi(locale, "instances.notFound"));
+    }
+
+    if (instance.isBaseline && !dto.enabled) {
+      throw new ConflictException(translateApi(locale, "instances.syncBaselineRequired"));
+    }
+
+    const updated = await this.prisma.instance.update({
+      where: { id: instanceId },
+      data: {
+        syncEnabled: dto.enabled,
+      },
+      select: {
+        id: true,
+        name: true,
+        syncEnabled: true,
+      },
+    });
+
+    await this.audit.record({
+      action: "instances.sync.toggle",
+      actorType: "session",
+      ipAddress,
+      targetType: "instance",
+      targetId: updated.id,
+      result: "SUCCESS",
+      details: {
+        previousValue: instance.syncEnabled,
+        nextValue: updated.syncEnabled,
+      } satisfies Prisma.InputJsonObject,
+    });
+
+    return {
+      instance: updated,
+    };
+  }
+
   private mapPiholeError(error: unknown, locale: ReturnType<typeof getRequestLocale>): never {
     if (error instanceof PiholeRequestError && error.statusCode === 401) {
       throw new UnauthorizedException(translateApi(locale, "instances.invalidCredentials"));
@@ -577,24 +640,22 @@ export class InstancesService {
     }
 
     return {
-      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
+      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl, locale),
       allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
       certificatePem: instance.certificateTrust?.certificatePem ?? null,
       locale,
     } satisfies PiholeConnection;
   }
 
-  private normalizeConfiguredBaseUrl(baseUrl: string) {
-    const trimmedBaseUrl = baseUrl.trim();
-    const normalizedScheme = trimmedBaseUrl.replace(/^([a-z][a-z0-9+.-]*:)\/*/i, "$1//");
-    const parsed = new URL(normalizedScheme);
-    const normalizedPath = parsed.pathname.replaceAll(/\/{2,}/g, "/");
+  private normalizeConfiguredBaseUrl(baseUrl: string, locale: ReturnType<typeof getRequestLocale>) {
+    try {
+      return normalizeManagedInstanceBaseUrl(baseUrl);
+    } catch (error) {
+      if (error instanceof InvalidManagedInstanceBaseUrlError) {
+        throw new BadRequestException(translateApi(locale, "instances.invalidBaseUrl"));
+      }
 
-    parsed.pathname =
-      normalizedPath.length > 1 && normalizedPath.endsWith("/") ? normalizedPath.slice(0, -1) : normalizedPath;
-    parsed.search = "";
-    parsed.hash = "";
-
-    return parsed.toString().replace(/\/$/, "");
+      throw error;
+    }
   }
 }

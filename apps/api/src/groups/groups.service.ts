@@ -479,6 +479,9 @@ export class GroupsService {
 
   private async loadManagedInstances(locale: ReturnType<typeof getRequestLocale>): Promise<ManagedInstanceRecord[]> {
     const instances = await this.prisma.instance.findMany({
+      where: {
+        syncEnabled: true,
+      },
       orderBy: [{ isBaseline: "asc" }, { name: "asc" }],
       select: {
         id: true,

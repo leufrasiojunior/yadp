@@ -4,12 +4,21 @@ import { z } from "zod";
 
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import type { WebMessages } from "@/lib/i18n/messages";
+import {
+  buildManagedInstanceBaseUrl,
+  isValidManagedInstanceHostPath,
+  type ManagedInstanceScheme,
+  normalizeManagedInstanceBaseUrl,
+  normalizeManagedInstanceHostPath,
+  normalizeManagedInstanceText,
+} from "@/lib/instances/managed-instance-base-url";
 
 const PEM_CERTIFICATE_PATTERN = /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/;
 
 export type InstanceFormValues = {
   name: string;
-  baseUrl: string;
+  scheme: ManagedInstanceScheme;
+  hostPath: string;
   servicePassword: string;
   allowSelfSigned: boolean;
   certificatePem: string;
@@ -17,23 +26,15 @@ export type InstanceFormValues = {
 
 export const DEFAULT_INSTANCE_FORM_VALUES: InstanceFormValues = {
   name: "",
-  baseUrl: "",
+  scheme: "https",
+  hostPath: "",
   servicePassword: "",
   allowSelfSigned: false,
   certificatePem: "",
 };
 
 function normalizeText(value: string) {
-  return value.trim();
-}
-
-export function isValidHttpUrl(value: string) {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
+  return normalizeManagedInstanceText(value);
 }
 
 export function isPemCertificateBundle(value: string) {
@@ -47,10 +48,8 @@ export function buildInstanceFormSchema(messages: WebMessages, options: { requir
         .string()
         .transform(normalizeText)
         .refine((value) => value.length >= 2 && value.length <= 120, messages.forms.instances.validation.name),
-      baseUrl: z
-        .string()
-        .transform(normalizeText)
-        .refine((value) => isValidHttpUrl(value), messages.forms.instances.validation.baseUrl),
+      scheme: z.enum(["http", "https"]),
+      hostPath: z.string().transform(normalizeManagedInstanceHostPath),
       servicePassword: z
         .string()
         .transform(normalizeText)
@@ -71,6 +70,14 @@ export function buildInstanceFormSchema(messages: WebMessages, options: { requir
         ),
     })
     .superRefine((values, context) => {
+      if (!isValidManagedInstanceHostPath(values.scheme, values.hostPath)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["hostPath"],
+          message: messages.forms.instances.validation.baseUrl,
+        });
+      }
+
       if (values.allowSelfSigned && values.certificatePem.length > 0) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
@@ -84,7 +91,7 @@ export function buildInstanceFormSchema(messages: WebMessages, options: { requir
 export function toInstanceRequestBody(values: InstanceFormValues) {
   return {
     name: values.name,
-    baseUrl: values.baseUrl,
+    baseUrl: buildManagedInstanceBaseUrl(values.scheme, values.hostPath),
     servicePassword: values.servicePassword || undefined,
     allowSelfSigned: values.certificatePem.length > 0 ? false : values.allowSelfSigned,
     certificatePem: values.certificatePem || undefined,
@@ -101,17 +108,19 @@ export function parseDiscoveryCandidatesInput(value: string | undefined) {
   const seen = new Set<string>();
 
   for (const entry of entries) {
-    if (!isValidHttpUrl(entry)) {
+    const normalizedEntry = normalizeManagedInstanceBaseUrl(entry);
+
+    if (!normalizedEntry) {
       invalidValues.push(entry);
       continue;
     }
 
-    if (seen.has(entry)) {
+    if (seen.has(normalizedEntry)) {
       continue;
     }
 
-    seen.add(entry);
-    candidates.push(entry);
+    seen.add(normalizedEntry);
+    candidates.push(normalizedEntry);
   }
 
   return {

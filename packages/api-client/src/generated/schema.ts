@@ -244,6 +244,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/instances/{id}/sync": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["InstancesController_updateInstanceSync"];
+    trace?: never;
+  };
   "/queries": {
     parameters: {
       query?: never;
@@ -961,6 +977,7 @@ export interface operations {
               name: string;
               baseUrl: string;
               isBaseline: boolean;
+              syncEnabled: boolean;
               lastKnownVersion: string | null;
               /** Format: date-time */
               lastValidatedAt: string | null;
@@ -1064,6 +1081,7 @@ export interface operations {
               name: string;
               baseUrl: string;
               isBaseline: boolean;
+              syncEnabled: boolean;
               /** @enum {string} */
               trustMode: "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
               hasCustomCertificate: boolean;
@@ -1214,6 +1232,40 @@ export interface operations {
             sessionLastActiveAt: string | null;
             /** Format: date-time */
             sessionValidUntil: string | null;
+          };
+        };
+      };
+    };
+  };
+  InstancesController_updateInstanceSync: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @default true */
+          enabled: boolean;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            instance: {
+              id: string;
+              name: string;
+              syncEnabled: boolean;
+            };
           };
         };
       };

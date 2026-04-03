@@ -25,6 +25,7 @@ import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import type { DiscoverInstanceItem, DiscoverInstancesResponse, InstanceMutationResponse } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
+import { splitManagedInstanceBaseUrl } from "@/lib/instances/managed-instance-base-url";
 import { cn } from "@/lib/utils";
 
 import { InstanceConnectionFields } from "./instance-connection-fields";
@@ -33,7 +34,6 @@ import {
   buildInstanceFormSchema,
   DEFAULT_INSTANCE_FORM_VALUES,
   type InstanceFormValues,
-  isValidHttpUrl,
   parseDiscoveryCandidatesInput,
   toInstanceRequestBody,
 } from "./instance-form-schema";
@@ -181,15 +181,20 @@ export function CreateInstanceDialog({ onCreated }: Readonly<CreateInstanceDialo
   };
 
   const applyDiscoveredAddress = (baseUrl: string) => {
-    const normalizedBaseUrl = baseUrl.trim();
+    const splitBaseUrl = splitManagedInstanceBaseUrl(baseUrl);
 
-    if (!isValidHttpUrl(normalizedBaseUrl)) {
+    if (!splitBaseUrl) {
       toast.error(messages.forms.instances.discovery.invalidSelection);
       return;
     }
 
     setCreateError(null);
-    createForm.setValue("baseUrl", normalizedBaseUrl, {
+    createForm.setValue("scheme", splitBaseUrl.scheme, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    createForm.setValue("hostPath", splitBaseUrl.hostPath, {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,

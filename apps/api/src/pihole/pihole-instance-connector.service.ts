@@ -1,9 +1,10 @@
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { CryptoService } from "../common/crypto/crypto.service";
 import type { ApiLocale } from "../common/i18n/locale";
 import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
+import { normalizeManagedInstanceBaseUrl } from "../common/url/managed-instance-base-url";
 import { PiholeService } from "./pihole.service";
 import type { PiholeConnection, PiholeManagedInstanceSummary, PiholeSession } from "./pihole.types";
 import { PiholeWorkCoordinatorService } from "./pihole-work-coordinator.service";
@@ -12,6 +13,7 @@ type ManagedInstanceRecord = {
   id: string;
   name: string;
   baseUrl: string;
+  syncEnabled: boolean;
   certificateTrust: {
     mode: string;
     certificatePem: string | null;
@@ -32,8 +34,9 @@ export class PiholeInstanceConnectorService {
     @Inject(PiholeWorkCoordinatorService) private readonly coordinator: PiholeWorkCoordinatorService,
   ) {}
 
-  async listInstanceSummaries(): Promise<PiholeManagedInstanceSummary[]> {
+  async listInstanceSummaries(options?: { includeDisabled?: boolean }): Promise<PiholeManagedInstanceSummary[]> {
     const instances = await this.prisma.instance.findMany({
+      ...(options?.includeDisabled ? {} : { where: { syncEnabled: true } }),
       orderBy: [{ isBaseline: "desc" }, { name: "asc" }],
       select: {
         id: true,
@@ -47,17 +50,22 @@ export class PiholeInstanceConnectorService {
     return instances.map((instance) => ({
       id: instance.id,
       name: instance.name,
-      baseUrl: instance.baseUrl,
+      baseUrl: normalizeManagedInstanceBaseUrl(instance.baseUrl),
     }));
   }
 
-  async getInstanceSummary(instanceId: string, locale: ApiLocale): Promise<PiholeManagedInstanceSummary> {
+  async getInstanceSummary(
+    instanceId: string,
+    locale: ApiLocale,
+    options?: { allowDisabled?: boolean },
+  ): Promise<PiholeManagedInstanceSummary> {
     const instance = await this.prisma.instance.findUnique({
       where: { id: instanceId },
       select: {
         id: true,
         name: true,
         baseUrl: true,
+        syncEnabled: true,
       },
     });
 
@@ -65,10 +73,14 @@ export class PiholeInstanceConnectorService {
       throw new NotFoundException(translateApi(locale, "instances.notFound"));
     }
 
+    if (!options?.allowDisabled && !instance.syncEnabled) {
+      throw new BadRequestException(translateApi(locale, "instances.disabledForSync"));
+    }
+
     return {
       id: instance.id,
       name: instance.name,
-      baseUrl: instance.baseUrl,
+      baseUrl: normalizeManagedInstanceBaseUrl(instance.baseUrl),
     };
   }
 
@@ -96,7 +108,7 @@ export class PiholeInstanceConnectorService {
           instance: {
             id: instance.id,
             name: instance.name,
-            baseUrl: instance.baseUrl,
+            baseUrl: normalizeManagedInstanceBaseUrl(instance.baseUrl),
           },
           connection,
           session: {
@@ -117,6 +129,7 @@ export class PiholeInstanceConnectorService {
         id: true,
         name: true,
         baseUrl: true,
+        syncEnabled: true,
         certificateTrust: {
           select: {
             mode: true,
@@ -135,6 +148,10 @@ export class PiholeInstanceConnectorService {
       throw new NotFoundException(translateApi(locale, "instances.notFound"));
     }
 
+    if (!instance.syncEnabled) {
+      throw new BadRequestException(translateApi(locale, "instances.disabledForSync"));
+    }
+
     return {
       ...instance,
       secret: instance.secret,
@@ -143,7 +160,7 @@ export class PiholeInstanceConnectorService {
 
   private buildConnection(instance: ManagedInstanceRecord): PiholeConnection {
     return {
-      baseUrl: instance.baseUrl,
+      baseUrl: normalizeManagedInstanceBaseUrl(instance.baseUrl),
       allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
       certificatePem: instance.certificateTrust?.certificatePem ?? null,
     };

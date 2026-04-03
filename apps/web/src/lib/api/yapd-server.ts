@@ -105,7 +105,7 @@ export async function getServerSession(required = false): Promise<AppSession | n
   return data;
 }
 
-export async function getInstances(): Promise<InstanceListResponse> {
+export async function getInstances(options?: { operationalOnly?: boolean }): Promise<InstanceListResponse> {
   const { baseUrl, client } = await createServerApiClient();
   const { data, response } = await client.GET<InstanceListResponse>("/instances");
 
@@ -119,6 +119,13 @@ export async function getInstances(): Promise<InstanceListResponse> {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load instances.");
+  }
+
+  if (options?.operationalOnly) {
+    return {
+      ...data,
+      items: data.items.filter((instance) => instance.syncEnabled),
+    };
   }
 
   return data;

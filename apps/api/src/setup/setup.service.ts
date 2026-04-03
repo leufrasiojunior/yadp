@@ -17,6 +17,10 @@ import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-client";
 import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
+import {
+  InvalidManagedInstanceBaseUrlError,
+  normalizeManagedInstanceBaseUrl,
+} from "../common/url/managed-instance-base-url";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
 import type { PiholeConnection, PiholeSession } from "../pihole/pihole.types";
 import { PiholeWorkCoordinatorService } from "../pihole/pihole-work-coordinator.service";
@@ -243,7 +247,7 @@ export class SetupService {
       const label = this.resolveInstanceLabel(locale, index, instance.name);
       const name = this.normalizeOptionalString(instance.name);
       const baseUrlInput = this.normalizeOptionalString(instance.baseUrl);
-      const baseUrl = baseUrlInput ? this.normalizeConfiguredBaseUrl(baseUrlInput) : undefined;
+      const baseUrl = baseUrlInput ? this.normalizeConfiguredBaseUrl(baseUrlInput, locale) : undefined;
       const isMaster = instance.isMaster ?? false;
       const allowSelfSigned = instance.allowSelfSigned ?? false;
 
@@ -435,17 +439,16 @@ export class SetupService {
     return normalized ? normalized : undefined;
   }
 
-  private normalizeConfiguredBaseUrl(baseUrl: string) {
-    const normalizedScheme = baseUrl.replace(/^([a-z][a-z0-9+.-]*:)\/*/i, "$1//");
-    const parsed = new URL(normalizedScheme);
-    const normalizedPath = parsed.pathname.replaceAll(/\/{2,}/g, "/");
+  private normalizeConfiguredBaseUrl(baseUrl: string, locale: ReturnType<typeof getRequestLocale>) {
+    try {
+      return normalizeManagedInstanceBaseUrl(baseUrl);
+    } catch (error) {
+      if (error instanceof InvalidManagedInstanceBaseUrlError) {
+        throw new BadRequestException(translateApi(locale, "instances.invalidBaseUrl"));
+      }
 
-    parsed.pathname =
-      normalizedPath.length > 1 && normalizedPath.endsWith("/") ? normalizedPath.slice(0, -1) : normalizedPath;
-    parsed.search = "";
-    parsed.hash = "";
-
-    return parsed.toString().replace(/\/$/, "");
+      throw error;
+    }
   }
 
   private isBlankOptionalInstance(instance: SetupInstanceDto, mode: SetupCredentialMode) {

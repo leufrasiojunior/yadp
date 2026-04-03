@@ -1,8 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsOptional, IsString, IsUrl, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 import {
   IsExclusiveTrustConfiguration,
+  IsManagedInstanceBaseUrl,
   IsPemCertificateBundle,
   TrimOptionalString,
   TrimRequiredString,
@@ -18,7 +19,7 @@ export class CreateInstanceDto {
 
   @ApiProperty({ example: "https://pihole.lan" })
   @TrimRequiredString()
-  @IsUrl({ require_tld: false, require_protocol: true, protocols: ["http", "https"] })
+  @IsManagedInstanceBaseUrl()
   baseUrl!: string;
 
   @ApiProperty({ example: "service-password" })

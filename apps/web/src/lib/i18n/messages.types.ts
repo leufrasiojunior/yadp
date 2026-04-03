@@ -111,6 +111,8 @@ export type WebMessages = {
         detailsLoadFailed: string;
         testSuccess: string;
         reauthenticateSuccess: string;
+        syncEnabledSuccess: string;
+        syncDisabledSuccess: string;
         updateSuccess: string;
       };
       create: {
@@ -120,7 +122,10 @@ export type WebMessages = {
         manualTab: string;
         discoveryTab: string;
         name: string;
+        baseUrlScheme: string;
         baseUrl: string;
+        baseUrlPlaceholder: string;
+        baseUrlDescription: string;
         password: string;
         passwordDescription: string;
         allowSelfSigned: string;
@@ -165,12 +170,17 @@ export type WebMessages = {
         lastValidation: string;
         session: string;
         validUntil: string;
+        sync: string;
         lastError: string;
         actions: string;
         baseline: string;
-        managed: string;
-        humanMaster: string;
-        storedSecret: string;
+        baselineBadge: string;
+        syncEnabled: string;
+        syncDisabled: string;
+        syncEnabling: string;
+        syncDisabling: string;
+        syncLocked: string;
+        errorDetails: string;
         editIdle: string;
         editLoading: string;
         testIdle: string;
@@ -181,6 +191,51 @@ export type WebMessages = {
         statusExpired: string;
         statusMissing: string;
         statusError: string;
+      };
+      errorDetails: {
+        title: string;
+        description: (instanceName: string) => string;
+        summary: string;
+        possibleCause: string;
+        whatToCheck: string;
+        technicalDetails: string;
+        noTechnicalDetails: string;
+        close: string;
+        invalid_credentials: {
+          title: string;
+          cause: string;
+          checks: string[];
+        };
+        tls_error: {
+          title: string;
+          cause: string;
+          checks: string[];
+        };
+        timeout: {
+          title: string;
+          cause: string;
+          checks: string[];
+        };
+        dns_error: {
+          title: string;
+          cause: string;
+          checks: string[];
+        };
+        connection_refused: {
+          title: string;
+          cause: string;
+          checks: string[];
+        };
+        pihole_response_error: {
+          title: string;
+          cause: string;
+          checks: string[];
+        };
+        unknown: {
+          title: string;
+          cause: string;
+          checks: string[];
+        };
       };
       page: {
         eyebrow: string;

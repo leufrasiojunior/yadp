@@ -1,5 +1,11 @@
 import type { SetupCredentialMode } from "@/lib/api/yapd-types";
 import type { AppLocale } from "@/lib/i18n/config";
+import {
+  buildManagedInstanceBaseUrl,
+  isValidManagedInstanceHostPath,
+  normalizeManagedInstanceHostPath,
+  normalizeManagedInstanceText,
+} from "@/lib/instances/managed-instance-base-url";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 
 import type { SetupInstanceFormValue, SetupWizardValues } from "./setup-form.types";
@@ -38,36 +44,19 @@ export function createDefaultSetupValues(locale: AppLocale): SetupWizardValues {
 }
 
 export function normalizeText(value: string | null | undefined) {
-  return typeof value === "string" ? value.trim() : "";
+  return normalizeManagedInstanceText(value);
 }
 
 export function normalizeHostPath(value: string | null | undefined) {
-  const normalized = normalizeText(value);
-
-  if (normalized.length === 0) {
-    return "";
-  }
-
-  return normalized.replace(/\/+$/u, "");
+  return normalizeManagedInstanceHostPath(value);
 }
 
 export function buildBaseUrl(scheme: SetupInstanceFormValue["scheme"], hostPath: string | null | undefined) {
-  return `${scheme}://${normalizeHostPath(hostPath)}`;
+  return buildManagedInstanceBaseUrl(scheme, hostPath);
 }
 
 export function isValidHostPath(scheme: SetupInstanceFormValue["scheme"], hostPath: string | null | undefined) {
-  const normalized = normalizeHostPath(hostPath);
-
-  if (normalized.length === 0 || normalized.includes("://")) {
-    return false;
-  }
-
-  try {
-    const parsed = new URL(buildBaseUrl(scheme, normalized));
-    return parsed.hostname.length > 0;
-  } catch {
-    return false;
-  }
+  return isValidManagedInstanceHostPath(scheme, hostPath);
 }
 
 export function isBlankInstance(instance: SetupInstanceFormValue, mode: SetupCredentialMode) {
