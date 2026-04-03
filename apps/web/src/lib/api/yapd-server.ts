@@ -6,7 +6,13 @@ import type { AppSession } from "@/components/yapd/app-session-provider";
 import { getServerApiBaseUrl } from "./base-url";
 import { getApiErrorMessage } from "./error-message";
 import { createYapdHttpClient, isYapdApiUnavailableResponse } from "./yapd-http";
-import type { DashboardOverviewResponse, InstanceListResponse, QueriesResponse, SetupStatus } from "./yapd-types";
+import type {
+  DashboardOverviewResponse,
+  GroupsListResponse,
+  InstanceListResponse,
+  QueriesResponse,
+  SetupStatus,
+} from "./yapd-types";
 
 async function createServerApiClient() {
   const baseUrl = getServerApiBaseUrl();
@@ -113,6 +119,25 @@ export async function getInstances(): Promise<InstanceListResponse> {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load instances.");
+  }
+
+  return data;
+}
+
+export async function getGroups(): Promise<GroupsListResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<GroupsListResponse>("/groups");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load groups.");
   }
 
   return data;

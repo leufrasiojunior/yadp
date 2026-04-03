@@ -193,6 +193,7 @@ export type WebMessages = {
   layout: {
     overviewButton: string;
     queriesButton: string;
+    groupsButton: string;
     instancesButton: string;
     unavailableTitle: string;
     unavailableDescription: string;
@@ -207,6 +208,7 @@ export type WebMessages = {
     items: {
       dashboard: string;
       queries: string;
+      groups: string;
       instances: string;
       baselineLogin: string;
       setupBaseline: string;
@@ -435,6 +437,85 @@ export type WebMessages = {
       gravity: string;
       unknown: (status: string) => string;
       unavailable: string;
+    };
+  };
+  groups: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    validation: {
+      createNames: string;
+      editName: string;
+      comment: string;
+    };
+    create: {
+      title: string;
+      description: string;
+      nameLabel: string;
+      commentLabel: string;
+      tipMultiple: string;
+      tipQuoted: string;
+      submitIdle: string;
+      submitLoading: string;
+    };
+    table: {
+      title: string;
+      description: (baselineName: string) => string;
+      searchPlaceholder: string;
+      refresh: string;
+      refreshLoading: string;
+      sync: string;
+      syncLoading: string;
+      selectAll: string;
+      selectRow: (name: string) => string;
+      name: string;
+      status: string;
+      comment: string;
+      actions: string;
+      edit: string;
+      delete: string;
+      deleteSelected: (count: number) => string;
+      protectedBadge: string;
+      protectedDescription: string;
+      emptyTitle: string;
+      emptyDescription: string;
+    };
+    status: {
+      active: string;
+      inactive: string;
+      enabling: string;
+      disabling: string;
+    };
+    edit: {
+      title: string;
+      description: string;
+      nameLabel: string;
+      commentLabel: string;
+      cancel: string;
+      submitIdle: string;
+      submitLoading: string;
+    };
+    delete: {
+      titleSingle: (name: string) => string;
+      titleBatch: (count: number) => string;
+      descriptionSingle: (name: string) => string;
+      descriptionBatch: (count: number) => string;
+      irreversible: string;
+      dontAskAgain: string;
+      cancel: string;
+      confirmSingle: string;
+      confirmBatch: (count: number) => string;
+      confirmLoading: string;
+    };
+    toasts: {
+      refreshFailed: string;
+      createSuccess: string;
+      updateSuccess: string;
+      deleteSuccess: string;
+      enabledSuccess: string;
+      disabledSuccess: string;
+      syncSuccess: string;
+      partialWarning: (successfulCount: number, failedCount: number) => string;
     };
   };
 };

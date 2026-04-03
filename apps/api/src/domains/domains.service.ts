@@ -15,7 +15,6 @@ import {
   type DomainOperationResponse,
   type DomainsInstanceFailure,
   type DomainsInstanceSource,
-  MAX_DOMAIN_INSTANCE_CONCURRENCY,
 } from "./domains.types";
 import type { ApplyDomainOperationDto } from "./dto/apply-domain-operation.dto";
 import type { DomainOperationParamsDto } from "./dto/domain-operation-params.dto";
@@ -46,40 +45,42 @@ export class DomainsService {
     const effectiveScope = params.type === "deny" && params.kind === "exact" ? "all" : body.scope;
     const effectiveInstanceId = effectiveScope === "instance" ? body.instanceId : undefined;
     const instances = await this.resolveRequestedInstances(effectiveScope, effectiveInstanceId, locale);
-    const settled = await this.mapWithConcurrency(instances, MAX_DOMAIN_INSTANCE_CONCURRENCY, async (instance) => {
-      try {
-        const result = await this.instanceSessions.withActiveSession(instance.id, locale, ({ connection, session }) =>
-          this.pihole.applyDomainOperation(connection, session, {
-            type: params.type,
-            kind: params.kind,
-            value,
-            comment,
-            groups: [0],
-            enabled: true,
-          }),
-        );
+    const settled = await Promise.all(
+      instances.map(async (instance) => {
+        try {
+          const result = await this.instanceSessions.withActiveSession(instance.id, locale, ({ connection, session }) =>
+            this.pihole.applyDomainOperation(connection, session, {
+              type: params.type,
+              kind: params.kind,
+              value,
+              comment,
+              groups: [0],
+              enabled: true,
+            }),
+          );
 
-        if (result.processed.errors.length > 0) {
+          if (result.processed.errors.length > 0) {
+            return {
+              status: "rejected" as const,
+              instance,
+              failure: this.mapProcessedFailure(instance, result, locale),
+            };
+          }
+
+          return {
+            status: "fulfilled" as const,
+            instance,
+            result,
+          };
+        } catch (error) {
           return {
             status: "rejected" as const,
             instance,
-            failure: this.mapProcessedFailure(instance, result, locale),
+            failure: this.mapInstanceFailure(instance, error, locale),
           };
         }
-
-        return {
-          status: "fulfilled" as const,
-          instance,
-          result,
-        };
-      } catch (error) {
-        return {
-          status: "rejected" as const,
-          instance,
-          failure: this.mapInstanceFailure(instance, error, locale),
-        };
-      }
-    });
+      }),
+    );
     const successfulInstances: SuccessfulDomainOperation[] = [];
     const failedInstances: DomainsInstanceFailure[] = [];
 
@@ -230,30 +231,5 @@ export class DomainsService {
       default:
         return translateApi(locale, "pihole.unreachable", { baseUrl });
     }
-  }
-
-  private async mapWithConcurrency<T, R>(
-    items: T[],
-    concurrency: number,
-    execute: (item: T, index: number) => Promise<R>,
-  ): Promise<R[]> {
-    if (items.length === 0) {
-      return [];
-    }
-
-    const results = new Array<R>(items.length);
-    let nextIndex = 0;
-
-    const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-      while (nextIndex < items.length) {
-        const index = nextIndex;
-        nextIndex += 1;
-        results[index] = await execute(items[index] as T, index);
-      }
-    });
-
-    await Promise.all(workers);
-
-    return results;
   }
 }

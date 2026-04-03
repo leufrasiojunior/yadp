@@ -16,7 +16,9 @@ import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-client";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
+import type { PiholeConnection } from "../pihole/pihole.types";
 import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
+import { PiholeWorkCoordinatorService } from "../pihole/pihole-work-coordinator.service";
 import type { CreateInstanceDto } from "./dto/create-instance.dto";
 import type { DiscoverInstancesDto } from "./dto/discover-instances.dto";
 import type { UpdateInstanceDto } from "./dto/update-instance.dto";
@@ -30,6 +32,7 @@ export class InstancesService {
     @Inject(CryptoService) private readonly crypto: CryptoService,
     @Inject(PiholeInstanceSessionService) private readonly instanceSessions: PiholeInstanceSessionService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
+    @Inject(PiholeWorkCoordinatorService) private readonly coordinator: PiholeWorkCoordinatorService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
@@ -105,10 +108,18 @@ export class InstancesService {
     const results = await Promise.all(
       candidates.map(async (candidate) => {
         try {
-          const discovery = await this.pihole.checkAuthenticationRequired({
-            baseUrl: candidate,
-            locale,
-          });
+          const discovery = await this.coordinator.runForConnection(
+            {
+              baseUrl: candidate,
+              locale,
+            },
+            "instances.discover",
+            () =>
+              this.pihole.checkAuthenticationRequired({
+                baseUrl: candidate,
+                locale,
+              }),
+          );
 
           return {
             baseUrl: candidate,
@@ -156,8 +167,15 @@ export class InstancesService {
     this.assertTrustConfiguration(locale, connection.allowSelfSigned ?? false, connection.certificatePem);
 
     try {
-      const session = await this.pihole.authenticate(connection, dto.servicePassword);
-      const version = await this.pihole.readCapabilities(connection, session);
+      const { session, version } = await this.coordinator.runForConnection(connection, "instances.create", async () => {
+        const authenticated = await this.pihole.authenticate(connection, dto.servicePassword);
+        const capabilities = await this.pihole.readCapabilities(connection, authenticated);
+
+        return {
+          session: authenticated,
+          version: capabilities,
+        };
+      });
 
       const instance = await this.prisma.$transaction(async (tx) => {
         const createdInstance = await tx.instance.create({
@@ -251,8 +269,6 @@ export class InstancesService {
       throw new NotFoundException(translateApi(locale, "instances.notFound"));
     }
 
-    const existingEncryptedPassword = instance.secret.encryptedPassword;
-    const servicePassword = dto.servicePassword ?? this.crypto.decryptSecret(existingEncryptedPassword);
     const normalizedBaseUrl = this.normalizeConfiguredBaseUrl(dto.baseUrl ?? instance.baseUrl);
     const connection = {
       baseUrl: normalizedBaseUrl,
@@ -265,74 +281,114 @@ export class InstancesService {
     this.assertTrustConfiguration(locale, connection.allowSelfSigned ?? false, connection.certificatePem);
 
     try {
-      const session = await this.pihole.authenticate(connection, servicePassword);
-      const version = await this.pihole.readCapabilities(connection, session);
-
-      const updated = await this.prisma.$transaction(async (tx) => {
-        const updatedInstance = await tx.instance.update({
+      const updated = await this.coordinator.runForInstance(instanceId, connection, "instances.update", async () => {
+        const currentInstance = await this.prisma.instance.findUnique({
           where: { id: instanceId },
-          data: {
-            name: dto.name ?? instance.name,
-            baseUrl: normalizedBaseUrl,
-            lastKnownVersion: version.summary,
-            lastValidatedAt: new Date(),
+          include: {
+            secret: true,
+            certificateTrust: true,
           },
         });
 
-        await tx.instanceSecret.update({
-          where: { instanceId },
-          data: {
-            encryptedPassword: dto.servicePassword
-              ? this.crypto.encryptSecret(dto.servicePassword)
-              : existingEncryptedPassword,
-          },
+        if (!currentInstance || !currentInstance.secret) {
+          throw new NotFoundException(translateApi(locale, "instances.notFound"));
+        }
+
+        const effectiveConnection = {
+          baseUrl: this.normalizeConfiguredBaseUrl(dto.baseUrl ?? currentInstance.baseUrl),
+          allowSelfSigned: dto.allowSelfSigned ?? currentInstance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
+          certificatePem: dto.certificatePem ?? currentInstance.certificateTrust?.certificatePem ?? null,
+          locale,
+        } satisfies PiholeConnection;
+
+        this.assertTrustConfiguration(
+          locale,
+          effectiveConnection.allowSelfSigned ?? false,
+          effectiveConnection.certificatePem,
+        );
+
+        const existingEncryptedPassword = currentInstance.secret.encryptedPassword;
+        const servicePassword = dto.servicePassword ?? this.crypto.decryptSecret(existingEncryptedPassword);
+        const session = await this.pihole.authenticate(effectiveConnection, servicePassword);
+        const version = await this.pihole.readCapabilities(effectiveConnection, session);
+
+        const updatedInstance = await this.prisma.$transaction(async (tx) => {
+          const persistedInstance = await tx.instance.update({
+            where: { id: instanceId },
+            data: {
+              name: dto.name ?? currentInstance.name,
+              baseUrl: effectiveConnection.baseUrl,
+              lastKnownVersion: version.summary,
+              lastValidatedAt: new Date(),
+            },
+          });
+
+          await tx.instanceSecret.update({
+            where: { instanceId },
+            data: {
+              encryptedPassword: dto.servicePassword
+                ? this.crypto.encryptSecret(dto.servicePassword)
+                : existingEncryptedPassword,
+            },
+          });
+
+          await tx.instanceCertificateTrust.upsert({
+            where: { instanceId },
+            update: {
+              mode: this.resolveTrustMode(
+                effectiveConnection.allowSelfSigned ?? false,
+                effectiveConnection.certificatePem,
+              ),
+              certificatePem: effectiveConnection.certificatePem,
+            },
+            create: {
+              instanceId,
+              mode: this.resolveTrustMode(
+                effectiveConnection.allowSelfSigned ?? false,
+                effectiveConnection.certificatePem,
+              ),
+              certificatePem: effectiveConnection.certificatePem,
+            },
+          });
+
+          return persistedInstance;
         });
 
-        await tx.instanceCertificateTrust.upsert({
-          where: { instanceId },
-          update: {
-            mode: this.resolveTrustMode(connection.allowSelfSigned ?? false, connection.certificatePem),
-            certificatePem: connection.certificatePem,
+        await this.instanceSessions.seedSessionFromLogin(
+          updatedInstance.id,
+          locale,
+          {
+            sid: session.sid,
+            csrf: session.csrf,
           },
-          create: {
-            instanceId,
-            mode: this.resolveTrustMode(connection.allowSelfSigned ?? false, connection.certificatePem),
-            certificatePem: connection.certificatePem,
-          },
-        });
+          "STORED_SECRET",
+        );
 
-        return updatedInstance;
+        return {
+          instance: updatedInstance,
+          version,
+        };
       });
-
-      await this.instanceSessions.seedSessionFromLogin(
-        updated.id,
-        locale,
-        {
-          sid: session.sid,
-          csrf: session.csrf,
-        },
-        "STORED_SECRET",
-      );
       await this.audit.record({
         action: "instances.update",
         actorType: "session",
         ipAddress,
         targetType: "instance",
-        targetId: updated.id,
+        targetId: updated.instance.id,
         result: "SUCCESS",
         details: {
-          baseUrl: updated.baseUrl,
-          name: updated.name,
-          version: version.summary,
+          baseUrl: updated.instance.baseUrl,
+          name: updated.instance.name,
+          version: updated.version.summary,
         } satisfies Prisma.InputJsonObject,
       });
 
       return {
         instance: {
-          id: updated.id,
-          name: updated.name,
-          baseUrl: updated.baseUrl,
-          version: version.summary,
+          id: updated.instance.id,
+          name: updated.instance.name,
+          baseUrl: updated.instance.baseUrl,
+          version: updated.version.summary,
         },
       };
     } catch (error) {
@@ -410,8 +466,21 @@ export class InstancesService {
     const ipAddress = getRequestIp(request);
 
     try {
-      const active = await this.instanceSessions.forceReauthenticate(instanceId, locale);
-      const health = await this.pihole.healthCheck(active.connection, active.session);
+      const connection = await this.loadInstanceConnection(instanceId, locale);
+      const { active, health } = await this.coordinator.runForInstance(
+        instanceId,
+        connection,
+        "instances.reauthenticate",
+        async () => {
+          const refreshedSession = await this.instanceSessions.forceReauthenticate(instanceId, locale);
+          const sessionHealth = await this.pihole.healthCheck(refreshedSession.connection, refreshedSession.session);
+
+          return {
+            active: refreshedSession,
+            health: sessionHealth,
+          };
+        },
+      );
 
       await this.prisma.instance.update({
         where: { id: instanceId },
@@ -488,6 +557,31 @@ export class InstancesService {
     if (allowSelfSigned && certificatePem) {
       throw new BadRequestException(translateApi(locale, "instances.invalidTrustConfiguration"));
     }
+  }
+
+  private async loadInstanceConnection(instanceId: string, locale: ReturnType<typeof getRequestLocale>) {
+    const instance = await this.prisma.instance.findUnique({
+      where: { id: instanceId },
+      include: {
+        certificateTrust: {
+          select: {
+            mode: true,
+            certificatePem: true,
+          },
+        },
+      },
+    });
+
+    if (!instance) {
+      throw new NotFoundException(translateApi(locale, "instances.notFound"));
+    }
+
+    return {
+      baseUrl: this.normalizeConfiguredBaseUrl(instance.baseUrl),
+      allowSelfSigned: instance.certificateTrust?.mode === "ALLOW_SELF_SIGNED",
+      certificatePem: instance.certificateTrust?.certificatePem ?? null,
+      locale,
+    } satisfies PiholeConnection;
   }
 
   private normalizeConfiguredBaseUrl(baseUrl: string) {

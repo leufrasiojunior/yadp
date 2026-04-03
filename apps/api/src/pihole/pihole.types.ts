@@ -237,3 +237,47 @@ export type PiholeDomainOperationResult = {
   };
   took: number | null;
 };
+
+export type PiholeGroupCreateRequest = {
+  names: string[];
+  comment?: string | null;
+  enabled?: boolean;
+};
+
+export type PiholeGroupUpdateRequest = {
+  name: string;
+  comment?: string | null;
+  enabled: boolean;
+};
+
+export type PiholeManagedGroupEntry = {
+  name: string | null;
+  comment: string | null;
+  enabled: boolean | null;
+  id: number | null;
+  dateAdded: number | null;
+  dateModified: number | null;
+};
+
+export type PiholeGroupOperationProcessedSuccess = {
+  item: string | null;
+};
+
+export type PiholeGroupOperationProcessedError = {
+  item: string | null;
+  message: string | null;
+};
+
+export type PiholeGroupListResult = {
+  groups: PiholeManagedGroupEntry[];
+  took: number | null;
+};
+
+export type PiholeGroupMutationResult = {
+  groups: PiholeManagedGroupEntry[];
+  processed: {
+    errors: PiholeGroupOperationProcessedError[];
+    success: PiholeGroupOperationProcessedSuccess[];
+  };
+  took: number | null;
+};

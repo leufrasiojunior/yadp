@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { Activity, Binary } from "lucide-react";
+import { Activity, Binary, Users } from "lucide-react";
 
 import { DashboardScopeSelector } from "@/app/(main)/dashboard/_components/dashboard-scope-selector";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
@@ -105,6 +105,12 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
                     <Link prefetch={false} href="/dashboard">
                       <Activity />
                       {messages.layout.overviewButton}
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <Link prefetch={false} href="/groups">
+                      <Users />
+                      {messages.layout.groupsButton}
                     </Link>
                   </Button>
                   <Button asChild size="sm">

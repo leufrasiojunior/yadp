@@ -6,10 +6,18 @@ export const FRONTEND_CONFIG = {
     pageSizeOptions: [10, 25, 50, 100, 500, 1000] as const,
     defaultPageSize: 10,
     maxPageSize: 1000,
-    liveUpdateIntervalMs: 2_000,
+    liveUpdateIntervalMs: 5_000,
   },
   instances: {
     discoveryCandidateLimit: 20,
+  },
+  groups: {
+    searchDebounceMs: 400,
+    deleteConfirmCookieKey: "yapd-groups-skip-delete-confirm",
+    deleteConfirmCookieDays: 180,
+    nameMaxLength: 255,
+    commentMaxLength: 500,
+    immutableDefaultGroupId: 0,
   },
   sync: {
     blocking: {

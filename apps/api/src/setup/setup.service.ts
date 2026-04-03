@@ -19,6 +19,7 @@ import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-clien
 import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
 import type { PiholeConnection, PiholeSession } from "../pihole/pihole.types";
+import { PiholeWorkCoordinatorService } from "../pihole/pihole-work-coordinator.service";
 import type { CreateBaselineDto, SetupCredentialMode, SetupInstanceDto } from "./dto/create-baseline.dto";
 
 type PreparedCredentials = {
@@ -45,6 +46,7 @@ export class SetupService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CryptoService) private readonly crypto: CryptoService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
+    @Inject(PiholeWorkCoordinatorService) private readonly coordinator: PiholeWorkCoordinatorService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
@@ -347,11 +349,19 @@ export class SetupService {
         locale,
       } satisfies PiholeConnection;
 
-      let session: PiholeSession | null = null;
-
       try {
-        session = await this.pihole.authenticate(connection, instance.credentials.password);
-        const version = await this.pihole.readCapabilities(connection, session);
+        const version = await this.coordinator.runForConnection(connection, "setup.validate", async () => {
+          let session: PiholeSession | null = null;
+
+          try {
+            session = await this.pihole.authenticate(connection, instance.credentials.password);
+            return await this.pihole.readCapabilities(connection, session);
+          } finally {
+            if (session) {
+              await this.safeLogout(connection, session.sid);
+            }
+          }
+        });
 
         validatedInstances.push({
           ...instance,
@@ -359,10 +369,6 @@ export class SetupService {
         });
       } catch (error) {
         throw this.toInstanceException(error, locale, instance.label);
-      } finally {
-        if (session) {
-          await this.safeLogout(connection, session.sid);
-        }
       }
     }
 

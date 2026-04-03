@@ -19,6 +19,8 @@ const envSchema = z.object({
     .default(60 * 60 * 12),
   APP_ENCRYPTION_KEY: z.string().min(16).default("replace-this-encryption-key"),
   PIHOLE_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
+  PIHOLE_GLOBAL_MAX_CONCURRENCY: z.coerce.number().int().positive().default(4),
+  PIHOLE_PER_INSTANCE_MAX_CONCURRENCY: z.coerce.number().int().positive().default(1),
   COOKIE_SECURE: z
     .enum(["true", "false"])
     .default("false")

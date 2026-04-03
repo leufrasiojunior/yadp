@@ -9,6 +9,14 @@ type ApiMessageKey =
   | "dashboard.noInstances"
   | "domains.instanceIdRequired"
   | "domains.operationRejected"
+  | "groups.alreadyExists"
+  | "groups.baselineSkippedAfterFailure"
+  | "groups.defaultImmutable"
+  | "groups.emptySelection"
+  | "groups.invalidNames"
+  | "groups.noInstances"
+  | "groups.notFound"
+  | "groups.operationRejected"
   | "instances.invalidTrustConfiguration"
   | "instances.invalidCredentials"
   | "instances.notFound"
@@ -58,6 +66,16 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.noInstances": "Nenhuma instância Pi-hole está cadastrada no YAPD.",
     "domains.instanceIdRequired": "Selecione uma instância válida para aplicar esta ação de domínio.",
     "domains.operationRejected": ({ baseUrl }) => `O Pi-hole em ${baseUrl} recusou a alteração de domínio.`,
+    "groups.alreadyExists": ({ name }) => `O grupo "${name}" já existe em pelo menos uma instância.`,
+    "groups.baselineSkippedAfterFailure":
+      "A baseline não foi alterada porque uma ou mais instâncias secundárias falharam durante a sincronização.",
+    "groups.defaultImmutable": 'O grupo protegido "Default" não pode ser alterado.',
+    "groups.emptySelection": "Selecione pelo menos um grupo válido para continuar.",
+    "groups.invalidNames":
+      'Use um ou mais nomes de grupo válidos. Separe múltiplos nomes com espaço ou vírgula e use aspas para nomes com espaços, por exemplo "Meu Novo Grupo".',
+    "groups.noInstances": "Nenhuma instância Pi-hole gerenciada está disponível para operar grupos.",
+    "groups.notFound": ({ name }) => `O grupo "${name}" não foi encontrado em todas as instâncias necessárias.`,
+    "groups.operationRejected": ({ baseUrl }) => `O Pi-hole em ${baseUrl} recusou a alteração do grupo.`,
     "instances.invalidTrustConfiguration":
       "Use CA personalizada ou self-signed explícito, mas não os dois ao mesmo tempo.",
     "instances.invalidCredentials": "As credenciais do Pi-hole são inválidas.",
@@ -118,6 +136,16 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.noInstances": "No Pi-hole instance is registered in YAPD.",
     "domains.instanceIdRequired": "Select a valid instance to apply this domain action.",
     "domains.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the domain change.`,
+    "groups.alreadyExists": ({ name }) => `The group "${name}" already exists on at least one instance.`,
+    "groups.baselineSkippedAfterFailure":
+      "The baseline was left unchanged because one or more secondary instances failed during synchronization.",
+    "groups.defaultImmutable": 'The protected "Default" group cannot be changed.',
+    "groups.emptySelection": "Select at least one valid group to continue.",
+    "groups.invalidNames":
+      'Use one or more valid group names. Separate multiple names with spaces or commas and wrap names with spaces in quotes, for example "My New Group".',
+    "groups.noInstances": "No managed Pi-hole instance is available for group operations.",
+    "groups.notFound": ({ name }) => `The group "${name}" was not found on all required instances.`,
+    "groups.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the group change.`,
     "instances.invalidTrustConfiguration":
       "Use either a custom CA or explicit self-signed trust, but not both at the same time.",
     "instances.invalidCredentials": "The Pi-hole credentials are invalid.",

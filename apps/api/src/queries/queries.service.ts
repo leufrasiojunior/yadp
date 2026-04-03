@@ -22,7 +22,6 @@ import type {
   QueriesResponse,
   QuerySuggestionsResponse,
 } from "./queries.types";
-import { MAX_QUERY_INSTANCE_CONCURRENCY } from "./queries.types";
 
 type QueryResultWithInstance = PiholeQueryLogEntry & QueriesInstanceSource;
 
@@ -69,27 +68,29 @@ export class QueriesService {
     }
 
     const requestedLength = query.start + query.length;
-    const settled = await this.mapWithConcurrency(instances, MAX_QUERY_INSTANCE_CONCURRENCY, async (instance) => {
-      try {
-        const result = await this.loadQueriesForInstance(
-          instance,
-          locale,
-          this.buildAggregatedQueryRequest(query, requestedLength),
-        );
+    const settled = await Promise.all(
+      instances.map(async (instance) => {
+        try {
+          const result = await this.loadQueriesForInstance(
+            instance,
+            locale,
+            this.buildAggregatedQueryRequest(query, requestedLength),
+          );
 
-        return {
-          status: "fulfilled" as const,
-          instance,
-          result,
-        };
-      } catch (error) {
-        return {
-          status: "rejected" as const,
-          instance,
-          failure: this.mapInstanceFailure(instance, error, locale),
-        };
-      }
-    });
+          return {
+            status: "fulfilled" as const,
+            instance,
+            result,
+          };
+        } catch (error) {
+          return {
+            status: "rejected" as const,
+            instance,
+            failure: this.mapInstanceFailure(instance, error, locale),
+          };
+        }
+      }),
+    );
 
     const successful: FulfilledInstanceResult<PiholeQueryListResult>[] = [];
     const failed: QueriesInstanceFailure[] = [];
@@ -168,23 +169,25 @@ export class QueriesService {
       }
     }
 
-    const settled = await this.mapWithConcurrency(instances, MAX_QUERY_INSTANCE_CONCURRENCY, async (instance) => {
-      try {
-        const result = await this.loadSuggestionsForInstance(instance, locale);
+    const settled = await Promise.all(
+      instances.map(async (instance) => {
+        try {
+          const result = await this.loadSuggestionsForInstance(instance, locale);
 
-        return {
-          status: "fulfilled" as const,
-          instance,
-          result,
-        };
-      } catch (error) {
-        return {
-          status: "rejected" as const,
-          instance,
-          failure: this.mapInstanceFailure(instance, error, locale),
-        };
-      }
-    });
+          return {
+            status: "fulfilled" as const,
+            instance,
+            result,
+          };
+        } catch (error) {
+          return {
+            status: "rejected" as const,
+            instance,
+            failure: this.mapInstanceFailure(instance, error, locale),
+          };
+        }
+      }),
+    );
     const successful: FulfilledInstanceResult<PiholeQuerySuggestionsResult>[] = [];
     const failed: QueriesInstanceFailure[] = [];
 
@@ -481,30 +484,5 @@ export class QueriesService {
       default:
         return translateApi(locale, "pihole.unreachable", { baseUrl });
     }
-  }
-
-  private async mapWithConcurrency<T, R>(
-    items: T[],
-    concurrency: number,
-    execute: (item: T, index: number) => Promise<R>,
-  ): Promise<R[]> {
-    if (items.length === 0) {
-      return [];
-    }
-
-    const results = new Array<R>(items.length);
-    let nextIndex = 0;
-
-    const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-      while (nextIndex < items.length) {
-        const index = nextIndex;
-        nextIndex += 1;
-        results[index] = await execute(items[index] as T, index);
-      }
-    });
-
-    await Promise.all(workers);
-
-    return results;
   }
 }

@@ -13,6 +13,7 @@ import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
 import { AppEnvService } from "../config/app-env";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
 import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
+import { PiholeWorkCoordinatorService } from "../pihole/pihole-work-coordinator.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { SessionCookiePayload } from "./session.types";
 
@@ -24,6 +25,7 @@ export class SessionService {
     @Inject(AppEnvService) private readonly env: AppEnvService,
     @Inject(PiholeInstanceSessionService) private readonly instanceSessions: PiholeInstanceSessionService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
+    @Inject(PiholeWorkCoordinatorService) private readonly coordinator: PiholeWorkCoordinatorService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
@@ -112,15 +114,27 @@ export class SessionService {
     };
 
     try {
-      const authenticated = await this.pihole.authenticate(connection, dto.password, dto.totp);
-      const seeded = await this.instanceSessions.seedSessionFromLogin(
+      const { authenticated, seeded } = await this.coordinator.runForInstance(
         baseline.id,
-        locale,
-        {
-          sid: authenticated.sid,
-          csrf: authenticated.csrf,
+        connection,
+        "session.login",
+        async () => {
+          const session = await this.pihole.authenticate(connection, dto.password, dto.totp);
+          const persisted = await this.instanceSessions.seedSessionFromLogin(
+            baseline.id,
+            locale,
+            {
+              sid: session.sid,
+              csrf: session.csrf,
+            },
+            "HUMAN_MASTER",
+          );
+
+          return {
+            authenticated: session,
+            seeded: persisted,
+          };
         },
-        "HUMAN_MASTER",
       );
       const instanceSessions = await this.instanceSessions.bootstrapAllSessions(locale, {
         seededSessions: {

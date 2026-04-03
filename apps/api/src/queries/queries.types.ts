@@ -4,7 +4,6 @@ export const QUERIES_SCOPE_VALUES = ["all", "instance"] as const;
 export const DEFAULT_QUERIES_LENGTH = 10;
 export const MAX_QUERIES_LENGTH = 1000;
 export const MAX_QUERIES_START = 1000;
-export const MAX_QUERY_INSTANCE_CONCURRENCY = 3;
 
 export type QueriesScopeMode = (typeof QUERIES_SCOPE_VALUES)[number];
 

@@ -13,6 +13,7 @@ import type {
   PiholeRequestErrorKind,
   PiholeSession,
 } from "./pihole.types";
+import { PiholeWorkCoordinatorService } from "./pihole-work-coordinator.service";
 
 export const INSTANCE_SESSION_STATUS_VALUES = ["active", "expired", "missing", "error"] as const;
 
@@ -106,6 +107,7 @@ export class PiholeInstanceSessionService {
     @Inject(CryptoService) private readonly crypto: CryptoService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(PiholeWorkCoordinatorService) private readonly coordinator: PiholeWorkCoordinatorService,
   ) {}
 
   async listInstanceSummaries(): Promise<PiholeManagedInstanceSummary[]> {
@@ -181,7 +183,7 @@ export class PiholeInstanceSessionService {
         const seeded = seededSessions[instance.id];
 
         if (seeded) {
-          await this.persistExistingSession(instance, locale, seeded.session, seeded.authSource);
+          await this.seedSessionFromLogin(instance.id, locale, seeded.session, seeded.authSource);
           return instance;
         }
 
@@ -220,13 +222,72 @@ export class PiholeInstanceSessionService {
     session: Pick<PiholeSession, "sid" | "csrf">,
     authSource: InstanceSessionAuthSource,
   ) {
-    const instance = await this.loadManagedInstance(instanceId, locale);
-    return this.persistExistingSession(instance, locale, session, authSource);
+    return this.runForManagedInstance(instanceId, locale, "session.seed", (instance) =>
+      this.persistExistingSessionUnsafe(instance, locale, session, authSource),
+    );
   }
 
   async ensureActiveSession(instanceId: string, locale: ApiLocale): Promise<ActiveInstanceSessionContext> {
-    const instance = await this.loadManagedInstance(instanceId, locale);
+    return this.runForManagedInstance(instanceId, locale, "session.ensure", (instance) =>
+      this.ensureActiveSessionUnsafe(instance, locale),
+    );
+  }
 
+  async forceReauthenticate(instanceId: string, locale: ApiLocale): Promise<ActiveInstanceSessionContext> {
+    return this.runForManagedInstance(instanceId, locale, "session.reauthenticate", (instance) =>
+      this.authenticateAndPersist(instance, locale, {
+        authSource: instance.session?.authSource ?? "STORED_SECRET",
+      }),
+    );
+  }
+
+  async withActiveSession<T>(
+    instanceId: string,
+    locale: ApiLocale,
+    execute: (context: ActiveInstanceSessionContext) => Promise<T>,
+  ): Promise<T> {
+    return this.runForManagedInstance(instanceId, locale, "session.active", async (instance) => {
+      let context = await this.ensureActiveSessionUnsafe(instance, locale);
+      this.logger.verbose(
+        `Executing authenticated Pi-hole work for "${context.instance.name}" (${context.instance.id}) using baseUrl=${context.instance.baseUrl}.`,
+      );
+
+      try {
+        const result = await execute(context);
+        await this.refreshSessionLease(context.instance.id);
+        this.logger.verbose(
+          `Authenticated Pi-hole work completed successfully for "${context.instance.name}" (${context.instance.id}).`,
+        );
+        return result;
+      } catch (error) {
+        if (!this.shouldReauthenticate(error)) {
+          const failure = this.mapFailure(context.instance, error, locale);
+          await this.recordSessionError(context.instance.id, failure.kind, failure.message);
+          this.logger.warn(
+            `Authenticated Pi-hole work failed for "${context.instance.name}" (${context.instance.id}) without reauthentication. kind=${failure.kind} message="${failure.message}"`,
+          );
+          throw error;
+        }
+
+        this.logger.warn(
+          `Authenticated Pi-hole request for "${context.instance.name}" failed with auth error. Reauthenticating once.`,
+        );
+        const reauthenticationInstance = await this.loadManagedInstance(instanceId, locale);
+        context = await this.authenticateAndPersist(reauthenticationInstance, locale, {
+          authSource: context.authSource,
+        });
+
+        const result = await execute(context);
+        await this.refreshSessionLease(context.instance.id);
+        return result;
+      }
+    });
+  }
+
+  private async ensureActiveSessionUnsafe(
+    instance: InstanceRecord,
+    locale: ApiLocale,
+  ): Promise<ActiveInstanceSessionContext> {
     if (!instance.session) {
       this.logger.debug(`No persisted Pi-hole session for "${instance.name}". Authenticating with stored secret.`);
       return this.authenticateAndPersist(instance, locale, {
@@ -300,49 +361,19 @@ export class PiholeInstanceSessionService {
     }
   }
 
-  async forceReauthenticate(instanceId: string, locale: ApiLocale): Promise<ActiveInstanceSessionContext> {
-    const instance = await this.loadManagedInstance(instanceId, locale);
-    return this.authenticateAndPersist(instance, locale, {
-      authSource: instance.session?.authSource ?? "STORED_SECRET",
-    });
-  }
-
-  async withActiveSession<T>(
+  private async runForManagedInstance<T>(
     instanceId: string,
     locale: ApiLocale,
-    execute: (context: ActiveInstanceSessionContext) => Promise<T>,
-  ): Promise<T> {
-    let context = await this.ensureActiveSession(instanceId, locale);
-    this.logger.verbose(
-      `Executing authenticated Pi-hole work for "${context.instance.name}" (${context.instance.id}) using baseUrl=${context.instance.baseUrl}.`,
-    );
+    operation: string,
+    execute: (instance: InstanceRecord) => Promise<T>,
+  ) {
+    const instance = await this.loadManagedInstance(instanceId, locale);
+    const connection = this.buildConnection(instance, locale);
 
-    try {
-      const result = await execute(context);
-      await this.refreshSessionLease(context.instance.id);
-      this.logger.verbose(
-        `Authenticated Pi-hole work completed successfully for "${context.instance.name}" (${context.instance.id}).`,
-      );
-      return result;
-    } catch (error) {
-      if (!this.shouldReauthenticate(error)) {
-        const failure = this.mapFailure(context.instance, error, locale);
-        await this.recordSessionError(context.instance.id, failure.kind, failure.message);
-        this.logger.warn(
-          `Authenticated Pi-hole work failed for "${context.instance.name}" (${context.instance.id}) without reauthentication. kind=${failure.kind} message="${failure.message}"`,
-        );
-        throw error;
-      }
-
-      this.logger.warn(
-        `Authenticated Pi-hole request for "${context.instance.name}" failed with auth error. Reauthenticating once.`,
-      );
-      context = await this.forceReauthenticate(instanceId, locale);
-
-      const result = await execute(context);
-      await this.refreshSessionLease(context.instance.id);
-      return result;
-    }
+    return this.coordinator.runForInstance(instance.id, connection, operation, async () => {
+      const latestInstance = await this.loadManagedInstance(instanceId, locale);
+      return execute(latestInstance);
+    });
   }
 
   private async authenticateAndPersist(
@@ -388,7 +419,7 @@ export class PiholeInstanceSessionService {
     };
   }
 
-  private async persistExistingSession(
+  private async persistExistingSessionUnsafe(
     instance: InstanceRecord,
     locale: ApiLocale,
     session: Pick<PiholeSession, "sid" | "csrf">,

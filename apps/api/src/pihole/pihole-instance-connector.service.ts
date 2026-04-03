@@ -6,6 +6,7 @@ import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
 import { PiholeService } from "./pihole.service";
 import type { PiholeConnection, PiholeManagedInstanceSummary, PiholeSession } from "./pihole.types";
+import { PiholeWorkCoordinatorService } from "./pihole-work-coordinator.service";
 
 type ManagedInstanceRecord = {
   id: string;
@@ -28,6 +29,7 @@ export class PiholeInstanceConnectorService {
     @Inject(CryptoService) private readonly crypto: CryptoService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(PiholeWorkCoordinatorService) private readonly coordinator: PiholeWorkCoordinatorService,
   ) {}
 
   async listInstanceSummaries(): Promise<PiholeManagedInstanceSummary[]> {
@@ -81,29 +83,31 @@ export class PiholeInstanceConnectorService {
   ): Promise<T> {
     const instance = await this.getManagedInstance(instanceId, locale);
     const connection = this.buildConnection(instance);
-    this.logger.debug(`Authenticating technical session for instance "${instance.name}" (${instance.baseUrl}).`);
-    const session = await this.pihole.authenticate(
-      connection,
-      this.crypto.decryptSecret(instance.secret.encryptedPassword),
-    );
-
-    try {
-      this.logger.verbose(`Technical session established for instance "${instance.name}".`);
-      return await execute({
-        instance: {
-          id: instance.id,
-          name: instance.name,
-          baseUrl: instance.baseUrl,
-        },
+    return this.coordinator.runForInstance(instance.id, connection, "session.technical", async () => {
+      this.logger.debug(`Authenticating technical session for instance "${instance.name}" (${instance.baseUrl}).`);
+      const session = await this.pihole.authenticate(
         connection,
-        session: {
-          sid: session.sid,
-          csrf: session.csrf,
-        },
-      });
-    } finally {
-      await this.safeLogout(connection, session.sid);
-    }
+        this.crypto.decryptSecret(instance.secret.encryptedPassword),
+      );
+
+      try {
+        this.logger.verbose(`Technical session established for instance "${instance.name}".`);
+        return await execute({
+          instance: {
+            id: instance.id,
+            name: instance.name,
+            baseUrl: instance.baseUrl,
+          },
+          connection,
+          session: {
+            sid: session.sid,
+            csrf: session.csrf,
+          },
+        });
+      } finally {
+        await this.safeLogout(connection, session.sid);
+      }
+    });
   }
 
   private async getManagedInstance(instanceId: string, locale: ApiLocale): Promise<ManagedInstanceRecord> {

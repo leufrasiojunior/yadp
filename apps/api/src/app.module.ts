@@ -6,6 +6,7 @@ import { PrismaModule } from "./common/prisma/prisma.module";
 import { AppEnvModule } from "./config/app-env.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { DomainsModule } from "./domains/domains.module";
+import { GroupsModule } from "./groups/groups.module";
 import { HealthModule } from "./health/health.module";
 import { InstancesModule } from "./instances/instances.module";
 import { PiholeModule } from "./pihole/pihole.module";
@@ -21,6 +22,7 @@ import { SyncModule } from "./sync/sync.module";
     CryptoModule,
     DashboardModule,
     DomainsModule,
+    GroupsModule,
     HealthModule,
     InstancesModule,
     PiholeModule,

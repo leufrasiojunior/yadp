@@ -5,7 +5,6 @@ export const DOMAIN_OPERATION_TYPES = [...PIHOLE_DOMAIN_OPERATION_TYPES] as cons
 export const DOMAIN_OPERATION_KINDS = [...PIHOLE_DOMAIN_OPERATION_KINDS] as const;
 export const DOMAIN_SCOPE_VALUES = ["all", "instance"] as const;
 export const DEFAULT_DOMAIN_OPERATION_COMMENT = "Added from Query Log";
-export const MAX_DOMAIN_INSTANCE_CONCURRENCY = 3;
 
 export type DomainOperationType = (typeof DOMAIN_OPERATION_TYPES)[number];
 export type DomainOperationKind = (typeof DOMAIN_OPERATION_KINDS)[number];

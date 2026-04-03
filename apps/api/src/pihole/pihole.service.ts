@@ -14,8 +14,13 @@ import type {
   PiholeDiscoveryResult,
   PiholeDomainOperationRequest,
   PiholeDomainOperationResult,
+  PiholeGroupCreateRequest,
+  PiholeGroupListResult,
+  PiholeGroupMutationResult,
+  PiholeGroupUpdateRequest,
   PiholeHistoryPoint,
   PiholeManagedDomainEntry,
+  PiholeManagedGroupEntry,
   PiholeMetricsSummary,
   PiholeQueryListRequest,
   PiholeQueryListResult,
@@ -485,6 +490,111 @@ export class PiholeService {
     });
 
     return this.normalizeDomainOperation(payload, connection, path);
+  }
+
+  async listGroups(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    name?: string,
+  ): Promise<PiholeGroupListResult> {
+    const path = name ? `/groups/${encodeURIComponent(name)}` : "/groups";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeGroupList(payload, connection, path);
+  }
+
+  async createGroups(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    request: PiholeGroupCreateRequest,
+  ): Promise<PiholeGroupMutationResult> {
+    const path = "/groups";
+    const payload = await this.request<unknown>(connection, path, {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        name: request.names.length === 1 ? request.names[0] : request.names,
+        ...(request.comment !== undefined ? { comment: request.comment } : {}),
+        enabled: request.enabled ?? true,
+      },
+    });
+
+    return this.normalizeGroupMutation(payload, connection, path);
+  }
+
+  async updateGroup(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    currentName: string,
+    request: PiholeGroupUpdateRequest,
+  ): Promise<PiholeGroupMutationResult> {
+    const path = `/groups/${encodeURIComponent(currentName)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "PUT",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        name: request.name,
+        comment: request.comment ?? "",
+        enabled: request.enabled,
+      },
+    });
+
+    return this.normalizeGroupMutation(payload, connection, path);
+  }
+
+  async setGroupEnabled(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    group: { name: string; comment?: string | null },
+    enabled: boolean,
+  ): Promise<PiholeGroupMutationResult> {
+    return this.updateGroup(connection, session, group.name, {
+      name: group.name,
+      comment: group.comment ?? "",
+      enabled,
+    });
+  }
+
+  async deleteGroup(connection: PiholeConnection, session: Pick<PiholeSession, "sid" | "csrf">, name: string) {
+    const path = `/groups/${encodeURIComponent(name)}`;
+
+    await this.request<void>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+  }
+
+  async batchDeleteGroups(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    items: string[],
+  ): Promise<PiholeGroupMutationResult> {
+    const path = "/groups:batchDelete";
+    const payload = await this.request<unknown | undefined>(connection, path, {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: items.map((item) => ({ item })),
+    });
+
+    if (payload === undefined) {
+      return {
+        groups: [],
+        processed: {
+          errors: [],
+          success: items.map((item) => ({ item })),
+        },
+        took: null,
+      };
+    }
+
+    return this.normalizeGroupMutation(payload, connection, path);
   }
 
   async applyCanonicalConfig() {
@@ -977,12 +1087,91 @@ export class PiholeService {
     const lookup = createLookup(payload);
 
     return {
-      errors: this.readDomainProcessedErrors(readLookupValue(lookup, ["errors", "failed", "failures"])),
-      success: this.readDomainProcessedSuccess(readLookupValue(lookup, ["success", "successful", "succeeded"])),
+      errors: this.readProcessedErrors(readLookupValue(lookup, ["errors", "failed", "failures"])),
+      success: this.readProcessedSuccess(readLookupValue(lookup, ["success", "successful", "succeeded"])),
     };
   }
 
-  private readDomainProcessedErrors(value: unknown) {
+  private normalizeGroupList(payload: unknown, connection: PiholeConnection, path: string): PiholeGroupListResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawGroups = readLookupValue(payloadLookup, ["groups", "group", "items", "results"]);
+
+    if (!Array.isArray(rawGroups)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      groups: rawGroups
+        .filter((item): item is Record<string, unknown> => isRecord(item))
+        .map((item) => this.normalizeManagedGroup(item)),
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeGroupMutation(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeGroupMutationResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawGroups = readLookupValue(payloadLookup, ["groups", "group", "items", "results"]);
+    const rawProcessed = readLookupRecord(payloadLookup, ["processed", "result", "summary"]);
+    const groups = Array.isArray(rawGroups)
+      ? rawGroups
+          .filter((item): item is Record<string, unknown> => isRecord(item))
+          .map((item) => this.normalizeManagedGroup(item))
+      : [];
+    const processed = this.normalizeGroupOperationProcessed(rawProcessed);
+
+    if (groups.length === 0 && processed.errors.length === 0 && processed.success.length === 0) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      groups,
+      processed,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeManagedGroup(payload: Record<string, unknown>): PiholeManagedGroupEntry {
+    const lookup = createLookup(payload);
+
+    return {
+      name: readLookupString(lookup, ["name", "item", "value"]),
+      comment: readLookupString(lookup, ["comment", "note", "description"]),
+      enabled: readBoolean(readLookupValue(lookup, ["enabled", "active"])),
+      id: readLookupNumber(lookup, ["id"]),
+      dateAdded: readLookupNumber(lookup, ["date_added", "dateAdded", "created_at", "createdAt"]),
+      dateModified: readLookupNumber(lookup, ["date_modified", "dateModified", "updated_at", "updatedAt"]),
+    };
+  }
+
+  private normalizeGroupOperationProcessed(payload: Record<string, unknown> | null) {
+    if (!payload) {
+      return {
+        errors: [],
+        success: [],
+      };
+    }
+
+    const lookup = createLookup(payload);
+
+    return {
+      errors: this.readProcessedErrors(readLookupValue(lookup, ["errors", "failed", "failures"])),
+      success: this.readProcessedSuccess(readLookupValue(lookup, ["success", "successful", "succeeded"])),
+    };
+  }
+
+  private readProcessedErrors(value: unknown) {
     if (!Array.isArray(value)) {
       return [];
     }
@@ -1009,7 +1198,7 @@ export class PiholeService {
     });
   }
 
-  private readDomainProcessedSuccess(value: unknown) {
+  private readProcessedSuccess(value: unknown) {
     if (!Array.isArray(value)) {
       return [];
     }

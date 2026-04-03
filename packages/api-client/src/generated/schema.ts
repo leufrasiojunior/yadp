@@ -68,6 +68,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/groups": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["GroupsController_listGroups"];
+    put?: never;
+    post: operations["GroupsController_createGroups"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/groups/{name}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["GroupsController_updateGroup"];
+    post?: never;
+    delete: operations["GroupsController_deleteGroup"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/groups/{name}/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["GroupsController_updateGroupStatus"];
+    trace?: never;
+  };
+  "/groups/batchDelete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["GroupsController_batchDeleteGroups"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/groups/sync": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["GroupsController_syncGroups"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -478,6 +558,350 @@ export interface operations {
                 }[];
               };
               took: number | null;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  GroupsController_listGroups: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            items: {
+              name: string;
+              comment: string | null;
+              enabled: boolean;
+              id: number;
+              dateAdded: number | null;
+              dateModified: number | null;
+            }[];
+            source: {
+              baselineInstanceId: string;
+              baselineInstanceName: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  GroupsController_createGroups: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @example group-one, "My New Group" */
+          name: string;
+          comment?: string | null;
+          /** @default true */
+          enabled?: boolean;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  GroupsController_updateGroup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @example Analytics Group */
+          name: string;
+          comment?: string | null;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  GroupsController_deleteGroup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  GroupsController_updateGroupStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          enabled: boolean;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  GroupsController_batchDeleteGroups: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * @example [
+           *       "test_group",
+           *       "another_group"
+           *     ]
+           */
+          items: string[];
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  GroupsController_syncGroups: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
             }[];
             failedInstances: {
               instanceId: string;
