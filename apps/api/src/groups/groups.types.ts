@@ -11,6 +11,15 @@ export type GroupItem = {
   id: number;
   dateAdded: number | null;
   dateModified: number | null;
+  origin: {
+    instanceId: string;
+    instanceName: string;
+  };
+  sync: {
+    isFullySynced: boolean;
+    sourceInstances: GroupsMutationInstanceSource[];
+    missingInstances: GroupsMutationInstanceSource[];
+  };
 };
 
 export type GroupsListResponse = {
@@ -18,7 +27,11 @@ export type GroupsListResponse = {
   source: {
     baselineInstanceId: string;
     baselineInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
   };
+  unavailableInstances: GroupsMutationInstanceFailure[];
 };
 
 export type GroupsMutationInstanceSource = {

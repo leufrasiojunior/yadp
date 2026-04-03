@@ -43,6 +43,7 @@ type ApiMessageKey =
   | "sync.blockingEnableTimerInvalid"
   | "sync.blockingAlreadyDesired"
   | "sync.emptyTargetSelection"
+  | "sync.invalidSourceInstance"
   | "sync.invalidTargetInstances"
   | "sync.noInstances"
   | "sync.precheckFailedSkip"
@@ -115,6 +116,8 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "sync.blockingEnableTimerInvalid": "Ao reabilitar o blocking, o timer deve ser nulo.",
     "sync.blockingAlreadyDesired": "A instância já estava com o blocking no estado desejado.",
     "sync.emptyTargetSelection": "Nenhuma instância pronta foi selecionada para aplicar o sincronismo.",
+    "sync.invalidSourceInstance":
+      "A instância de origem selecionada para o sincronismo é inválida ou está desatualizada.",
     "sync.invalidTargetInstances": "A seleção de instâncias para o sincronismo é inválida ou está desatualizada.",
     "sync.noInstances": "Nenhuma instância Pi-hole gerenciada está disponível para sincronismo.",
     "sync.precheckFailedSkip": "Ignorada porque falhou na pré-checagem e não foi confirmada para execução.",
@@ -189,6 +192,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "sync.blockingEnableTimerInvalid": "When re-enabling blocking, the timer must be null.",
     "sync.blockingAlreadyDesired": "The instance already matched the desired blocking state.",
     "sync.emptyTargetSelection": "No ready instance was selected to apply the sync.",
+    "sync.invalidSourceInstance": "The selected sync source instance is invalid or stale.",
     "sync.invalidTargetInstances": "The selected sync instances are invalid or stale.",
     "sync.noInstances": "No managed Pi-hole instance is available for sync.",
     "sync.precheckFailedSkip": "Skipped because precheck failed and it was not confirmed for execution.",

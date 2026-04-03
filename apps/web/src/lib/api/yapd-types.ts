@@ -132,6 +132,21 @@ export type GroupItem = {
   id: number;
   dateAdded: number | null;
   dateModified: number | null;
+  origin: {
+    instanceId: string;
+    instanceName: string;
+  };
+  sync: {
+    isFullySynced: boolean;
+    sourceInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    missingInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+  };
 };
 
 export type GroupsListResponse = {
@@ -139,7 +154,16 @@ export type GroupsListResponse = {
   source: {
     baselineInstanceId: string;
     baselineInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
   };
+  unavailableInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
 };
 
 export type GroupsMutationResponse = {

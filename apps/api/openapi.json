@@ -444,9 +444,60 @@
                           "dateModified": {
                             "type": "number",
                             "nullable": true
+                          },
+                          "origin": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          },
+                          "sync": {
+                            "type": "object",
+                            "properties": {
+                              "isFullySynced": {
+                                "type": "boolean"
+                              },
+                              "sourceInstances": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["instanceId", "instanceName"]
+                                }
+                              },
+                              "missingInstances": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["instanceId", "instanceName"]
+                                }
+                              }
+                            },
+                            "required": ["isFullySynced", "sourceInstances", "missingInstances"]
                           }
                         },
-                        "required": ["name", "comment", "enabled", "id", "dateAdded", "dateModified"]
+                        "required": ["name", "comment", "enabled", "id", "dateAdded", "dateModified", "origin", "sync"]
                       }
                     },
                     "source": {
@@ -457,12 +508,57 @@
                         },
                         "baselineInstanceName": {
                           "type": "string"
+                        },
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "availableInstanceCount": {
+                          "type": "number"
+                        },
+                        "unavailableInstanceCount": {
+                          "type": "number"
                         }
                       },
-                      "required": ["baselineInstanceId", "baselineInstanceName"]
+                      "required": [
+                        "baselineInstanceId",
+                        "baselineInstanceName",
+                        "totalInstances",
+                        "availableInstanceCount",
+                        "unavailableInstanceCount"
+                      ]
+                    },
+                    "unavailableInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
                     }
                   },
-                  "required": ["items", "source"]
+                  "required": ["items", "source", "unavailableInstances"]
                 }
               }
             }
@@ -1047,6 +1143,36 @@
       "post": {
         "operationId": "GroupsController_syncGroups",
         "parameters": [],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "groupName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "example": "Analytics Group"
+                  },
+                  "sourceInstanceId": {
+                    "type": "string",
+                    "example": "clz-source-instance"
+                  },
+                  "targetInstanceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "example": ["clz-secondary-a", "clz-secondary-b"]
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",

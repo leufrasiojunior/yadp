@@ -578,7 +578,8 @@ export const ptBRMessages: WebMessages = {
     },
     table: {
       title: "Groups cadastrados",
-      description: (baselineName) => `Leitura baseada na baseline ${baselineName}.`,
+      description: (baselineName) =>
+        `Visão consolidada das instâncias gerenciadas, usando ${baselineName} como baseline principal.`,
       searchPlaceholder: "Pesquisar groups por nome",
       refresh: "Atualizar",
       refreshLoading: "Atualizando...",
@@ -595,8 +596,38 @@ export const ptBRMessages: WebMessages = {
       deleteSelected: (count) => (count === 1 ? "Apagar 1 selecionado" : `Apagar ${count} selecionados`),
       protectedBadge: "Protegido",
       protectedDescription: "Group padrão do sistema",
+      syncIssue: "Sync pendente",
+      syncIssueAction: (name) => `Ver pendências de sincronização do group ${name}`,
       emptyTitle: "Nenhum group encontrado",
       emptyDescription: "Ajuste a busca ou cadastre um novo group para começar.",
+    },
+    syncDialog: {
+      titleAll: "Revisar groups pendentes",
+      titleSingle: (name) => `Sincronizar ${name}`,
+      descriptionAll: (baselineName) =>
+        `Escolha a instância de origem e para quais destinos ausentes copiar cada group. A baseline atual é ${baselineName}.`,
+      descriptionSingle: (name) =>
+        `Veja em quais instâncias o group ${name} já existe e selecione para onde ele deve ser copiado.`,
+      partialAvailability: (availableCount, totalCount) =>
+        `A análise foi feita em ${availableCount} de ${totalCount} instâncias habilitadas para sync. As indisponíveis não entram nesta comparação.`,
+      emptyTitle: "Nenhum group pendente",
+      emptyDescription: "Todos os groups conhecidos já aparecem em todas as instâncias disponíveis para sync.",
+      sourceLabel: "Origem",
+      sourceHint: (count) => (count === 1 ? "Disponível em 1 instância" : `Disponível em ${count} instâncias`),
+      availabilityHint: (presentCount, missingCount) =>
+        `${presentCount} instância(s) com o group e ${missingCount} instância(s) sem ele.`,
+      sourcePlaceholder: "Selecione a origem",
+      targetsLabel: "Destinos",
+      targetsHint: (count) => (count === 1 ? "1 destino disponível" : `${count} destinos disponíveis`),
+      presentCount: (count) => (count === 1 ? "1 com group" : `${count} com group`),
+      missingCount: (count) => (count === 1 ? "1 sem group" : `${count} sem group`),
+      instanceHasGroup: "Com group",
+      instanceMissingGroup: "Sem group",
+      targetsRequired: "Selecione pelo menos uma instância de destino para sincronizar este group.",
+      noTargets: "Não há outras instâncias disponíveis para aplicar este group.",
+      syncAction: "Sincronizar group",
+      syncLoading: "Sincronizando...",
+      close: "Fechar",
     },
     status: {
       active: "Ativo",
@@ -636,6 +667,7 @@ export const ptBRMessages: WebMessages = {
       enabledSuccess: "Group ativado com sucesso.",
       disabledSuccess: "Group desativado com sucesso.",
       syncSuccess: "Sincronismo manual concluído com sucesso.",
+      syncGroupSuccess: (name) => `O group ${name} foi sincronizado com sucesso.`,
       partialWarning: (successfulCount, failedCount) =>
         `${successfulCount} instâncias aplicaram a alteração e ${failedCount} falharam ou foram mantidas sem alteração.`,
     },

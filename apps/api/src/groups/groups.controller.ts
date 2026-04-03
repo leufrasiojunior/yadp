@@ -11,6 +11,8 @@ import { CreateGroupsDto } from "./dto/create-groups.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { GroupNameParamsDto } from "./dto/group-name-params.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { SyncGroupsDto } from "./dto/sync-groups.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { UpdateGroupDto } from "./dto/update-group.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { UpdateGroupStatusDto } from "./dto/update-group-status.dto";
@@ -19,6 +21,7 @@ import {
   CREATE_GROUPS_API_BODY,
   GROUPS_LIST_API_OK_RESPONSE,
   GROUPS_MUTATION_API_OK_RESPONSE,
+  SYNC_GROUPS_API_BODY,
   UPDATE_GROUP_API_BODY,
   UPDATE_GROUP_STATUS_API_BODY,
 } from "./groups.responses";
@@ -89,8 +92,9 @@ export class GroupsController {
 
   @Post("sync")
   @UseGuards(CsrfGuard)
+  @ApiBody(SYNC_GROUPS_API_BODY)
   @ApiOkResponse(GROUPS_MUTATION_API_OK_RESPONSE)
-  syncGroups(@Req() request: Request) {
-    return this.groupsService.syncGroups(request);
+  syncGroups(@Body() body: SyncGroupsDto, @Req() request: Request) {
+    return this.groupsService.syncGroups(body, request);
   }
 }

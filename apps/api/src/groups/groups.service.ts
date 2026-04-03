@@ -18,6 +18,7 @@ import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.
 import type { BatchDeleteGroupsDto } from "./dto/batch-delete-groups.dto";
 import type { CreateGroupsDto } from "./dto/create-groups.dto";
 import { parseGroupNamesInput } from "./dto/group-validation";
+import type { SyncGroupsDto } from "./dto/sync-groups.dto";
 import type { UpdateGroupDto } from "./dto/update-group.dto";
 import type { UpdateGroupStatusDto } from "./dto/update-group-status.dto";
 import type {
@@ -32,11 +33,29 @@ type ManagedInstanceRecord = PiholeManagedInstanceSummary & {
   isBaseline: boolean;
 };
 
-type ManagedGroupRecord = GroupItem;
+type ManagedGroupRecord = Omit<GroupItem, "origin" | "sync">;
 
 type InstanceGroupsSnapshot = {
   instance: ManagedInstanceRecord;
   groupsByName: Map<string, ManagedGroupRecord>;
+};
+
+type ListSnapshotsResult = {
+  snapshots: InstanceGroupsSnapshot[];
+  unavailableInstances: GroupsMutationInstanceFailure[];
+};
+
+type ListedGroupCandidate = {
+  sourceGroups: Array<{
+    instance: ManagedInstanceRecord;
+    group: ManagedGroupRecord;
+  }>;
+};
+
+type TargetedSyncSelection = {
+  groupName: string;
+  sourceInstanceId: string;
+  targetInstanceIds: string[];
 };
 
 type GroupSyncPlan = {
@@ -45,7 +64,7 @@ type GroupSyncPlan = {
   delete: string[];
 };
 
-function sortGroupItems(items: ManagedGroupRecord[]) {
+function sortGroupItems<T extends ManagedGroupRecord>(items: T[]) {
   return [...items].sort((left, right) => {
     if (left.id === 0 && right.id !== 0) {
       return -1;
@@ -59,7 +78,21 @@ function sortGroupItems(items: ManagedGroupRecord[]) {
   });
 }
 
-function isImmutableGroup(group: ManagedGroupRecord) {
+function sortManagedInstances<T extends ManagedInstanceRecord>(instances: T[]) {
+  return [...instances].sort((left, right) => {
+    if (left.isBaseline && !right.isBaseline) {
+      return -1;
+    }
+
+    if (!left.isBaseline && right.isBaseline) {
+      return 1;
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+}
+
+function isImmutableGroup(group: Pick<ManagedGroupRecord, "id">) {
   return group.id === 0;
 }
 
@@ -74,15 +107,25 @@ export class GroupsService {
 
   async listGroups(request: Request): Promise<GroupsListResponse> {
     const locale = getRequestLocale(request);
-    const baseline = await this.loadBaselineInstance(locale);
-    const groups = await this.readGroupsSnapshot(baseline, locale);
+    const instances = await this.loadManagedInstances(locale);
+    const baseline = instances.find((instance) => instance.isBaseline);
+
+    if (!baseline) {
+      throw new BadRequestException(translateApi(locale, "session.baselineRequired"));
+    }
+
+    const { snapshots, unavailableInstances } = await this.prepareSnapshotsForList(instances, locale);
 
     return {
-      items: sortGroupItems([...groups.groupsByName.values()]),
+      items: this.buildListedGroups(snapshots),
       source: {
         baselineInstanceId: baseline.id,
         baselineInstanceName: baseline.name,
+        totalInstances: instances.length,
+        availableInstanceCount: snapshots.length,
+        unavailableInstanceCount: unavailableInstances.length,
       },
+      unavailableInstances,
     };
   }
 
@@ -400,11 +443,35 @@ export class GroupsService {
     }
   }
 
-  async syncGroups(request: Request): Promise<GroupsMutationResponse> {
+  async syncGroups(dto: SyncGroupsDto | undefined, request: Request): Promise<GroupsMutationResponse> {
     const locale = getRequestLocale(request);
     const ipAddress = getRequestIp(request);
 
     try {
+      if (this.hasTargetedSyncSelection(dto)) {
+        const selection = this.resolveTargetedSyncSelection(dto, locale);
+        const response = await this.syncSelectedGroup(selection, locale);
+
+        await this.audit.record({
+          action: "groups.sync",
+          actorType: "session",
+          ipAddress,
+          targetType: "group",
+          targetId: selection.groupName,
+          result: response.failedInstances.length > 0 ? "FAILURE" : "SUCCESS",
+          details: {
+            mode: "targeted",
+            groupName: selection.groupName,
+            sourceInstanceId: selection.sourceInstanceId,
+            targetInstanceIds: selection.targetInstanceIds,
+            status: response.status,
+            summary: response.summary,
+          } satisfies Prisma.InputJsonObject,
+        });
+
+        return response;
+      }
+
       const instances = await this.loadManagedInstances(locale);
       const baselineInstance = instances.find((instance) => instance.isBaseline);
 
@@ -453,6 +520,7 @@ export class GroupsService {
         targetType: "group",
         result: response.failedInstances.length > 0 ? "FAILURE" : "SUCCESS",
         details: {
+          mode: "baseline",
           status: response.status,
           summary: response.summary,
           sourceBaselineId: baselineInstance.id,
@@ -469,6 +537,10 @@ export class GroupsService {
         targetType: "group",
         result: "FAILURE",
         details: {
+          mode: this.hasTargetedSyncSelection(dto) ? "targeted" : "baseline",
+          groupName: dto?.groupName ?? null,
+          sourceInstanceId: dto?.sourceInstanceId ?? null,
+          targetInstanceIds: dto?.targetInstanceIds ?? [],
           error: error instanceof Error ? error.message : "Unknown error",
         } satisfies Prisma.InputJsonObject,
       });
@@ -501,31 +573,6 @@ export class GroupsService {
       baseUrl: instance.baseUrl,
       isBaseline: instance.isBaseline,
     }));
-  }
-
-  private async loadBaselineInstance(locale: ReturnType<typeof getRequestLocale>): Promise<ManagedInstanceRecord> {
-    const baseline = await this.prisma.instance.findFirst({
-      where: {
-        isBaseline: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        baseUrl: true,
-        isBaseline: true,
-      },
-    });
-
-    if (!baseline) {
-      throw new BadRequestException(translateApi(locale, "session.baselineRequired"));
-    }
-
-    return {
-      id: baseline.id,
-      name: baseline.name,
-      baseUrl: baseline.baseUrl,
-      isBaseline: baseline.isBaseline,
-    };
   }
 
   private parseRequestedNames(rawValue: string, locale: ReturnType<typeof getRequestLocale>) {
@@ -564,6 +611,230 @@ export class GroupsService {
     }
 
     return comment.trim();
+  }
+
+  private hasTargetedSyncSelection(dto: SyncGroupsDto | undefined) {
+    return dto?.groupName !== undefined || dto?.sourceInstanceId !== undefined || dto?.targetInstanceIds !== undefined;
+  }
+
+  private resolveTargetedSyncSelection(
+    dto: SyncGroupsDto | undefined,
+    locale: ReturnType<typeof getRequestLocale>,
+  ): TargetedSyncSelection {
+    const groupName = dto?.groupName ? this.normalizeSingleGroupName(dto.groupName, locale) : null;
+    const sourceInstanceId = dto?.sourceInstanceId?.trim() ?? "";
+    const targetInstanceIds = [...new Set((dto?.targetInstanceIds ?? []).map((item) => item.trim()).filter(Boolean))];
+
+    if (!groupName) {
+      throw new BadRequestException(translateApi(locale, "groups.invalidNames"));
+    }
+
+    if (sourceInstanceId.length === 0) {
+      throw new BadRequestException(translateApi(locale, "sync.invalidSourceInstance"));
+    }
+
+    if (targetInstanceIds.length === 0) {
+      throw new BadRequestException(translateApi(locale, "sync.emptyTargetSelection"));
+    }
+
+    return {
+      groupName,
+      sourceInstanceId,
+      targetInstanceIds,
+    };
+  }
+
+  private async syncSelectedGroup(
+    selection: TargetedSyncSelection,
+    locale: ReturnType<typeof getRequestLocale>,
+  ): Promise<GroupsMutationResponse> {
+    const instances = await this.loadManagedInstances(locale);
+    const instancesById = new Map(instances.map((instance) => [instance.id, instance]));
+    const sourceInstance = instancesById.get(selection.sourceInstanceId);
+
+    if (!sourceInstance) {
+      throw new BadRequestException(translateApi(locale, "sync.invalidSourceInstance"));
+    }
+
+    const targetInstances = selection.targetInstanceIds.map((instanceId) => instancesById.get(instanceId) ?? null);
+
+    if (targetInstances.some((instance) => instance === null)) {
+      throw new BadRequestException(translateApi(locale, "sync.invalidTargetInstances"));
+    }
+
+    const resolvedTargets = targetInstances.filter((instance): instance is ManagedInstanceRecord => instance !== null);
+
+    if (resolvedTargets.some((instance) => instance.id === sourceInstance.id)) {
+      throw new BadRequestException(translateApi(locale, "sync.invalidTargetInstances"));
+    }
+
+    const sourceSnapshot = await this.readGroupsSnapshot(sourceInstance, locale);
+    const sourceGroup = sourceSnapshot.groupsByName.get(selection.groupName) ?? null;
+
+    if (sourceGroup && isImmutableGroup(sourceGroup)) {
+      throw new BadRequestException(translateApi(locale, "groups.defaultImmutable"));
+    }
+
+    const successfulInstances: GroupsMutationInstanceSource[] = [];
+    const failedInstances: GroupsMutationInstanceFailure[] = [];
+
+    for (const targetInstance of resolvedTargets) {
+      try {
+        await this.syncGroupToTarget(targetInstance, selection.groupName, sourceGroup, locale);
+        successfulInstances.push(this.toSourceSummary(targetInstance));
+      } catch (error) {
+        failedInstances.push(this.mapInstanceFailure(targetInstance, error, locale));
+      }
+    }
+
+    return {
+      status: failedInstances.length > 0 ? "partial" : "success",
+      summary: {
+        totalInstances: resolvedTargets.length,
+        successfulCount: successfulInstances.length,
+        failedCount: failedInstances.length,
+      },
+      successfulInstances,
+      failedInstances,
+    };
+  }
+
+  private async syncGroupToTarget(
+    targetInstance: ManagedInstanceRecord,
+    groupName: string,
+    sourceGroup: ManagedGroupRecord | null,
+    locale: ReturnType<typeof getRequestLocale>,
+  ) {
+    const targetSnapshot = await this.readGroupsSnapshot(targetInstance, locale);
+    const targetGroup = targetSnapshot.groupsByName.get(groupName) ?? null;
+
+    if (targetGroup && isImmutableGroup(targetGroup)) {
+      throw new BadRequestException(translateApi(locale, "groups.defaultImmutable"));
+    }
+
+    if (!sourceGroup) {
+      if (!targetGroup) {
+        return;
+      }
+
+      await this.instanceSessions.withActiveSession(targetInstance.id, locale, async ({ connection, session }) => {
+        await this.pihole.deleteGroup(connection, session, targetGroup.name);
+      });
+      return;
+    }
+
+    if (!targetGroup) {
+      await this.instanceSessions.withActiveSession(targetInstance.id, locale, async ({ connection, session }) => {
+        const result = await this.pihole.createGroups(connection, session, {
+          names: [sourceGroup.name],
+          comment: sourceGroup.comment ?? undefined,
+          enabled: sourceGroup.enabled,
+        });
+        this.assertMutationSucceeded(result);
+      });
+      return;
+    }
+
+    if (this.groupsMatch(sourceGroup, targetGroup)) {
+      return;
+    }
+
+    await this.instanceSessions.withActiveSession(targetInstance.id, locale, async ({ connection, session }) => {
+      const result = await this.pihole.updateGroup(connection, session, targetGroup.name, {
+        name: sourceGroup.name,
+        comment: sourceGroup.comment,
+        enabled: sourceGroup.enabled,
+      });
+      this.assertMutationSucceeded(result);
+    });
+  }
+
+  private async prepareSnapshotsForList(
+    instances: ManagedInstanceRecord[],
+    locale: ReturnType<typeof getRequestLocale>,
+  ): Promise<ListSnapshotsResult> {
+    const settled = await Promise.allSettled(instances.map((instance) => this.readGroupsSnapshot(instance, locale)));
+    const snapshots: InstanceGroupsSnapshot[] = [];
+    const unavailableInstances: GroupsMutationInstanceFailure[] = [];
+
+    settled.forEach((result, index) => {
+      const instance = instances[index];
+
+      if (!instance) {
+        return;
+      }
+
+      if (result.status === "fulfilled") {
+        snapshots.push(result.value);
+        return;
+      }
+
+      unavailableInstances.push(this.mapInstanceFailure(instance, result.reason, locale));
+    });
+
+    return {
+      snapshots,
+      unavailableInstances,
+    };
+  }
+
+  private buildListedGroups(snapshots: InstanceGroupsSnapshot[]): GroupItem[] {
+    const availableInstances = sortManagedInstances(snapshots.map((snapshot) => snapshot.instance));
+    const groupsByName = new Map<string, ListedGroupCandidate>();
+
+    for (const snapshot of snapshots) {
+      for (const group of snapshot.groupsByName.values()) {
+        const current: ListedGroupCandidate = groupsByName.get(group.name) ?? { sourceGroups: [] };
+
+        current.sourceGroups.push({
+          instance: snapshot.instance,
+          group,
+        });
+
+        groupsByName.set(group.name, current);
+      }
+    }
+
+    const items: GroupItem[] = [];
+
+    for (const candidate of groupsByName.values()) {
+      const resolvedSourceGroups = [...candidate.sourceGroups].sort((left, right) => {
+        if (left.instance.isBaseline && !right.instance.isBaseline) {
+          return -1;
+        }
+
+        if (!left.instance.isBaseline && right.instance.isBaseline) {
+          return 1;
+        }
+
+        return left.instance.name.localeCompare(right.instance.name);
+      });
+      const preferredSource = resolvedSourceGroups[0];
+
+      if (!preferredSource) {
+        continue;
+      }
+
+      const presentInstanceIds = new Set(resolvedSourceGroups.map((entry) => entry.instance.id));
+      const missingInstances = availableInstances
+        .filter((instance) => !presentInstanceIds.has(instance.id))
+        .map((instance) => this.toSourceSummary(instance));
+
+      items.push({
+        ...preferredSource.group,
+        origin: {
+          instanceId: preferredSource.instance.id,
+          instanceName: preferredSource.instance.name,
+        },
+        sync: {
+          isFullySynced: missingInstances.length === 0,
+          sourceInstances: resolvedSourceGroups.map((entry) => this.toSourceSummary(entry.instance)),
+          missingInstances,
+        },
+      });
+    }
+
+    return sortGroupItems(items);
   }
 
   private async prepareSnapshots(

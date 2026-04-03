@@ -575,7 +575,8 @@ export const enUSMessages: WebMessages = {
     },
     table: {
       title: "Registered groups",
-      description: (baselineName) => `Read view based on the ${baselineName} baseline.`,
+      description: (baselineName) =>
+        `Consolidated view across managed instances, using ${baselineName} as the primary baseline.`,
       searchPlaceholder: "Search groups by name",
       refresh: "Refresh",
       refreshLoading: "Refreshing...",
@@ -592,8 +593,38 @@ export const enUSMessages: WebMessages = {
       deleteSelected: (count) => (count === 1 ? "Delete 1 selected" : `Delete ${count} selected`),
       protectedBadge: "Protected",
       protectedDescription: "Default system group",
+      syncIssue: "Sync pending",
+      syncIssueAction: (name) => `Review sync details for the group ${name}`,
       emptyTitle: "No groups found",
       emptyDescription: "Adjust the search or create a new group to get started.",
+    },
+    syncDialog: {
+      titleAll: "Review pending groups",
+      titleSingle: (name) => `Sync ${name}`,
+      descriptionAll: (baselineName) =>
+        `Choose the source instance and which missing targets should receive each group. The current baseline is ${baselineName}.`,
+      descriptionSingle: (name) =>
+        `Review which instances already contain the group ${name} and choose where it should be copied next.`,
+      partialAvailability: (availableCount, totalCount) =>
+        `The comparison used ${availableCount} of ${totalCount} sync-enabled instances. Unavailable instances are excluded from this check.`,
+      emptyTitle: "No pending groups",
+      emptyDescription: "Every known group already exists on every available sync instance.",
+      sourceLabel: "Source",
+      sourceHint: (count) => (count === 1 ? "Available on 1 instance" : `Available on ${count} instances`),
+      availabilityHint: (presentCount, missingCount) =>
+        `${presentCount} instance(s) currently have the group and ${missingCount} do not.`,
+      sourcePlaceholder: "Select the source",
+      targetsLabel: "Targets",
+      targetsHint: (count) => (count === 1 ? "1 available target" : `${count} available targets`),
+      presentCount: (count) => (count === 1 ? "1 has group" : `${count} have group`),
+      missingCount: (count) => (count === 1 ? "1 missing group" : `${count} missing group`),
+      instanceHasGroup: "Has group",
+      instanceMissingGroup: "Missing group",
+      targetsRequired: "Select at least one target instance before syncing this group.",
+      noTargets: "There are no other available instances to apply this group to.",
+      syncAction: "Sync group",
+      syncLoading: "Syncing...",
+      close: "Close",
     },
     status: {
       active: "Active",
@@ -633,6 +664,7 @@ export const enUSMessages: WebMessages = {
       enabledSuccess: "Group enabled successfully.",
       disabledSuccess: "Group disabled successfully.",
       syncSuccess: "Manual sync completed successfully.",
+      syncGroupSuccess: (name) => `The group ${name} was synchronized successfully.`,
       partialWarning: (successfulCount, failedCount) =>
         `${successfulCount} instances applied the change and ${failedCount} failed or were left unchanged.`,
     },

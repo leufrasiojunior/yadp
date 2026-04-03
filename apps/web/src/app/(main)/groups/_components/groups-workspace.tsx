@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeftRight, Pencil, RefreshCw, Trash2, Users } from "lucide-react";
+import { ArrowLeftRight, CircleAlert, Pencil, RefreshCw, Trash2, Users } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -32,6 +32,7 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
@@ -67,6 +68,20 @@ type DeleteDialogState = {
   description: string;
 } | null;
 
+type SyncSelectionState = Record<
+  string,
+  {
+    sourceInstanceId: string;
+    targetInstanceIds: string[];
+  }
+>;
+
+type GroupSyncInstanceState = {
+  instanceId: string;
+  instanceName: string;
+  hasGroup: boolean;
+};
+
 function sortGroupItems(items: GroupItem[]) {
   return [...items].sort((left, right) => {
     if (isImmutableGroup(left) && !isImmutableGroup(right)) {
@@ -83,6 +98,70 @@ function sortGroupItems(items: GroupItem[]) {
 
 function isImmutableGroup(item: GroupItem) {
   return item.id === FRONTEND_CONFIG.groups.immutableDefaultGroupId;
+}
+
+function sortSyncInstanceStates(states: GroupSyncInstanceState[], baselineInstanceId: string) {
+  return [...states].sort((left, right) => {
+    if (left.instanceId === baselineInstanceId && right.instanceId !== baselineInstanceId) {
+      return -1;
+    }
+
+    if (left.instanceId !== baselineInstanceId && right.instanceId === baselineInstanceId) {
+      return 1;
+    }
+
+    return left.instanceName.localeCompare(right.instanceName);
+  });
+}
+
+function getGroupSyncInstanceStates(item: GroupItem, baselineInstanceId: string) {
+  const instanceStates = new Map<string, GroupSyncInstanceState>();
+
+  for (const instance of item.sync.sourceInstances) {
+    instanceStates.set(instance.instanceId, {
+      instanceId: instance.instanceId,
+      instanceName: instance.instanceName,
+      hasGroup: true,
+    });
+  }
+
+  for (const instance of item.sync.missingInstances) {
+    instanceStates.set(instance.instanceId, {
+      instanceId: instance.instanceId,
+      instanceName: instance.instanceName,
+      hasGroup: false,
+    });
+  }
+
+  return sortSyncInstanceStates([...instanceStates.values()], baselineInstanceId);
+}
+
+function buildDefaultSyncTargetIds(item: GroupItem, baselineInstanceId: string, sourceInstanceId: string) {
+  const sourceState = getGroupSyncInstanceStates(item, baselineInstanceId).find(
+    (instance) => instance.instanceId === sourceInstanceId,
+  );
+
+  if (!sourceState) {
+    return [];
+  }
+
+  return getGroupSyncInstanceStates(item, baselineInstanceId)
+    .filter((instance) => instance.instanceId !== sourceInstanceId && instance.hasGroup !== sourceState.hasGroup)
+    .map((instance) => instance.instanceId);
+}
+
+function buildSyncSelections(items: GroupItem[], baselineInstanceId: string): SyncSelectionState {
+  return Object.fromEntries(
+    items
+      .filter((item) => item.sync.missingInstances.length > 0)
+      .map((item) => [
+        item.name,
+        {
+          sourceInstanceId: item.origin.instanceId,
+          targetInstanceIds: buildDefaultSyncTargetIds(item, baselineInstanceId, item.origin.instanceId),
+        },
+      ]),
+  );
 }
 
 export function GroupsWorkspace({
@@ -108,6 +187,12 @@ export function GroupsWorkspace({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [editingGroup, setEditingGroup] = useState<GroupItem | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
+  const [syncDialogGroupName, setSyncDialogGroupName] = useState<string | null>(null);
+  const [syncSelections, setSyncSelections] = useState<SyncSelectionState>(() =>
+    buildSyncSelections(initialItems, initialSource.baselineInstanceId),
+  );
+  const [syncError, setSyncError] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(null);
   const [rememberDeleteChoice, setRememberDeleteChoice] = useState(false);
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
@@ -151,6 +236,11 @@ export function GroupsWorkspace({
   const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const selectableVisibleItems = filteredItems.filter((item) => !isImmutableGroup(item));
   const selectedGroups = items.filter((item) => selectedIdSet.has(item.id));
+  const unsyncedItems = useMemo(() => items.filter((item) => item.sync.missingInstances.length > 0), [items]);
+  const syncDialogItems = useMemo(
+    () => (syncDialogGroupName ? unsyncedItems.filter((item) => item.name === syncDialogGroupName) : unsyncedItems),
+    [syncDialogGroupName, unsyncedItems],
+  );
   const allVisibleSelected =
     selectableVisibleItems.length > 0 && selectableVisibleItems.every((item) => selectedIdSet.has(item.id));
   const someVisibleSelected = selectableVisibleItems.some((item) => selectedIdSet.has(item.id));
@@ -161,12 +251,12 @@ export function GroupsWorkspace({
 
     if (!response.ok || !data) {
       toast.error(messages.groups.toasts.refreshFailed);
-      return false;
+      return null;
     }
 
     setItems(sortGroupItems(data.items));
     setSource(data.source);
-    return true;
+    return data;
   };
 
   const runRefresh = async () => {
@@ -174,27 +264,6 @@ export function GroupsWorkspace({
 
     try {
       await refreshGroups();
-    } finally {
-      setBusyAction(null);
-    }
-  };
-
-  const runSync = async () => {
-    setBusyAction("sync");
-
-    try {
-      const { data, response } = await client.POST<GroupsMutationResponse>("/groups/sync", {
-        headers: {
-          "x-yapd-csrf": csrfToken,
-        },
-      });
-
-      if (!response.ok || !data) {
-        toast.error(await getApiErrorMessage(response));
-        return;
-      }
-
-      await handleMutationSuccess(data, messages.groups.toasts.syncSuccess);
     } finally {
       setBusyAction(null);
     }
@@ -208,6 +277,118 @@ export function GroupsWorkspace({
     }
 
     await refreshGroups();
+  };
+
+  const openSyncDialog = (groupName?: string) => {
+    setSyncDialogGroupName(groupName ?? null);
+    setSyncSelections(buildSyncSelections(items, source.baselineInstanceId));
+    setSyncError(null);
+    setIsSyncDialogOpen(true);
+  };
+
+  const handleSyncDialogOpenChange = (open: boolean) => {
+    if (!open && isMutating) {
+      return;
+    }
+
+    setIsSyncDialogOpen(open);
+
+    if (!open) {
+      setSyncDialogGroupName(null);
+      setSyncError(null);
+    }
+  };
+
+  const updateSyncSource = (groupName: string, sourceInstanceId: string) => {
+    const group = items.find((item) => item.name === groupName);
+
+    setSyncSelections((current) => ({
+      ...current,
+      [groupName]: {
+        sourceInstanceId,
+        targetInstanceIds: group ? buildDefaultSyncTargetIds(group, source.baselineInstanceId, sourceInstanceId) : [],
+      },
+    }));
+  };
+
+  const toggleSyncTarget = (groupName: string, targetInstanceId: string, checked: boolean) => {
+    setSyncSelections((current) => {
+      const previous = current[groupName];
+      const nextTargetIds = checked
+        ? [...new Set([...(previous?.targetInstanceIds ?? []), targetInstanceId])]
+        : (previous?.targetInstanceIds ?? []).filter((instanceId) => instanceId !== targetInstanceId);
+
+      return {
+        ...current,
+        [groupName]: {
+          sourceInstanceId:
+            previous?.sourceInstanceId ?? items.find((item) => item.name === groupName)?.origin.instanceId ?? "",
+          targetInstanceIds: nextTargetIds,
+        },
+      };
+    });
+  };
+
+  const syncSingleGroup = async (group: GroupItem) => {
+    const selection = syncSelections[group.name] ?? {
+      sourceInstanceId: group.origin.instanceId,
+      targetInstanceIds: buildDefaultSyncTargetIds(group, source.baselineInstanceId, group.origin.instanceId),
+    };
+
+    if (selection.targetInstanceIds.length === 0) {
+      setSyncError(messages.groups.syncDialog.targetsRequired);
+      toast.error(messages.groups.syncDialog.targetsRequired);
+      return;
+    }
+
+    setBusyAction(`sync:${group.name}`);
+    setSyncError(null);
+
+    const { data, response } = await client.POST<GroupsMutationResponse>("/groups/sync", {
+      headers: {
+        "x-yapd-csrf": csrfToken,
+      },
+      body: {
+        groupName: group.name,
+        sourceInstanceId: selection.sourceInstanceId,
+        targetInstanceIds: selection.targetInstanceIds,
+      },
+    });
+
+    setBusyAction(null);
+
+    if (!response.ok || !data) {
+      const message = await getApiErrorMessage(response);
+      setSyncError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (data.status === "partial") {
+      toast.warning(messages.groups.toasts.partialWarning(data.summary.successfulCount, data.summary.failedCount));
+    } else {
+      toast.success(messages.groups.toasts.syncGroupSuccess(group.name));
+    }
+
+    const refreshed = await refreshGroups();
+
+    if (!refreshed) {
+      return;
+    }
+
+    const nextUnsyncedItems = refreshed.items.filter((item) => item.sync.missingInstances.length > 0);
+    setSyncSelections(buildSyncSelections(nextUnsyncedItems, refreshed.source.baselineInstanceId));
+
+    if (syncDialogGroupName) {
+      if (!nextUnsyncedItems.some((item) => item.name === syncDialogGroupName)) {
+        handleSyncDialogOpenChange(false);
+      }
+      return;
+    }
+
+    if (nextUnsyncedItems.length === 0) {
+      handleSyncDialogOpenChange(false);
+    }
   };
 
   const submitCreate = async (values: GroupCreateFormValues) => {
@@ -517,7 +698,7 @@ export function GroupsWorkspace({
 
       <Card>
         <CardHeader>
-          <div className="text-center">
+          <div>
             <CardTitle>{messages.groups.table.title}</CardTitle>
             <CardDescription>{messages.groups.table.description(source.baselineInstanceName)}</CardDescription>
           </div>
@@ -533,9 +714,9 @@ export function GroupsWorkspace({
               <RefreshCw className={cn(busyAction === "refresh" ? "animate-spin" : undefined)} />
               {busyAction === "refresh" ? messages.groups.table.refreshLoading : messages.groups.table.refresh}
             </Button>
-            <Button type="button" variant="outline" size="sm" disabled={isMutating} onClick={() => void runSync()}>
-              <ArrowLeftRight className={cn(busyAction === "sync" ? "animate-pulse" : undefined)} />
-              {busyAction === "sync" ? messages.groups.table.syncLoading : messages.groups.table.sync}
+            <Button type="button" variant="outline" size="sm" disabled={isMutating} onClick={() => openSyncDialog()}>
+              <ArrowLeftRight />
+              {messages.groups.table.sync}
             </Button>
             {selectedGroups.length > 0 ? (
               <Button
@@ -573,10 +754,10 @@ export function GroupsWorkspace({
                         onCheckedChange={(checked) => toggleAllVisibleGroups(checked === true)}
                       />
                     </TableHead>
-                    <TableHead>{messages.groups.table.name}</TableHead>
-                    <TableHead>{messages.groups.table.status}</TableHead>
-                    <TableHead>{messages.groups.table.comment}</TableHead>
-                    <TableHead className="text-right">{messages.groups.table.actions}</TableHead>
+                    <TableHead className="text-center">{messages.groups.table.name}</TableHead>
+                    <TableHead className="text-center">{messages.groups.table.status}</TableHead>
+                    <TableHead className="text-center">{messages.groups.table.comment}</TableHead>
+                    <TableHead className="text-center">{messages.groups.table.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -597,6 +778,19 @@ export function GroupsWorkspace({
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="font-medium">{item.name}</span>
                             {immutable ? <Badge variant="outline">{messages.groups.table.protectedBadge}</Badge> : null}
+                            {item.sync.missingInstances.length > 0 ? (
+                              <Button
+                                size="icon-xs"
+                                variant="ghost"
+                                aria-label={messages.groups.table.syncIssueAction(item.name)}
+                                title={messages.groups.table.syncIssueAction(item.name)}
+                                disabled={isMutating}
+                                className="text-amber-600 hover:text-amber-700"
+                                onClick={() => openSyncDialog(item.name)}
+                              >
+                                <CircleAlert />
+                              </Button>
+                            ) : null}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -657,6 +851,183 @@ export function GroupsWorkspace({
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={isSyncDialogOpen} onOpenChange={handleSyncDialogOpenChange}>
+        <DialogContent className="sm:max-w-3xl" showCloseButton={!isMutating}>
+          <DialogHeader>
+            <DialogTitle>
+              {syncDialogGroupName
+                ? messages.groups.syncDialog.titleSingle(syncDialogGroupName)
+                : messages.groups.syncDialog.titleAll}
+            </DialogTitle>
+            <DialogDescription>
+              {syncDialogGroupName
+                ? messages.groups.syncDialog.descriptionSingle(syncDialogGroupName)
+                : messages.groups.syncDialog.descriptionAll(source.baselineInstanceName)}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {source.unavailableInstanceCount > 0 ? (
+              <Alert>
+                <AlertTitle>{messages.groups.table.sync}</AlertTitle>
+                <AlertDescription>
+                  {messages.groups.syncDialog.partialAvailability(source.availableInstanceCount, source.totalInstances)}
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            {syncError ? (
+              <Alert variant="destructive">
+                <AlertTitle>{messages.groups.table.sync}</AlertTitle>
+                <AlertDescription>{syncError}</AlertDescription>
+              </Alert>
+            ) : null}
+
+            {syncDialogItems.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <ArrowLeftRight />
+                  </EmptyMedia>
+                  <EmptyTitle>{messages.groups.syncDialog.emptyTitle}</EmptyTitle>
+                  <EmptyDescription>{messages.groups.syncDialog.emptyDescription}</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+                {syncDialogItems.map((item) => {
+                  const instanceStates = getGroupSyncInstanceStates(item, source.baselineInstanceId);
+                  const selection = syncSelections[item.name] ?? {
+                    sourceInstanceId: item.origin.instanceId,
+                    targetInstanceIds: buildDefaultSyncTargetIds(
+                      item,
+                      source.baselineInstanceId,
+                      item.origin.instanceId,
+                    ),
+                  };
+                  const targetStates = instanceStates.filter(
+                    (instance) => instance.instanceId !== selection.sourceInstanceId,
+                  );
+                  const selectedTargets = new Set(selection.targetInstanceIds);
+                  const isSyncing = busyAction === `sync:${item.name}`;
+
+                  return (
+                    <Card key={item.name} size="sm" className="border py-4 shadow-none">
+                      <CardHeader className="gap-3">
+                        <div>
+                          <CardTitle>{item.name}</CardTitle>
+                          <CardDescription>
+                            {messages.groups.syncDialog.availabilityHint(
+                              item.sync.sourceInstances.length,
+                              item.sync.missingInstances.length,
+                            )}
+                          </CardDescription>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="secondary">
+                            {messages.groups.syncDialog.presentCount(item.sync.sourceInstances.length)}
+                          </Badge>
+                          <Badge variant="outline">
+                            {messages.groups.syncDialog.missingCount(item.sync.missingInstances.length)}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                          <Field className="gap-2">
+                            <FieldLabel>{messages.groups.syncDialog.sourceLabel}</FieldLabel>
+                            <Select
+                              value={selection.sourceInstanceId}
+                              disabled={isMutating}
+                              onValueChange={(value) => updateSyncSource(item.name, value)}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={messages.groups.syncDialog.sourcePlaceholder} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {instanceStates.map((instance) => (
+                                  <SelectItem key={instance.instanceId} value={instance.instanceId}>
+                                    {instance.instanceName} ·{" "}
+                                    {instance.hasGroup
+                                      ? messages.groups.syncDialog.instanceHasGroup
+                                      : messages.groups.syncDialog.instanceMissingGroup}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </Field>
+
+                          <div className="space-y-2">
+                            <p className="font-medium text-sm">{messages.groups.syncDialog.targetsLabel}</p>
+                            <div className="rounded-lg border bg-muted/20 p-3">
+                              {targetStates.length === 0 ? (
+                                <p className="text-muted-foreground text-sm">{messages.groups.syncDialog.noTargets}</p>
+                              ) : (
+                                <div className="grid gap-2 sm:grid-cols-2">
+                                  {targetStates.map((instance) => {
+                                    const checkboxId = `groups-sync-${item.id}-${instance.instanceId}`;
+
+                                    return (
+                                      <div
+                                        key={instance.instanceId}
+                                        className="flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm"
+                                      >
+                                        <Checkbox
+                                          id={checkboxId}
+                                          checked={selectedTargets.has(instance.instanceId)}
+                                          disabled={isMutating}
+                                          onCheckedChange={(checked) =>
+                                            toggleSyncTarget(item.name, instance.instanceId, checked === true)
+                                          }
+                                        />
+                                        <label htmlFor={checkboxId} className="flex items-center gap-2">
+                                          <span>{instance.instanceName}</span>
+                                          <Badge variant={instance.hasGroup ? "secondary" : "outline"}>
+                                            {instance.hasGroup
+                                              ? messages.groups.syncDialog.instanceHasGroup
+                                              : messages.groups.syncDialog.instanceMissingGroup}
+                                          </Badge>
+                                        </label>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            disabled={isMutating || selection.targetInstanceIds.length === 0}
+                            onClick={() => void syncSingleGroup(item)}
+                          >
+                            <ArrowLeftRight className={cn(isSyncing ? "animate-pulse" : undefined)} />
+                            {isSyncing ? messages.groups.syncDialog.syncLoading : messages.groups.syncDialog.syncAction}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isMutating}
+              onClick={() => handleSyncDialogOpenChange(false)}
+            >
+              {messages.groups.syncDialog.close}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isEditDialogOpen} onOpenChange={handleEditOpenChange}>
         <DialogContent className="sm:max-w-lg" showCloseButton={!isMutating}>

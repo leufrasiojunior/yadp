@@ -532,8 +532,34 @@ export type WebMessages = {
       deleteSelected: (count: number) => string;
       protectedBadge: string;
       protectedDescription: string;
+      syncIssue: string;
+      syncIssueAction: (name: string) => string;
       emptyTitle: string;
       emptyDescription: string;
+    };
+    syncDialog: {
+      titleAll: string;
+      titleSingle: (name: string) => string;
+      descriptionAll: (baselineName: string) => string;
+      descriptionSingle: (name: string) => string;
+      partialAvailability: (availableCount: number, totalCount: number) => string;
+      emptyTitle: string;
+      emptyDescription: string;
+      sourceLabel: string;
+      sourceHint: (count: number) => string;
+      availabilityHint: (presentCount: number, missingCount: number) => string;
+      sourcePlaceholder: string;
+      targetsLabel: string;
+      targetsHint: (count: number) => string;
+      presentCount: (count: number) => string;
+      missingCount: (count: number) => string;
+      instanceHasGroup: string;
+      instanceMissingGroup: string;
+      targetsRequired: string;
+      noTargets: string;
+      syncAction: string;
+      syncLoading: string;
+      close: string;
     };
     status: {
       active: string;
@@ -570,6 +596,7 @@ export type WebMessages = {
       enabledSuccess: string;
       disabledSuccess: string;
       syncSuccess: string;
+      syncGroupSuccess: (name: string) => string;
       partialWarning: (successfulCount: number, failedCount: number) => string;
     };
   };

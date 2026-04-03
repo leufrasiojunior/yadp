@@ -4,19 +4,6 @@ import { PIHOLE_REQUEST_ERROR_KINDS } from "../pihole/pihole.types";
 import { GROUP_BATCH_DELETE_MAX_ITEMS, GROUP_COMMENT_MAX_LENGTH, GROUP_NAME_MAX_LENGTH } from "./dto/group-validation";
 import { GROUP_MUTATION_STATUSES } from "./groups.types";
 
-const groupItemSchema = {
-  type: "object",
-  properties: {
-    name: { type: "string" },
-    comment: { type: "string", nullable: true },
-    enabled: { type: "boolean" },
-    id: { type: "number" },
-    dateAdded: { type: "number", nullable: true },
-    dateModified: { type: "number", nullable: true },
-  },
-  required: ["name", "comment", "enabled", "id", "dateAdded", "dateModified"],
-};
-
 const instanceSourceSchema = {
   type: "object",
   properties: {
@@ -37,6 +24,42 @@ const failedInstanceSchema = {
   required: ["instanceId", "instanceName", "kind", "message"],
 };
 
+const groupItemSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    comment: { type: "string", nullable: true },
+    enabled: { type: "boolean" },
+    id: { type: "number" },
+    dateAdded: { type: "number", nullable: true },
+    dateModified: { type: "number", nullable: true },
+    origin: {
+      type: "object",
+      properties: {
+        instanceId: { type: "string" },
+        instanceName: { type: "string" },
+      },
+      required: ["instanceId", "instanceName"],
+    },
+    sync: {
+      type: "object",
+      properties: {
+        isFullySynced: { type: "boolean" },
+        sourceInstances: {
+          type: "array",
+          items: instanceSourceSchema,
+        },
+        missingInstances: {
+          type: "array",
+          items: instanceSourceSchema,
+        },
+      },
+      required: ["isFullySynced", "sourceInstances", "missingInstances"],
+    },
+  },
+  required: ["name", "comment", "enabled", "id", "dateAdded", "dateModified", "origin", "sync"],
+};
+
 export const GROUPS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
   schema: {
     type: "object",
@@ -50,11 +73,24 @@ export const GROUPS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
         properties: {
           baselineInstanceId: { type: "string" },
           baselineInstanceName: { type: "string" },
+          totalInstances: { type: "number" },
+          availableInstanceCount: { type: "number" },
+          unavailableInstanceCount: { type: "number" },
         },
-        required: ["baselineInstanceId", "baselineInstanceName"],
+        required: [
+          "baselineInstanceId",
+          "baselineInstanceName",
+          "totalInstances",
+          "availableInstanceCount",
+          "unavailableInstanceCount",
+        ],
+      },
+      unavailableInstances: {
+        type: "array",
+        items: failedInstanceSchema,
       },
     },
-    required: ["items", "source"],
+    required: ["items", "source", "unavailableInstances"],
   },
 };
 
@@ -155,5 +191,32 @@ export const BATCH_DELETE_GROUPS_API_BODY: ApiBodyOptions = {
       },
     },
     required: ["items"],
+  },
+};
+
+export const SYNC_GROUPS_API_BODY: ApiBodyOptions = {
+  required: false,
+  schema: {
+    type: "object",
+    properties: {
+      groupName: {
+        type: "string",
+        minLength: 1,
+        maxLength: GROUP_NAME_MAX_LENGTH,
+        example: "Analytics Group",
+      },
+      sourceInstanceId: {
+        type: "string",
+        example: "clz-source-instance",
+      },
+      targetInstanceIds: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+        minItems: 1,
+        example: ["clz-secondary-a", "clz-secondary-b"],
+      },
+    },
   },
 };

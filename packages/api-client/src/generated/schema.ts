@@ -616,11 +616,43 @@ export interface operations {
               id: number;
               dateAdded: number | null;
               dateModified: number | null;
+              origin: {
+                instanceId: string;
+                instanceName: string;
+              };
+              sync: {
+                isFullySynced: boolean;
+                sourceInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                }[];
+                missingInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                }[];
+              };
             }[];
             source: {
               baselineInstanceId: string;
               baselineInstanceName: string;
+              totalInstances: number;
+              availableInstanceCount: number;
+              unavailableInstanceCount: number;
             };
+            unavailableInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
           };
         };
       };
@@ -900,7 +932,23 @@ export interface operations {
       path?: never;
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody?: {
+      content: {
+        "application/json": {
+          /** @example Analytics Group */
+          groupName?: string;
+          /** @example clz-source-instance */
+          sourceInstanceId?: string;
+          /**
+           * @example [
+           *       "clz-secondary-a",
+           *       "clz-secondary-b"
+           *     ]
+           */
+          targetInstanceIds?: string[];
+        };
+      };
+    };
     responses: {
       200: {
         headers: {
