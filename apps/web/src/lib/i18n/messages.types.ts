@@ -248,7 +248,6 @@ export type WebMessages = {
   layout: {
     overviewButton: string;
     queriesButton: string;
-    groupsButton: string;
     instancesButton: string;
     unavailableTitle: string;
     unavailableDescription: string;

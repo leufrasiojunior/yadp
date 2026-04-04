@@ -13,7 +13,10 @@ YAPD stores the selected time zone in the backend configuration and uses that va
 YAPD now treats Prisma migrations in `apps/api/prisma/migrations` as the source of truth for database history.
 
 - On API startup, `npm run start --workspace @yapd/api` automatically runs `prisma migrate deploy` before booting the server.
-- The Docker API container uses this same startup path, so `docker compose up --build api` also applies pending migrations before the Nest server starts.
+- The Docker app container starts the backend and frontend together, and the backend migration step runs before the services are exposed.
+- The example `compose.yaml` uses the local image tag `yapd-app:test` and keeps `leufrasiojunior/yapd` commented for an easy switch to Docker Hub later.
+- In Docker, the browser talks to the app through the relative path `/api`, while the server-side web runtime uses `INTERNAL_API_BASE_URL` to reach the backend inside the same container.
+- The example compose file sets `WEB_ORIGIN="*"` so the app can be opened from another machine on the network during testing.
 - This startup path is safe for Docker containers and applies only pending migrations, preserving existing data and migration history.
 - If the database is not ready yet, startup retries the migration step before failing.
 - For new schema changes during development, create a real migration with `npm run db:migrate:dev -- --name your_change_name`.

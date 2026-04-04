@@ -107,12 +107,6 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
                       {messages.layout.overviewButton}
                     </Link>
                   </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <Link prefetch={false} href="/groups">
-                      <Users />
-                      {messages.layout.groupsButton}
-                    </Link>
-                  </Button>
                   <Button asChild size="sm">
                     <Link prefetch={false} href="/instances">
                       <Binary />

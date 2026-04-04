@@ -4,9 +4,12 @@ import type { Request } from "express";
 
 import { CsrfGuard } from "../session/csrf.guard";
 import { SessionGuard } from "../session/session.guard";
-import type { ApplyBlockingOperationDto } from "./dto/apply-blocking-operation.dto";
-import type { PreviewBlockingOperationDto } from "./dto/preview-blocking-operation.dto";
-import type { UpdateBlockingPresetsDto } from "./dto/update-blocking-presets.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { ApplyBlockingOperationDto } from "./dto/apply-blocking-operation.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { PreviewBlockingOperationDto } from "./dto/preview-blocking-operation.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { UpdateBlockingPresetsDto } from "./dto/update-blocking-presets.dto";
 import {
   SYNC_BLOCKING_APPLY_API_OK_RESPONSE,
   SYNC_BLOCKING_PRESET_API_OK_RESPONSE,

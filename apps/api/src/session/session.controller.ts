@@ -5,7 +5,8 @@ import type { Request, Response } from "express";
 import { CsrfGuard } from "./csrf.guard";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { LoginDto } from "./dto/login.dto";
-import type { UpdateSessionPreferencesDto } from "./dto/update-session-preferences.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { UpdateSessionPreferencesDto } from "./dto/update-session-preferences.dto";
 import { SessionGuard } from "./session.guard";
 import { SessionService } from "./session.service";
 

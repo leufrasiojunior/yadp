@@ -18,35 +18,46 @@ services:
       retries: 5
       start_period: 10s
 
-  api:
+  app:
+    image: yapd-app:test
+    # image: leufrasiojunior/yapd:latest
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: yapd-api
+      dockerfile: Dockerfile
+    container_name: yapd-app
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
       API_HOST: 0.0.0.0
       API_PORT: 3001
-      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/yapd?schema=public}
-      SESSION_SECRET: ${SESSION_SECRET:-replace-this-session-secret}
-      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-replace-this-encryption-key}
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}
-      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
-      YAPD_DB_MIGRATION_MAX_ATTEMPTS: ${YAPD_DB_MIGRATION_MAX_ATTEMPTS:-30}
-      YAPD_DB_MIGRATION_RETRY_DELAY_SECONDS: ${YAPD_DB_MIGRATION_RETRY_DELAY_SECONDS:-2}
+      WEB_ORIGIN: "*"
+      API_BASE_URL: /api
+      INTERNAL_API_BASE_URL: http://127.0.0.1:3001/api
+      NEXT_PUBLIC_API_BASE_URL: /api
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/yapd?schema=public
+      SESSION_SECRET: replace-this-session-secret
+      APP_ENCRYPTION_KEY: replace-this-encryption-key
+      COOKIE_SECURE: "false"
+      SWAGGER_ENABLED: "false"
+      YAPD_DB_MIGRATION_MAX_ATTEMPTS: "30"
+      YAPD_DB_MIGRATION_RETRY_DELAY_SECONDS: "2"
+      YAPD_API_READY_MAX_ATTEMPTS: "30"
+      YAPD_API_READY_RETRY_DELAY_SECONDS: "1"
     ports:
+      - "3000:3000"
       - "3001:3001"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
+      test:
+        ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000 >/dev/null 2>&1 && wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
+      start_period: 30s
 
 volumes:
   yapd-postgres-data:

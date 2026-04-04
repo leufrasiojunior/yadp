@@ -288,7 +288,6 @@ export const ptBRMessages: WebMessages = {
   layout: {
     overviewButton: "Visão geral",
     queriesButton: "Queries",
-    groupsButton: "Groups",
     instancesButton: "Instâncias",
     unavailableTitle: "O painel não conseguiu falar com o backend",
     unavailableDescription:
@@ -304,7 +303,7 @@ export const ptBRMessages: WebMessages = {
     items: {
       dashboard: "Dashboard",
       queries: "Queries Log",
-      groups: "Groups",
+      groups: "Grupos",
       instances: "Instâncias",
       baselineLogin: "Login da baseline",
       setupBaseline: "Setup da baseline",

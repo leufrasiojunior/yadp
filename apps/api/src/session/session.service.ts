@@ -374,7 +374,7 @@ export class SessionService {
     response.clearCookie(this.env.values.SESSION_COOKIE_NAME, {
       httpOnly: true,
       sameSite: "strict",
-      secure: this.env.values.COOKIE_SECURE || this.env.isProduction,
+      secure: this.env.values.COOKIE_SECURE,
       path: "/",
     });
   }
@@ -406,7 +406,7 @@ export class SessionService {
   private writeSessionCookie(response: Response, payload: SessionCookiePayload) {
     response.cookie(this.env.values.SESSION_COOKIE_NAME, this.crypto.encryptSession(payload), {
       httpOnly: true,
-      secure: this.env.values.COOKIE_SECURE || this.env.isProduction,
+      secure: this.env.values.COOKIE_SECURE,
       sameSite: "strict",
       expires: new Date(payload.expiresAt),
       path: "/",

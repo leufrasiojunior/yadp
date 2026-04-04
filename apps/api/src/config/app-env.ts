@@ -8,7 +8,7 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(LOG_LEVEL_VALUES).default(DEFAULT_APP_LOG_LEVEL),
   API_PORT: z.coerce.number().default(3001),
   API_HOST: z.string().min(1).default("127.0.0.1"),
-  WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
+  WEB_ORIGIN: z.string().min(1).default("http://localhost:3000"),
   DATABASE_URL: z.string().min(1).default("postgresql://postgres:postgres@localhost:5432/yapd?schema=public"),
   SESSION_COOKIE_NAME: z.string().min(1).default("yapd_session"),
   SESSION_SECRET: z.string().min(16).default("replace-this-session-secret"),

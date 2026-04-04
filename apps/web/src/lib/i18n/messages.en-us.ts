@@ -286,7 +286,6 @@ export const enUSMessages: WebMessages = {
   layout: {
     overviewButton: "Overview",
     queriesButton: "Queries",
-    groupsButton: "Groups",
     instancesButton: "Instances",
     unavailableTitle: "The dashboard could not reach the backend",
     unavailableDescription:

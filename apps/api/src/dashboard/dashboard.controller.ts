@@ -5,7 +5,8 @@ import type { Request } from "express";
 import { SessionGuard } from "../session/session.guard";
 import { DASHBOARD_OVERVIEW_API_OK_RESPONSE } from "./dashboard.responses";
 import { DashboardService } from "./dashboard.service";
-import type { GetDashboardOverviewDto } from "./dto/get-dashboard-overview.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { GetDashboardOverviewDto } from "./dto/get-dashboard-overview.dto";
 
 @ApiTags("dashboard")
 @ApiCookieAuth()

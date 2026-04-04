@@ -22,6 +22,12 @@ async function bootstrap() {
   });
   const env = app.get(AppEnvService);
   const logger = new Logger("Bootstrap");
+  const corsOrigins =
+    env.values.WEB_ORIGIN.trim() === "*"
+      ? true
+      : env.values.WEB_ORIGIN.split(",")
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0);
 
   app.enableShutdownHooks();
   app.setGlobalPrefix("api");
@@ -32,7 +38,7 @@ async function bootstrap() {
     next();
   });
   app.enableCors({
-    origin: [env.values.WEB_ORIGIN],
+    origin: corsOrigins,
     credentials: true,
   });
   app.useGlobalPipes(
