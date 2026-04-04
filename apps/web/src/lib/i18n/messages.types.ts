@@ -507,6 +507,7 @@ export type WebMessages = {
       title: string;
       description: (baselineName: string) => string;
       searchPlaceholder: string;
+      searchClear: string;
       refresh: string;
       refreshLoading: string;
       sync: string;

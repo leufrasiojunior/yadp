@@ -567,6 +567,7 @@ export const enUSMessages: WebMessages = {
       description: (baselineName) =>
         `The baseline ${baselineName} remains the primary source for comments and groups, while device visibility comes from the enabled instances.`,
       searchPlaceholder: "Search client, IP, or MAC",
+      searchClear: "Clear search",
       refresh: "Refresh",
       refreshLoading: "Refreshing...",
       sync: "Sync",

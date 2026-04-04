@@ -22,6 +22,7 @@ import {
   Server,
   Tags,
   UserRound,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,6 +58,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -561,13 +563,28 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
             <CardDescription>{messages.clients.table.description(data.source.baselineInstanceName)}</CardDescription>
           </div>
           <CardAction className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            <Input
-              value={searchDraft}
-              onChange={(event) => setSearchDraft(event.target.value)}
-              placeholder={messages.clients.table.searchPlaceholder}
-              disabled={busyAction !== null && busyAction !== "search"}
-              className="min-w-56"
-            />
+            <InputGroup className="min-w-56">
+              <InputGroupInput
+                value={searchDraft}
+                onChange={(event) => setSearchDraft(event.target.value)}
+                placeholder={messages.clients.table.searchPlaceholder}
+                disabled={busyAction !== null && busyAction !== "search"}
+              />
+              {searchDraft.length > 0 ? (
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton
+                    size="icon-xs"
+                    variant="ghost"
+                    aria-label={messages.clients.table.searchClear}
+                    title={messages.clients.table.searchClear}
+                    disabled={busyAction !== null && busyAction !== "search"}
+                    onClick={() => setSearchDraft("")}
+                  >
+                    <X className="pointer-events-none size-3.5" />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              ) : null}
+            </InputGroup>
             <Button
               type="button"
               variant="outline"

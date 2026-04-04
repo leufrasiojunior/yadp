@@ -571,6 +571,7 @@ export const ptBRMessages: WebMessages = {
       description: (baselineName) =>
         `A baseline ${baselineName} continua como referência principal para grupos e comentários, enquanto a lista de dispositivos vem das instâncias habilitadas.`,
       searchPlaceholder: "Pesquisar cliente, IP ou MAC",
+      searchClear: "Limpar pesquisa",
       refresh: "Atualizar",
       refreshLoading: "Atualizando...",
       sync: "Sync",
