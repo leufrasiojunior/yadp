@@ -541,6 +541,9 @@ export type WebMessages = {
       detailsDescription: string;
       detailsSave: string;
       detailsSaveLoading: string;
+      detailsOverviewTab: string;
+      detailsGroupsTab: string;
+      detailsInstancesTab: string;
       alias: string;
       hwaddr: string;
       ips: string;

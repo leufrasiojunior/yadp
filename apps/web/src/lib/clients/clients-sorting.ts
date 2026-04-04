@@ -1,6 +1,6 @@
 import type { ClientsSortDirection, ClientsSortField } from "@/lib/api/yapd-types";
 
-export const DEFAULT_CLIENTS_SORT_FIELD: ClientsSortField = "lastQuery";
+export const DEFAULT_CLIENTS_SORT_FIELD: ClientsSortField = "numQueries";
 export const DEFAULT_CLIENTS_SORT_DIRECTION: ClientsSortDirection = "desc";
 
 const DEFAULT_SORT_DIRECTIONS_BY_FIELD: Record<ClientsSortField, ClientsSortDirection> = {

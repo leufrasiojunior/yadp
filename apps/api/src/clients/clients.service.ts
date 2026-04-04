@@ -53,9 +53,19 @@ type DeviceObservation = {
   numQueries: number;
 };
 
+type PendingDeviceObservation = {
+  rawHwaddr: string | null;
+  macVendor: string | null;
+  ips: string[];
+  firstSeen: number | null;
+  lastQuery: number | null;
+  numQueries: number;
+};
+
 type InstanceDevicesSnapshot = {
   instance: ManagedInstanceRecord;
   devicesByHwaddr: Map<string, DeviceObservation>;
+  unresolvedDevices: PendingDeviceObservation[];
 };
 
 type BaselineClientMetadata = {
@@ -85,6 +95,27 @@ function isLikelyMacAddress(value: string) {
 
 function normalizeStringArray(values: string[]) {
   return [...new Set(values.map((value) => value.trim()).filter((value) => value.length > 0))];
+}
+
+function mergeDeviceObservationLike<T extends Omit<DeviceObservation, "hwaddr">>(current: T, incoming: T): T {
+  return {
+    ...current,
+    macVendor: current.macVendor ?? incoming.macVendor,
+    ips: normalizeStringArray([...current.ips, ...incoming.ips]),
+    firstSeen:
+      current.firstSeen === null
+        ? incoming.firstSeen
+        : incoming.firstSeen === null
+          ? current.firstSeen
+          : Math.min(current.firstSeen, incoming.firstSeen),
+    lastQuery:
+      current.lastQuery === null
+        ? incoming.lastQuery
+        : incoming.lastQuery === null
+          ? current.lastQuery
+          : Math.max(current.lastQuery, incoming.lastQuery),
+    numQueries: Math.max(current.numQueries, incoming.numQueries),
+  };
 }
 
 function sortManagedInstances<T extends ManagedInstanceRecord>(instances: T[]) {
@@ -293,14 +324,43 @@ export class ClientsService {
     const locale = getRequestLocale(request);
     const ipAddress = getRequestIp(request);
     const clients = this.normalizeRequestedClients(dto.client, locale);
-    const comment = dto.comment?.trim() ?? "";
+    const comment = dto.comment === undefined ? undefined : dto.comment.trim();
     const alias = dto.alias === undefined ? undefined : dto.alias.trim();
+    const requestedGroupIds = dto.groups ?? [];
 
     try {
       const instances = await this.loadManagedInstances(locale);
       const targetInstances = this.resolveSaveTargets(instances, dto.targetInstanceIds, locale);
-      const baselineGroups = await this.readBaselineGroups(instances, dto.groups, locale);
+      const baselineGroups =
+        requestedGroupIds.length > 0 ? await this.readBaselineGroups(instances, requestedGroupIds, locale) : null;
       await this.persistRequestedAlias(clients, alias);
+
+      if (baselineGroups === null && comment === undefined) {
+        const successfulInstances = targetInstances.map((instance) => this.toSourceSummary(instance));
+        const response = this.buildMutationResponse(targetInstances.length, successfulInstances, []);
+
+        await this.audit.record({
+          action: "clients.save",
+          actorType: "session",
+          ipAddress,
+          targetType: "client",
+          targetId: clients.length === 1 ? clients[0] : null,
+          result: "SUCCESS",
+          details: {
+            clients,
+            groups: requestedGroupIds,
+            groupNames: [],
+            targetInstanceIds: targetInstances.map((instance) => instance.id),
+            status: response.status,
+            summary: response.summary,
+            comment: comment ?? null,
+            alias: alias ?? null,
+          } satisfies Prisma.InputJsonObject,
+        });
+
+        return response;
+      }
+
       const successfulInstances: ClientsMutationInstanceSource[] = [];
       const failedInstances: ClientsMutationInstanceFailure[] = [];
 
@@ -324,12 +384,12 @@ export class ClientsService {
         result: response.failedInstances.length > 0 ? "FAILURE" : "SUCCESS",
         details: {
           clients,
-          groups: dto.groups,
-          groupNames: baselineGroups.map((group) => group.name),
+          groups: requestedGroupIds,
+          groupNames: baselineGroups?.map((group) => group.name) ?? [],
           targetInstanceIds: targetInstances.map((instance) => instance.id),
           status: response.status,
           summary: response.summary,
-          comment,
+          comment: comment ?? null,
           alias: alias ?? null,
         } satisfies Prisma.InputJsonObject,
       });
@@ -344,9 +404,9 @@ export class ClientsService {
         result: "FAILURE",
         details: {
           clients,
-          groups: dto.groups,
+          groups: requestedGroupIds,
           targetInstanceIds: dto.targetInstanceIds ?? [],
-          comment,
+          comment: comment ?? null,
           alias: alias ?? null,
           error: error instanceof Error ? error.message : "Unknown error",
         } satisfies Prisma.InputJsonObject,
@@ -535,65 +595,86 @@ export class ClientsService {
       this.pihole.listNetworkDevices(connection, session),
     );
     const devicesByHwaddr = new Map<string, DeviceObservation>();
+    const unresolvedDevicesByKey = new Map<string, PendingDeviceObservation>();
 
     for (const entry of result.devices) {
-      const device = this.toDeviceObservation(entry);
+      const candidate = this.toDeviceObservationCandidate(entry);
 
-      if (!device) {
+      if (!candidate) {
         continue;
       }
 
-      const existing = devicesByHwaddr.get(device.hwaddr);
-      devicesByHwaddr.set(device.hwaddr, existing ? this.mergeDeviceObservation(existing, device) : device);
+      if ("hwaddr" in candidate) {
+        const existing = devicesByHwaddr.get(candidate.hwaddr);
+        devicesByHwaddr.set(candidate.hwaddr, existing ? this.mergeDeviceObservation(existing, candidate) : candidate);
+        continue;
+      }
+
+      const unresolvedKey = `${candidate.rawHwaddr ?? "unknown"}|${candidate.ips.join(",")}`;
+      const existingUnresolved = unresolvedDevicesByKey.get(unresolvedKey);
+      unresolvedDevicesByKey.set(
+        unresolvedKey,
+        existingUnresolved ? this.mergePendingDeviceObservation(existingUnresolved, candidate) : candidate,
+      );
     }
 
     return {
       instance,
       devicesByHwaddr,
+      unresolvedDevices: [...unresolvedDevicesByKey.values()],
     };
   }
 
-  private toDeviceObservation(entry: PiholeNetworkDevice): DeviceObservation | null {
-    if (!entry.hwaddr) {
-      return null;
-    }
-
-    const hwaddr = normalizeHwaddr(entry.hwaddr);
-
-    if (!isLikelyMacAddress(hwaddr)) {
-      return null;
-    }
-
+  private toDeviceObservationCandidate(
+    entry: PiholeNetworkDevice,
+  ): DeviceObservation | PendingDeviceObservation | null {
+    const rawHwaddr = entry.hwaddr?.trim() ?? "";
+    const normalizedHwaddr = rawHwaddr.length > 0 ? normalizeHwaddr(rawHwaddr) : null;
     const ips = normalizeStringArray(entry.ips.map((address) => address.ip ?? ""));
 
-    return {
-      hwaddr,
+    if (!normalizedHwaddr && ips.length === 0) {
+      return null;
+    }
+
+    const baseObservation = {
       macVendor: entry.macVendor?.trim().length ? entry.macVendor.trim() : null,
       ips,
       firstSeen: entry.firstSeen,
       lastQuery: entry.lastQuery,
       numQueries: entry.numQueries ?? 0,
+    } satisfies Omit<DeviceObservation, "hwaddr">;
+
+    if (normalizedHwaddr && isLikelyMacAddress(normalizedHwaddr)) {
+      return {
+        hwaddr: normalizedHwaddr,
+        ...baseObservation,
+      };
+    }
+
+    if (ips.length === 0) {
+      return null;
+    }
+
+    return {
+      rawHwaddr: normalizedHwaddr,
+      ...baseObservation,
     };
   }
 
   private mergeDeviceObservation(current: DeviceObservation, incoming: DeviceObservation): DeviceObservation {
     return {
+      ...mergeDeviceObservationLike(current, incoming),
       hwaddr: current.hwaddr,
-      macVendor: current.macVendor ?? incoming.macVendor,
-      ips: normalizeStringArray([...current.ips, ...incoming.ips]),
-      firstSeen:
-        current.firstSeen === null
-          ? incoming.firstSeen
-          : incoming.firstSeen === null
-            ? current.firstSeen
-            : Math.min(current.firstSeen, incoming.firstSeen),
-      lastQuery:
-        current.lastQuery === null
-          ? incoming.lastQuery
-          : incoming.lastQuery === null
-            ? current.lastQuery
-            : Math.max(current.lastQuery, incoming.lastQuery),
-      numQueries: Math.max(current.numQueries, incoming.numQueries),
+    };
+  }
+
+  private mergePendingDeviceObservation(
+    current: PendingDeviceObservation,
+    incoming: PendingDeviceObservation,
+  ): PendingDeviceObservation {
+    return {
+      ...mergeDeviceObservationLike(current, incoming),
+      rawHwaddr: current.rawHwaddr ?? incoming.rawHwaddr,
     };
   }
 
@@ -693,6 +774,76 @@ export class ClientsService {
           device,
         });
         grouped.set(device.hwaddr, current);
+      }
+    }
+
+    const ipToHwaddr = new Map<string, string | null>();
+
+    for (const [hwaddr, observations] of grouped.entries()) {
+      for (const { device } of observations) {
+        for (const ip of device.ips) {
+          const current = ipToHwaddr.get(ip);
+
+          if (current === undefined) {
+            ipToHwaddr.set(ip, hwaddr);
+            continue;
+          }
+
+          if (current !== hwaddr) {
+            ipToHwaddr.set(ip, null);
+          }
+        }
+      }
+    }
+
+    for (const snapshot of snapshots) {
+      for (const unresolved of snapshot.unresolvedDevices) {
+        const matchingHwaddrs = [
+          ...new Set(
+            unresolved.ips
+              .map((ip) => ipToHwaddr.get(ip))
+              .filter((hwaddr): hwaddr is string => typeof hwaddr === "string" && hwaddr.length > 0),
+          ),
+        ];
+
+        if (matchingHwaddrs.length !== 1) {
+          continue;
+        }
+
+        const resolvedHwaddr = matchingHwaddrs[0];
+
+        if (!resolvedHwaddr) {
+          continue;
+        }
+
+        const current = grouped.get(resolvedHwaddr) ?? [];
+        const existingIndex = current.findIndex(({ instance }) => instance.id === snapshot.instance.id);
+        const resolvedObservation: DeviceObservation = {
+          hwaddr: resolvedHwaddr,
+          macVendor: unresolved.macVendor,
+          ips: unresolved.ips,
+          firstSeen: unresolved.firstSeen,
+          lastQuery: unresolved.lastQuery,
+          numQueries: unresolved.numQueries,
+        };
+
+        if (existingIndex >= 0) {
+          const existing = current[existingIndex];
+
+          if (existing) {
+            current[existingIndex] = {
+              instance: existing.instance,
+              device: this.mergeDeviceObservation(existing.device, resolvedObservation),
+            };
+          }
+        } else {
+          current.push({
+            instance: snapshot.instance,
+            device: resolvedObservation,
+          });
+        }
+
+        grouped.set(resolvedHwaddr, current);
       }
     }
 
@@ -873,51 +1024,53 @@ export class ClientsService {
   private async applyClientsToInstance(
     instance: ManagedInstanceRecord,
     clients: string[],
-    baselineGroups: ManagedGroupRecord[],
-    requestedComment: string,
+    baselineGroups: ManagedGroupRecord[] | null,
+    requestedComment: string | undefined,
     locale: ReturnType<typeof getRequestLocale>,
   ) {
     const snapshot = await this.readInstanceApplySnapshot(instance, locale);
-    const missingGroups = baselineGroups
-      .filter((group) => !snapshot.groupsByName.has(group.name))
-      .map((group) => group.name);
+    const targetGroupIds =
+      baselineGroups === null
+        ? null
+        : baselineGroups
+            .map((group) => snapshot.groupsByName.get(group.name)?.id ?? null)
+            .filter((groupId): groupId is number => groupId !== null);
 
-    if (missingGroups.length > 0) {
-      throw new BadRequestException(
-        translateApi(locale, "clients.instanceMissingGroups", {
-          instance: instance.name,
-          groups: missingGroups.join(", "),
-        }),
-      );
+    if (baselineGroups !== null) {
+      const missingGroups = baselineGroups
+        .filter((group) => !snapshot.groupsByName.has(group.name))
+        .map((group) => group.name);
+
+      if (missingGroups.length > 0) {
+        throw new BadRequestException(
+          translateApi(locale, "clients.instanceMissingGroups", {
+            instance: instance.name,
+            groups: missingGroups.join(", "),
+          }),
+        );
+      }
     }
-
-    const targetGroupIds = baselineGroups
-      .map((group) => snapshot.groupsByName.get(group.name)?.id ?? null)
-      .filter((groupId): groupId is number => groupId !== null);
 
     await this.instanceSessions.withActiveSession(instance.id, locale, async ({ connection, session }) => {
       for (const client of clients) {
         const current = snapshot.clientsByHwaddr.get(client) ?? null;
-        const commentToApply = current?.comment ?? requestedComment;
+        const nextGroups = targetGroupIds ?? (current ? sortNumberArray(current.groups) : []);
+        const commentToApply = requestedComment ?? current?.comment ?? "";
         const currentGroups = current ? sortNumberArray(current.groups) : [];
 
-        if (
-          current &&
-          areNumberArraysEqual(currentGroups, sortNumberArray(targetGroupIds)) &&
-          (current.comment ?? "") === commentToApply
-        ) {
+        if (current && areNumberArraysEqual(currentGroups, nextGroups) && (current.comment ?? "") === commentToApply) {
           continue;
         }
 
         const result = current
           ? await this.pihole.updateClient(connection, session, current.client, {
               comment: commentToApply,
-              groups: targetGroupIds,
+              groups: nextGroups,
             })
           : await this.pihole.createClients(connection, session, {
               clients: [client],
               comment: commentToApply,
-              groups: targetGroupIds,
+              groups: nextGroups,
             });
 
         this.assertClientMutationSucceeded(result);

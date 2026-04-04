@@ -14,7 +14,7 @@ export const CLIENT_LIST_SORT_FIELDS = [
   "comment",
 ] as const;
 export const CLIENT_LIST_SORT_DIRECTIONS = ["asc", "desc"] as const;
-export const DEFAULT_CLIENTS_SORT_FIELD = "lastQuery";
+export const DEFAULT_CLIENTS_SORT_FIELD = "numQueries";
 export const DEFAULT_CLIENTS_SORT_DIRECTION = "desc";
 
 export type ClientMutationStatus = (typeof CLIENT_MUTATION_STATUSES)[number];

@@ -196,7 +196,7 @@ export const SAVE_CLIENTS_API_BODY: ApiBodyOptions = {
         example: ["clz-secondary-a"],
       },
     },
-    required: ["client", "groups"],
+    required: ["client"],
   },
 };
 

@@ -45,13 +45,13 @@ export class SaveClientsDto {
   @MaxLength(500)
   comment?: string;
 
+  @IsOptional()
   @IsArray()
-  @ArrayMinSize(1)
   @ArrayUnique()
   @Transform(({ value }) => normalizeNumberArray(value))
   @Type(() => Number)
   @IsNumber({}, { each: true })
-  groups!: number[];
+  groups?: number[];
 
   @IsOptional()
   @IsArray()

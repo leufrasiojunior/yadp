@@ -3,15 +3,25 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  Activity,
   ArrowDown,
   ArrowLeftRight,
   ArrowUp,
   ArrowUpDown,
+  Building2,
+  Clock3,
   Ellipsis,
+  Fingerprint,
+  History,
   Info,
+  type LucideIcon,
+  MessageSquareText,
   MonitorSmartphone,
+  Network,
   RefreshCw,
+  Server,
   Tags,
+  UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -39,12 +49,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
@@ -71,6 +88,8 @@ type ClientsWorkspaceProps = {
   initialData: ClientsListResponse;
   initialGroups: GroupItem[];
 };
+
+type DetailsDialogTab = "overview" | "groups" | "instances";
 
 const TABLE_SKELETON_ROW_KEYS = [
   "clients-skeleton-1",
@@ -120,9 +139,14 @@ function getClientDisplayValue(item: ClientListItem) {
   return null;
 }
 
+function getClientDialogValue(item: ClientListItem) {
+  return getClientDisplayValue(item) ?? item.hwaddr;
+}
+
 type SubmitClientChangesOptions = {
   groupIds: number[];
   alias?: string;
+  comment?: string;
   retryInstanceId?: string;
   keepDetailsDialogOpen?: boolean;
 };
@@ -132,6 +156,7 @@ type ReadonlyFieldProps = {
   value: string;
   className?: string;
   multiline?: boolean;
+  icon?: LucideIcon;
 };
 
 function formatListValue(values: string[], emptyValue: string) {
@@ -144,10 +169,13 @@ function formatListValue(values: string[], emptyValue: string) {
   return normalized.join(", ");
 }
 
-function ReadonlyField({ label, value, className, multiline = false }: Readonly<ReadonlyFieldProps>) {
+function ReadonlyField({ label, value, className, multiline = false, icon: Icon }: Readonly<ReadonlyFieldProps>) {
   return (
     <div className={cn("space-y-2", className)}>
-      <Label className="text-muted-foreground text-xs uppercase tracking-wide">{label}</Label>
+      <Label className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
+        {Icon ? <Icon className="size-3.5" /> : null}
+        <span>{label}</span>
+      </Label>
       {multiline ? (
         <Textarea value={value} readOnly className="min-h-20 resize-none bg-muted/20" />
       ) : (
@@ -171,7 +199,9 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
   const [draftGroupIds, setDraftGroupIds] = useState<number[]>([]);
   const [instancesDialogClient, setInstancesDialogClient] = useState<ClientListItem | null>(null);
   const [detailsDialogClient, setDetailsDialogClient] = useState<ClientListItem | null>(null);
+  const [detailsDialogTab, setDetailsDialogTab] = useState<DetailsDialogTab>("overview");
   const [detailsAliasDraft, setDetailsAliasDraft] = useState("");
+  const [detailsCommentDraft, setDetailsCommentDraft] = useState("");
   const [detailsDraftGroupIds, setDetailsDraftGroupIds] = useState<number[]>([]);
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
   const groupNamesById = useMemo(() => new Map(initialGroups.map((group) => [group.id, group.name])), [initialGroups]);
@@ -340,7 +370,9 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
     }
 
     setDetailsDialogClient(item);
+    setDetailsDialogTab("overview");
     setDetailsAliasDraft(item.alias ?? "");
+    setDetailsCommentDraft(item.comment ?? "");
     setDetailsDraftGroupIds(sortNumberArray(item.groupIds));
   };
 
@@ -350,7 +382,9 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
     }
 
     setDetailsDialogClient(null);
+    setDetailsDialogTab("overview");
     setDetailsAliasDraft("");
+    setDetailsCommentDraft("");
     setDetailsDraftGroupIds([]);
   };
 
@@ -371,8 +405,9 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
   const submitClientChanges = async (item: ClientListItem, options: SubmitClientChangesOptions) => {
     const sortedGroupIds = sortNumberArray(options.groupIds);
     const normalizedAlias = options.alias === undefined ? undefined : options.alias.trim();
+    const normalizedComment = options.comment === undefined ? undefined : options.comment.trim();
 
-    if (sortedGroupIds.length === 0) {
+    if (sortedGroupIds.length === 0 && normalizedAlias === undefined && normalizedComment === undefined) {
       toast.error(messages.clients.table.groupsRequired);
       return;
     }
@@ -385,9 +420,9 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
       },
       body: {
         client: [item.hwaddr],
-        comment: item.comment ?? "",
-        groups: sortedGroupIds,
+        ...(sortedGroupIds.length > 0 ? { groups: sortedGroupIds } : {}),
         ...(normalizedAlias !== undefined ? { alias: normalizedAlias } : {}),
+        ...(normalizedComment !== undefined ? { comment: normalizedComment } : {}),
         ...(options.retryInstanceId ? { targetInstanceIds: [options.retryInstanceId] } : {}),
       },
     });
@@ -418,6 +453,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
               void submitClientChanges(item, {
                 groupIds: sortedGroupIds,
                 alias: normalizedAlias,
+                comment: normalizedComment,
                 retryInstanceId: failure.instanceId,
                 keepDetailsDialogOpen: options.keepDetailsDialogOpen,
               });
@@ -447,6 +483,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
 
     setDetailsDialogClient(refreshedClient);
     setDetailsAliasDraft(refreshedClient.alias ?? normalizedAlias ?? "");
+    setDetailsCommentDraft(refreshedClient.comment ?? normalizedComment ?? "");
     setDetailsDraftGroupIds(sortNumberArray(refreshedClient.groupIds));
   };
 
@@ -506,6 +543,8 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
     : false;
   const hasDetailsAliasChanges =
     detailsDialogClient !== null && detailsAliasDraft.trim() !== (detailsDialogClient.alias?.trim() ?? "");
+  const hasDetailsCommentChanges =
+    detailsDialogClient !== null && detailsCommentDraft.trim() !== (detailsDialogClient.comment?.trim() ?? "");
   const hasDetailsGroupChanges =
     detailsDialogClient !== null &&
     !areNumberArraysEqual(sortNumberArray(detailsDialogClient.groupIds), detailsDraftGroupIds);
@@ -742,7 +781,6 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-center gap-2">
-                                <Skeleton className="h-9 w-20" />
                                 <Skeleton className="h-9 w-9 rounded-lg" />
                               </div>
                             </TableCell>
@@ -887,26 +925,25 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                                 </span>
                               </TableCell>
                               <TableCell className="text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={busyAction !== null}
-                                    onClick={() => openDetailsDialog(item)}
-                                  >
-                                    {messages.clients.table.viewMore}
-                                  </Button>
-                                  <Button
-                                    size="icon-sm"
-                                    variant="outline"
-                                    disabled
-                                    aria-label={messages.clients.table.actionPlaceholder}
-                                    title={messages.clients.table.actionPlaceholder}
-                                  >
-                                    <Ellipsis />
-                                  </Button>
-                                </div>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      size="icon-sm"
+                                      variant="outline"
+                                      disabled={busyAction !== null}
+                                      aria-label={messages.clients.table.actions}
+                                      title={messages.clients.table.actions}
+                                    >
+                                      <Ellipsis />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-40">
+                                    <DropdownMenuItem onSelect={() => openDetailsDialog(item)}>
+                                      <Info />
+                                      {messages.clients.table.viewMore}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </TableCell>
                             </TableRow>
                           );
@@ -935,7 +972,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
           <DialogHeader>
             <DialogTitle>
               {instancesDialogClient
-                ? messages.clients.dialogs.instancesTitle(instancesDialogClient.hwaddr)
+                ? messages.clients.dialogs.instancesTitle(getClientDialogValue(instancesDialogClient))
                 : messages.clients.title}
             </DialogTitle>
           </DialogHeader>
@@ -966,150 +1003,203 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
       </Dialog>
 
       <Dialog open={detailsDialogClient !== null} onOpenChange={(open) => !open && closeDetailsDialog()}>
-        <DialogContent className="max-h-[92vh] overflow-hidden sm:max-w-5xl">
+        <DialogContent className="flex h-[92vh] max-h-[92vh] flex-col overflow-hidden sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>
               {detailsDialogClient
-                ? messages.clients.dialogs.detailsTitle(detailsDialogClient.hwaddr)
+                ? messages.clients.dialogs.detailsTitle(getClientDialogValue(detailsDialogClient))
                 : messages.clients.title}
             </DialogTitle>
             <DialogDescription>{messages.clients.dialogs.detailsDescription}</DialogDescription>
           </DialogHeader>
           {detailsDialogClient ? (
             <>
-              <div className="grid max-h-[70vh] gap-6 overflow-y-auto pr-1">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs uppercase tracking-wide">
-                      {messages.clients.dialogs.alias}
-                    </Label>
-                    <Input
-                      value={detailsAliasDraft}
-                      onChange={(event) => setDetailsAliasDraft(event.target.value)}
-                      disabled={busyAction !== null}
-                      placeholder={messages.clients.dialogs.alias}
+              <Tabs
+                value={detailsDialogTab}
+                onValueChange={(value) => setDetailsDialogTab(value as DetailsDialogTab)}
+                className="min-h-0 flex-1 gap-4"
+              >
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="overview">
+                    <UserRound />
+                    {messages.clients.dialogs.detailsOverviewTab}
+                  </TabsTrigger>
+                  <TabsTrigger value="groups">
+                    <Tags />
+                    {messages.clients.dialogs.detailsGroupsTab}
+                  </TabsTrigger>
+                  <TabsTrigger value="instances">
+                    <Server />
+                    {messages.clients.dialogs.detailsInstancesTab}
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto pr-1">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
+                        <UserRound className="size-3.5" />
+                        <span>{messages.clients.dialogs.alias}</span>
+                      </Label>
+                      <Input
+                        value={detailsAliasDraft}
+                        onChange={(event) => setDetailsAliasDraft(event.target.value)}
+                        disabled={busyAction !== null}
+                        placeholder={messages.clients.dialogs.alias}
+                      />
+                    </div>
+                    <ReadonlyField
+                      label={messages.clients.dialogs.hwaddr}
+                      value={detailsDialogClient.hwaddr}
+                      icon={Fingerprint}
                     />
+                    <ReadonlyField
+                      label={messages.clients.dialogs.ips}
+                      value={formatListValue(detailsDialogClient.ips, messages.common.versionUnavailable)}
+                      className="md:col-span-2"
+                      multiline
+                      icon={Network}
+                    />
+                    <ReadonlyField
+                      label={messages.clients.dialogs.macVendor}
+                      value={detailsDialogClient.macVendor ?? messages.common.versionUnavailable}
+                      icon={Building2}
+                    />
+                    <ReadonlyField
+                      label={messages.clients.dialogs.visibleInstances}
+                      value={formatInstanceDetailList(detailsDialogClient.instanceDetails)}
+                      className="md:col-span-2"
+                      multiline
+                      icon={Server}
+                    />
+                    <ReadonlyField
+                      label={messages.clients.table.firstSeen}
+                      value={formatDateTimeValue(detailsDialogClient.firstSeen)}
+                      icon={Clock3}
+                    />
+                    <ReadonlyField
+                      label={messages.clients.table.lastQuery}
+                      value={formatDateTimeValue(detailsDialogClient.lastQuery)}
+                      icon={History}
+                    />
+                    <ReadonlyField
+                      label={messages.clients.dialogs.totalQueries}
+                      value={formatQueries(detailsDialogClient.numQueries)}
+                      icon={Activity}
+                    />
+                    <div className="space-y-2 md:col-span-2">
+                      <Label className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
+                        <MessageSquareText className="size-3.5" />
+                        <span>{messages.clients.dialogs.comment}</span>
+                      </Label>
+                      <Textarea
+                        value={detailsCommentDraft}
+                        onChange={(event) => setDetailsCommentDraft(event.target.value)}
+                        disabled={busyAction !== null}
+                        className="min-h-24 resize-none"
+                      />
+                    </div>
                   </div>
-                  <ReadonlyField label={messages.clients.dialogs.hwaddr} value={detailsDialogClient.hwaddr} />
-                  <ReadonlyField
-                    label={messages.clients.dialogs.ips}
-                    value={formatListValue(detailsDialogClient.ips, messages.common.versionUnavailable)}
-                    className="md:col-span-2"
-                    multiline
-                  />
-                  <ReadonlyField
-                    label={messages.clients.dialogs.macVendor}
-                    value={detailsDialogClient.macVendor ?? messages.common.versionUnavailable}
-                  />
-                  <ReadonlyField
-                    label={messages.clients.dialogs.visibleInstances}
-                    value={formatInstanceDetailList(detailsDialogClient.instanceDetails)}
-                    className="md:col-span-2"
-                    multiline
-                  />
-                  <ReadonlyField
-                    label={messages.clients.table.firstSeen}
-                    value={formatDateTimeValue(detailsDialogClient.firstSeen)}
-                  />
-                  <ReadonlyField
-                    label={messages.clients.table.lastQuery}
-                    value={formatDateTimeValue(detailsDialogClient.lastQuery)}
-                  />
-                  <ReadonlyField
-                    label={messages.clients.dialogs.totalQueries}
-                    value={formatQueries(detailsDialogClient.numQueries)}
-                  />
-                  <ReadonlyField
-                    label={messages.clients.dialogs.comment}
-                    value={detailsDialogClient.comment ?? messages.common.versionUnavailable}
-                    className="md:col-span-2"
-                    multiline
-                  />
-                </div>
+                </TabsContent>
 
-                <div className="space-y-4 rounded-xl border bg-muted/10 p-4">
-                  <div className="space-y-1">
-                    <h3 className="font-medium">{messages.clients.table.group}</h3>
-                    <p className="text-muted-foreground text-sm">
-                      {messages.clients.dialogs.groupSelectionDescription}
-                    </p>
-                  </div>
-                  <ReadonlyField
-                    label={messages.clients.dialogs.selectedGroups}
-                    value={
-                      selectedDetailsGroupNames.length > 0
-                        ? selectedDetailsGroupNames
-                        : messages.common.versionUnavailable
-                    }
-                    multiline
-                  />
-                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                    {initialGroups.map((group) => {
-                      const checkboxId = `client-details-groups-${detailsDialogClient.hwaddr}-${group.id}`;
+                <TabsContent value="groups" className="min-h-0 flex-1 overflow-y-auto pr-1">
+                  <div className="space-y-4 rounded-xl border bg-muted/10 p-4">
+                    <div className="space-y-1">
+                      <h3 className="flex items-center gap-2 font-medium">
+                        <Tags className="size-4" />
+                        <span>{messages.clients.table.group}</span>
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        {messages.clients.dialogs.groupSelectionDescription}
+                      </p>
+                    </div>
+                    <ReadonlyField
+                      label={messages.clients.dialogs.selectedGroups}
+                      value={
+                        selectedDetailsGroupNames.length > 0
+                          ? selectedDetailsGroupNames
+                          : messages.common.versionUnavailable
+                      }
+                      multiline
+                      icon={Tags}
+                    />
+                    <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                      {initialGroups.map((group) => {
+                        const checkboxId = `client-details-groups-${detailsDialogClient.hwaddr}-${group.id}`;
 
-                      return (
-                        <div
-                          key={group.id}
-                          className="flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm"
-                        >
-                          <Checkbox
-                            id={checkboxId}
-                            checked={detailsDraftGroupIds.includes(group.id)}
-                            disabled={busyAction !== null}
-                            onCheckedChange={(checked) => toggleDetailsDraftGroup(group.id, checked === true)}
-                          />
-                          <label htmlFor={checkboxId} className="flex-1">
-                            {group.name}
-                          </label>
-                        </div>
-                      );
-                    })}
+                        return (
+                          <div
+                            key={group.id}
+                            className="flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm"
+                          >
+                            <Checkbox
+                              id={checkboxId}
+                              checked={detailsDraftGroupIds.includes(group.id)}
+                              disabled={busyAction !== null}
+                              onCheckedChange={(checked) => toggleDetailsDraftGroup(group.id, checked === true)}
+                            />
+                            <label htmlFor={checkboxId} className="flex-1">
+                              {group.name}
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                </TabsContent>
 
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <h3 className="font-medium">{messages.clients.dialogs.instanceBreakdownTitle}</h3>
-                    <p className="text-muted-foreground text-sm">
-                      {messages.clients.dialogs.instanceBreakdownDescription}
-                    </p>
-                  </div>
+                <TabsContent value="instances" className="min-h-0 flex-1 overflow-y-auto pr-1">
                   <div className="space-y-4">
-                    {detailsDialogClient.instanceDetails.map((detail) => (
-                      <div key={detail.instanceId} className="space-y-4 rounded-xl border p-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <h4 className="font-medium">{detail.instanceName}</h4>
-                          <Badge variant="outline">
-                            {detail.instanceId === data.source.baselineInstanceId
-                              ? messages.common.baseline
-                              : messages.clients.table.instance}
-                          </Badge>
+                    <div className="space-y-1">
+                      <h3 className="flex items-center gap-2 font-medium">
+                        <Server className="size-4" />
+                        <span>{messages.clients.dialogs.instanceBreakdownTitle}</span>
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        {messages.clients.dialogs.instanceBreakdownDescription}
+                      </p>
+                    </div>
+                    <div className="space-y-4">
+                      {detailsDialogClient.instanceDetails.map((detail) => (
+                        <div key={detail.instanceId} className="space-y-4 rounded-xl border p-4">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h4 className="font-medium">{detail.instanceName}</h4>
+                            <Badge variant="outline">
+                              {detail.instanceId === data.source.baselineInstanceId
+                                ? messages.common.baseline
+                                : messages.clients.table.instance}
+                            </Badge>
+                          </div>
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <ReadonlyField
+                              label={messages.clients.dialogs.ips}
+                              value={formatListValue(detail.ips, messages.common.versionUnavailable)}
+                              className="md:col-span-2"
+                              multiline
+                              icon={Network}
+                            />
+                            <ReadonlyField
+                              label={messages.clients.table.firstSeen}
+                              value={formatDateTimeValue(detail.firstSeen)}
+                              icon={Clock3}
+                            />
+                            <ReadonlyField
+                              label={messages.clients.table.lastQuery}
+                              value={formatDateTimeValue(detail.lastQuery)}
+                              icon={History}
+                            />
+                            <ReadonlyField
+                              label={messages.clients.dialogs.instanceQueries}
+                              value={formatQueries(detail.numQueries)}
+                              icon={Activity}
+                            />
+                          </div>
                         </div>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <ReadonlyField
-                            label={messages.clients.dialogs.ips}
-                            value={formatListValue(detail.ips, messages.common.versionUnavailable)}
-                            className="md:col-span-2"
-                            multiline
-                          />
-                          <ReadonlyField
-                            label={messages.clients.table.firstSeen}
-                            value={formatDateTimeValue(detail.firstSeen)}
-                          />
-                          <ReadonlyField
-                            label={messages.clients.table.lastQuery}
-                            value={formatDateTimeValue(detail.lastQuery)}
-                          />
-                          <ReadonlyField
-                            label={messages.clients.dialogs.instanceQueries}
-                            value={formatQueries(detail.numQueries)}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </TabsContent>
+              </Tabs>
               <DialogFooter>
                 <Button type="button" variant="outline" disabled={isDetailsDialogSaving} onClick={closeDetailsDialog}>
                   {messages.clients.dialogs.close}
@@ -1118,13 +1208,15 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                   type="button"
                   disabled={
                     busyAction !== null ||
-                    detailsDraftGroupIds.length === 0 ||
-                    (!hasDetailsAliasChanges && !hasDetailsGroupChanges)
+                    (!hasDetailsAliasChanges &&
+                      !hasDetailsCommentChanges &&
+                      !(hasDetailsGroupChanges && detailsDraftGroupIds.length > 0))
                   }
                   onClick={() =>
                     void submitClientChanges(detailsDialogClient, {
-                      groupIds: detailsDraftGroupIds,
-                      alias: detailsAliasDraft,
+                      groupIds: hasDetailsGroupChanges ? detailsDraftGroupIds : [],
+                      alias: hasDetailsAliasChanges ? detailsAliasDraft : undefined,
+                      comment: hasDetailsCommentChanges ? detailsCommentDraft : undefined,
                       keepDetailsDialogOpen: true,
                     })
                   }
