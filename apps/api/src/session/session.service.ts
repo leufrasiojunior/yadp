@@ -1,4 +1,10 @@
-import { Inject, Injectable, PreconditionFailedException, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  PreconditionFailedException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import type { Request, Response } from "express";
 
 import { AuditService } from "../audit/audit.service";
@@ -7,6 +13,7 @@ import { CryptoService } from "../common/crypto/crypto.service";
 import { getRequestIp } from "../common/http/request-context";
 import { getRequestLocale } from "../common/i18n/locale";
 import { translateApi } from "../common/i18n/messages";
+import { DEFAULT_API_TIME_ZONE, normalizeApiTimeZone } from "../common/i18n/time-zone";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { Prisma } from "../common/prisma/prisma-client";
 import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
@@ -15,6 +22,7 @@ import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
 import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
 import { PiholeWorkCoordinatorService } from "../pihole/pihole-work-coordinator.service";
 import type { LoginDto } from "./dto/login.dto";
+import type { UpdateSessionPreferencesDto } from "./dto/update-session-preferences.dto";
 import type { SessionCookiePayload } from "./session.types";
 
 @Injectable()
@@ -103,6 +111,7 @@ export class SessionService {
         },
         payload,
         instanceSessions,
+        this.resolveAppTimeZone(appConfig),
       );
     }
 
@@ -179,6 +188,7 @@ export class SessionService {
         },
         payload,
         instanceSessions,
+        this.resolveAppTimeZone(appConfig),
       );
     } catch (error) {
       await this.audit.record({
@@ -206,9 +216,12 @@ export class SessionService {
   async getCurrentSession(request: Request, response: Response) {
     const locale = getRequestLocale(request);
     const payload = this.requireSession(request);
-    const baseline = await this.prisma.instance.findUnique({
-      where: { id: payload.baselineInstanceId },
-    });
+    const [baseline, appConfig] = await Promise.all([
+      this.prisma.instance.findUnique({
+        where: { id: payload.baselineInstanceId },
+      }),
+      this.readAppConfigOrNull(),
+    ]);
 
     if (!baseline) {
       this.clearSessionCookie(response);
@@ -244,7 +257,49 @@ export class SessionService {
       },
       nextPayload,
       null,
+      this.resolveAppTimeZone(appConfig),
     );
+  }
+
+  async updatePreferences(dto: UpdateSessionPreferencesDto, request: Request) {
+    const locale = getRequestLocale(request);
+    const session = this.requireSession(request);
+    const baseline = await this.prisma.instance.findUnique({
+      where: { id: session.baselineInstanceId },
+    });
+    const timeZone = normalizeApiTimeZone(dto.timeZone, "");
+
+    if (timeZone.length === 0) {
+      throw new BadRequestException(translateApi(locale, "session.invalidTimeZone"));
+    }
+
+    await this.prisma.appConfig.upsert({
+      where: { id: "singleton" },
+      update: {
+        timeZone,
+      },
+      create: {
+        id: "singleton",
+        timeZone,
+      },
+    });
+
+    await this.audit.record({
+      action: "session.preferences.update",
+      actorType: session.authMethod === "yapd-password" ? "yapd_operator" : "pihole_operator",
+      actorLabel: baseline?.name ?? null,
+      ipAddress: getRequestIp(request),
+      targetType: "app_config",
+      targetId: "singleton",
+      result: "SUCCESS",
+      details: {
+        timeZone,
+      } satisfies Prisma.InputJsonObject,
+    });
+
+    return {
+      timeZone,
+    };
   }
 
   async logout(request: Request, response: Response) {
@@ -332,12 +387,14 @@ export class SessionService {
     },
     payload: SessionCookiePayload,
     instanceSessions: Awaited<ReturnType<PiholeInstanceSessionService["bootstrapAllSessions"]>> | null,
+    timeZone: string,
   ) {
     return {
       authenticated: true as const,
       authMethod: payload.authMethod,
       baseline,
       expiresAt: payload.expiresAt,
+      timeZone,
       csrfToken: payload.antiCsrfToken,
       instanceSessions: instanceSessions ?? {
         successfulInstances: [],
@@ -368,5 +425,9 @@ export class SessionService {
 
       throw error;
     }
+  }
+
+  private resolveAppTimeZone(appConfig: { timeZone?: string | null } | null) {
+    return normalizeApiTimeZone(appConfig?.timeZone, DEFAULT_API_TIME_ZONE);
   }
 }

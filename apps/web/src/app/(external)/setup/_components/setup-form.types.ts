@@ -23,6 +23,7 @@ export type SetupWizardValues = {
   yapdPassword: string;
   confirmYapdPassword: string;
   applicationLanguage: AppLocale;
+  applicationTimeZone: string;
   themePreset: ThemePreset;
   font: FontKey;
   themeMode: ThemeMode;

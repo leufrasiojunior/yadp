@@ -8,6 +8,7 @@ import type { ResolvedThemeMode, ThemeMode, ThemePreset } from "@/lib/preference
 
 export type PreferencesState = {
   language: AppLocale;
+  timeZone: string;
   themeMode: ThemeMode;
   resolvedThemeMode: ResolvedThemeMode;
   themePreset: ThemePreset;
@@ -17,6 +18,7 @@ export type PreferencesState = {
   sidebarVariant: SidebarVariant;
   sidebarCollapsible: SidebarCollapsible;
   setLanguage: (language: AppLocale) => void;
+  setTimeZone: (timeZone: string) => void;
   setThemeMode: (mode: ThemeMode) => void;
   setResolvedThemeMode: (mode: ResolvedThemeMode) => void;
   setThemePreset: (preset: ThemePreset) => void;
@@ -32,6 +34,7 @@ export type PreferencesState = {
 export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
   createStore<PreferencesState>()((set) => ({
     language: init?.language ?? PREFERENCE_DEFAULTS.language,
+    timeZone: init?.timeZone ?? PREFERENCE_DEFAULTS.time_zone,
     themeMode: init?.themeMode ?? PREFERENCE_DEFAULTS.theme_mode,
     resolvedThemeMode: init?.resolvedThemeMode ?? "light",
     themePreset: init?.themePreset ?? PREFERENCE_DEFAULTS.theme_preset,
@@ -41,6 +44,7 @@ export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
     sidebarVariant: init?.sidebarVariant ?? PREFERENCE_DEFAULTS.sidebar_variant,
     sidebarCollapsible: init?.sidebarCollapsible ?? PREFERENCE_DEFAULTS.sidebar_collapsible,
     setLanguage: (language) => set({ language }),
+    setTimeZone: (timeZone) => set({ timeZone }),
     setThemeMode: (mode) => set({ themeMode: mode }),
     setResolvedThemeMode: (mode) => set({ resolvedThemeMode: mode }),
     setThemePreset: (preset) => set({ themePreset: preset }),

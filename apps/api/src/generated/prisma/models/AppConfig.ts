@@ -28,6 +28,7 @@ export type AppConfigMinAggregateOutputType = {
   id: string | null
   loginMode: $Enums.AppLoginMode | null
   passwordHash: string | null
+  timeZone: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -36,6 +37,7 @@ export type AppConfigMaxAggregateOutputType = {
   id: string | null
   loginMode: $Enums.AppLoginMode | null
   passwordHash: string | null
+  timeZone: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -44,6 +46,7 @@ export type AppConfigCountAggregateOutputType = {
   id: number
   loginMode: number
   passwordHash: number
+  timeZone: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -54,6 +57,7 @@ export type AppConfigMinAggregateInputType = {
   id?: true
   loginMode?: true
   passwordHash?: true
+  timeZone?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -62,6 +66,7 @@ export type AppConfigMaxAggregateInputType = {
   id?: true
   loginMode?: true
   passwordHash?: true
+  timeZone?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -70,6 +75,7 @@ export type AppConfigCountAggregateInputType = {
   id?: true
   loginMode?: true
   passwordHash?: true
+  timeZone?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -151,6 +157,7 @@ export type AppConfigGroupByOutputType = {
   id: string
   loginMode: $Enums.AppLoginMode
   passwordHash: string | null
+  timeZone: string
   createdAt: Date
   updatedAt: Date
   _count: AppConfigCountAggregateOutputType | null
@@ -180,6 +187,7 @@ export type AppConfigWhereInput = {
   id?: Prisma.StringFilter<"AppConfig"> | string
   loginMode?: Prisma.EnumAppLoginModeFilter<"AppConfig"> | $Enums.AppLoginMode
   passwordHash?: Prisma.StringNullableFilter<"AppConfig"> | string | null
+  timeZone?: Prisma.StringFilter<"AppConfig"> | string
   createdAt?: Prisma.DateTimeFilter<"AppConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AppConfig"> | Date | string
 }
@@ -188,6 +196,7 @@ export type AppConfigOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  timeZone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -199,6 +208,7 @@ export type AppConfigWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.AppConfigWhereInput | Prisma.AppConfigWhereInput[]
   loginMode?: Prisma.EnumAppLoginModeFilter<"AppConfig"> | $Enums.AppLoginMode
   passwordHash?: Prisma.StringNullableFilter<"AppConfig"> | string | null
+  timeZone?: Prisma.StringFilter<"AppConfig"> | string
   createdAt?: Prisma.DateTimeFilter<"AppConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AppConfig"> | Date | string
 }, "id">
@@ -207,6 +217,7 @@ export type AppConfigOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  timeZone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AppConfigCountOrderByAggregateInput
@@ -221,6 +232,7 @@ export type AppConfigScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"AppConfig"> | string
   loginMode?: Prisma.EnumAppLoginModeWithAggregatesFilter<"AppConfig"> | $Enums.AppLoginMode
   passwordHash?: Prisma.StringNullableWithAggregatesFilter<"AppConfig"> | string | null
+  timeZone?: Prisma.StringWithAggregatesFilter<"AppConfig"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AppConfig"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AppConfig"> | Date | string
 }
@@ -229,6 +241,7 @@ export type AppConfigCreateInput = {
   id?: string
   loginMode?: $Enums.AppLoginMode
   passwordHash?: string | null
+  timeZone?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -237,6 +250,7 @@ export type AppConfigUncheckedCreateInput = {
   id?: string
   loginMode?: $Enums.AppLoginMode
   passwordHash?: string | null
+  timeZone?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -245,6 +259,7 @@ export type AppConfigUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginMode?: Prisma.EnumAppLoginModeFieldUpdateOperationsInput | $Enums.AppLoginMode
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -253,6 +268,7 @@ export type AppConfigUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginMode?: Prisma.EnumAppLoginModeFieldUpdateOperationsInput | $Enums.AppLoginMode
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -261,6 +277,7 @@ export type AppConfigCreateManyInput = {
   id?: string
   loginMode?: $Enums.AppLoginMode
   passwordHash?: string | null
+  timeZone?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -269,6 +286,7 @@ export type AppConfigUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginMode?: Prisma.EnumAppLoginModeFieldUpdateOperationsInput | $Enums.AppLoginMode
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -277,6 +295,7 @@ export type AppConfigUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginMode?: Prisma.EnumAppLoginModeFieldUpdateOperationsInput | $Enums.AppLoginMode
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -285,6 +304,7 @@ export type AppConfigCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  timeZone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -293,6 +313,7 @@ export type AppConfigMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  timeZone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -301,6 +322,7 @@ export type AppConfigMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  timeZone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -327,6 +349,7 @@ export type AppConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   id?: boolean
   loginMode?: boolean
   passwordHash?: boolean
+  timeZone?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appConfig"]>
@@ -335,6 +358,7 @@ export type AppConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   loginMode?: boolean
   passwordHash?: boolean
+  timeZone?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appConfig"]>
@@ -343,6 +367,7 @@ export type AppConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   loginMode?: boolean
   passwordHash?: boolean
+  timeZone?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appConfig"]>
@@ -351,11 +376,12 @@ export type AppConfigSelectScalar = {
   id?: boolean
   loginMode?: boolean
   passwordHash?: boolean
+  timeZone?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AppConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginMode" | "passwordHash" | "createdAt" | "updatedAt", ExtArgs["result"]["appConfig"]>
+export type AppConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginMode" | "passwordHash" | "timeZone" | "createdAt" | "updatedAt", ExtArgs["result"]["appConfig"]>
 
 export type $AppConfigPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AppConfig"
@@ -364,6 +390,7 @@ export type $AppConfigPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     id: string
     loginMode: $Enums.AppLoginMode
     passwordHash: string | null
+    timeZone: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["appConfig"]>
@@ -792,6 +819,7 @@ export interface AppConfigFieldRefs {
   readonly id: Prisma.FieldRef<"AppConfig", 'String'>
   readonly loginMode: Prisma.FieldRef<"AppConfig", 'AppLoginMode'>
   readonly passwordHash: Prisma.FieldRef<"AppConfig", 'String'>
+  readonly timeZone: Prisma.FieldRef<"AppConfig", 'String'>
   readonly createdAt: Prisma.FieldRef<"AppConfig", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AppConfig", 'DateTime'>
 }

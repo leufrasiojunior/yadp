@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { TimeZoneInput } from "@/components/yapd/time-zone-input";
 import { type FontKey, fontOptions } from "@/lib/fonts/registry";
 import { type AppLocale, LOCALE_OPTIONS } from "@/lib/i18n/config";
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
@@ -19,6 +20,10 @@ type LayoutLabels = {
   };
   controls: {
     language: string;
+    timeZone: string;
+    timeZonePlaceholder: string;
+    timeZoneEmpty: string;
+    timeZoneInvalid: string;
     themePreset: string;
     font: string;
     fontPlaceholder: string;
@@ -81,6 +86,31 @@ export function SetupLayoutStep({
                   </SelectGroup>
                 </SelectContent>
               </Select>
+            )}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label className="font-medium text-xs">{labels.controls.timeZone}</Label>
+          <Controller
+            control={form.control}
+            name="applicationTimeZone"
+            render={({ field, fieldState }) => (
+              <TimeZoneInput
+                value={field.value}
+                emptyText={labels.controls.timeZoneEmpty}
+                error={fieldState.error?.message}
+                placeholder={labels.controls.timeZonePlaceholder}
+                searchPlaceholder={labels.controls.timeZonePlaceholder}
+                triggerClassName="text-xs"
+                onChange={(nextTimeZone) => {
+                  field.onChange(nextTimeZone);
+
+                  if (fieldState.error) {
+                    form.clearErrors("applicationTimeZone");
+                  }
+                }}
+              />
             )}
           />
         </div>
@@ -286,6 +316,7 @@ export function SetupLayoutStep({
           className="w-full text-xs"
           onClick={() => {
             form.setValue("applicationLanguage", locale);
+            form.setValue("applicationTimeZone", PREFERENCE_DEFAULTS.time_zone);
             form.setValue("themePreset", PREFERENCE_DEFAULTS.theme_preset);
             form.setValue("font", PREFERENCE_DEFAULTS.font);
             form.setValue("themeMode", PREFERENCE_DEFAULTS.theme_mode);

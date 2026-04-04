@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import type { DashboardOverviewResponse } from "@/lib/api/yapd-types";
 import { formatDashboardHourRange, formatDashboardHourTick } from "@/lib/dashboard/dashboard-chart-time";
-import { useAppLocale } from "@/lib/i18n/client";
+import { useWebI18n } from "@/lib/i18n/client";
 
 const CHART_COLORS = [
   "var(--chart-1)",
@@ -31,7 +31,7 @@ export function DashboardClientActivityChart({
   series: DashboardOverviewResponse["charts"]["clientActivity"]["series"];
   title: string;
 }>) {
-  const locale = useAppLocale();
+  const { locale, timeZone } = useWebI18n();
 
   if (series.length === 0) {
     return (
@@ -81,7 +81,7 @@ export function DashboardClientActivityChart({
               minTickGap={32}
               tickLine={false}
               tickMargin={8}
-              tickFormatter={(value: string) => formatDashboardHourTick(value, locale)}
+              tickFormatter={(value: string) => formatDashboardHourTick(value, locale, timeZone)}
             />
             <YAxis allowDecimals={false} axisLine={false} tickLine={false} tickMargin={8} />
             <ChartTooltip
@@ -89,7 +89,7 @@ export function DashboardClientActivityChart({
               content={
                 <ChartTooltipContent
                   indicator="dot"
-                  labelFormatter={(value) => formatDashboardHourRange(String(value), locale)}
+                  labelFormatter={(value) => formatDashboardHourRange(String(value), locale, timeZone)}
                 />
               }
             />

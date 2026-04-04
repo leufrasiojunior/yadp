@@ -14,6 +14,7 @@ import { CryptoService } from "../common/crypto/crypto.service";
 import { getRequestIp } from "../common/http/request-context";
 import { getRequestLocale } from "../common/i18n/locale";
 import { translateApi } from "../common/i18n/messages";
+import { DEFAULT_API_TIME_ZONE, normalizeApiTimeZone } from "../common/i18n/time-zone";
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-client";
 import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
@@ -64,6 +65,7 @@ export class SetupService {
       needsSetup: !baseline,
       baselineConfigured: Boolean(baseline),
       loginMode: baseline ? fromDbLoginMode(appConfig?.loginMode) : null,
+      timeZone: this.resolveAppTimeZone(appConfig),
       baseline: baseline
         ? {
             id: baseline.id,
@@ -93,9 +95,14 @@ export class SetupService {
         dto.loginMode === "yapd-password"
           ? this.crypto.hashPassword(this.normalizeOptionalString(dto.yapdPassword) as string)
           : null;
+      const timeZone = normalizeApiTimeZone(dto.timeZone, "");
 
       if (!baselineCandidate) {
         throw new BadRequestException(translateApi(locale, "setup.singleMasterRequired"));
+      }
+
+      if (timeZone.length === 0) {
+        throw new BadRequestException(translateApi(locale, "setup.invalidTimeZone"));
       }
 
       const createdInstances = await this.prisma.$transaction(async (tx) => {
@@ -138,11 +145,13 @@ export class SetupService {
           update: {
             loginMode: toDbLoginMode(dto.loginMode),
             passwordHash,
+            timeZone,
           },
           create: {
             id: "singleton",
             loginMode: toDbLoginMode(dto.loginMode),
             passwordHash,
+            timeZone,
           },
         });
 
@@ -169,6 +178,7 @@ export class SetupService {
             : null,
           createdCount: createdInstances.length,
           loginMode: dto.loginMode,
+          timeZone,
           instances: createdInstances.map((instance) => ({
             id: instance.id,
             name: instance.name,
@@ -193,6 +203,7 @@ export class SetupService {
           : null,
         createdCount: createdInstances.length,
         loginMode: dto.loginMode,
+        timeZone,
       };
     } catch (error) {
       await this.audit.record({
@@ -204,6 +215,7 @@ export class SetupService {
         details: {
           credentialsMode: dto.credentialsMode,
           loginMode: dto.loginMode,
+          timeZone: this.normalizeOptionalString(dto.timeZone),
           instanceCount: dto.instances.length,
           instances: dto.instances.map((instance, index) => ({
             index: index + 1,
@@ -217,6 +229,10 @@ export class SetupService {
 
       throw error;
     }
+  }
+
+  private resolveAppTimeZone(appConfig: { timeZone?: string | null } | null) {
+    return normalizeApiTimeZone(appConfig?.timeZone, DEFAULT_API_TIME_ZONE);
   }
 
   private async readAppConfigOrNull() {

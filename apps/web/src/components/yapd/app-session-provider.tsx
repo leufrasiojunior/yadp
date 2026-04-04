@@ -11,6 +11,7 @@ export type AppSession = {
     baseUrl: string;
   };
   expiresAt: string;
+  timeZone: string;
   csrfToken: string;
   instanceSessions: {
     successfulInstances: Array<{

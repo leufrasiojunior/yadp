@@ -6,8 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { APP_CONFIG } from "@/config/app-config";
 import { fontVars } from "@/lib/fonts/registry";
-import { getConfiguredTimeZone } from "@/lib/i18n/config";
-import { getServerLocale } from "@/lib/i18n/server";
+import { getServerLocale, getServerTimeZone } from "@/lib/i18n/server";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { ThemeBootScript } from "@/scripts/theme-boot";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
@@ -20,10 +19,10 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  const locale = await getServerLocale();
-  const timeZone = getConfiguredTimeZone();
+  const [locale, timeZone] = await Promise.all([getServerLocale(), getServerTimeZone()]);
   const {
     language,
+    time_zone,
     theme_mode,
     theme_preset,
     content_layout,
@@ -34,6 +33,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   } = {
     ...PREFERENCE_DEFAULTS,
     language: locale,
+    time_zone: timeZone,
   };
 
   return (
@@ -47,7 +47,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       data-sidebar-variant={sidebar_variant}
       data-sidebar-collapsible={sidebar_collapsible}
       data-font={font}
-      data-timezone={timeZone}
+      data-timezone={time_zone}
       suppressHydrationWarning
     >
       <head />
@@ -57,6 +57,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <TooltipProvider>
           <PreferencesStoreProvider
             language={language}
+            timeZone={time_zone}
             themeMode={theme_mode}
             themePreset={theme_preset}
             contentLayout={content_layout}

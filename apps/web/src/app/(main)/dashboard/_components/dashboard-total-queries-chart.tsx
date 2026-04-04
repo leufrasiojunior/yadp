@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import type { DashboardOverviewResponse } from "@/lib/api/yapd-types";
 import { formatDashboardHourTick } from "@/lib/dashboard/dashboard-chart-time";
-import { useAppLocale } from "@/lib/i18n/client";
+import { useWebI18n } from "@/lib/i18n/client";
 
 const chartConfig = {
   totalQueries: {
@@ -31,7 +31,7 @@ export function DashboardTotalQueriesChart({
   points: DashboardOverviewResponse["charts"]["totalQueries"]["points"];
   title: string;
 }>) {
-  const locale = useAppLocale();
+  const { locale, timeZone } = useWebI18n();
 
   if (points.length === 0) {
     return (
@@ -71,9 +71,12 @@ export function DashboardTotalQueriesChart({
               minTickGap={32}
               tickLine={false}
               tickMargin={8}
-              tickFormatter={(value: string) => formatDashboardHourTick(value, locale)}
+              tickFormatter={(value: string) => formatDashboardHourTick(value, locale, timeZone)}
             />
-            <ChartTooltip cursor={false} content={<DashboardTotalQueriesTooltip locale={locale} />} />
+            <ChartTooltip
+              cursor={false}
+              content={<DashboardTotalQueriesTooltip locale={locale} timeZone={timeZone} />}
+            />
             <Area
               dataKey="blockedQueries"
               fill="url(#fillBlockedQueries)"

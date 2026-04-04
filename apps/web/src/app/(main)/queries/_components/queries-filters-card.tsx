@@ -30,6 +30,7 @@ type QueriesFiltersCardProps = {
   setIsFiltersOpen: (open: boolean) => void;
   setIsLiveEnabled: (enabled: boolean) => void;
   suggestions: QuerySuggestionsResponse["suggestions"];
+  timeZone: string;
   updateDraft: <K extends keyof QueryFilters>(key: K, value: QueryFilters[K]) => void;
 };
 
@@ -45,6 +46,7 @@ export function QueriesFiltersCard({
   setIsFiltersOpen,
   setIsLiveEnabled,
   suggestions,
+  timeZone,
   updateDraft,
 }: Readonly<QueriesFiltersCardProps>) {
   const datalistPrefix = useId();
@@ -81,6 +83,7 @@ export function QueriesFiltersCard({
                 <div className="md:col-span-2 xl:col-span-2">
                   <DateTimeRangePicker
                     clearLabel={messages.queries.filters.clear}
+                    description={messages.queries.filters.timeZoneHint(timeZone)}
                     fromLabel={messages.queries.filters.from}
                     fromValue={draftFilters.from}
                     label={`${messages.queries.filters.from} - ${messages.queries.filters.until}`}

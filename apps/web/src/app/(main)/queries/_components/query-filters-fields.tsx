@@ -22,6 +22,7 @@ type SuggestionComboboxProps = {
 
 type DateTimeRangePickerProps = {
   clearLabel: string;
+  description?: string;
   fromLabel: string;
   fromValue: string;
   label: string;
@@ -142,6 +143,7 @@ export function SuggestionCombobox({
 
 export function DateTimeRangePicker({
   clearLabel,
+  description,
   fromLabel,
   fromValue,
   label,
@@ -209,7 +211,10 @@ export function DateTimeRangePicker({
 
   return (
     <div className="space-y-2">
-      <p className="font-medium text-sm">{label}</p>
+      <div className="space-y-1">
+        <p className="font-medium text-sm">{label}</p>
+        {description ? <p className="text-muted-foreground text-xs">{description}</p> : null}
+      </div>
       <div className="flex items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>

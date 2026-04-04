@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers";
 
-import { DEFAULT_LOCALE, LOCALE_COOKIE_KEY, normalizeAppLocale } from "./config";
+import { getSetupStatus, isYapdApiResponseError, isYapdApiUnavailableError } from "../api/yapd-server";
+import { DEFAULT_LOCALE, DEFAULT_TIME_ZONE, LOCALE_COOKIE_KEY, normalizeAppLocale, normalizeTimeZone } from "./config";
 import { getWebMessages } from "./messages";
 
 export async function getServerLocale() {
@@ -14,6 +15,19 @@ export async function getServerLocale() {
   const requestHeaders = await headers();
 
   return normalizeAppLocale(requestHeaders.get("accept-language"), DEFAULT_LOCALE);
+}
+
+export async function getServerTimeZone() {
+  try {
+    const setup = await getSetupStatus();
+    return normalizeTimeZone(setup.timeZone, DEFAULT_TIME_ZONE);
+  } catch (error) {
+    if (isYapdApiUnavailableError(error) || isYapdApiResponseError(error)) {
+      return DEFAULT_TIME_ZONE;
+    }
+
+    throw error;
+  }
 }
 
 export async function getServerI18n() {

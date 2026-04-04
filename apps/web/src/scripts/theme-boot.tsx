@@ -11,7 +11,7 @@
 
 import { useServerInsertedHTML } from "next/navigation";
 
-import { DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, DEFAULT_TIME_ZONE } from "@/lib/i18n/config";
 import { PREFERENCE_DEFAULTS, PREFERENCE_PERSISTENCE } from "@/lib/preferences/preferences-config";
 
 function serializeForInlineScript(value: unknown) {
@@ -21,6 +21,7 @@ function serializeForInlineScript(value: unknown) {
 export function ThemeBootScript() {
   const persistence = serializeForInlineScript({
     language: PREFERENCE_PERSISTENCE.language,
+    time_zone: PREFERENCE_PERSISTENCE.time_zone,
     theme_mode: PREFERENCE_PERSISTENCE.theme_mode,
     theme_preset: PREFERENCE_PERSISTENCE.theme_preset,
     font: PREFERENCE_PERSISTENCE.font,
@@ -32,6 +33,7 @@ export function ThemeBootScript() {
 
   const defaults = serializeForInlineScript({
     language: DEFAULT_LOCALE,
+    time_zone: PREFERENCE_DEFAULTS.time_zone ?? DEFAULT_TIME_ZONE,
     theme_mode: PREFERENCE_DEFAULTS.theme_mode,
     theme_preset: PREFERENCE_DEFAULTS.theme_preset,
     font: PREFERENCE_DEFAULTS.font,
@@ -83,6 +85,7 @@ export function ThemeBootScript() {
         }
 
         var rawLanguage = readPreference("language", root.getAttribute("lang") || DEFAULTS.language);
+        var rawTimeZone = readPreference("time_zone", root.getAttribute("data-timezone") || DEFAULTS.time_zone);
         var rawMode = readPreference("theme_mode", DEFAULTS.theme_mode);
         var rawPreset = readPreference("theme_preset", DEFAULTS.theme_preset);
         var rawFont = readPreference("font", DEFAULTS.font);
@@ -100,6 +103,7 @@ export function ThemeBootScript() {
         var preset = rawPreset || DEFAULTS.theme_preset;
         var font = rawFont || DEFAULTS.font;
         var language = rawLanguage || root.getAttribute("lang") || DEFAULTS.language;
+        var timeZone = rawTimeZone || root.getAttribute("data-timezone") || DEFAULTS.time_zone;
         var contentLayout = rawContentLayout || DEFAULTS.content_layout;
         var navbarStyle = rawNavbarStyle || DEFAULTS.navbar_style;
         var sidebarVariant = rawSidebarVariant || DEFAULTS.sidebar_variant;
@@ -108,6 +112,7 @@ export function ThemeBootScript() {
         root.classList.toggle("dark", resolvedMode === "dark");
         root.lang = language;
         root.setAttribute("data-language", language);
+        root.setAttribute("data-timezone", timeZone);
         root.setAttribute("data-theme-mode", mode);
         root.setAttribute("data-theme-preset", preset);
         root.setAttribute("data-font", font);

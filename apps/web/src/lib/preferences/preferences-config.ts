@@ -24,6 +24,7 @@ export type PreferencePersistence = "none" | "client-cookie" | "server-cookie" |
  */
 export type PreferenceValueMap = {
   language: AppLocale;
+  time_zone: string;
   theme_mode: ThemeMode;
   theme_preset: ThemePreset;
   font: FontKey;
@@ -69,6 +70,7 @@ type PreferencePersistenceConfig = {
  */
 export const PREFERENCE_DEFAULTS: PreferenceValueMap = {
   language: "pt-BR",
+  time_zone: "UTC",
   theme_mode: "light",
   theme_preset: "default",
   font: "inter",
@@ -84,6 +86,7 @@ export const PREFERENCE_DEFAULTS: PreferenceValueMap = {
  */
 export const PREFERENCE_PERSISTENCE: PreferencePersistenceConfig = {
   language: "client-cookie",
+  time_zone: "none",
   theme_mode: "client-cookie",
   theme_preset: "client-cookie",
   font: "client-cookie",

@@ -24,11 +24,13 @@ export function DashboardTotalQueriesTooltip({
   active,
   payload,
   locale,
+  timeZone,
 }: Readonly<{
   active?: boolean;
   payload?: TooltipPayloadItem[];
   label?: string | number;
   locale: string;
+  timeZone: string;
 }>) {
   const point = payload?.[0]?.payload;
 
@@ -38,7 +40,7 @@ export function DashboardTotalQueriesTooltip({
 
   return (
     <div className="grid min-w-44 gap-2 rounded-lg border border-border/50 bg-background px-3 py-2 text-xs shadow-xl">
-      <div className="font-medium">{formatDashboardHourRange(point.timestamp, locale)}</div>
+      <div className="font-medium">{formatDashboardHourRange(point.timestamp, locale, timeZone)}</div>
       <div className="grid gap-1.5">
         <div className="flex items-center justify-between gap-3">
           <span className="text-muted-foreground">Total</span>

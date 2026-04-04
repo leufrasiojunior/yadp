@@ -36,6 +36,7 @@ type ApiMessageKey =
   | "session.baselineMissing"
   | "session.baselineRequired"
   | "session.expired"
+  | "session.invalidTimeZone"
   | "session.localLoginFailed"
   | "session.localLoginUnavailable"
   | "session.loginFailed"
@@ -55,6 +56,7 @@ type ApiMessageKey =
   | "setup.instanceLabelFallback"
   | "setup.instanceValidationFailed"
   | "setup.invalidCredentials"
+  | "setup.invalidTimeZone"
   | "setup.masterIncomplete"
   | "setup.loginModeRequired"
   | "setup.sharedCredentialsRequired"
@@ -109,6 +111,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "session.baselineMissing": "A instância baseline não está mais disponível.",
     "session.baselineRequired": "Configure a baseline antes de fazer login.",
     "session.expired": "A sessão expirou.",
+    "session.invalidTimeZone": "O timezone informado é inválido.",
     "session.localLoginFailed": "A senha do YAPD está incorreta.",
     "session.localLoginUnavailable": "O login local do YAPD não está configurado.",
     "session.loginFailed": "O login do Pi-hole falhou.",
@@ -133,6 +136,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "setup.instanceLabelFallback": ({ index }) => `Pi-hole ${index}`,
     "setup.instanceValidationFailed": ({ instance, message }) => `${instance}: ${message}`,
     "setup.invalidCredentials": "As credenciais informadas do Pi-hole são inválidas.",
+    "setup.invalidTimeZone": "O timezone informado é inválido.",
     "setup.loginModeRequired": "Selecione como o login humano do YAPD será realizado.",
     "setup.masterIncomplete": "Preencha todos os campos obrigatórios do Pi-hole marcado como master.",
     "setup.sharedCredentialsRequired": "Preencha a senha compartilhada para os Pi-holes preenchidos.",
@@ -185,6 +189,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "session.baselineMissing": "The baseline instance is no longer available.",
     "session.baselineRequired": "You must configure the baseline before logging in.",
     "session.expired": "The session has expired.",
+    "session.invalidTimeZone": "The provided time zone is invalid.",
     "session.localLoginFailed": "The YAPD password is invalid.",
     "session.localLoginUnavailable": "Local YAPD login is not configured.",
     "session.loginFailed": "The Pi-hole login failed.",
@@ -208,6 +213,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "setup.instanceLabelFallback": ({ index }) => `Pi-hole ${index}`,
     "setup.instanceValidationFailed": ({ instance, message }) => `${instance}: ${message}`,
     "setup.invalidCredentials": "The provided Pi-hole credentials are invalid.",
+    "setup.invalidTimeZone": "The provided time zone is invalid.",
     "setup.loginModeRequired": "Choose how human login to YAPD should work.",
     "setup.masterIncomplete": "Fill in all required fields for the Pi-hole marked as master.",
     "setup.sharedCredentialsRequired": "Provide the shared password for the filled Pi-holes.",

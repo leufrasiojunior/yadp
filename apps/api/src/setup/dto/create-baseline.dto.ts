@@ -75,4 +75,10 @@ export class CreateBaselineDto {
   @IsString()
   @MaxLength(512)
   yapdPassword?: string;
+
+  @ApiPropertyOptional({ example: "America/Sao_Paulo", default: "UTC" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  timeZone?: string;
 }

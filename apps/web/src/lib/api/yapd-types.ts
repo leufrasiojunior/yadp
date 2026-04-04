@@ -16,6 +16,7 @@ export type SetupStatus = {
   needsSetup: boolean;
   baselineConfigured: boolean;
   loginMode: SetupLoginMode | null;
+  timeZone: string;
   baseline: BaselineSummary | null;
 };
 
@@ -33,6 +34,7 @@ export type SetupBaselineRequest = {
   instances: SetupInstanceInput[];
   loginMode: SetupLoginMode;
   yapdPassword?: string;
+  timeZone?: string;
 };
 
 export type SetupBaselineResponse = {
@@ -40,6 +42,7 @@ export type SetupBaselineResponse = {
   baseline: (BaselineSummary & { version: string }) | null;
   createdCount: number;
   loginMode: SetupLoginMode;
+  timeZone: string;
 };
 
 export type InstanceItem = {

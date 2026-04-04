@@ -82,6 +82,7 @@ export const AppConfigScalarFieldEnum = {
   id: 'id',
   loginMode: 'loginMode',
   passwordHash: 'passwordHash',
+  timeZone: 'timeZone',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

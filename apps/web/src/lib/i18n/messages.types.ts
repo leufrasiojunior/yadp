@@ -290,6 +290,10 @@ export type WebMessages = {
       title: string;
       description: string;
       language: string;
+      timeZone: string;
+      timeZonePlaceholder: string;
+      timeZoneEmpty: string;
+      timeZoneInvalid: string;
       themePreset: string;
       font: string;
       fontPlaceholder: string;
@@ -439,6 +443,7 @@ export type WebMessages = {
       apply: string;
       applying: string;
       clear: string;
+      timeZoneHint: (timeZone: string) => string;
       suggestionsLoading: string;
       suggestionPlaceholder: string;
       empty: string;

@@ -33,6 +33,7 @@ export function createDefaultSetupValues(locale: AppLocale): SetupWizardValues {
     yapdPassword: "",
     confirmYapdPassword: "",
     applicationLanguage: locale,
+    applicationTimeZone: PREFERENCE_DEFAULTS.time_zone,
     themePreset: PREFERENCE_DEFAULTS.theme_preset,
     font: PREFERENCE_DEFAULTS.font,
     themeMode: PREFERENCE_DEFAULTS.theme_mode,

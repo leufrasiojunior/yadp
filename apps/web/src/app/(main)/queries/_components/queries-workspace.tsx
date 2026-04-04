@@ -250,19 +250,21 @@ export function QueriesWorkspace({
     }
 
     try {
+      const fromTimestamp = datetimeLocalToUnixSeconds(filters.from, timeZone);
+      const untilTimestamp = datetimeLocalToUnixSeconds(filters.until, timeZone);
       const { data, response } = await client.GET<QueriesResponse>("/queries", {
         params: {
           query: {
             scope: scope.kind === "all" ? "all" : "instance",
             ...(scope.kind === "instance" ? { instanceId: scope.instanceId } : {}),
-            ...(datetimeLocalToUnixSeconds(filters.from) !== undefined
+            ...(fromTimestamp !== undefined
               ? {
-                  from: datetimeLocalToUnixSeconds(filters.from),
+                  from: fromTimestamp,
                 }
               : {}),
-            ...(datetimeLocalToUnixSeconds(filters.until) !== undefined
+            ...(untilTimestamp !== undefined
               ? {
-                  until: datetimeLocalToUnixSeconds(filters.until),
+                  until: untilTimestamp,
                 }
               : {}),
             length: clampQueryLength(filters.length),
@@ -561,6 +563,7 @@ export function QueriesWorkspace({
         setIsFiltersOpen={setIsFiltersOpen}
         setIsLiveEnabled={handleLiveEnabledChange}
         suggestions={suggestions}
+        timeZone={timeZone}
         updateDraft={updateDraft}
       />
 

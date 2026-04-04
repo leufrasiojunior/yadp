@@ -1,15 +1,25 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
+import { useRouter } from "next/navigation";
+
 import { Settings } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useAppSession } from "@/components/yapd/app-session-provider";
 import { LanguageSelect } from "@/components/yapd/language-select";
+import { TimeZoneInput } from "@/components/yapd/time-zone-input";
+import { getApiErrorMessage } from "@/lib/api/error-message";
+import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import { type FontKey, fontOptions } from "@/lib/fonts/registry";
 import { useWebI18n } from "@/lib/i18n/client";
+import { applyTimeZoneToDocument, normalizeTimeZone } from "@/lib/i18n/config";
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
 import {
   applyContentLayout,
@@ -25,10 +35,15 @@ import { applyThemePreset } from "@/lib/preferences/theme-utils";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 export function LayoutControls() {
+  const router = useRouter();
+  const client = useMemo(() => getBrowserApiClient(), []);
+  const { csrfToken } = useAppSession();
   const { messages } = useWebI18n();
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const resolvedThemeMode = usePreferencesStore((s) => s.resolvedThemeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
+  const timeZone = usePreferencesStore((s) => s.timeZone);
+  const setTimeZone = usePreferencesStore((s) => s.setTimeZone);
   const themePreset = usePreferencesStore((s) => s.themePreset);
   const setThemePreset = usePreferencesStore((s) => s.setThemePreset);
   const contentLayout = usePreferencesStore((s) => s.contentLayout);
@@ -41,6 +56,8 @@ export function LayoutControls() {
   const setSidebarCollapsible = usePreferencesStore((s) => s.setSidebarCollapsible);
   const font = usePreferencesStore((s) => s.font);
   const setFont = usePreferencesStore((s) => s.setFont);
+  const [timeZoneError, setTimeZoneError] = useState<string | null>(null);
+  const [isSavingTimeZone, setIsSavingTimeZone] = useState(false);
 
   const onThemePresetChange = async (preset: ThemePreset) => {
     applyThemePreset(preset);
@@ -89,7 +106,52 @@ export function LayoutControls() {
     persistPreference("font", value);
   };
 
+  const commitTimeZone = async (rawValue: string) => {
+    const nextTimeZone = normalizeTimeZone(rawValue, "");
+
+    if (nextTimeZone.length === 0) {
+      setTimeZoneError(messages.sidebar.controls.timeZoneInvalid);
+      return;
+    }
+
+    setTimeZoneError(null);
+
+    if (nextTimeZone === timeZone) {
+      return;
+    }
+
+    const previousTimeZone = timeZone;
+    setTimeZone(nextTimeZone);
+    applyTimeZoneToDocument(nextTimeZone);
+    setIsSavingTimeZone(true);
+
+    const { data, response } = await client.PATCH<{ timeZone: string }>("/session/preferences", {
+      body: {
+        timeZone: nextTimeZone,
+      },
+      headers: {
+        "x-yapd-csrf": csrfToken,
+      },
+    });
+
+    setIsSavingTimeZone(false);
+
+    if (!response.ok) {
+      const message = await getApiErrorMessage(response);
+      setTimeZone(previousTimeZone);
+      applyTimeZoneToDocument(previousTimeZone);
+      toast.error(message);
+      return;
+    }
+
+    const persistedTimeZone = typeof data?.timeZone === "string" ? data.timeZone : nextTimeZone;
+    setTimeZone(persistedTimeZone);
+    applyTimeZoneToDocument(persistedTimeZone);
+    router.refresh();
+  };
+
   const handleRestore = () => {
+    void commitTimeZone(PREFERENCE_DEFAULTS.time_zone);
     onThemePresetChange(PREFERENCE_DEFAULTS.theme_preset);
     onThemeModeChange(PREFERENCE_DEFAULTS.theme_mode);
     onContentLayoutChange(PREFERENCE_DEFAULTS.content_layout);
@@ -116,6 +178,20 @@ export function LayoutControls() {
             <div className="space-y-1">
               <Label className="font-medium text-xs">{messages.sidebar.controls.language}</Label>
               <LanguageSelect showIcon={false} triggerClassName="w-full text-xs" />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="font-medium text-xs">{messages.sidebar.controls.timeZone}</Label>
+              <TimeZoneInput
+                value={timeZone}
+                disabled={isSavingTimeZone}
+                emptyText={messages.sidebar.controls.timeZoneEmpty}
+                error={timeZoneError}
+                placeholder={messages.sidebar.controls.timeZonePlaceholder}
+                searchPlaceholder={messages.sidebar.controls.timeZonePlaceholder}
+                triggerClassName="text-xs"
+                onChange={(selectedTimeZone) => void commitTimeZone(selectedTimeZone)}
+              />
             </div>
 
             <div className="space-y-1">

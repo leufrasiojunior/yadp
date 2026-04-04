@@ -6,6 +6,11 @@ export type AppLocale = (typeof APP_LOCALES)[number];
 export const DEFAULT_LOCALE: AppLocale = "pt-BR";
 export const LOCALE_COOKIE_KEY = "language";
 
+const SUPPORTED_TIME_ZONES =
+  typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : [];
+
+export const TIME_ZONE_OPTIONS = Array.from(new Set([DEFAULT_TIME_ZONE, ...SUPPORTED_TIME_ZONES]));
+
 export const LOCALE_OPTIONS: ReadonlyArray<{
   value: AppLocale;
   label: string;
@@ -68,25 +73,49 @@ export function getRuntimeLocale(): AppLocale {
   return DEFAULT_LOCALE;
 }
 
+function canonicalizeTimeZone(value: string | null | undefined) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: trimmed,
+    }).resolvedOptions().timeZone;
+  } catch {
+    return null;
+  }
+}
+
+export function isValidTimeZone(value: string | null | undefined) {
+  return canonicalizeTimeZone(value) !== null;
+}
+
+export function normalizeTimeZone(value: string | null | undefined, fallback: string = DEFAULT_TIME_ZONE) {
+  return canonicalizeTimeZone(value) ?? fallback;
+}
+
 export function getConfiguredTimeZone() {
-  return process.env.NEXT_PUBLIC_TZ ?? process.env.TZ ?? DEFAULT_TIME_ZONE;
+  return DEFAULT_TIME_ZONE;
+}
+
+export function applyTimeZoneToDocument(timeZone: string) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.documentElement.setAttribute("data-timezone", normalizeTimeZone(timeZone));
 }
 
 export function getRuntimeTimeZone() {
-  if (typeof Intl !== "undefined") {
-    const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    if (browserTimeZone) {
-      return browserTimeZone;
-    }
-  }
-
   if (typeof document !== "undefined") {
-    const documentTimeZone = document.documentElement.getAttribute("data-timezone");
-
-    if (documentTimeZone) {
-      return documentTimeZone;
-    }
+    return normalizeTimeZone(document.documentElement.getAttribute("data-timezone"), DEFAULT_TIME_ZONE);
   }
 
   return getConfiguredTimeZone();

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatFullDateTime, formatLocaleDateTime, getRuntimeTimeZone } from "@/lib/i18n/config";
+import { formatFullDateTime, formatLocaleDateTime } from "@/lib/i18n/config";
 import { getWebMessages } from "@/lib/i18n/messages";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
@@ -10,7 +10,7 @@ export function useAppLocale() {
 
 export function useWebI18n() {
   const locale = useAppLocale();
-  const timeZone = getRuntimeTimeZone();
+  const timeZone = usePreferencesStore((state) => state.timeZone);
 
   return {
     locale,

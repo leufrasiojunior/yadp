@@ -19,6 +19,7 @@ import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import type { SetupBaselineRequest, SetupBaselineResponse } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
+import { normalizeTimeZone } from "@/lib/i18n/config";
 import { persistPreference } from "@/lib/preferences/preferences-storage";
 
 import {
@@ -243,6 +244,7 @@ export function SetupForm() {
 
   const onSubmit = async (values: SetupWizardValues) => {
     setSubmitError(null);
+    form.clearErrors("applicationTimeZone");
 
     if (!validatePiholeStep()) {
       setCurrentStep(2);
@@ -251,6 +253,17 @@ export function SetupForm() {
 
     if (!validateLoginStep()) {
       setCurrentStep(3);
+      return;
+    }
+
+    const applicationTimeZone = normalizeTimeZone(values.applicationTimeZone, "");
+
+    if (applicationTimeZone.length === 0) {
+      form.setError("applicationTimeZone", {
+        type: "manual",
+        message: messages.sidebar.controls.timeZoneInvalid,
+      });
+      setCurrentStep(4);
       return;
     }
 
@@ -286,6 +299,7 @@ export function SetupForm() {
             : {}),
         })),
       loginMode: values.loginMode,
+      timeZone: applicationTimeZone,
       ...(values.loginMode === "yapd-password"
         ? {
             yapdPassword: normalizeText(values.yapdPassword),

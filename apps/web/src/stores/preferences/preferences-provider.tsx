@@ -5,7 +5,13 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { type StoreApi, useStore } from "zustand";
 
 import { type FontKey, fontRegistry } from "@/lib/fonts/registry";
-import { APP_LOCALES, applyLocaleToDocument } from "@/lib/i18n/config";
+import {
+  APP_LOCALES,
+  applyLocaleToDocument,
+  applyTimeZoneToDocument,
+  isValidTimeZone,
+  normalizeTimeZone,
+} from "@/lib/i18n/config";
 import {
   CONTENT_LAYOUT_VALUES,
   NAVBAR_STYLE_VALUES,
@@ -34,6 +40,9 @@ function readDomState(): Partial<PreferencesState> {
 
   return {
     language: getSafeValue(root.getAttribute("data-language"), APP_LOCALES),
+    timeZone: isValidTimeZone(root.getAttribute("data-timezone"))
+      ? normalizeTimeZone(root.getAttribute("data-timezone"))
+      : undefined,
     themeMode: themeModeAttr ?? resolvedMode,
     resolvedThemeMode: resolvedMode,
     themePreset: getSafeValue(root.getAttribute("data-theme-preset"), THEME_PRESET_VALUES),
@@ -48,6 +57,7 @@ function readDomState(): Partial<PreferencesState> {
 export const PreferencesStoreProvider = ({
   children,
   language,
+  timeZone,
   themeMode,
   themePreset,
   font,
@@ -56,6 +66,7 @@ export const PreferencesStoreProvider = ({
 }: {
   children: React.ReactNode;
   language: PreferencesState["language"];
+  timeZone: PreferencesState["timeZone"];
   themeMode: PreferencesState["themeMode"];
   themePreset: PreferencesState["themePreset"];
   font: PreferencesState["font"];
@@ -65,6 +76,7 @@ export const PreferencesStoreProvider = ({
   const [store] = useState<StoreApi<PreferencesState>>(() =>
     createPreferencesStore({
       language,
+      timeZone,
       themeMode,
       themePreset,
       font,
@@ -97,6 +109,25 @@ export const PreferencesStoreProvider = ({
     const unsubscribeStore = store.subscribe((state, previous) => {
       if (state.language !== previous.language) {
         applyLanguage(state.language);
+      }
+    });
+
+    return () => {
+      unsubscribeStore();
+    };
+  }, [store]);
+
+  useEffect(() => {
+    const applyTimeZone = (nextTimeZone: PreferencesState["timeZone"]) => {
+      applyTimeZoneToDocument(nextTimeZone);
+    };
+
+    const startTimeZone = domSnapshotRef.current?.timeZone ?? store.getState().timeZone;
+    applyTimeZone(startTimeZone);
+
+    const unsubscribeStore = store.subscribe((state, previous) => {
+      if (state.timeZone !== previous.timeZone) {
+        applyTimeZone(state.timeZone);
       }
     });
 

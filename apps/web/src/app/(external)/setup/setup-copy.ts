@@ -192,7 +192,7 @@ const setupCopy: Record<AppLocale, SetupCopy> = {
     layout: {
       title: "Defina o layout inicial da aplicação",
       description:
-        "Escolha as preferências visuais que o YAPD deve aplicar logo após o setup. Elas só serão persistidas quando o wizard for concluído.",
+        "Escolha o timezone e as preferências visuais que o YAPD deve aplicar logo após o setup. Elas só serão persistidas quando o wizard for concluído.",
       restore: "Restaurar padrões",
     },
     submit: {
@@ -297,7 +297,7 @@ const setupCopy: Record<AppLocale, SetupCopy> = {
     layout: {
       title: "Choose the initial application layout",
       description:
-        "Select the visual preferences that YAPD should apply right after setup. They are only persisted when the wizard finishes.",
+        "Select the time zone and visual preferences that YAPD should apply right after setup. They are only persisted when the wizard finishes.",
       restore: "Restore defaults",
     },
     submit: {
