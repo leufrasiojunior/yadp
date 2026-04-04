@@ -99,5 +99,16 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
         },
       ],
     },
+    {
+      id: 4,
+      label: messages.sidebar.groups.status,
+      items: [
+        {
+          title: "teste",
+          url: "/Teste",
+          icon: Activity,
+        },
+      ],
+    },
   ];
 }
