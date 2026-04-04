@@ -281,3 +281,75 @@ export type PiholeGroupMutationResult = {
   };
   took: number | null;
 };
+
+export type PiholeClientCreateRequest = {
+  clients: string[];
+  comment?: string | null;
+  groups: number[];
+};
+
+export type PiholeClientUpdateRequest = {
+  comment?: string | null;
+  groups: number[];
+};
+
+export type PiholeManagedClientEntry = {
+  client: string | null;
+  name: string | null;
+  comment: string | null;
+  groups: number[];
+  id: number | null;
+  dateAdded: number | null;
+  dateModified: number | null;
+};
+
+export type PiholeClientOperationProcessedSuccess = {
+  item: string | null;
+};
+
+export type PiholeClientOperationProcessedError = {
+  item: string | null;
+  message: string | null;
+};
+
+export type PiholeClientListResult = {
+  clients: PiholeManagedClientEntry[];
+  took: number | null;
+};
+
+export type PiholeClientMutationResult = {
+  clients: PiholeManagedClientEntry[];
+  processed: {
+    errors: PiholeClientOperationProcessedError[];
+    success: PiholeClientOperationProcessedSuccess[];
+  };
+  took: number | null;
+};
+
+export type PiholeClientSuggestionsResult = {
+  suggestions: string[];
+  took: number | null;
+};
+
+export type PiholeNetworkDeviceAddress = {
+  ip: string | null;
+  name: string | null;
+  lastSeen: number | null;
+  nameUpdated: number | null;
+};
+
+export type PiholeNetworkDevice = {
+  id: number | null;
+  hwaddr: string | null;
+  interface: string | null;
+  firstSeen: number | null;
+  lastQuery: number | null;
+  numQueries: number | null;
+  macVendor: string | null;
+  ips: PiholeNetworkDeviceAddress[];
+};
+
+export type PiholeNetworkDevicesResult = {
+  devices: PiholeNetworkDevice[];
+  took: number | null;
+};

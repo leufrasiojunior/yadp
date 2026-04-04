@@ -7,6 +7,9 @@ import { getServerApiBaseUrl } from "./base-url";
 import { getApiErrorMessage } from "./error-message";
 import { createYapdHttpClient, isYapdApiUnavailableResponse } from "./yapd-http";
 import type {
+  ClientsListResponse,
+  ClientsSortDirection,
+  ClientsSortField,
   DashboardOverviewResponse,
   GroupsListResponse,
   InstanceListResponse,
@@ -145,6 +148,41 @@ export async function getGroups(): Promise<GroupsListResponse> {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load groups.");
+  }
+
+  return data;
+}
+
+export async function getClients(query?: {
+  page?: number;
+  pageSize?: number;
+  sortBy?: ClientsSortField;
+  sortDirection?: ClientsSortDirection;
+  search?: string;
+}): Promise<ClientsListResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<ClientsListResponse>("/clients", {
+    params: {
+      query: {
+        ...(query?.page !== undefined ? { page: query.page } : {}),
+        ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+        ...(query?.sortBy !== undefined ? { sortBy: query.sortBy } : {}),
+        ...(query?.sortDirection !== undefined ? { sortDirection: query.sortDirection } : {}),
+        ...(query?.search !== undefined ? { search: query.search } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load clients.");
   }
 
   return data;

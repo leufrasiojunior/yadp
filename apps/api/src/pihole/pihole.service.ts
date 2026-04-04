@@ -9,7 +9,12 @@ import type {
   PiholeBlockingConfig,
   PiholeBlockingRequest,
   PiholeClientActivitySeries,
+  PiholeClientCreateRequest,
   PiholeClientHistoryBucket,
+  PiholeClientListResult,
+  PiholeClientMutationResult,
+  PiholeClientSuggestionsResult,
+  PiholeClientUpdateRequest,
   PiholeConnection,
   PiholeDiscoveryResult,
   PiholeDomainOperationRequest,
@@ -19,9 +24,13 @@ import type {
   PiholeGroupMutationResult,
   PiholeGroupUpdateRequest,
   PiholeHistoryPoint,
+  PiholeManagedClientEntry,
   PiholeManagedDomainEntry,
   PiholeManagedGroupEntry,
   PiholeMetricsSummary,
+  PiholeNetworkDevice,
+  PiholeNetworkDeviceAddress,
+  PiholeNetworkDevicesResult,
   PiholeQueryListRequest,
   PiholeQueryListResult,
   PiholeQueryLogEntry,
@@ -34,6 +43,8 @@ import type {
 import { PIHOLE_QUERY_SUGGESTION_KEYS } from "./pihole.types";
 
 const PIHOLE_USER_AGENT = "YAPD";
+const DEFAULT_NETWORK_DEVICE_MAX_DEVICES = 999;
+const DEFAULT_NETWORK_DEVICE_MAX_ADDRESSES = 25;
 
 const TLS_ERROR_CODES = new Set([
   "CERT_HAS_EXPIRED",
@@ -339,11 +350,30 @@ export class PiholeService {
     };
   }
 
-  async discoverClients(connection: PiholeConnection, session: Pick<PiholeSession, "sid" | "csrf">) {
-    return this.request<unknown>(connection, "/network/devices", {
+  async discoverClients(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeNetworkDevicesResult> {
+    return this.listNetworkDevices(connection, session);
+  }
+
+  async listNetworkDevices(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    options?: { maxDevices?: number; maxAddresses?: number; cacheBust?: number },
+  ): Promise<PiholeNetworkDevicesResult> {
+    const path = "/network/devices";
+    const payload = await this.request<unknown>(connection, path, {
       sid: session.sid,
       csrf: session.csrf,
+      query: {
+        max_devices: options?.maxDevices ?? DEFAULT_NETWORK_DEVICE_MAX_DEVICES,
+        max_addresses: options?.maxAddresses ?? DEFAULT_NETWORK_DEVICE_MAX_ADDRESSES,
+        _: options?.cacheBust ?? Date.now(),
+      },
     });
+
+    return this.normalizeNetworkDevices(payload, connection, path);
   }
 
   async fetchSnapshot(connection: PiholeConnection, session: Pick<PiholeSession, "sid" | "csrf">) {
@@ -595,6 +625,110 @@ export class PiholeService {
     }
 
     return this.normalizeGroupMutation(payload, connection, path);
+  }
+
+  async listClients(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    client?: string,
+  ): Promise<PiholeClientListResult> {
+    const path = client ? `/clients/${encodeURIComponent(client)}` : "/clients";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeClientList(payload, connection, path);
+  }
+
+  async getClientSuggestions(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeClientSuggestionsResult> {
+    const path = "/clients/_suggestions";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeClientSuggestions(payload, connection, path);
+  }
+
+  async createClients(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    request: PiholeClientCreateRequest,
+  ): Promise<PiholeClientMutationResult> {
+    const path = "/clients";
+    const payload = await this.request<unknown>(connection, path, {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        client: request.clients.length === 1 ? request.clients[0] : request.clients,
+        comment: request.comment ?? "",
+        groups: request.groups,
+      },
+    });
+
+    return this.normalizeClientMutation(payload, connection, path);
+  }
+
+  async updateClient(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    client: string,
+    request: PiholeClientUpdateRequest,
+  ): Promise<PiholeClientMutationResult> {
+    const path = `/clients/${encodeURIComponent(client)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "PUT",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        comment: request.comment ?? "",
+        groups: request.groups,
+      },
+    });
+
+    return this.normalizeClientMutation(payload, connection, path);
+  }
+
+  async deleteClient(connection: PiholeConnection, session: Pick<PiholeSession, "sid" | "csrf">, client: string) {
+    const path = `/clients/${encodeURIComponent(client)}`;
+
+    await this.request<void>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+  }
+
+  async batchDeleteClients(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    items: string[],
+  ): Promise<PiholeClientMutationResult> {
+    const path = "/clients:batchDelete";
+    const payload = await this.request<unknown | undefined>(connection, path, {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: items.map((item) => ({ item })),
+    });
+
+    if (payload === undefined) {
+      return {
+        clients: [],
+        processed: {
+          errors: [],
+          success: items.map((item) => ({ item })),
+        },
+        took: null,
+      };
+    }
+
+    return this.normalizeClientMutation(payload, connection, path);
   }
 
   async applyCanonicalConfig() {
@@ -1171,6 +1305,164 @@ export class PiholeService {
     };
   }
 
+  private normalizeClientList(payload: unknown, connection: PiholeConnection, path: string): PiholeClientListResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawClients = readLookupValue(payloadLookup, ["clients", "client", "items", "results"]);
+
+    if (!Array.isArray(rawClients)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      clients: rawClients
+        .filter((item): item is Record<string, unknown> => isRecord(item))
+        .map((item) => this.normalizeManagedClient(item)),
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeClientMutation(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeClientMutationResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawClients = readLookupValue(payloadLookup, ["clients", "client", "items", "results"]);
+    const rawProcessed = readLookupRecord(payloadLookup, ["processed", "result", "summary"]);
+    const clients = Array.isArray(rawClients)
+      ? rawClients
+          .filter((item): item is Record<string, unknown> => isRecord(item))
+          .map((item) => this.normalizeManagedClient(item))
+      : [];
+    const processed = this.normalizeClientOperationProcessed(rawProcessed);
+
+    if (clients.length === 0 && processed.errors.length === 0 && processed.success.length === 0) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      clients,
+      processed,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeManagedClient(payload: Record<string, unknown>): PiholeManagedClientEntry {
+    const lookup = createLookup(payload);
+
+    return {
+      client: readLookupString(lookup, ["client", "item", "value", "name"]),
+      name: readLookupString(lookup, ["name", "alias", "hostname"]),
+      comment: readLookupString(lookup, ["comment", "note", "description"]),
+      groups: readNumericArray(readLookupValue(lookup, ["groups", "group_ids", "groupIds"])) ?? [],
+      id: readLookupNumber(lookup, ["id"]),
+      dateAdded: readLookupNumber(lookup, ["date_added", "dateAdded", "created_at", "createdAt"]),
+      dateModified: readLookupNumber(lookup, ["date_modified", "dateModified", "updated_at", "updatedAt"]),
+    };
+  }
+
+  private normalizeClientOperationProcessed(payload: Record<string, unknown> | null) {
+    if (!payload) {
+      return {
+        errors: [],
+        success: [],
+      };
+    }
+
+    const lookup = createLookup(payload);
+
+    return {
+      errors: this.readProcessedErrors(readLookupValue(lookup, ["errors", "failed", "failures"])),
+      success: this.readProcessedSuccess(readLookupValue(lookup, ["success", "successful", "succeeded"])),
+    };
+  }
+
+  private normalizeClientSuggestions(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeClientSuggestionsResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawSuggestions = readLookupValue(payloadLookup, ["clients", "suggestions", "items", "results"]);
+    const suggestions = readStringArray(rawSuggestions) ?? [];
+
+    if (suggestions.length === 0 && !Array.isArray(rawSuggestions)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      suggestions,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeNetworkDevices(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeNetworkDevicesResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawDevices = readLookupValue(payloadLookup, ["devices", "items", "results"]);
+
+    if (!Array.isArray(rawDevices)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      devices: rawDevices
+        .filter((item): item is Record<string, unknown> => isRecord(item))
+        .map((item) => this.normalizeNetworkDevice(item)),
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeNetworkDevice(payload: Record<string, unknown>): PiholeNetworkDevice {
+    const lookup = createLookup(payload);
+    const rawIps = readLookupValue(lookup, ["ips", "ip", "addresses"]);
+
+    return {
+      id: readLookupNumber(lookup, ["id"]),
+      hwaddr: readLookupString(lookup, ["hwaddr", "mac", "mac_address", "macAddress"]),
+      interface: readLookupString(lookup, ["interface", "iface"]),
+      firstSeen: readLookupNumber(lookup, ["first_seen", "firstSeen", "created_at", "createdAt"]),
+      lastQuery: readLookupNumber(lookup, ["last_query", "lastQuery", "queried_at", "queriedAt"]),
+      numQueries: readLookupNumber(lookup, ["num_queries", "numQueries", "queries"]),
+      macVendor: readLookupString(lookup, ["mac_vendor", "macVendor", "vendor"]),
+      ips: Array.isArray(rawIps)
+        ? rawIps
+            .filter((item): item is Record<string, unknown> => isRecord(item))
+            .map((item) => this.normalizeNetworkDeviceAddress(item))
+        : [],
+    };
+  }
+
+  private normalizeNetworkDeviceAddress(payload: Record<string, unknown>): PiholeNetworkDeviceAddress {
+    const lookup = createLookup(payload);
+
+    return {
+      ip: readLookupString(lookup, ["ip", "address"]),
+      name: readLookupString(lookup, ["name", "hostname", "alias"]),
+      lastSeen: readLookupNumber(lookup, ["last_seen", "lastSeen"]),
+      nameUpdated: readLookupNumber(lookup, ["name_updated", "nameUpdated"]),
+    };
+  }
+
   private readProcessedErrors(value: unknown) {
     if (!Array.isArray(value)) {
       return [];
@@ -1179,7 +1471,7 @@ export class PiholeService {
     return value.map((item) => {
       if (isRecord(item)) {
         return {
-          item: readFirstString(item, ["item", "domain", "value", "name"]),
+          item: readFirstString(item, ["item", "domain", "value", "name", "client"]),
           message: readFirstString(item, ["message", "error", "description", "detail"]),
         };
       }
@@ -1206,7 +1498,7 @@ export class PiholeService {
     return value.map((item) => {
       if (isRecord(item)) {
         return {
-          item: readFirstString(item, ["item", "domain", "value", "name"]),
+          item: readFirstString(item, ["item", "domain", "value", "name", "client"]),
         };
       }
 

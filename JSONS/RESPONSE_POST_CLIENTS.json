@@ -1,0 +1,22 @@
+{
+  "clients": [
+    {
+      "client": "82:6D:06:2E:9D:DC",
+      "name": "",
+      "comment": null,
+      "groups": [3],
+      "id": 2,
+      "date_added": 1775268508,
+      "date_modified": 1775268508
+    }
+  ],
+  "processed": {
+    "errors": [],
+    "success": [
+      {
+        "item": "82:6D:06:2E:9D:DC"
+      }
+    ]
+  },
+  "took": 0.017825841903686523
+}

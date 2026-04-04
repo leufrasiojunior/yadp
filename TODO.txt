@@ -18,9 +18,6 @@ remover o aviso do checkbox de atualizando, e deixar um simples spiner ao lado.(
 Botao de atualizar a tabela
 
 
-Separar idiomas, e types em locais apropriados
-apps/web/src/lib/i18n/messages.ts
-
 Adicionar bandeiras no seletor de idiomas
 Tambem adicionar um alternador do tema claro/escuro no top bar
 

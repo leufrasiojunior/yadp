@@ -57,6 +57,7 @@ export const ModelName = {
   InstanceCertificateTrust: 'InstanceCertificateTrust',
   InstanceSession: 'InstanceSession',
   AuditLog: 'AuditLog',
+  ClientDevice: 'ClientDevice',
   SyncOperationPreset: 'SyncOperationPreset',
   SyncJob: 'SyncJob',
   SyncAttempt: 'SyncAttempt'
@@ -163,6 +164,19 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const ClientDeviceScalarFieldEnum = {
+  id: 'id',
+  hwaddr: 'hwaddr',
+  alias: 'alias',
+  macVendor: 'macVendor',
+  ips: 'ips',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClientDeviceScalarFieldEnum = (typeof ClientDeviceScalarFieldEnum)[keyof typeof ClientDeviceScalarFieldEnum]
 
 
 export const SyncOperationPresetScalarFieldEnum = {

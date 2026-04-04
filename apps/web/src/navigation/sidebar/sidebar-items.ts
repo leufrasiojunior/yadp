@@ -4,6 +4,7 @@ import {
   FileText,
   LayoutDashboard,
   type LucideIcon,
+  MonitorSmartphone,
   ShieldCheck,
   Users,
   Waypoints,
@@ -56,6 +57,11 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
           title: messages.sidebar.items.groups,
           url: "/groups",
           icon: Users,
+        },
+        {
+          title: messages.sidebar.items.clients,
+          url: "/clients",
+          icon: MonitorSmartphone,
         },
         {
           title: messages.sidebar.items.instances,

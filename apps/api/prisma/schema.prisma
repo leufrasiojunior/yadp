@@ -118,6 +118,16 @@ model AuditLog {
   createdAt  DateTime @default(now())
 }
 
+model ClientDevice {
+  id        String   @id @default(cuid())
+  hwaddr    String   @unique
+  alias     String?
+  macVendor String?
+  ips       String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model SyncOperationPreset {
   id           String           @id @default(cuid())
   operationKey SyncOperationKey

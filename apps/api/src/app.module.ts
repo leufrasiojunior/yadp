@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { AuditModule } from "./audit/audit.module";
+import { ClientsModule } from "./clients/clients.module";
 import { CryptoModule } from "./common/crypto/crypto.module";
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { AppEnvModule } from "./config/app-env.module";
@@ -19,6 +20,7 @@ import { SyncModule } from "./sync/sync.module";
   imports: [
     AppEnvModule,
     AuditModule,
+    ClientsModule,
     CryptoModule,
     DashboardModule,
     DomainsModule,

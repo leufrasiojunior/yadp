@@ -188,6 +188,83 @@ export type GroupsMutationResponse = {
   }>;
 };
 
+export type ClientsSortField = "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
+
+export type ClientsSortDirection = "asc" | "desc";
+
+export type ClientInstanceDetail = {
+  instanceId: string;
+  instanceName: string;
+  ips: string[];
+  firstSeen: string | null;
+  lastQuery: string | null;
+  numQueries: number;
+};
+
+export type ClientListItem = {
+  hwaddr: string;
+  alias: string | null;
+  macVendor: string | null;
+  ips: string[];
+  instance: {
+    instanceId: string;
+    instanceName: string;
+  };
+  visibleInInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+  }>;
+  instanceDetails: ClientInstanceDetail[];
+  firstSeen: string | null;
+  lastQuery: string | null;
+  numQueries: number;
+  comment: string | null;
+  groupIds: number[];
+  groupNames: string[];
+};
+
+export type ClientsListResponse = {
+  items: ClientListItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  source: {
+    baselineInstanceId: string;
+    baselineInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+  };
+  unavailableInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
+export type ClientsMutationResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalInstances: number;
+    successfulCount: number;
+    failedCount: number;
+  };
+  successfulInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+  }>;
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
 export type DashboardInstanceErrorKind =
   | "invalid_credentials"
   | "tls_error"

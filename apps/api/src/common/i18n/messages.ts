@@ -4,6 +4,12 @@ type MessageValue = string | ((params: Record<string, string>) => string);
 
 type ApiMessageKey =
   | "csrf.invalid"
+  | "clients.emptySelection"
+  | "clients.groupIdNotFound"
+  | "clients.instanceMissingGroups"
+  | "clients.invalidClient"
+  | "clients.noInstances"
+  | "clients.operationRejected"
   | "dashboard.allInstancesFailed"
   | "dashboard.instanceIdRequired"
   | "dashboard.noInstances"
@@ -67,6 +73,13 @@ type ApiMessageKey =
 const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
   "pt-BR": {
     "csrf.invalid": "Token CSRF ausente ou inválido.",
+    "clients.emptySelection": "Selecione pelo menos um cliente válido para continuar.",
+    "clients.groupIdNotFound": ({ id }) => `O grupo com ID "${id}" não existe mais na baseline.`,
+    "clients.instanceMissingGroups": ({ instance, groups }) =>
+      `A instância ${instance} não possui todos os grupos necessários para este cliente: ${groups}.`,
+    "clients.invalidClient": "Use um endereço MAC válido para continuar.",
+    "clients.noInstances": "Nenhuma instância Pi-hole gerenciada está disponível para operar clientes.",
+    "clients.operationRejected": ({ baseUrl }) => `O Pi-hole em ${baseUrl} recusou a alteração do cliente.`,
     "dashboard.allInstancesFailed": "Nenhuma instância retornou métricas válidas.",
     "dashboard.instanceIdRequired": "Selecione uma instância válida para carregar o dashboard.",
     "dashboard.noInstances": "Nenhuma instância Pi-hole está cadastrada no YAPD.",
@@ -146,6 +159,13 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
   },
   "en-US": {
     "csrf.invalid": "Missing or invalid CSRF token.",
+    "clients.emptySelection": "Select at least one valid client to continue.",
+    "clients.groupIdNotFound": ({ id }) => `The group with ID "${id}" no longer exists on the baseline.`,
+    "clients.instanceMissingGroups": ({ instance, groups }) =>
+      `The instance ${instance} is missing one or more required groups for this client: ${groups}.`,
+    "clients.invalidClient": "Use a valid MAC address to continue.",
+    "clients.noInstances": "No managed Pi-hole instance is available for client operations.",
+    "clients.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the client change.`,
     "dashboard.allInstancesFailed": "No instance returned valid dashboard metrics.",
     "dashboard.instanceIdRequired": "Select a valid instance to load the dashboard.",
     "dashboard.noInstances": "No Pi-hole instance is registered in YAPD.",

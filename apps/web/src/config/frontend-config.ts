@@ -8,6 +8,9 @@ export const FRONTEND_CONFIG = {
     maxPageSize: 1000,
     liveUpdateIntervalMs: 5_000,
   },
+  clients: {
+    searchDebounceMs: 400,
+  },
   instances: {
     discoveryCandidateLimit: 20,
   },

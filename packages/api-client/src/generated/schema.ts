@@ -4,16 +4,32 @@
  */
 
 export interface paths {
-  "/dashboard/overview": {
+  "/clients": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations["DashboardController_getOverview"];
+    get: operations["ClientsController_listClients"];
     put?: never;
-    post?: never;
+    post: operations["ClientsController_saveClients"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/clients/sync": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientsController_syncClients"];
     delete?: never;
     options?: never;
     head?: never;
@@ -47,6 +63,38 @@ export interface paths {
     put?: never;
     post?: never;
     delete: operations["SessionController_logout"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/session/preferences": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["SessionController_updatePreferences"];
+    trace?: never;
+  };
+  "/dashboard/overview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["DashboardController_getOverview"];
+    put?: never;
+    post?: never;
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
@@ -400,6 +448,288 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  ClientsController_listClients: {
+    parameters: {
+      query?: {
+        sortDirection?: "asc" | "desc";
+        sortBy?: "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
+        search?: unknown;
+        pageSize?: unknown;
+        page?: unknown;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            items: {
+              hwaddr: string;
+              alias: string | null;
+              macVendor: string | null;
+              ips: string[];
+              instance: {
+                instanceId: string;
+                instanceName: string;
+              };
+              visibleInInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+              instanceDetails: {
+                instanceId: string;
+                instanceName: string;
+                ips: string[];
+                /** Format: date-time */
+                firstSeen: string | null;
+                /** Format: date-time */
+                lastQuery: string | null;
+                numQueries: number;
+              }[];
+              /** Format: date-time */
+              firstSeen: string | null;
+              /** Format: date-time */
+              lastQuery: string | null;
+              numQueries: number;
+              comment: string | null;
+              groupIds: number[];
+              groupNames: string[];
+            }[];
+            pagination: {
+              page: number;
+              pageSize: number;
+              totalItems: number;
+              totalPages: number;
+            };
+            source: {
+              baselineInstanceId: string;
+              baselineInstanceName: string;
+              totalInstances: number;
+              availableInstanceCount: number;
+              unavailableInstanceCount: number;
+            };
+            unavailableInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  ClientsController_saveClients: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * @example [
+           *       "82:6D:06:2E:9D:DC"
+           *     ]
+           */
+          client: string[];
+          /** @example  */
+          comment?: string | null;
+          /** @example Notebook Sala */
+          alias?: string | null;
+          /**
+           * @example [
+           *       3
+           *     ]
+           */
+          groups: number[];
+          /**
+           * @example [
+           *       "clz-secondary-a"
+           *     ]
+           */
+          targetInstanceIds?: string[];
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  ClientsController_syncClients: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @example [
+           *       "clz-secondary-a",
+           *       "clz-secondary-b"
+           *     ]
+           */
+          targetInstanceIds?: string[];
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  SessionController_login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SessionController_getCurrentSession: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SessionController_logout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SessionController_updatePreferences: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   DashboardController_getOverview: {
     parameters: {
       query?: never;
@@ -475,57 +805,6 @@ export interface operations {
             };
           };
         };
-      };
-    };
-  };
-  SessionController_login: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SessionController_getCurrentSession: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SessionController_logout: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
       };
     };
   };

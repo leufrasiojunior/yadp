@@ -390,6 +390,7 @@ export const ModelName = {
   InstanceCertificateTrust: 'InstanceCertificateTrust',
   InstanceSession: 'InstanceSession',
   AuditLog: 'AuditLog',
+  ClientDevice: 'ClientDevice',
   SyncOperationPreset: 'SyncOperationPreset',
   SyncJob: 'SyncJob',
   SyncAttempt: 'SyncAttempt'
@@ -408,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "syncOperationPreset" | "syncJob" | "syncAttempt"
+    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "syncOperationPreset" | "syncJob" | "syncAttempt"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -856,6 +857,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ClientDevice: {
+      payload: Prisma.$ClientDevicePayload<ExtArgs>
+      fields: Prisma.ClientDeviceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClientDeviceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClientDeviceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>
+        }
+        findFirst: {
+          args: Prisma.ClientDeviceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClientDeviceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>
+        }
+        findMany: {
+          args: Prisma.ClientDeviceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>[]
+        }
+        create: {
+          args: Prisma.ClientDeviceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>
+        }
+        createMany: {
+          args: Prisma.ClientDeviceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClientDeviceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>[]
+        }
+        delete: {
+          args: Prisma.ClientDeviceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>
+        }
+        update: {
+          args: Prisma.ClientDeviceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>
+        }
+        deleteMany: {
+          args: Prisma.ClientDeviceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClientDeviceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClientDeviceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>[]
+        }
+        upsert: {
+          args: Prisma.ClientDeviceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClientDevicePayload>
+        }
+        aggregate: {
+          args: Prisma.ClientDeviceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClientDevice>
+        }
+        groupBy: {
+          args: Prisma.ClientDeviceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClientDeviceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClientDeviceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClientDeviceCountAggregateOutputType> | number
+        }
+      }
+    }
     SyncOperationPreset: {
       payload: Prisma.$SyncOperationPresetPayload<ExtArgs>
       fields: Prisma.SyncOperationPresetFieldRefs
@@ -1202,6 +1277,19 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const ClientDeviceScalarFieldEnum = {
+  id: 'id',
+  hwaddr: 'hwaddr',
+  alias: 'alias',
+  macVendor: 'macVendor',
+  ips: 'ips',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClientDeviceScalarFieldEnum = (typeof ClientDeviceScalarFieldEnum)[keyof typeof ClientDeviceScalarFieldEnum]
 
 
 export const SyncOperationPresetScalarFieldEnum = {
@@ -1561,6 +1649,7 @@ export type GlobalOmitConfig = {
   instanceCertificateTrust?: Prisma.InstanceCertificateTrustOmit
   instanceSession?: Prisma.InstanceSessionOmit
   auditLog?: Prisma.AuditLogOmit
+  clientDevice?: Prisma.ClientDeviceOmit
   syncOperationPreset?: Prisma.SyncOperationPresetOmit
   syncJob?: Prisma.SyncJobOmit
   syncAttempt?: Prisma.SyncAttemptOmit

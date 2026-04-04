@@ -70,6 +70,11 @@ export type InstanceSession = Prisma.InstanceSessionModel
  */
 export type AuditLog = Prisma.AuditLogModel
 /**
+ * Model ClientDevice
+ * 
+ */
+export type ClientDevice = Prisma.ClientDeviceModel
+/**
  * Model SyncOperationPreset
  * 
  */
