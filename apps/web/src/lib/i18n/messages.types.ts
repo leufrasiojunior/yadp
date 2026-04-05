@@ -8,6 +8,7 @@ export type WebMessages = {
     total: string;
     versionUnavailable: string;
     notConfigured: string;
+    copied: string;
   };
   apiUnavailable: {
     badge: string;
@@ -736,6 +737,20 @@ export type WebMessages = {
       save: string;
       saving: string;
       groupsRequired: string;
+      tabs: {
+        general: string;
+        groups: string;
+      };
+      fields: {
+        address: string;
+        enabled: string;
+        dateAdded: string;
+        dateModified: string;
+        type: string;
+        lastUpdated: string;
+        itemCount: string;
+        comment: string;
+      };
     };
     status: {
       enabled: string;

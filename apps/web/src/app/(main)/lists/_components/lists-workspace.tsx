@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { ArrowLeftRight, CircleAlert, List, MoreHorizontal, Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowLeftRight, CircleAlert, Info, List, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -47,6 +47,7 @@ import { useWebI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 import { CreateListGroupSelector } from "./create-list-group-selector";
+import { ListEditDialog } from "./list-edit-dialog";
 import { ListGroupEditor } from "./list-group-editor";
 import { ListStatusToggle } from "./list-status-toggle";
 
@@ -156,6 +157,9 @@ export function ListsWorkspace({
   const [newComment, setNewComment] = useState("");
   const [newGroupIds, setNewGroupIds] = useState<number[]>([0]);
 
+  // Edit state
+  const [editingList, setEditingList] = useState<ListItem | null>(null);
+
   // Sync state
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
   const [syncDialogAddress, setSyncDialogAddress] = useState<string | null>(null);
@@ -163,7 +167,6 @@ export function ListsWorkspace({
   const [syncSelections, setSyncSelections] = useState<SyncSelectionState>(() =>
     buildSyncSelections(initialItems, initialSource.baselineInstanceId),
   );
-  const [_syncError, setSyncError] = useState<string | null>(null);
 
   // Delete state
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(null);
@@ -263,8 +266,10 @@ export function ListsWorkspace({
 
     const { data, response } = await client.PUT<ListsMutationResponse>("/lists/{address}", {
       headers: { "x-yapd-csrf": csrfToken },
-      params: { path: { address: list.address } },
-      query: { type: list.type },
+      params: {
+        path: { address: list.address },
+        query: { type: list.type },
+      },
       body: {
         comment: list.comment,
         type: list.type,
@@ -289,15 +294,17 @@ export function ListsWorkspace({
     await refreshLists();
   };
 
-  const saveGroups = async (list: ListItem, groupIds: number[]) => {
-    setBusyAction(`groups:${list.address}-${list.type}`);
+  const saveGroupsAndComment = async (list: ListItem, groupIds: number[], comment: string | null) => {
+    setBusyAction(`edit:${list.address}-${list.type}`);
 
     const { data, response } = await client.PUT<ListsMutationResponse>("/lists/{address}", {
       headers: { "x-yapd-csrf": csrfToken },
-      params: { path: { address: list.address } },
-      query: { type: list.type },
+      params: {
+        path: { address: list.address },
+        query: { type: list.type },
+      },
       body: {
-        comment: list.comment,
+        comment,
         type: list.type,
         groups: groupIds,
         enabled: list.enabled,
@@ -354,15 +361,18 @@ export function ListsWorkspace({
       return;
     }
 
+    const firstItem = itemsToDelete[0];
+    if (!firstItem) return;
+
     setDeleteDialog({
       items: itemsToDelete,
       title:
         itemsToDelete.length === 1
-          ? messages.groups.delete.titleSingle(itemsToDelete[0].item)
+          ? messages.groups.delete.titleSingle(firstItem.item)
           : messages.groups.delete.titleBatch(itemsToDelete.length),
       description:
         itemsToDelete.length === 1
-          ? messages.groups.delete.descriptionSingle(itemsToDelete[0].item)
+          ? messages.groups.delete.descriptionSingle(firstItem.item)
           : messages.groups.delete.descriptionBatch(itemsToDelete.length),
     });
   };
@@ -371,7 +381,6 @@ export function ListsWorkspace({
     setSyncDialogAddress(address ?? null);
     setSyncDialogType(type ?? null);
     setSyncSelections(buildSyncSelections(items, source.baselineInstanceId));
-    setSyncError(null);
     setIsSyncDialogOpen(true);
   };
 
@@ -709,19 +718,19 @@ export function ListsWorkspace({
                           list={item}
                           groups={groups}
                           disabled={isMutating}
-                          onSave={(groupIds) => saveGroups(item, groupIds)}
+                          onSave={(groupIds) => saveGroupsAndComment(item, groupIds, item.comment)}
                         />
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon-sm" disabled={isMutating}>
+                            <Button variant="outline" size="icon-sm" disabled={isMutating}>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem disabled className="gap-2">
-                              <Pencil className="h-4 w-4" />
+                            <DropdownMenuItem className="gap-2" onClick={() => setEditingList(item)}>
+                              <Info className="h-4 w-4" />
                               {messages.lists.table.edit}
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -742,6 +751,17 @@ export function ListsWorkspace({
           )}
         </CardContent>
       </Card>
+
+      {editingList && (
+        <ListEditDialog
+          list={editingList}
+          groups={groups}
+          open={editingList !== null}
+          onOpenChange={(open) => !open && setEditingList(null)}
+          onSave={(groupIds, comment) => saveGroupsAndComment(editingList, groupIds, comment)}
+          disabled={isMutating}
+        />
+      )}
 
       <Dialog open={isSyncDialogOpen} onOpenChange={setIsSyncDialogOpen}>
         <DialogContent className="sm:max-w-3xl">
@@ -878,15 +898,17 @@ export function ListsWorkspace({
               variant="destructive"
               disabled={isMutating}
               onClick={() => {
-                if (rememberDeleteChoice) {
-                  setClientCookie(
-                    FRONTEND_CONFIG.groups.deleteConfirmCookieKey,
-                    "1",
-                    FRONTEND_CONFIG.groups.deleteConfirmCookieDays,
-                  );
-                  setSkipDeleteConfirm(true);
+                if (deleteDialog) {
+                  if (rememberDeleteChoice) {
+                    setClientCookie(
+                      FRONTEND_CONFIG.groups.deleteConfirmCookieKey,
+                      "1",
+                      FRONTEND_CONFIG.groups.deleteConfirmCookieDays,
+                    );
+                    setSkipDeleteConfirm(true);
+                  }
+                  executeDelete(deleteDialog.items);
                 }
-                if (deleteDialog) executeDelete(deleteDialog.items);
               }}
             >
               {isMutating ? messages.groups.delete.confirmLoading : messages.groups.delete.confirmSingle}

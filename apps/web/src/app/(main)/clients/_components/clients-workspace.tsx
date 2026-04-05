@@ -877,7 +877,7 @@ export function ClientsWorkspace({ initialData, initialExcludedTags, initialGrou
               </PopoverTrigger>
               <PopoverContent
                 align="end"
-                className="w-80 space-y-4 rounded-xl border border-border/60 bg-background/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/90"
+                className="w-80 space-y-4 rounded-xl border border-border/60 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/90"
               >
                 <div className="space-y-1">
                   <h3 className="font-medium">{messages.clients.table.hideTags}</h3>
