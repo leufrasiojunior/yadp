@@ -13,6 +13,7 @@ import type {
   DashboardOverviewResponse,
   GroupsListResponse,
   InstanceListResponse,
+  ListsListResponse,
   QueriesResponse,
   SetupStatus,
 } from "./yapd-types";
@@ -148,6 +149,25 @@ export async function getGroups(): Promise<GroupsListResponse> {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load groups.");
+  }
+
+  return data;
+}
+
+export async function getLists(): Promise<ListsListResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<ListsListResponse>("/lists");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load lists.");
   }
 
   return data;

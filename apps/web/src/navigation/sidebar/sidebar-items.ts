@@ -3,6 +3,7 @@ import {
   Binary,
   FileText,
   LayoutDashboard,
+  List,
   type LucideIcon,
   MonitorSmartphone,
   ShieldCheck,
@@ -62,6 +63,11 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
           title: messages.sidebar.items.clients,
           url: "/clients",
           icon: MonitorSmartphone,
+        },
+        {
+          title: messages.sidebar.items.lists,
+          url: "/lists",
+          icon: List,
         },
         {
           title: messages.sidebar.items.instances,

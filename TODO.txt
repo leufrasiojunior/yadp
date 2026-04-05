@@ -37,3 +37,5 @@ Top bloqueados
 --
 
 Na tela de clientes talves adicionar tags de identificacao para os clientes(iot, crianca, pcs.......)
+
+Ajustar a tela de erro de comunicacao com o back. somente informar que o backend ainda nao subiu, atualizando a pagina ate conseguir(atualizar a cada 10 segundos, com link para atualizar agora)

@@ -393,7 +393,8 @@ export const ModelName = {
   ClientDevice: 'ClientDevice',
   SyncOperationPreset: 'SyncOperationPreset',
   SyncJob: 'SyncJob',
-  SyncAttempt: 'SyncAttempt'
+  SyncAttempt: 'SyncAttempt',
+  ManagedList: 'ManagedList'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "syncOperationPreset" | "syncJob" | "syncAttempt"
+    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1153,6 +1154,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ManagedList: {
+      payload: Prisma.$ManagedListPayload<ExtArgs>
+      fields: Prisma.ManagedListFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ManagedListFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ManagedListFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>
+        }
+        findFirst: {
+          args: Prisma.ManagedListFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ManagedListFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>
+        }
+        findMany: {
+          args: Prisma.ManagedListFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>[]
+        }
+        create: {
+          args: Prisma.ManagedListCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>
+        }
+        createMany: {
+          args: Prisma.ManagedListCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ManagedListCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>[]
+        }
+        delete: {
+          args: Prisma.ManagedListDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>
+        }
+        update: {
+          args: Prisma.ManagedListUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>
+        }
+        deleteMany: {
+          args: Prisma.ManagedListDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ManagedListUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ManagedListUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>[]
+        }
+        upsert: {
+          args: Prisma.ManagedListUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedListPayload>
+        }
+        aggregate: {
+          args: Prisma.ManagedListAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateManagedList>
+        }
+        groupBy: {
+          args: Prisma.ManagedListGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManagedListGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ManagedListCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManagedListCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1333,6 +1408,20 @@ export const SyncAttemptScalarFieldEnum = {
 } as const
 
 export type SyncAttemptScalarFieldEnum = (typeof SyncAttemptScalarFieldEnum)[keyof typeof SyncAttemptScalarFieldEnum]
+
+
+export const ManagedListScalarFieldEnum = {
+  id: 'id',
+  address: 'address',
+  comment: 'comment',
+  type: 'type',
+  groups: 'groups',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ManagedListScalarFieldEnum = (typeof ManagedListScalarFieldEnum)[keyof typeof ManagedListScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1654,6 +1743,7 @@ export type GlobalOmitConfig = {
   syncOperationPreset?: Prisma.SyncOperationPresetOmit
   syncJob?: Prisma.SyncJobOmit
   syncAttempt?: Prisma.SyncAttemptOmit
+  managedList?: Prisma.ManagedListOmit
 }
 
 /* Types for Logging */

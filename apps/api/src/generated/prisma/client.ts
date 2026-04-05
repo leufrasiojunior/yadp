@@ -89,3 +89,8 @@ export type SyncJob = Prisma.SyncJobModel
  * 
  */
 export type SyncAttempt = Prisma.SyncAttemptModel
+/**
+ * Model ManagedList
+ * 
+ */
+export type ManagedList = Prisma.ManagedListModel

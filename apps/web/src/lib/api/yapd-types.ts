@@ -519,4 +519,71 @@ export type SyncBlockingApplyResponse = {
   }>;
 };
 
+export type ListItem = {
+  address: string;
+  comment: string | null;
+  enabled: boolean;
+  groups: number[];
+  id: number;
+  dateAdded: number | null;
+  dateModified: number | null;
+  type: "allow" | "block";
+  dateUpdated: number | null;
+  number: number | null;
+  invalidDomains: number | null;
+  abpEntries: number | null;
+  status: number | null;
+  origin: {
+    instanceId: string;
+    instanceName: string;
+  };
+  sync: {
+    isFullySynced: boolean;
+    sourceInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    missingInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+  };
+};
+
+export type ListsListResponse = {
+  items: ListItem[];
+  source: {
+    baselineInstanceId: string;
+    baselineInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+  };
+  unavailableInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
+export type ListsMutationResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalInstances: number;
+    successfulCount: number;
+    failedCount: number;
+  };
+  successfulInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+  }>;
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
 export type YapdSession = AppSession;

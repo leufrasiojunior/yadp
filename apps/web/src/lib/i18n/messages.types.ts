@@ -265,6 +265,7 @@ export type WebMessages = {
       queries: string;
       groups: string;
       clients: string;
+      lists: string;
       instances: string;
       baselineLogin: string;
       setupBaseline: string;
@@ -708,5 +709,45 @@ export type WebMessages = {
       syncGroupSuccess: (name: string) => string;
       partialWarning: (successfulCount: number, failedCount: number) => string;
     };
+  };
+  lists: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    table: {
+      address: string;
+      status: string;
+      comment: string;
+      group: string;
+      actions: string;
+      edit: string;
+      delete: string;
+      searchPlaceholder: string;
+      selectAll: string;
+      selectRow: (address: string) => string;
+      emptyTitle: string;
+      emptyDescription: string;
+      addAllow: string;
+      addBlock: string;
+    };
+    groupEditor: {
+      title: string;
+      description: string;
+      save: string;
+      saving: string;
+      groupsRequired: string;
+    };
+    status: {
+      enabled: string;
+      disabled: string;
+      enabling: string;
+      disabling: string;
+    };
+    toasts: {
+      updateSuccess: string;
+      updatePartial: (successCount: number, failedCount: number) => string;
+      loadFailed: string;
+    };
+    defaultComment: string;
   };
 };

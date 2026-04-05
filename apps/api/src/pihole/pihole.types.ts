@@ -353,3 +353,50 @@ export type PiholeNetworkDevicesResult = {
   devices: PiholeNetworkDevice[];
   took: number | null;
 };
+
+export type PiholeListType = "allow" | "block";
+
+export type PiholeListCreateRequest = {
+  address: string;
+  type: PiholeListType;
+  comment?: string | null;
+  groups: number[];
+  enabled?: boolean;
+};
+
+export type PiholeListUpdateRequest = {
+  comment?: string | null;
+  type: PiholeListType;
+  groups: number[];
+  enabled: boolean;
+};
+
+export type PiholeManagedListEntry = {
+  address: string | null;
+  comment: string | null;
+  groups: number[];
+  enabled: boolean | null;
+  id: number | null;
+  dateAdded: number | null;
+  dateModified: number | null;
+  type: PiholeListType | null;
+  dateUpdated: number | null;
+  number: number | null;
+  invalidDomains: number | null;
+  abpEntries: number | null;
+  status: number | null;
+};
+
+export type PiholeListListResult = {
+  lists: PiholeManagedListEntry[];
+  took: number | null;
+};
+
+export type PiholeListMutationResult = {
+  lists: PiholeManagedListEntry[];
+  processed: {
+    errors: PiholeGroupOperationProcessedError[];
+    success: PiholeGroupOperationProcessedSuccess[];
+  };
+  took: number | null;
+};

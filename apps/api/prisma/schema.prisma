@@ -168,3 +168,14 @@ model SyncAttempt {
 
   @@unique([syncJobId, instanceId, attemptNumber])
 }
+
+model ManagedList {
+  id        String   @id @default(cuid())
+  address   String   @unique
+  comment   String?
+  type      String   @default("block")
+  groups    Int[]    @default([0])
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

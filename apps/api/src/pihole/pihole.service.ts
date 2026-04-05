@@ -24,9 +24,15 @@ import type {
   PiholeGroupMutationResult,
   PiholeGroupUpdateRequest,
   PiholeHistoryPoint,
+  PiholeListCreateRequest,
+  PiholeListListResult,
+  PiholeListMutationResult,
+  PiholeListType,
+  PiholeListUpdateRequest,
   PiholeManagedClientEntry,
   PiholeManagedDomainEntry,
   PiholeManagedGroupEntry,
+  PiholeManagedListEntry,
   PiholeMetricsSummary,
   PiholeNetworkDevice,
   PiholeNetworkDeviceAddress,
@@ -117,7 +123,23 @@ function readBoolean(value: unknown): boolean | null {
     return value;
   }
 
+  if (typeof value === "string") {
+    return value === "true" || value === "1";
+  }
+
+  if (typeof value === "number") {
+    return value === 1;
+  }
+
   return null;
+}
+
+function readNumberArray(value: unknown): number[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((item) => readNumber(item)).filter((item): item is number => item !== null);
 }
 
 function readFirstNumber(record: Record<string, unknown>, keys: string[]): number | null {
@@ -216,6 +238,14 @@ function readLookupString(lookup: NormalizedLookup, aliases: string[]) {
 
 function readLookupNumber(lookup: NormalizedLookup, aliases: string[]) {
   return readNumber(readLookupValue(lookup, aliases));
+}
+
+function readLookupNumberArray(lookup: NormalizedLookup, aliases: string[]) {
+  return readNumberArray(readLookupValue(lookup, aliases));
+}
+
+function readLookupBoolean(lookup: NormalizedLookup, aliases: string[]) {
+  return readBoolean(readLookupValue(lookup, aliases));
 }
 
 function readLookupRecord(lookup: NormalizedLookup, aliases: string[]) {
@@ -534,6 +564,124 @@ export class PiholeService {
     });
 
     return this.normalizeGroupList(payload, connection, path);
+  }
+
+  async listLists(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    address?: string,
+    type?: PiholeListType,
+  ): Promise<PiholeListListResult> {
+    const path = address ? `/lists/${encodeURIComponent(address)}` : "/lists";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+      query: type ? { type } : undefined,
+    });
+
+    return this.normalizeListList(payload, connection, path);
+  }
+
+  async createLists(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    request: PiholeListCreateRequest,
+  ): Promise<PiholeListMutationResult> {
+    const path = "/lists";
+    const payload = await this.request<unknown>(connection, path, {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+      query: {
+        type: request.type,
+      },
+      body: {
+        address: request.address,
+        comment: request.comment ?? "",
+        type: request.type,
+        groups: request.groups,
+        enabled: request.enabled ?? true,
+      },
+    });
+
+    if (payload === undefined) {
+      return {
+        lists: [],
+        processed: {
+          errors: [],
+          success: [{ item: request.address }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeListMutation(payload, connection, path);
+  }
+
+  async updateList(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    address: string,
+    request: PiholeListUpdateRequest,
+  ): Promise<PiholeListMutationResult> {
+    const path = `/lists/${encodeURIComponent(address)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "PUT",
+      sid: session.sid,
+      csrf: session.csrf,
+      query: {
+        type: request.type,
+      },
+      body: {
+        comment: request.comment ?? "",
+        type: request.type,
+        groups: request.groups,
+        enabled: request.enabled,
+      },
+    });
+
+    if (payload === undefined) {
+      return {
+        lists: [],
+        processed: {
+          errors: [],
+          success: [{ item: address }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeListMutation(payload, connection, path);
+  }
+
+  async deleteList(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    address: string,
+    type: PiholeListType,
+  ): Promise<PiholeListMutationResult> {
+    const path = `/lists/${encodeURIComponent(address)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+      query: {
+        type,
+      },
+    });
+
+    if (payload === undefined) {
+      return {
+        lists: [],
+        processed: {
+          errors: [],
+          success: [{ item: address }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeListMutation(payload, connection, path);
   }
 
   async createGroups(
@@ -1274,6 +1422,84 @@ export class PiholeService {
       processed,
       took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
     };
+  }
+
+  private normalizeListList(payload: unknown, connection: PiholeConnection, path: string): PiholeListListResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawLists = readLookupValue(payloadLookup, ["lists", "list", "items", "results"]);
+
+    if (!Array.isArray(rawLists)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      lists: rawLists
+        .filter((item): item is Record<string, unknown> => isRecord(item))
+        .map((item) => this.normalizeManagedList(item)),
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeListMutation(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeListMutationResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawLists = readLookupValue(payloadLookup, ["lists", "list", "items", "results"]);
+    const rawProcessed = readLookupRecord(payloadLookup, ["processed", "result", "summary"]);
+    const lists = Array.isArray(rawLists)
+      ? rawLists
+          .filter((item): item is Record<string, unknown> => isRecord(item))
+          .map((item) => this.normalizeManagedList(item))
+      : [];
+    const processed = this.normalizeGroupOperationProcessed(rawProcessed);
+
+    if (lists.length === 0 && processed.errors.length === 0 && processed.success.length === 0) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      lists,
+      processed,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeManagedList(lookupSource: Record<string, unknown>): PiholeManagedListEntry {
+    const lookup = createLookup(lookupSource);
+
+    return {
+      address: readLookupString(lookup, ["address", "url"]),
+      comment: readLookupString(lookup, ["comment"]),
+      groups: readLookupNumberArray(lookup, ["groups"]),
+      enabled: readLookupBoolean(lookup, ["enabled"]),
+      id: readLookupNumber(lookup, ["id"]),
+      dateAdded: readLookupNumber(lookup, ["date_added", "dateAdded", "created_at", "createdAt"]),
+      dateModified: readLookupNumber(lookup, ["date_modified", "dateModified", "updated_at", "updatedAt"]),
+      type: this.readListType(readLookupString(lookup, ["type"])),
+      dateUpdated: readLookupNumber(lookup, ["date_updated", "dateUpdated"]),
+      number: readLookupNumber(lookup, ["number"]),
+      invalidDomains: readLookupNumber(lookup, ["invalid_domains", "invalidDomains"]),
+      abpEntries: readLookupNumber(lookup, ["abp_entries", "abpEntries"]),
+      status: readLookupNumber(lookup, ["status"]),
+    };
+  }
+
+  private readListType(value: string | null): PiholeListType | null {
+    if (value === "allow" || value === "block") {
+      return value;
+    }
+
+    return null;
   }
 
   private normalizeManagedGroup(payload: Record<string, unknown>): PiholeManagedGroupEntry {

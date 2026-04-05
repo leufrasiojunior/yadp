@@ -10,6 +10,7 @@ import { DomainsModule } from "./domains/domains.module";
 import { GroupsModule } from "./groups/groups.module";
 import { HealthModule } from "./health/health.module";
 import { InstancesModule } from "./instances/instances.module";
+import { ListsModule } from "./lists/lists.module";
 import { PiholeModule } from "./pihole/pihole.module";
 import { QueriesModule } from "./queries/queries.module";
 import { SessionModule } from "./session/session.module";
@@ -27,6 +28,7 @@ import { SyncModule } from "./sync/sync.module";
     GroupsModule,
     HealthModule,
     InstancesModule,
+    ListsModule,
     PiholeModule,
     PrismaModule,
     QueriesModule,

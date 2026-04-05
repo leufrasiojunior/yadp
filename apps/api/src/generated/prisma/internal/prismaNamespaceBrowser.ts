@@ -60,7 +60,8 @@ export const ModelName = {
   ClientDevice: 'ClientDevice',
   SyncOperationPreset: 'SyncOperationPreset',
   SyncJob: 'SyncJob',
-  SyncAttempt: 'SyncAttempt'
+  SyncAttempt: 'SyncAttempt',
+  ManagedList: 'ManagedList'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -220,6 +221,20 @@ export const SyncAttemptScalarFieldEnum = {
 } as const
 
 export type SyncAttemptScalarFieldEnum = (typeof SyncAttemptScalarFieldEnum)[keyof typeof SyncAttemptScalarFieldEnum]
+
+
+export const ManagedListScalarFieldEnum = {
+  id: 'id',
+  address: 'address',
+  comment: 'comment',
+  type: 'type',
+  groups: 'groups',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ManagedListScalarFieldEnum = (typeof ManagedListScalarFieldEnum)[keyof typeof ManagedListScalarFieldEnum]
 
 
 export const SortOrder = {
