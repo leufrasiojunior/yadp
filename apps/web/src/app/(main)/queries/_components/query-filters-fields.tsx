@@ -210,11 +210,8 @@ export function DateTimeRangePicker({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="space-y-1">
-        <p className="font-medium text-sm">{label}</p>
-        {description ? <p className="text-muted-foreground text-xs">{description}</p> : null}
-      </div>
+    <div>
+      <p className="font-medium text-sm">{label}</p>
       <div className="flex items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>

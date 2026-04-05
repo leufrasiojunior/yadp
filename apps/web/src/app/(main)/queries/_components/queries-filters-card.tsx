@@ -61,7 +61,6 @@ export function QueriesFiltersCard({
           <div className="space-y-1">
             <CardTitle>{messages.queries.filters.title}</CardTitle>
             <CardDescription>{messages.queries.filters.description}</CardDescription>
-            <p className="text-muted-foreground text-xs">{responsiveSummary}</p>
           </div>
           <CollapsibleTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2" onClick={(event) => event.stopPropagation()}>
