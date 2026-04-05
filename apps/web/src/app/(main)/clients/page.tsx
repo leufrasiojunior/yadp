@@ -1,13 +1,17 @@
+import { cookies } from "next/headers";
+
 import { ClientsWorkspace } from "@/app/(main)/clients/_components/clients-workspace";
 import { ApiErrorScreen } from "@/components/yapd/api-error-screen";
 import { ApiUnavailableScreen } from "@/components/yapd/api-unavailable-screen";
 import { getClients, getGroups, isYapdApiResponseError, isYapdApiUnavailableError } from "@/lib/api/yapd-server";
+import { CLIENTS_EXCLUDED_TAGS_COOKIE, parseExcludedClientTagsCookie } from "@/lib/clients/client-tags";
 import { DEFAULT_CLIENTS_PAGE_SIZE } from "@/lib/clients/clients-pagination";
 import { DEFAULT_CLIENTS_SORT_DIRECTION, DEFAULT_CLIENTS_SORT_FIELD } from "@/lib/clients/clients-sorting";
 import { getServerI18n } from "@/lib/i18n/server";
 
 export default async function ClientsPage() {
-  const { locale, messages } = await getServerI18n();
+  const [{ locale, messages }, cookieStore] = await Promise.all([getServerI18n(), cookies()]);
+  const initialExcludedTags = parseExcludedClientTagsCookie(cookieStore.get(CLIENTS_EXCLUDED_TAGS_COOKIE)?.value);
 
   try {
     const [clients, groups] = await Promise.all([
@@ -16,6 +20,7 @@ export default async function ClientsPage() {
         pageSize: DEFAULT_CLIENTS_PAGE_SIZE,
         sortBy: DEFAULT_CLIENTS_SORT_FIELD,
         sortDirection: DEFAULT_CLIENTS_SORT_DIRECTION,
+        excludedTags: initialExcludedTags,
       }),
       getGroups(),
     ]);
@@ -28,7 +33,11 @@ export default async function ClientsPage() {
           <p className="mt-2 text-muted-foreground">{messages.clients.description}</p>
         </div>
 
-        <ClientsWorkspace initialData={clients} initialGroups={groups.items} />
+        <ClientsWorkspace
+          initialData={clients}
+          initialExcludedTags={initialExcludedTags}
+          initialGroups={groups.items}
+        />
       </div>
     );
   } catch (error) {

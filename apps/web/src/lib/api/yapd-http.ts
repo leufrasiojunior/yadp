@@ -1,7 +1,8 @@
 import { getRuntimeLocale } from "@/lib/i18n/config";
 
 type PathParamValue = string | number | boolean;
-type QueryParamValue = string | number | boolean;
+type QueryParamScalarValue = string | number | boolean;
+type QueryParamValue = QueryParamScalarValue | QueryParamScalarValue[] | readonly QueryParamScalarValue[];
 
 type RequestOptions = {
   body?: unknown;
@@ -77,6 +78,13 @@ function resolveUrl(
 
   for (const [key, value] of Object.entries(params.query)) {
     if (value === null || value === undefined) {
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        searchParams.append(key, String(item));
+      });
       continue;
     }
 

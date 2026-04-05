@@ -3,6 +3,7 @@ import { Transform, Type } from "class-transformer";
 import { ArrayMinSize, ArrayUnique, IsArray, IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
 
 import { TrimStringAllowEmpty } from "../../groups/dto/group-validation";
+import { MAX_CLIENT_TAG_LENGTH, normalizeClientTags } from "../client-tags";
 
 function normalizeStringArray(value: unknown) {
   if (!Array.isArray(value)) {
@@ -20,6 +21,18 @@ function normalizeNumberArray(value: unknown) {
 
   const normalized = [...new Set(value.map((item) => Number(item)).filter((item) => Number.isFinite(item)))];
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeTagArray(value: unknown) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Array.isArray(value)) {
+    return value;
+  }
+
+  return normalizeClientTags(value.map((item) => (typeof item === "string" ? item : "")));
 }
 
 export class SaveClientsDto {
@@ -52,6 +65,14 @@ export class SaveClientsDto {
   @Type(() => Number)
   @IsNumber({}, { each: true })
   groups?: number[];
+
+  @ApiPropertyOptional({ example: ["IoT", "Camera"] })
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => normalizeTagArray(value))
+  @IsString({ each: true })
+  @MaxLength(MAX_CLIENT_TAG_LENGTH, { each: true })
+  tags?: string[];
 
   @IsOptional()
   @IsArray()

@@ -1,7 +1,8 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsNumber, IsString, MaxLength, Min } from "class-validator";
+import { IsArray, IsNumber, IsString, MaxLength, Min } from "class-validator";
 
+import { MAX_CLIENT_TAG_LENGTH, normalizeClientTagQueryValue } from "../client-tags";
 import {
   CLIENT_LIST_SORT_DIRECTIONS,
   CLIENT_LIST_SORT_FIELDS,
@@ -76,4 +77,11 @@ export class GetClientsDto {
   @IsString()
   @MaxLength(191)
   search = "";
+
+  @ApiPropertyOptional({ example: ["IoT"], isArray: true, type: String })
+  @Transform(({ value }) => normalizeClientTagQueryValue(value))
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(MAX_CLIENT_TAG_LENGTH, { each: true })
+  excludedTags: string[] = [];
 }

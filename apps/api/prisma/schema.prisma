@@ -124,6 +124,7 @@ model ClientDevice {
   alias     String?
   macVendor String?
   ips       String[] @default([])
+  tags      String[] @default([])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

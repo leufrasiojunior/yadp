@@ -24,6 +24,18 @@
             }
           },
           {
+            "name": "excludedTags",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": ["IoT"],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
             "name": "search",
             "required": false,
             "in": "query",
@@ -73,6 +85,12 @@
                             "nullable": true
                           },
                           "ips": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "tags": {
                             "type": "array",
                             "items": {
                               "type": "string"
@@ -174,6 +192,7 @@
                           "alias",
                           "macVendor",
                           "ips",
+                          "tags",
                           "instance",
                           "visibleInInstances",
                           "instanceDetails",
@@ -184,6 +203,12 @@
                           "groupIds",
                           "groupNames"
                         ]
+                      }
+                    },
+                    "availableTags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     },
                     "pagination": {
@@ -262,7 +287,7 @@
                       }
                     }
                   },
-                  "required": ["items", "pagination", "source", "unavailableInstances"]
+                  "required": ["items", "availableTags", "pagination", "source", "unavailableInstances"]
                 }
               }
             }
@@ -303,6 +328,13 @@
                     "nullable": true,
                     "example": "Notebook Sala"
                   },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["IoT", "Camera"]
+                  },
                   "groups": {
                     "type": "array",
                     "items": {
@@ -320,7 +352,7 @@
                     "example": ["clz-secondary-a"]
                   }
                 },
-                "required": ["client", "groups"]
+                "required": ["client"]
               }
             }
           }

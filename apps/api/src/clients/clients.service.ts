@@ -17,6 +17,7 @@ import type {
   PiholeRequestErrorKind,
 } from "../pihole/pihole.types";
 import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
+import { hasMatchingClientTag, normalizeClientTags } from "./client-tags";
 import type {
   ClientListSortDirection,
   ClientListSortField,
@@ -76,6 +77,11 @@ type BaselineClientMetadata = {
 
 type BaselineMetadataSnapshot = {
   clientsByHwaddr: Map<string, BaselineClientMetadata>;
+};
+
+type ClientSupportEntry = {
+  alias: string | null;
+  tags: string[];
 };
 
 type InstanceApplySnapshot = {
@@ -204,6 +210,14 @@ function matchesClientSearch(item: ClientsListResponse["items"][number], rawSear
   return candidateValues.some((value) => value.trim().toLowerCase().includes(searchTerm));
 }
 
+function matchesExcludedTags(item: ClientsListResponse["items"][number], excludedTags: string[]) {
+  if (excludedTags.length === 0) {
+    return false;
+  }
+
+  return excludedTags.some((tag) => hasMatchingClientTag(item.tags, tag));
+}
+
 function sortClientItems(
   items: ClientsListResponse["items"],
   sortBy: ClientListSortField,
@@ -277,6 +291,7 @@ export class ClientsService {
   async listClients(query: GetClientsDto, request: Request): Promise<ClientsListResponse> {
     const locale = getRequestLocale(request);
     const searchTerm = query.search?.trim() ?? "";
+    const excludedTags = query.excludedTags ?? [];
     const instances = await this.loadManagedInstances(locale);
     const baseline = instances.find((instance) => instance.isBaseline);
 
@@ -290,9 +305,14 @@ export class ClientsService {
     }));
     const allHwaddrs = [...new Set(snapshots.flatMap((snapshot) => [...snapshot.devicesByHwaddr.keys()]))];
     const supportEntries = await this.loadSupportEntries(allHwaddrs);
+    const availableTags = await this.loadAvailableTags();
     const items = this.buildListedClients(snapshots, baseline.id, baselineMetadata.clientsByHwaddr, supportEntries);
     const filteredItems = searchTerm.length > 0 ? items.filter((item) => matchesClientSearch(item, searchTerm)) : items;
-    const sortedItems = sortClientItems(filteredItems, query.sortBy, query.sortDirection);
+    const tagFilteredItems =
+      excludedTags.length > 0
+        ? filteredItems.filter((item) => !matchesExcludedTags(item, excludedTags))
+        : filteredItems;
+    const sortedItems = sortClientItems(tagFilteredItems, query.sortBy, query.sortDirection);
 
     await this.persistSupportEntries(items, supportEntries);
 
@@ -303,6 +323,7 @@ export class ClientsService {
 
     return {
       items: sortedItems.slice(startIndex, startIndex + query.pageSize),
+      availableTags,
       pagination: {
         page,
         pageSize: query.pageSize,
@@ -327,13 +348,14 @@ export class ClientsService {
     const comment = dto.comment === undefined ? undefined : dto.comment.trim();
     const alias = dto.alias === undefined ? undefined : dto.alias.trim();
     const requestedGroupIds = dto.groups ?? [];
+    const tags = dto.tags === undefined ? undefined : normalizeClientTags(dto.tags);
 
     try {
       const instances = await this.loadManagedInstances(locale);
       const targetInstances = this.resolveSaveTargets(instances, dto.targetInstanceIds, locale);
       const baselineGroups =
         requestedGroupIds.length > 0 ? await this.readBaselineGroups(instances, requestedGroupIds, locale) : null;
-      await this.persistRequestedAlias(clients, alias);
+      await this.persistRequestedSupportMetadata(clients, alias, tags);
 
       if (baselineGroups === null && comment === undefined) {
         const successfulInstances = targetInstances.map((instance) => this.toSourceSummary(instance));
@@ -355,6 +377,7 @@ export class ClientsService {
             summary: response.summary,
             comment: comment ?? null,
             alias: alias ?? null,
+            tags: tags ?? [],
           } satisfies Prisma.InputJsonObject,
         });
 
@@ -391,6 +414,7 @@ export class ClientsService {
           summary: response.summary,
           comment: comment ?? null,
           alias: alias ?? null,
+          tags: tags ?? [],
         } satisfies Prisma.InputJsonObject,
       });
 
@@ -408,6 +432,7 @@ export class ClientsService {
           targetInstanceIds: dto.targetInstanceIds ?? [],
           comment: comment ?? null,
           alias: alias ?? null,
+          tags: tags ?? [],
           error: error instanceof Error ? error.message : "Unknown error",
         } satisfies Prisma.InputJsonObject,
       });
@@ -727,7 +752,7 @@ export class ClientsService {
 
   private async loadSupportEntries(hwaddrs: string[]) {
     if (hwaddrs.length === 0) {
-      return new Map<string, { alias: string | null }>();
+      return new Map<string, ClientSupportEntry>();
     }
 
     const items = await this.prisma.clientDevice.findMany({
@@ -739,6 +764,7 @@ export class ClientsService {
       select: {
         hwaddr: true,
         alias: true,
+        tags: true,
       },
     });
 
@@ -747,16 +773,27 @@ export class ClientsService {
         normalizeHwaddr(item.hwaddr),
         {
           alias: item.alias ?? null,
+          tags: normalizeClientTags(item.tags),
         },
       ]),
     );
+  }
+
+  private async loadAvailableTags() {
+    const items = await this.prisma.clientDevice.findMany({
+      select: {
+        tags: true,
+      },
+    });
+
+    return normalizeClientTags(items.flatMap((item) => item.tags)).sort((left, right) => compareStrings(left, right));
   }
 
   private buildListedClients(
     snapshots: InstanceDevicesSnapshot[],
     baselineInstanceId: string,
     baselineMetadata: Map<string, BaselineClientMetadata>,
-    supportEntries: Map<string, { alias: string | null }>,
+    supportEntries: Map<string, ClientSupportEntry>,
   ): ClientsListResponse["items"] {
     const grouped = new Map<
       string,
@@ -913,6 +950,7 @@ export class ClientsService {
         alias: support?.alias ?? null,
         macVendor,
         ips,
+        tags: support?.tags ?? [],
         instance: this.toSourceSummary(preferred.instance),
         visibleInInstances,
         instanceDetails,
@@ -928,12 +966,17 @@ export class ClientsService {
     return items;
   }
 
-  private async persistRequestedAlias(clients: string[], alias: string | undefined) {
-    if (alias === undefined || clients.length === 0) {
+  private async persistRequestedSupportMetadata(
+    clients: string[],
+    alias: string | undefined,
+    tags: string[] | undefined,
+  ) {
+    if ((alias === undefined && tags === undefined) || clients.length === 0) {
       return;
     }
 
-    const normalizedAlias = alias.length > 0 ? alias : null;
+    const normalizedAlias = alias === undefined ? undefined : alias.length > 0 ? alias : null;
+    const normalizedTags = tags === undefined ? undefined : normalizeClientTags(tags);
 
     await this.prisma.$transaction(
       clients.map((client) =>
@@ -942,11 +985,13 @@ export class ClientsService {
             hwaddr: client,
           },
           update: {
-            alias: normalizedAlias,
+            ...(alias !== undefined ? { alias: normalizedAlias } : {}),
+            ...(normalizedTags !== undefined ? { tags: normalizedTags } : {}),
           },
           create: {
             hwaddr: client,
-            alias: normalizedAlias,
+            ...(alias !== undefined ? { alias: normalizedAlias } : {}),
+            ...(normalizedTags !== undefined ? { tags: normalizedTags } : {}),
           },
         }),
       ),
@@ -955,7 +1000,7 @@ export class ClientsService {
 
   private async persistSupportEntries(
     items: ClientsListResponse["items"],
-    supportEntries: Map<string, { alias: string | null }>,
+    supportEntries: Map<string, ClientSupportEntry>,
   ) {
     if (items.length === 0) {
       return;
@@ -971,12 +1016,14 @@ export class ClientsService {
             alias: supportEntries.get(item.hwaddr)?.alias ?? null,
             macVendor: item.macVendor,
             ips: item.ips,
+            tags: supportEntries.get(item.hwaddr)?.tags ?? [],
           },
           create: {
             hwaddr: item.hwaddr,
             alias: supportEntries.get(item.hwaddr)?.alias ?? null,
             macVendor: item.macVendor,
             ips: item.ips,
+            tags: supportEntries.get(item.hwaddr)?.tags ?? [],
           },
         }),
       ),

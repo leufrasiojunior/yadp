@@ -43,6 +43,7 @@ export type ClientListItem = {
   alias: string | null;
   macVendor: string | null;
   ips: string[];
+  tags: string[];
   instance: ClientsMutationInstanceSource;
   visibleInInstances: ClientsMutationInstanceSource[];
   instanceDetails: ClientInstanceDetail[];
@@ -56,6 +57,7 @@ export type ClientListItem = {
 
 export type ClientsListResponse = {
   items: ClientListItem[];
+  availableTags: string[];
   pagination: {
     page: number;
     pageSize: number;

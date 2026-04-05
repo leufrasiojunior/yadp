@@ -33,6 +33,10 @@ const clientItemSchema = {
       type: "array",
       items: { type: "string" },
     },
+    tags: {
+      type: "array",
+      items: { type: "string" },
+    },
     instance: instanceSourceSchema,
     visibleInInstances: {
       type: "array",
@@ -74,6 +78,7 @@ const clientItemSchema = {
     "alias",
     "macVendor",
     "ips",
+    "tags",
     "instance",
     "visibleInInstances",
     "instanceDetails",
@@ -93,6 +98,10 @@ export const CLIENTS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
       items: {
         type: "array",
         items: clientItemSchema,
+      },
+      availableTags: {
+        type: "array",
+        items: { type: "string" },
       },
       pagination: {
         type: "object",
@@ -126,7 +135,7 @@ export const CLIENTS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
         items: failedInstanceSchema,
       },
     },
-    required: ["items", "pagination", "source", "unavailableInstances"],
+    required: ["items", "availableTags", "pagination", "source", "unavailableInstances"],
   },
 };
 
@@ -179,6 +188,13 @@ export const SAVE_CLIENTS_API_BODY: ApiBodyOptions = {
         nullable: true,
         example: "Notebook Sala",
       },
+      tags: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+        example: ["IoT", "Camera"],
+      },
       groups: {
         type: "array",
         items: {
@@ -229,6 +245,12 @@ export const CLIENTS_QUERY_PARAMETERS: ApiBodyOptions = {
         type: "number",
         default: DEFAULT_CLIENTS_PAGE_SIZE,
         maximum: MAX_CLIENTS_PAGE_SIZE,
+      },
+      excludedTags: {
+        type: "array",
+        items: {
+          type: "string",
+        },
       },
     },
   },

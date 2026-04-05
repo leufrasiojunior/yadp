@@ -32,6 +32,7 @@ export class ClientsController {
   @ApiQuery({ name: "page", required: false, example: 1 })
   @ApiQuery({ name: "pageSize", required: false, example: 10 })
   @ApiQuery({ name: "search", required: false, example: "192.168.31.18" })
+  @ApiQuery({ name: "excludedTags", required: false, isArray: true, type: String, example: ["IoT"] })
   @ApiQuery({
     name: "sortBy",
     required: false,

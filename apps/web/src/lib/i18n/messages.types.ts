@@ -2,6 +2,7 @@ export type WebMessages = {
   common: {
     language: string;
     languagePlaceholder: string;
+    add: string;
     retry: string;
     baseline: string;
     total: string;
@@ -506,6 +507,15 @@ export type WebMessages = {
     table: {
       title: string;
       description: (baselineName: string) => string;
+      tags: string;
+      tagsPlaceholder: string;
+      tagsDescription: string;
+      tagRemove: (tag: string) => string;
+      hideTags: string;
+      hideTagsDescription: string;
+      hideTagsEmpty: string;
+      hiddenTagsSelected: (count: number) => string;
+      clearHiddenTags: string;
       searchPlaceholder: string;
       searchClear: string;
       refresh: string;
@@ -526,8 +536,11 @@ export type WebMessages = {
       next: string;
       emptyTitle: string;
       emptyDescription: string;
+      emptyFilteredTitle: string;
+      emptyFilteredDescription: string;
       instanceDetailsAction: (hwaddr: string) => string;
       viewMore: string;
+      editTags: string;
       actionPlaceholder: string;
       groupEditorTitle: string;
       groupEditorDescription: string;
@@ -542,10 +555,17 @@ export type WebMessages = {
       detailsDescription: string;
       detailsSave: string;
       detailsSaveLoading: string;
+      tagsTitle: (hwaddr: string) => string;
+      tagsModalDescription: string;
+      tagsSave: string;
+      tagsSaveLoading: string;
       detailsOverviewTab: string;
       detailsGroupsTab: string;
       detailsInstancesTab: string;
       alias: string;
+      tags: string;
+      tagsPlaceholder: string;
+      tagsDescription: string;
       hwaddr: string;
       ips: string;
       macVendor: string;

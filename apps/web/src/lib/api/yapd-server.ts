@@ -159,6 +159,7 @@ export async function getClients(query?: {
   sortBy?: ClientsSortField;
   sortDirection?: ClientsSortDirection;
   search?: string;
+  excludedTags?: string[];
 }): Promise<ClientsListResponse> {
   const { baseUrl, client } = await createServerApiClient();
   const { data, response } = await client.GET<ClientsListResponse>("/clients", {
@@ -169,6 +170,7 @@ export async function getClients(query?: {
         ...(query?.sortBy !== undefined ? { sortBy: query.sortBy } : {}),
         ...(query?.sortDirection !== undefined ? { sortDirection: query.sortDirection } : {}),
         ...(query?.search !== undefined ? { search: query.search } : {}),
+        ...(query?.excludedTags !== undefined ? { excludedTags: query.excludedTags } : {}),
       },
     },
   });

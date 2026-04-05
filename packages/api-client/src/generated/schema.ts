@@ -453,6 +453,7 @@ export interface operations {
       query?: {
         sortDirection?: "asc" | "desc";
         sortBy?: "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
+        excludedTags?: string[];
         search?: unknown;
         pageSize?: unknown;
         page?: unknown;
@@ -474,6 +475,7 @@ export interface operations {
               alias: string | null;
               macVendor: string | null;
               ips: string[];
+              tags: string[];
               instance: {
                 instanceId: string;
                 instanceName: string;
@@ -501,6 +503,7 @@ export interface operations {
               groupIds: number[];
               groupNames: string[];
             }[];
+            availableTags: string[];
             pagination: {
               page: number;
               pageSize: number;
@@ -555,10 +558,17 @@ export interface operations {
           alias?: string | null;
           /**
            * @example [
+           *       "IoT",
+           *       "Camera"
+           *     ]
+           */
+          tags?: string[];
+          /**
+           * @example [
            *       3
            *     ]
            */
-          groups: number[];
+          groups?: number[];
           /**
            * @example [
            *       "clz-secondary-a"

@@ -79,19 +79,30 @@ import type {
   GroupItem,
 } from "@/lib/api/yapd-types";
 import {
+  areClientTagArraysEqual,
+  CLIENTS_EXCLUDED_TAGS_COOKIE,
+  getCompactClientTags,
+  hasMatchingClientTag,
+  normalizeClientTags,
+  removeClientTag,
+  serializeExcludedClientTagsCookie,
+} from "@/lib/clients/client-tags";
+import {
   DEFAULT_CLIENTS_SORT_DIRECTION,
   DEFAULT_CLIENTS_SORT_FIELD,
   getDefaultClientsSortDirection,
 } from "@/lib/clients/clients-sorting";
+import { deleteClientCookie, setClientCookie } from "@/lib/cookie.client";
 import { useWebI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 type ClientsWorkspaceProps = {
   initialData: ClientsListResponse;
+  initialExcludedTags: string[];
   initialGroups: GroupItem[];
 };
 
-type DetailsDialogTab = "overview" | "groups" | "instances";
+type DetailsDialogTab = "overview" | "tags" | "groups" | "instances";
 
 const TABLE_SKELETON_ROW_KEYS = [
   "clients-skeleton-1",
@@ -112,6 +123,15 @@ function areNumberArraysEqual(left: number[], right: number[]) {
   }
 
   return left.every((value, index) => value === right[index]);
+}
+
+function persistExcludedTagsCookie(tags: string[]) {
+  if (tags.length === 0) {
+    deleteClientCookie(CLIENTS_EXCLUDED_TAGS_COOKIE);
+    return;
+  }
+
+  setClientCookie(CLIENTS_EXCLUDED_TAGS_COOKIE, serializeExcludedClientTagsCookie(tags));
 }
 
 function buildFailureToastId(prefix: string, clientHwaddr: string, instanceId: string) {
@@ -149,6 +169,7 @@ type SubmitClientChangesOptions = {
   groupIds: number[];
   alias?: string;
   comment?: string;
+  tags?: string[];
   retryInstanceId?: string;
   keepDetailsDialogOpen?: boolean;
 };
@@ -159,6 +180,22 @@ type ReadonlyFieldProps = {
   className?: string;
   multiline?: boolean;
   icon?: LucideIcon;
+};
+
+type ClientTagsEditorProps = {
+  label: string;
+  description: string;
+  placeholder: string;
+  addLabel: string;
+  removeLabel: (tag: string) => string;
+  tags: string[];
+  inputValue: string;
+  suggestions: string[];
+  disabled: boolean;
+  className?: string;
+  onInputChange: (value: string) => void;
+  onAddTag: (value: string) => void;
+  onRemoveTag: (tag: string) => void;
 };
 
 function formatListValue(values: string[], emptyValue: string) {
@@ -187,7 +224,108 @@ function ReadonlyField({ label, value, className, multiline = false, icon: Icon 
   );
 }
 
-export function ClientsWorkspace({ initialData, initialGroups }: Readonly<ClientsWorkspaceProps>) {
+function ClientTagsEditor({
+  label,
+  description,
+  placeholder,
+  addLabel,
+  removeLabel,
+  tags,
+  inputValue,
+  suggestions,
+  disabled,
+  className,
+  onInputChange,
+  onAddTag,
+  onRemoveTag,
+}: Readonly<ClientTagsEditorProps>) {
+  return (
+    <div className={cn("space-y-2", className)}>
+      <Label className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
+        <Tags className="size-3.5" />
+        <span>{label}</span>
+      </Label>
+      <div className="space-y-3 rounded-lg border border-input/60 bg-muted/15 p-3">
+        {tags.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <Badge
+                key={`client-tag-${tag}`}
+                variant="outline"
+                className="h-7 gap-1 rounded-full bg-background/80 pr-1"
+              >
+                <span>{tag}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="size-4 rounded-full"
+                  aria-label={removeLabel(tag)}
+                  title={removeLabel(tag)}
+                  disabled={disabled}
+                  onClick={() => onRemoveTag(tag)}
+                >
+                  <X className="size-3" />
+                </Button>
+              </Badge>
+            ))}
+          </div>
+        ) : null}
+        <InputGroup className="border-input/60 bg-background/80 shadow-none">
+          <InputGroupInput
+            value={inputValue}
+            onChange={(event) => onInputChange(event.target.value)}
+            onBlur={() => onAddTag(inputValue)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === ",") {
+                event.preventDefault();
+                onAddTag(inputValue);
+              }
+            }}
+            disabled={disabled}
+            placeholder={placeholder}
+            className="min-w-48"
+          />
+          {inputValue.trim().length > 0 ? (
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                size="icon-xs"
+                variant="ghost"
+                disabled={disabled}
+                aria-label={addLabel}
+                title={addLabel}
+                onClick={() => onAddTag(inputValue)}
+              >
+                <Tags className="size-3.5" />
+              </InputGroupButton>
+            </InputGroupAddon>
+          ) : null}
+        </InputGroup>
+        {suggestions.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((tag) => (
+              <Button
+                key={`client-tag-option-${tag}`}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 rounded-full bg-background/70 px-3"
+                disabled={disabled}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => onAddTag(tag)}
+              >
+                {tag}
+              </Button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      <p className="text-muted-foreground text-xs">{description}</p>
+    </div>
+  );
+}
+
+export function ClientsWorkspace({ initialData, initialExcludedTags, initialGroups }: Readonly<ClientsWorkspaceProps>) {
   const client = useMemo(() => getBrowserApiClient(), []);
   const { csrfToken } = useAppSession();
   const { locale, messages, formatFullDateTime } = useWebI18n();
@@ -195,6 +333,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [excludedTags, setExcludedTags] = useState(() => normalizeClientTags(initialExcludedTags));
   const [sortBy, setSortBy] = useState<ClientsSortField>(DEFAULT_CLIENTS_SORT_FIELD);
   const [sortDirection, setSortDirection] = useState<ClientsSortDirection>(DEFAULT_CLIENTS_SORT_DIRECTION);
   const [openGroupEditorHwaddr, setOpenGroupEditorHwaddr] = useState<string | null>(null);
@@ -205,6 +344,11 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
   const [detailsAliasDraft, setDetailsAliasDraft] = useState("");
   const [detailsCommentDraft, setDetailsCommentDraft] = useState("");
   const [detailsDraftGroupIds, setDetailsDraftGroupIds] = useState<number[]>([]);
+  const [detailsDraftTags, setDetailsDraftTags] = useState<string[]>([]);
+  const [detailsTagInput, setDetailsTagInput] = useState("");
+  const [tagsDialogClient, setTagsDialogClient] = useState<ClientListItem | null>(null);
+  const [tagsDialogDraft, setTagsDialogDraft] = useState<string[]>([]);
+  const [tagsDialogInput, setTagsDialogInput] = useState("");
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
   const groupNamesById = useMemo(() => new Map(initialGroups.map((group) => [group.id, group.name])), [initialGroups]);
 
@@ -213,7 +357,8 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
     busyAction === "page" ||
     busyAction === "page-size" ||
     busyAction === "sort" ||
-    busyAction === "search";
+    busyAction === "search" ||
+    busyAction === "tag-filter";
 
   const refreshClients = useCallback(
     async (
@@ -222,6 +367,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
       nextSortBy = sortBy,
       nextSortDirection = sortDirection,
       nextSearchTerm = searchTerm,
+      nextExcludedTags = excludedTags,
     ) => {
       const { data: nextData, response } = await client.GET<ClientsListResponse>("/clients", {
         params: {
@@ -231,6 +377,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
             sortBy: nextSortBy,
             sortDirection: nextSortDirection,
             search: nextSearchTerm,
+            ...(nextExcludedTags.length > 0 ? { excludedTags: nextExcludedTags } : {}),
           },
         },
       });
@@ -248,6 +395,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
       data.pagination.page,
       data.pagination.pageSize,
       messages.clients.toasts.refreshFailed,
+      excludedTags,
       searchTerm,
       sortBy,
       sortDirection,
@@ -376,6 +524,8 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
     setDetailsAliasDraft(item.alias ?? "");
     setDetailsCommentDraft(item.comment ?? "");
     setDetailsDraftGroupIds(sortNumberArray(item.groupIds));
+    setDetailsDraftTags(normalizeClientTags(item.tags));
+    setDetailsTagInput("");
   };
 
   const closeDetailsDialog = () => {
@@ -388,6 +538,28 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
     setDetailsAliasDraft("");
     setDetailsCommentDraft("");
     setDetailsDraftGroupIds([]);
+    setDetailsDraftTags([]);
+    setDetailsTagInput("");
+  };
+
+  const openTagsDialog = (item: ClientListItem) => {
+    if (busyAction !== null) {
+      return;
+    }
+
+    setTagsDialogClient(item);
+    setTagsDialogDraft(normalizeClientTags(item.tags));
+    setTagsDialogInput("");
+  };
+
+  const closeTagsDialog = () => {
+    if (tagsDialogClient && (busyAction?.startsWith(`save:${tagsDialogClient.hwaddr}`) ?? false)) {
+      return;
+    }
+
+    setTagsDialogClient(null);
+    setTagsDialogDraft([]);
+    setTagsDialogInput("");
   };
 
   const toggleDraftGroup = (groupId: number, checked: boolean) => {
@@ -408,10 +580,16 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
     const sortedGroupIds = sortNumberArray(options.groupIds);
     const normalizedAlias = options.alias === undefined ? undefined : options.alias.trim();
     const normalizedComment = options.comment === undefined ? undefined : options.comment.trim();
+    const normalizedTags = options.tags === undefined ? undefined : normalizeClientTags(options.tags);
 
-    if (sortedGroupIds.length === 0 && normalizedAlias === undefined && normalizedComment === undefined) {
+    if (
+      sortedGroupIds.length === 0 &&
+      normalizedAlias === undefined &&
+      normalizedComment === undefined &&
+      normalizedTags === undefined
+    ) {
       toast.error(messages.clients.table.groupsRequired);
-      return;
+      return false;
     }
 
     setBusyAction(options.retryInstanceId ? `save:${item.hwaddr}:${options.retryInstanceId}` : `save:${item.hwaddr}`);
@@ -425,6 +603,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
         ...(sortedGroupIds.length > 0 ? { groups: sortedGroupIds } : {}),
         ...(normalizedAlias !== undefined ? { alias: normalizedAlias } : {}),
         ...(normalizedComment !== undefined ? { comment: normalizedComment } : {}),
+        ...(normalizedTags !== undefined ? { tags: normalizedTags } : {}),
         ...(options.retryInstanceId ? { targetInstanceIds: [options.retryInstanceId] } : {}),
       },
     });
@@ -433,7 +612,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
 
     if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
-      return;
+      return false;
     }
 
     if (responseData.failedInstances.length === 0) {
@@ -456,6 +635,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                 groupIds: sortedGroupIds,
                 alias: normalizedAlias,
                 comment: normalizedComment,
+                tags: normalizedTags,
                 retryInstanceId: failure.instanceId,
                 keepDetailsDialogOpen: options.keepDetailsDialogOpen,
               });
@@ -469,25 +649,102 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
     const nextData = await refreshClients(data.pagination.page, data.pagination.pageSize);
 
     if (!options.keepDetailsDialogOpen) {
-      return;
+      return true;
     }
 
     if (!nextData) {
-      return;
+      return true;
     }
 
     const refreshedClient = nextData.items.find((candidate) => candidate.hwaddr === item.hwaddr) ?? null;
 
     if (!refreshedClient) {
       closeDetailsDialog();
-      return;
+      return true;
     }
 
     setDetailsDialogClient(refreshedClient);
     setDetailsAliasDraft(refreshedClient.alias ?? normalizedAlias ?? "");
     setDetailsCommentDraft(refreshedClient.comment ?? normalizedComment ?? "");
     setDetailsDraftGroupIds(sortNumberArray(refreshedClient.groupIds));
+    setDetailsDraftTags(normalizeClientTags(refreshedClient.tags ?? normalizedTags ?? []));
+    setDetailsTagInput("");
+    return true;
   };
+
+  const updateExcludedTags = async (nextExcludedTags: string[]) => {
+    const normalizedTags = normalizeClientTags(nextExcludedTags);
+
+    setBusyAction("tag-filter");
+
+    try {
+      const nextData = await refreshClients(
+        1,
+        data.pagination.pageSize,
+        sortBy,
+        sortDirection,
+        searchTerm,
+        normalizedTags,
+      );
+
+      if (!nextData) {
+        return;
+      }
+
+      setExcludedTags(normalizedTags);
+      persistExcludedTagsCookie(normalizedTags);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const addDetailsTag = (rawValue: string) => {
+    const nextTags = normalizeClientTags([...detailsDraftTags, rawValue]);
+
+    if (areClientTagArraysEqual(nextTags, detailsDraftTags)) {
+      setDetailsTagInput("");
+      return;
+    }
+
+    setDetailsDraftTags(nextTags);
+    setDetailsTagInput("");
+  };
+
+  const removeDetailsTag = (tag: string) => {
+    setDetailsDraftTags((current) => removeClientTag(current, tag));
+  };
+
+  const normalizedDetailsTagsForSave = normalizeClientTags([...detailsDraftTags, detailsTagInput]);
+  const addTagsDialogTag = (rawValue: string) => {
+    const nextTags = normalizeClientTags([...tagsDialogDraft, rawValue]);
+
+    if (areClientTagArraysEqual(nextTags, tagsDialogDraft)) {
+      setTagsDialogInput("");
+      return;
+    }
+
+    setTagsDialogDraft(nextTags);
+    setTagsDialogInput("");
+  };
+  const removeTagsDialogTag = (tag: string) => {
+    setTagsDialogDraft((current) => removeClientTag(current, tag));
+  };
+  const normalizedTagsDialogForSave = normalizeClientTags([...tagsDialogDraft, tagsDialogInput]);
+
+  useEffect(() => {
+    const sanitizedExcludedTags = normalizeClientTags(
+      excludedTags.filter((tag) =>
+        data.availableTags.some((availableTag) => hasMatchingClientTag([availableTag], tag)),
+      ),
+    );
+
+    if (areClientTagArraysEqual(sanitizedExcludedTags, excludedTags)) {
+      return;
+    }
+
+    setExcludedTags(sanitizedExcludedTags);
+    persistExcludedTagsCookie(sanitizedExcludedTags);
+  }, [data.availableTags, excludedTags]);
 
   const runSync = async () => {
     setBusyAction("sync");
@@ -550,9 +807,34 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
   const hasDetailsGroupChanges =
     detailsDialogClient !== null &&
     !areNumberArraysEqual(sortNumberArray(detailsDialogClient.groupIds), detailsDraftGroupIds);
+  const hasDetailsTagChanges =
+    detailsDialogClient !== null &&
+    !areClientTagArraysEqual(normalizeClientTags(detailsDialogClient.tags), normalizedDetailsTagsForSave);
   const selectedDetailsGroupNames = detailsDraftGroupIds
     .map((groupId) => groupNamesById.get(groupId) ?? `#${groupId}`)
     .join(", ");
+  const detailsTagSuggestions = data.availableTags
+    .filter((tag) => !hasMatchingClientTag(detailsDraftTags, tag))
+    .filter((tag) =>
+      detailsTagInput.trim().length > 0
+        ? tag.toLocaleLowerCase().includes(detailsTagInput.trim().toLocaleLowerCase())
+        : true,
+    )
+    .slice(0, 8);
+  const tagsDialogSuggestions = data.availableTags
+    .filter((tag) => !hasMatchingClientTag(tagsDialogDraft, tag))
+    .filter((tag) =>
+      tagsDialogInput.trim().length > 0
+        ? tag.toLocaleLowerCase().includes(tagsDialogInput.trim().toLocaleLowerCase())
+        : true,
+    )
+    .slice(0, 8);
+  const isTagsDialogSaving = tagsDialogClient
+    ? (busyAction?.startsWith(`save:${tagsDialogClient.hwaddr}`) ?? false)
+    : false;
+  const hasTagsDialogChanges =
+    tagsDialogClient !== null &&
+    !areClientTagArraysEqual(normalizeClientTags(tagsDialogClient.tags), normalizedTagsDialogForSave);
 
   return (
     <div className="space-y-6">
@@ -585,6 +867,83 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                 </InputGroupAddon>
               ) : null}
             </InputGroup>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="outline" size="sm" disabled={busyAction !== null}>
+                  <Tags />
+                  {messages.clients.table.hideTags}
+                  {excludedTags.length > 0 ? <Badge variant="secondary">{excludedTags.length}</Badge> : null}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                className="w-80 space-y-4 rounded-xl border border-border/60 bg-background/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/90"
+              >
+                <div className="space-y-1">
+                  <h3 className="font-medium">{messages.clients.table.hideTags}</h3>
+                  <p className="text-muted-foreground text-sm">{messages.clients.table.hideTagsDescription}</p>
+                </div>
+                {excludedTags.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground text-xs uppercase tracking-wide">
+                        {messages.clients.table.hiddenTagsSelected(excludedTags.length)}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={busyAction !== null}
+                        onClick={() => void updateExcludedTags([])}
+                      >
+                        {messages.clients.table.clearHiddenTags}
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {excludedTags.map((tag) => (
+                        <Badge key={`excluded-tag-${tag}`} variant="outline" className="bg-muted/30">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {data.availableTags.length > 0 ? (
+                  <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                    {data.availableTags.map((tag) => {
+                      const checkboxId = `clients-hidden-tag-${tag}`;
+                      const isSelected = hasMatchingClientTag(excludedTags, tag);
+
+                      return (
+                        <div
+                          key={tag}
+                          className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm transition-colors hover:bg-muted/30"
+                        >
+                          <Checkbox
+                            id={checkboxId}
+                            checked={isSelected}
+                            disabled={busyAction !== null}
+                            onCheckedChange={(checked) => {
+                              const nextTags =
+                                checked === true
+                                  ? normalizeClientTags([...excludedTags, tag])
+                                  : removeClientTag(excludedTags, tag);
+
+                              void updateExcludedTags(nextTags);
+                            }}
+                          />
+                          <label htmlFor={checkboxId} className="flex-1">
+                            {tag}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">{messages.clients.table.hideTagsEmpty}</p>
+                )}
+              </PopoverContent>
+            </Popover>
             <Button
               type="button"
               variant="outline"
@@ -626,8 +985,16 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                 <EmptyMedia variant="icon">
                   <MonitorSmartphone />
                 </EmptyMedia>
-                <EmptyTitle>{messages.clients.table.emptyTitle}</EmptyTitle>
-                <EmptyDescription>{messages.clients.table.emptyDescription}</EmptyDescription>
+                <EmptyTitle>
+                  {excludedTags.length > 0
+                    ? messages.clients.table.emptyFilteredTitle
+                    : messages.clients.table.emptyTitle}
+                </EmptyTitle>
+                <EmptyDescription>
+                  {excludedTags.length > 0
+                    ? messages.clients.table.emptyFilteredDescription
+                    : messages.clients.table.emptyDescription}
+                </EmptyDescription>
               </EmptyHeader>
             </Empty>
           ) : (
@@ -805,6 +1172,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                         ))
                       : data.items.map((item) => {
                           const clientDisplayValue = getClientDisplayValue(item);
+                          const compactTags = getCompactClientTags(item.tags);
                           const groupLabels = resolveGroupLabels(item);
                           const sortedCurrentGroupIds = sortNumberArray(item.groupIds);
                           const isGroupEditorOpen = openGroupEditorHwaddr === item.hwaddr;
@@ -814,9 +1182,23 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                           return (
                             <TableRow key={item.hwaddr}>
                               <TableCell className="max-w-52 text-center">
-                                <span className={cn(!clientDisplayValue && "text-muted-foreground")}>
-                                  {clientDisplayValue ?? messages.common.versionUnavailable}
-                                </span>
+                                <div className="space-y-2">
+                                  <span className={cn(!clientDisplayValue && "text-muted-foreground")}>
+                                    {clientDisplayValue ?? messages.common.versionUnavailable}
+                                  </span>
+                                  {compactTags.visible.length > 0 ? (
+                                    <div className="flex flex-wrap items-center justify-center gap-2">
+                                      {compactTags.visible.map((tag) => (
+                                        <Badge key={`${item.hwaddr}-${tag}`} variant="secondary">
+                                          {tag}
+                                        </Badge>
+                                      ))}
+                                      {compactTags.hiddenCount > 0 ? (
+                                        <Badge variant="outline">+{compactTags.hiddenCount}</Badge>
+                                      ) : null}
+                                    </div>
+                                  ) : null}
+                                </div>
                               </TableCell>
                               <TableCell className="text-center">
                                 <div className="flex flex-wrap items-center justify-center gap-2">
@@ -954,7 +1336,11 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                                       <Ellipsis />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuContent align="end" className="w-44">
+                                    <DropdownMenuItem onSelect={() => openTagsDialog(item)}>
+                                      <Tags />
+                                      {messages.clients.table.editTags}
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onSelect={() => openDetailsDialog(item)}>
                                       <Info />
                                       {messages.clients.table.viewMore}
@@ -1019,6 +1405,59 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
         </DialogContent>
       </Dialog>
 
+      <Dialog open={tagsDialogClient !== null} onOpenChange={(open) => !open && closeTagsDialog()}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {tagsDialogClient
+                ? messages.clients.dialogs.tagsTitle(getClientDialogValue(tagsDialogClient))
+                : messages.clients.title}
+            </DialogTitle>
+            <DialogDescription>{messages.clients.dialogs.tagsModalDescription}</DialogDescription>
+          </DialogHeader>
+          {tagsDialogClient ? (
+            <>
+              <ClientTagsEditor
+                label={messages.clients.dialogs.tags}
+                description={messages.clients.dialogs.tagsDescription}
+                placeholder={messages.clients.dialogs.tagsPlaceholder}
+                addLabel={messages.common.add}
+                removeLabel={messages.clients.table.tagRemove}
+                tags={tagsDialogDraft}
+                inputValue={tagsDialogInput}
+                suggestions={tagsDialogSuggestions}
+                disabled={busyAction !== null}
+                onInputChange={setTagsDialogInput}
+                onAddTag={addTagsDialogTag}
+                onRemoveTag={removeTagsDialogTag}
+              />
+              <DialogFooter>
+                <Button type="button" variant="outline" disabled={isTagsDialogSaving} onClick={closeTagsDialog}>
+                  {messages.clients.dialogs.close}
+                </Button>
+                <Button
+                  type="button"
+                  disabled={busyAction !== null || !hasTagsDialogChanges}
+                  onClick={async () => {
+                    const saved = await submitClientChanges(tagsDialogClient, {
+                      groupIds: [],
+                      tags: normalizedTagsDialogForSave,
+                    });
+
+                    if (saved) {
+                      closeTagsDialog();
+                    }
+                  }}
+                >
+                  <Tags className={cn(isTagsDialogSaving ? "animate-pulse" : undefined)} />
+                  {isTagsDialogSaving ? messages.clients.dialogs.tagsSaveLoading : messages.clients.dialogs.tagsSave}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={detailsDialogClient !== null} onOpenChange={(open) => !open && closeDetailsDialog()}>
         <DialogContent className="flex h-[92vh] max-h-[92vh] flex-col overflow-hidden sm:max-w-5xl">
           <DialogHeader>
@@ -1036,10 +1475,14 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                 onValueChange={(value) => setDetailsDialogTab(value as DetailsDialogTab)}
                 className="min-h-0 flex-1 gap-4"
               >
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="overview">
                     <UserRound />
                     {messages.clients.dialogs.detailsOverviewTab}
+                  </TabsTrigger>
+                  <TabsTrigger value="tags">
+                    <Tags />
+                    {messages.clients.dialogs.tags}
                   </TabsTrigger>
                   <TabsTrigger value="groups">
                     <Tags />
@@ -1116,6 +1559,32 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                         className="min-h-24 resize-none"
                       />
                     </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="tags" className="min-h-0 flex-1 overflow-y-auto pr-1">
+                  <div className="space-y-4 rounded-xl border bg-muted/10 p-4">
+                    <div className="space-y-1">
+                      <h3 className="flex items-center gap-2 font-medium">
+                        <Tags className="size-4" />
+                        <span>{messages.clients.dialogs.tags}</span>
+                      </h3>
+                      <p className="text-muted-foreground text-sm">{messages.clients.dialogs.tagsDescription}</p>
+                    </div>
+                    <ClientTagsEditor
+                      label={messages.clients.dialogs.tags}
+                      description={messages.clients.dialogs.tagsDescription}
+                      placeholder={messages.clients.dialogs.tagsPlaceholder}
+                      addLabel={messages.common.add}
+                      removeLabel={messages.clients.table.tagRemove}
+                      tags={detailsDraftTags}
+                      inputValue={detailsTagInput}
+                      suggestions={detailsTagSuggestions}
+                      disabled={busyAction !== null}
+                      onInputChange={setDetailsTagInput}
+                      onAddTag={addDetailsTag}
+                      onRemoveTag={removeDetailsTag}
+                    />
                   </div>
                 </TabsContent>
 
@@ -1226,6 +1695,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                   disabled={
                     busyAction !== null ||
                     (!hasDetailsAliasChanges &&
+                      !hasDetailsTagChanges &&
                       !hasDetailsCommentChanges &&
                       !(hasDetailsGroupChanges && detailsDraftGroupIds.length > 0))
                   }
@@ -1233,6 +1703,7 @@ export function ClientsWorkspace({ initialData, initialGroups }: Readonly<Client
                     void submitClientChanges(detailsDialogClient, {
                       groupIds: hasDetailsGroupChanges ? detailsDraftGroupIds : [],
                       alias: hasDetailsAliasChanges ? detailsAliasDraft : undefined,
+                      tags: hasDetailsTagChanges ? normalizedDetailsTagsForSave : undefined,
                       comment: hasDetailsCommentChanges ? detailsCommentDraft : undefined,
                       keepDetailsDialogOpen: true,
                     })

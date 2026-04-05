@@ -48,6 +48,7 @@ export type ClientDeviceCountAggregateOutputType = {
   alias: number
   macVendor: number
   ips: number
+  tags: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -78,6 +79,7 @@ export type ClientDeviceCountAggregateInputType = {
   alias?: true
   macVendor?: true
   ips?: true
+  tags?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -161,6 +163,7 @@ export type ClientDeviceGroupByOutputType = {
   alias: string | null
   macVendor: string | null
   ips: string[]
+  tags: string[]
   createdAt: Date
   updatedAt: Date
   _count: ClientDeviceCountAggregateOutputType | null
@@ -192,6 +195,7 @@ export type ClientDeviceWhereInput = {
   alias?: Prisma.StringNullableFilter<"ClientDevice"> | string | null
   macVendor?: Prisma.StringNullableFilter<"ClientDevice"> | string | null
   ips?: Prisma.StringNullableListFilter<"ClientDevice">
+  tags?: Prisma.StringNullableListFilter<"ClientDevice">
   createdAt?: Prisma.DateTimeFilter<"ClientDevice"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClientDevice"> | Date | string
 }
@@ -202,6 +206,7 @@ export type ClientDeviceOrderByWithRelationInput = {
   alias?: Prisma.SortOrderInput | Prisma.SortOrder
   macVendor?: Prisma.SortOrderInput | Prisma.SortOrder
   ips?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -215,6 +220,7 @@ export type ClientDeviceWhereUniqueInput = Prisma.AtLeast<{
   alias?: Prisma.StringNullableFilter<"ClientDevice"> | string | null
   macVendor?: Prisma.StringNullableFilter<"ClientDevice"> | string | null
   ips?: Prisma.StringNullableListFilter<"ClientDevice">
+  tags?: Prisma.StringNullableListFilter<"ClientDevice">
   createdAt?: Prisma.DateTimeFilter<"ClientDevice"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClientDevice"> | Date | string
 }, "id" | "hwaddr">
@@ -225,6 +231,7 @@ export type ClientDeviceOrderByWithAggregationInput = {
   alias?: Prisma.SortOrderInput | Prisma.SortOrder
   macVendor?: Prisma.SortOrderInput | Prisma.SortOrder
   ips?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ClientDeviceCountOrderByAggregateInput
@@ -241,6 +248,7 @@ export type ClientDeviceScalarWhereWithAggregatesInput = {
   alias?: Prisma.StringNullableWithAggregatesFilter<"ClientDevice"> | string | null
   macVendor?: Prisma.StringNullableWithAggregatesFilter<"ClientDevice"> | string | null
   ips?: Prisma.StringNullableListFilter<"ClientDevice">
+  tags?: Prisma.StringNullableListFilter<"ClientDevice">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClientDevice"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ClientDevice"> | Date | string
 }
@@ -251,6 +259,7 @@ export type ClientDeviceCreateInput = {
   alias?: string | null
   macVendor?: string | null
   ips?: Prisma.ClientDeviceCreateipsInput | string[]
+  tags?: Prisma.ClientDeviceCreatetagsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -261,6 +270,7 @@ export type ClientDeviceUncheckedCreateInput = {
   alias?: string | null
   macVendor?: string | null
   ips?: Prisma.ClientDeviceCreateipsInput | string[]
+  tags?: Prisma.ClientDeviceCreatetagsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -271,6 +281,7 @@ export type ClientDeviceUpdateInput = {
   alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   macVendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ips?: Prisma.ClientDeviceUpdateipsInput | string[]
+  tags?: Prisma.ClientDeviceUpdatetagsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -281,6 +292,7 @@ export type ClientDeviceUncheckedUpdateInput = {
   alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   macVendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ips?: Prisma.ClientDeviceUpdateipsInput | string[]
+  tags?: Prisma.ClientDeviceUpdatetagsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -291,6 +303,7 @@ export type ClientDeviceCreateManyInput = {
   alias?: string | null
   macVendor?: string | null
   ips?: Prisma.ClientDeviceCreateipsInput | string[]
+  tags?: Prisma.ClientDeviceCreatetagsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -301,6 +314,7 @@ export type ClientDeviceUpdateManyMutationInput = {
   alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   macVendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ips?: Prisma.ClientDeviceUpdateipsInput | string[]
+  tags?: Prisma.ClientDeviceUpdatetagsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -311,6 +325,7 @@ export type ClientDeviceUncheckedUpdateManyInput = {
   alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   macVendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ips?: Prisma.ClientDeviceUpdateipsInput | string[]
+  tags?: Prisma.ClientDeviceUpdatetagsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -329,6 +344,7 @@ export type ClientDeviceCountOrderByAggregateInput = {
   alias?: Prisma.SortOrder
   macVendor?: Prisma.SortOrder
   ips?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -355,7 +371,16 @@ export type ClientDeviceCreateipsInput = {
   set: string[]
 }
 
+export type ClientDeviceCreatetagsInput = {
+  set: string[]
+}
+
 export type ClientDeviceUpdateipsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type ClientDeviceUpdatetagsInput = {
   set?: string[]
   push?: string | string[]
 }
@@ -368,6 +393,7 @@ export type ClientDeviceSelect<ExtArgs extends runtime.Types.Extensions.Internal
   alias?: boolean
   macVendor?: boolean
   ips?: boolean
+  tags?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["clientDevice"]>
@@ -378,6 +404,7 @@ export type ClientDeviceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   alias?: boolean
   macVendor?: boolean
   ips?: boolean
+  tags?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["clientDevice"]>
@@ -388,6 +415,7 @@ export type ClientDeviceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   alias?: boolean
   macVendor?: boolean
   ips?: boolean
+  tags?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["clientDevice"]>
@@ -398,11 +426,12 @@ export type ClientDeviceSelectScalar = {
   alias?: boolean
   macVendor?: boolean
   ips?: boolean
+  tags?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClientDeviceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "hwaddr" | "alias" | "macVendor" | "ips" | "createdAt" | "updatedAt", ExtArgs["result"]["clientDevice"]>
+export type ClientDeviceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "hwaddr" | "alias" | "macVendor" | "ips" | "tags" | "createdAt" | "updatedAt", ExtArgs["result"]["clientDevice"]>
 
 export type $ClientDevicePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ClientDevice"
@@ -413,6 +442,7 @@ export type $ClientDevicePayload<ExtArgs extends runtime.Types.Extensions.Intern
     alias: string | null
     macVendor: string | null
     ips: string[]
+    tags: string[]
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["clientDevice"]>
@@ -843,6 +873,7 @@ export interface ClientDeviceFieldRefs {
   readonly alias: Prisma.FieldRef<"ClientDevice", 'String'>
   readonly macVendor: Prisma.FieldRef<"ClientDevice", 'String'>
   readonly ips: Prisma.FieldRef<"ClientDevice", 'String[]'>
+  readonly tags: Prisma.FieldRef<"ClientDevice", 'String[]'>
   readonly createdAt: Prisma.FieldRef<"ClientDevice", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ClientDevice", 'DateTime'>
 }

@@ -1285,6 +1285,7 @@ export const ClientDeviceScalarFieldEnum = {
   alias: 'alias',
   macVendor: 'macVendor',
   ips: 'ips',
+  tags: 'tags',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
