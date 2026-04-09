@@ -16,6 +16,7 @@ type RequestOptions = {
 type ClientInit = {
   credentials?: RequestCredentials;
   headers?: HeadersInit;
+  onUnauthorized?: (response: Response) => void;
 };
 
 type ApiResult<T> = {
@@ -141,6 +142,10 @@ async function requestJson<T>(
 
   const contentType = response.headers.get("content-type") ?? "";
   const data = contentType.includes("application/json") ? ((await response.clone().json()) as T) : null;
+
+  if (response.status === 401) {
+    clientInit?.onUnauthorized?.(response);
+  }
 
   return {
     data,

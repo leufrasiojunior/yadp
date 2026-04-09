@@ -59,7 +59,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   DomainFilterValue,
   DomainItem,
@@ -162,7 +162,7 @@ export function DomainsWorkspace({
 }>) {
   const { messages } = useWebI18n();
   const { csrfToken } = useAppSession();
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const refreshNavigationSummary = useNavigationSummaryStore((state) => state.refreshSummary);
   const [data, setData] = useState(initialData);
   const [searchDraft, setSearchDraft] = useState("");

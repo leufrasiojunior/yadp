@@ -38,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type { GroupItem, GroupsListResponse, GroupsMutationResponse } from "@/lib/api/yapd-types";
 import { getClientCookie, setClientCookie } from "@/lib/cookie.client";
 import { useWebI18n } from "@/lib/i18n/client";
@@ -172,7 +172,7 @@ export function GroupsWorkspace({
 }>) {
   const { messages } = useWebI18n();
   const { csrfToken } = useAppSession();
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const createSchema = useMemo(() => buildCreateGroupSchema(messages), [messages]);
   const editSchema = useMemo(() => buildEditGroupSchema(messages), [messages]);
   const refreshNavigationSummary = useNavigationSummaryStore((state) => state.refreshSummary);

@@ -133,7 +133,7 @@ export const ptBRMessages: WebMessages = {
         name: "Nome",
         baseUrlScheme: "Protocolo",
         baseUrl: "Base URL",
-        baseUrlPlaceholder: "pihole.lan/admin",
+        baseUrlPlaceholder: "pihole.lan",
         baseUrlDescription: "Informe apenas host, porta e caminho opcional. Não repita http:// ou https://.",
         password: "Senha/Application password",
         passwordDescription: "O backend vai testar a autenticação antes de salvar a instância.",
@@ -438,9 +438,9 @@ export const ptBRMessages: WebMessages = {
     },
     cards: {
       totalQueries: "Total Queries",
-      queriesBlocked: "Queries Blocked",
-      percentageBlocked: "Percentage Blocked",
-      domainsOnList: "Domains on list",
+      queriesBlocked: "Queries Bloqueadas",
+      percentageBlocked: "% Bloqueados",
+      domainsOnList: "Total de dominios em ad-lists",
     },
     charts: {
       totalQueriesTitle: "Total Queries",
@@ -448,7 +448,7 @@ export const ptBRMessages: WebMessages = {
         count === 1
           ? "Últimas 24 horas da instância selecionada, em janelas de 1 hora."
           : `Últimas 24 horas agregadas entre ${count} instâncias, em janelas de 1 hora.`,
-      clientActivityTitle: "Client activity",
+      clientActivityTitle: "Atividade de clientes",
       clientActivityDescription: (count) =>
         count === 1
           ? "Clientes da instância selecionada nas últimas 24 horas, em janelas de 1 hora."

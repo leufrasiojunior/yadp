@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type { DomainOperationResponse, QueriesResponse, QuerySuggestionsResponse } from "@/lib/api/yapd-types";
 import type { DashboardScope } from "@/lib/dashboard/dashboard-scope";
 import { useWebI18n } from "@/lib/i18n/client";
@@ -80,7 +80,7 @@ export function QueriesWorkspace({
 }>) {
   const defaultFilters = createDefaultQueryFilters();
   const { csrfToken } = useAppSession();
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const { messages, timeZone } = useWebI18n();
   const currentDataRef = useRef(normalizeQueriesResponse(initialData, defaultFilters));
   const refreshInFlightRef = useRef(false);

@@ -4,7 +4,7 @@ import { createContext, useContext, useState } from "react";
 
 import { type StoreApi, useStore } from "zustand";
 
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type { NavigationSummaryResponse } from "@/lib/api/yapd-types";
 
 import { createNavigationSummaryStore, type NavigationSummaryState } from "./navigation-summary-store";
@@ -19,7 +19,7 @@ export function NavigationSummaryProvider({
   initialSummary: NavigationSummaryResponse | null;
 }>) {
   const [store] = useState<StoreApi<NavigationSummaryState>>(() => {
-    const client = getBrowserApiClient();
+    const client = getAuthenticatedBrowserApiClient();
     let storeApi!: StoreApi<NavigationSummaryState>;
 
     storeApi = createNavigationSummaryStore({

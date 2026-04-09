@@ -131,7 +131,7 @@ export const enUSMessages: WebMessages = {
         name: "Name",
         baseUrlScheme: "Protocol",
         baseUrl: "Base URL",
-        baseUrlPlaceholder: "pihole.lan/admin",
+        baseUrlPlaceholder: "pihole.lan",
         baseUrlDescription: "Provide only host, port, and optional path. Do not repeat http:// or https://.",
         password: "Password/Application password",
         passwordDescription: "The backend validates authentication before saving the instance.",
@@ -438,7 +438,7 @@ export const enUSMessages: WebMessages = {
       totalQueries: "Total Queries",
       queriesBlocked: "Queries Blocked",
       percentageBlocked: "Percentage Blocked",
-      domainsOnList: "Domains on list",
+      domainsOnList: "Total number of domains in ad-lists",
     },
     charts: {
       totalQueriesTitle: "Total Queries",

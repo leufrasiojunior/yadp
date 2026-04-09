@@ -24,7 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { StatusToggle } from "@/components/yapd/status-toggle";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   InstanceDetailResponse,
   InstanceItem,
@@ -99,7 +99,7 @@ export function InstancesWorkspace({
 }>) {
   const { messages, formatDateTime } = useWebI18n();
   const { csrfToken } = useAppSession();
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const editInstanceSchema = useMemo(() => buildInstanceFormSchema(messages, { requirePassword: false }), [messages]);
   const [items, setItems] = useState(initialItems);
   const [testingId, setTestingId] = useState<string | null>(null);

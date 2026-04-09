@@ -7,7 +7,7 @@ import { DashboardOverviewToasts } from "@/app/(main)/dashboard/_components/dash
 import { DashboardPartialDataAlert } from "@/app/(main)/dashboard/_components/dashboard-partial-data-alert";
 import { DashboardSummaryCards } from "@/app/(main)/dashboard/_components/dashboard-summary-cards";
 import { DashboardTotalQueriesChart } from "@/app/(main)/dashboard/_components/dashboard-total-queries-chart";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type { DashboardOverviewResponse } from "@/lib/api/yapd-types";
 import { DASHBOARD_AUTO_REFRESH_INTERVAL_MS } from "@/lib/dashboard/dashboard-refresh";
 import { useWebI18n } from "@/lib/i18n/client";
@@ -17,7 +17,7 @@ type DashboardLiveOverviewProps = {
 };
 
 export function DashboardLiveOverview({ initialOverview }: Readonly<DashboardLiveOverviewProps>) {
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const refreshInFlightRef = useRef(false);
   const { locale, messages } = useWebI18n();
   const [overview, setOverview] = useState(initialOverview);

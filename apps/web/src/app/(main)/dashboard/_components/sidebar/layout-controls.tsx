@@ -16,7 +16,7 @@ import { useAppSession } from "@/components/yapd/app-session-provider";
 import { LanguageSelect } from "@/components/yapd/language-select";
 import { TimeZoneInput } from "@/components/yapd/time-zone-input";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import { type FontKey, fontOptions } from "@/lib/fonts/registry";
 import { useWebI18n } from "@/lib/i18n/client";
 import { applyTimeZoneToDocument, normalizeTimeZone } from "@/lib/i18n/config";
@@ -36,7 +36,7 @@ import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 export function LayoutControls() {
   const router = useRouter();
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const { csrfToken } = useAppSession();
   const { messages } = useWebI18n();
   const themeMode = usePreferencesStore((s) => s.themeMode);

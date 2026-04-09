@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   SyncBlockingApplyResponse,
   SyncBlockingPresetItem,
@@ -47,7 +47,7 @@ type UpdateBlockingPresetsResponse = {
 };
 
 export function SidebarSyncBlocking() {
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const { baseline, csrfToken } = useAppSession();
   const { locale, messages } = useWebI18n();
   const syncMessages = messages.sidebar.sync;
