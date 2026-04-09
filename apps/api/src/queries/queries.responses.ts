@@ -49,8 +49,9 @@ const queryLogSchema = {
       properties: {
         ip: { type: "string", nullable: true },
         name: { type: "string", nullable: true },
+        alias: { type: "string", nullable: true },
       },
-      required: ["ip", "name"],
+      required: ["ip", "name", "alias"],
     },
     listId: { type: "number", nullable: true },
     ede: {

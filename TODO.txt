@@ -10,6 +10,8 @@ Regex para mais tipos de bloqueio:
 
 (^|\.)facebook\.com$ ::::: Bloquear um nome exato com TLD específico
 
+adicionar uma pagina para verificar tudo e mostrar um resumo do que nao esta sincronizado, e dar a opcao de sincronizar
+
 
 -----
 

@@ -3,6 +3,7 @@ import type { Request } from "express";
 
 import { getRequestLocale } from "../common/i18n/locale";
 import { translateApi } from "../common/i18n/messages";
+import { PrismaService } from "../common/prisma/prisma.service";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
 import type {
   PiholeManagedInstanceSummary,
@@ -36,6 +37,7 @@ export class QueriesService {
   private readonly logger = new Logger(QueriesService.name);
 
   constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(PiholeInstanceSessionService) private readonly instanceSessions: PiholeInstanceSessionService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
   ) {}
@@ -58,8 +60,10 @@ export class QueriesService {
 
       try {
         const result = await this.loadQueriesForInstance(instance, locale, this.buildDirectQueryRequest(query));
+        const queryEntries = result.queries.map((entry) => this.attachInstanceMetadata(instance, entry));
+        const clientAliases = await this.loadClientAliasesForQueries(queryEntries);
 
-        return this.buildSingleInstanceQueriesResponse(instance, result, Date.now() - startedAt);
+        return this.buildSingleInstanceQueriesResponse(instance, result, Date.now() - startedAt, clientAliases);
       } catch (error) {
         const failure = this.mapInstanceFailure(instance, error, locale);
         this.logger.warn(`Query log request failed for "${instance.name}" (${instance.id}): ${failure.message}`);
@@ -109,9 +113,9 @@ export class QueriesService {
         (left, right) =>
           right.time - left.time || right.id - left.id || left.instanceId.localeCompare(right.instanceId),
       );
-    const queries = allQueries
-      .slice(query.start, query.start + query.length)
-      .map((entry) => this.serializeQueryRecord(entry));
+    const visibleQueries = allQueries.slice(query.start, query.start + query.length);
+    const clientAliases = await this.loadClientAliasesForQueries(visibleQueries);
+    const queries = visibleQueries.map((entry) => this.serializeQueryRecord(entry, clientAliases));
     const successfulResults = successful.map((item) => item.result);
 
     return {
@@ -297,7 +301,13 @@ export class QueriesService {
     };
   }
 
-  private serializeQueryRecord(entry: QueryResultWithInstance): QueriesResponse["queries"][number] {
+  private serializeQueryRecord(
+    entry: QueryResultWithInstance,
+    clientAliases: Map<string, string>,
+  ): QueriesResponse["queries"][number] {
+    const clientIp = entry.client?.ip?.trim() ?? "";
+    const alias = clientIp.length > 0 ? (clientAliases.get(clientIp) ?? null) : null;
+
     return {
       instanceId: entry.instanceId,
       instanceName: entry.instanceName,
@@ -309,7 +319,12 @@ export class QueriesService {
       domain: entry.domain,
       upstream: entry.upstream,
       reply: entry.reply,
-      client: entry.client,
+      client: entry.client
+        ? {
+            ...entry.client,
+            alias,
+          }
+        : null,
       listId: entry.listId,
       ede: entry.ede,
       cname: entry.cname,
@@ -320,9 +335,12 @@ export class QueriesService {
     instance: PiholeManagedInstanceSummary,
     result: PiholeQueryListResult,
     durationMs: number,
+    clientAliases: Map<string, string>,
   ): QueriesResponse {
     return {
-      queries: result.queries.map((entry) => this.serializeQueryRecord(this.attachInstanceMetadata(instance, entry))),
+      queries: result.queries.map((entry) =>
+        this.serializeQueryRecord(this.attachInstanceMetadata(instance, entry), clientAliases),
+      ),
       cursor: result.cursor,
       recordsTotal: result.recordsTotal,
       recordsFiltered: result.recordsFiltered,
@@ -484,5 +502,63 @@ export class QueriesService {
       default:
         return translateApi(locale, "pihole.unreachable", { baseUrl });
     }
+  }
+
+  private async loadClientAliasesForQueries(queries: QueryResultWithInstance[]) {
+    const ips = [...new Set(queries.map((entry) => entry.client?.ip?.trim() ?? "").filter((ip) => ip.length > 0))];
+
+    if (ips.length === 0) {
+      return new Map<string, string>();
+    }
+
+    const items = await this.prisma.clientDevice.findMany({
+      where: {
+        alias: {
+          not: null,
+        },
+        ips: {
+          hasSome: ips,
+        },
+      },
+      select: {
+        alias: true,
+        ips: true,
+      },
+    });
+
+    const requestedIps = new Set(ips);
+    const aliasByIp = new Map<string, string | null>();
+
+    for (const item of items) {
+      const alias = item.alias?.trim() ?? "";
+
+      if (alias.length === 0) {
+        continue;
+      }
+
+      for (const ip of item.ips) {
+        if (!requestedIps.has(ip)) {
+          continue;
+        }
+
+        const currentAlias = aliasByIp.get(ip);
+
+        if (currentAlias === undefined) {
+          aliasByIp.set(ip, alias);
+          continue;
+        }
+
+        if (currentAlias !== alias) {
+          aliasByIp.set(ip, null);
+        }
+      }
+    }
+
+    return new Map(
+      [...aliasByIp.entries()].filter((entry): entry is [string, string] => {
+        const [, alias] = entry;
+        return alias !== null;
+      }),
+    );
   }
 }

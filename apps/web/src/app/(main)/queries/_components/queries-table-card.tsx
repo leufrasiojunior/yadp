@@ -58,6 +58,17 @@ function buildRowKey(query: QueriesResponse["queries"][number]) {
 }
 
 function getClientLabel(query: QueriesResponse["queries"][number], fallback: string) {
+  const ip = query.client?.ip?.trim() ?? "";
+  const alias = query.client?.alias?.trim() ?? "";
+
+  if (ip.length > 0 && alias.length > 0) {
+    return `${ip} (${alias})`;
+  }
+
+  if (alias.length > 0) {
+    return alias;
+  }
+
   return query.client?.name ?? query.client?.ip ?? fallback;
 }
 

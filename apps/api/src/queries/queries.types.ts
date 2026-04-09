@@ -34,6 +34,7 @@ export type QueryLogRecord = {
   client: {
     ip: string | null;
     name: string | null;
+    alias: string | null;
   } | null;
   listId: number | null;
   ede: {

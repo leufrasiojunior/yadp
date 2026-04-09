@@ -4040,9 +4040,13 @@
                               "name": {
                                 "type": "string",
                                 "nullable": true
+                              },
+                              "alias": {
+                                "type": "string",
+                                "nullable": true
                               }
                             },
-                            "required": ["ip", "name"]
+                            "required": ["ip", "name", "alias"]
                           },
                           "listId": {
                             "type": "number",
