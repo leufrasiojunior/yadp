@@ -28,6 +28,14 @@ export const THEME_PRESET_OPTIONS = [
     },
   },
   {
+    label: "Cafeine",
+    value: "cafeine",
+    primary: {
+      light: "oklch(0.4341 0.0392 41.9938)",
+      dark: "",
+    },
+  },
+  {
     label: "Soft Pop",
     value: "soft-pop",
     primary: {
