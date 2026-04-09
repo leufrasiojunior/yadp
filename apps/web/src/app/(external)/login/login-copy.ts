@@ -23,17 +23,12 @@ type LoginModeCopy = {
 
 type LoginCopy = {
   primaryInstanceLabel: string;
-  unavailableTitle: string;
-  unavailableDescription: string;
   modes: Record<SetupLoginMode, LoginModeCopy>;
 };
 
 const loginCopy: Record<AppLocale, LoginCopy> = {
   "pt-BR": {
     primaryInstanceLabel: "Pi-hole principal",
-    unavailableTitle: "Não foi possível abrir o login",
-    unavailableDescription:
-      "O login depende do backend para consultar a baseline, validar o modo de autenticação configurado e gravar o cookie seguro do YAPD.",
     modes: {
       "pihole-master": {
         badge: "Login da baseline",
@@ -83,9 +78,6 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
   },
   "en-US": {
     primaryInstanceLabel: "Primary Pi-hole",
-    unavailableTitle: "Could not open login",
-    unavailableDescription:
-      "Login depends on the backend to query the baseline, validate the configured authentication mode, and store the secure YAPD cookie.",
     modes: {
       "pihole-master": {
         badge: "Baseline login",

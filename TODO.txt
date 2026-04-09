@@ -61,5 +61,5 @@ tornar o container acessivel via https com certificado auto-assinado, alem de pe
 
 
 adicionar uma pagina para verificar tudo e mostrar um resumo do que nao esta sincronizado, e dar a opcao de sincronizar
-
+adicionar os bodys nas rotas post/put/delete
 por ultimo, criar uma forma de o usuario mesmo criar o proprio tema de forma facil, com mocks das paginas e exemplos em tempo real.

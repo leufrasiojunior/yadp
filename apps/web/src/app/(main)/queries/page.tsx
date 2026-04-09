@@ -48,9 +48,7 @@ export default async function QueriesPage() {
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return (
-        <ApiUnavailableScreen apiBaseUrl={error.baseUrl} fullscreen={false} locale={locale} retryHref="/queries" />
-      );
+      return <ApiUnavailableScreen fullscreen={false} locale={locale} retryHref="/queries" />;
     }
 
     if (isYapdApiResponseError(error)) {

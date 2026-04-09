@@ -38,9 +38,7 @@ export default async function DomainsPage() {
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return (
-        <ApiUnavailableScreen apiBaseUrl={error.baseUrl} fullscreen={false} locale={locale} retryHref="/domains" />
-      );
+      return <ApiUnavailableScreen fullscreen={false} locale={locale} retryHref="/domains" />;
     }
 
     if (isYapdApiResponseError(error)) {

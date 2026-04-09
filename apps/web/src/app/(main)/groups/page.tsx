@@ -23,7 +23,7 @@ export default async function GroupsPage() {
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return <ApiUnavailableScreen apiBaseUrl={error.baseUrl} fullscreen={false} locale={locale} retryHref="/groups" />;
+      return <ApiUnavailableScreen fullscreen={false} locale={locale} retryHref="/groups" />;
     }
 
     if (isYapdApiResponseError(error)) {

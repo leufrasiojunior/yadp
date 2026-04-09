@@ -129,15 +129,7 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return (
-        <ApiUnavailableScreen
-          apiBaseUrl={error.baseUrl}
-          description={messages.layout.unavailableDescription}
-          locale={locale}
-          retryHref="/dashboard"
-          title={messages.layout.unavailableTitle}
-        />
-      );
+      return <ApiUnavailableScreen locale={locale} retryHref="/dashboard" />;
     }
 
     if (isYapdApiResponseError(error)) {
@@ -148,7 +140,6 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
           message={error.message}
           retryHref="/dashboard"
           status={error.status}
-          title={messages.layout.unavailableTitle}
         />
       );
     }

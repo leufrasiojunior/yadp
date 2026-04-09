@@ -15,12 +15,13 @@ export const ptBRMessages: WebMessages = {
 
   apiUnavailable: {
     badge: "YAPD API",
-    title: "Backend indisponível",
-    description: "O frontend iniciou, mas não conseguiu falar com o backend do YAPD.",
-    helpTitle: "Como liberar o frontend",
-    helpDescription: (apiBaseUrl) =>
-      `Inicie o backend com npm run dev:api e confirme que ele está respondendo em ${apiBaseUrl}.`,
-    retry: "Tentar novamente",
+    title: "Aguardando backend",
+    description: "Aguardando o backend estar disponível...",
+    checking: "Verificando se o backend ja esta disponivel...",
+    nextAttemptIn: (seconds) => `Nova tentativa em ${seconds} ${seconds === 1 ? "segundo" : "segundos"}.`,
+    attempt: (attempt) => `Tentativa automatica ${attempt}`,
+    reloadNow: "Atualizar agora",
+    helpDescription: "Aguarde. Você será redirecionado automaticamente...",
   },
   apiError: {
     badge: "YAPD API",
@@ -41,9 +42,6 @@ export const ptBRMessages: WebMessages = {
         "O login humano do painel vai usar o fluxo oficial do Pi-hole v6 para gerar o SID da sessão proxy.",
       formTitle: "Configurar baseline",
       formDescription: "Preencha a instância principal do ambiente para liberar o login do produto.",
-      unavailableTitle: "Não foi possível abrir o setup",
-      unavailableDescription:
-        "O setup depende do backend para validar a baseline, criptografar o segredo técnico e salvar a configuração inicial.",
     },
     login: {
       badge: "Login da baseline",
@@ -53,9 +51,6 @@ export const ptBRMessages: WebMessages = {
       ephemeralPassword: "Senha e TOTP são enviados apenas para a baseline e não ficam gravados no banco do YAPD.",
       serviceSecrets:
         "As outras instâncias seguem com segredos técnicos próprios para testes, import e operações futuras.",
-      unavailableTitle: "Não foi possível abrir o login",
-      unavailableDescription:
-        "O login depende do backend para consultar a baseline, abrir a sessão proxy e gravar o cookie seguro do YAPD.",
     },
   },
   forms: {
@@ -292,9 +287,6 @@ export const ptBRMessages: WebMessages = {
     overviewButton: "Visão geral",
     queriesButton: "Queries",
     instancesButton: "Instâncias",
-    unavailableTitle: "O painel não conseguiu falar com o backend",
-    unavailableDescription:
-      "A área autenticada precisa do backend para validar a baseline, ler a sessão atual e responder as rotas de gerenciamento.",
   },
   sidebar: {
     groups: {

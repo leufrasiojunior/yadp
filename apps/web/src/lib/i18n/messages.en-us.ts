@@ -15,12 +15,13 @@ export const enUSMessages: WebMessages = {
 
   apiUnavailable: {
     badge: "YAPD API",
-    title: "Backend unavailable",
-    description: "The frontend started, but it could not reach the YAPD backend.",
-    helpTitle: "How to unblock the frontend",
-    helpDescription: (apiBaseUrl) =>
-      `Start the backend with npm run dev:api and confirm it is responding at ${apiBaseUrl}.`,
-    retry: "Try again",
+    title: "Waiting for backend",
+    description: "Waiting for the backend to become available...",
+    checking: "Checking whether the backend is available...",
+    nextAttemptIn: (seconds) => `Next attempt in ${seconds} ${seconds === 1 ? "second" : "seconds"}.`,
+    attempt: (attempt) => `Automatic attempt ${attempt}`,
+    reloadNow: "Reload now",
+    helpDescription: "Please wait. You will be redirected automatically...",
   },
   apiError: {
     badge: "YAPD API",
@@ -40,9 +41,6 @@ export const enUSMessages: WebMessages = {
       interactiveLogin: "Human login uses the official Pi-hole v6 flow to generate the SID for the proxy session.",
       formTitle: "Configure baseline",
       formDescription: "Fill in the main environment instance to unlock product login.",
-      unavailableTitle: "Could not open setup",
-      unavailableDescription:
-        "Setup depends on the backend to validate the baseline, encrypt the technical secret, and save the initial configuration.",
     },
     login: {
       badge: "Baseline login",
@@ -51,9 +49,6 @@ export const enUSMessages: WebMessages = {
         "YAPD uses the official Pi-hole v6 login endpoint to obtain an SID and create the dashboard's secure session.",
       ephemeralPassword: "Password and TOTP are sent only to the baseline and are never stored in the YAPD database.",
       serviceSecrets: "Other instances keep their own technical secrets for tests, imports, and future operations.",
-      unavailableTitle: "Could not open login",
-      unavailableDescription:
-        "Login depends on the backend to query the baseline, open the proxy session, and store the secure YAPD cookie.",
     },
   },
   forms: {
@@ -290,9 +285,6 @@ export const enUSMessages: WebMessages = {
     overviewButton: "Overview",
     queriesButton: "Queries",
     instancesButton: "Instances",
-    unavailableTitle: "The dashboard could not reach the backend",
-    unavailableDescription:
-      "The authenticated area needs the backend to validate the baseline, read the current session, and answer management routes.",
   },
   sidebar: {
     groups: {

@@ -42,9 +42,7 @@ export default async function ClientsPage() {
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return (
-        <ApiUnavailableScreen apiBaseUrl={error.baseUrl} fullscreen={false} locale={locale} retryHref="/clients" />
-      );
+      return <ApiUnavailableScreen fullscreen={false} locale={locale} retryHref="/clients" />;
     }
 
     if (isYapdApiResponseError(error)) {

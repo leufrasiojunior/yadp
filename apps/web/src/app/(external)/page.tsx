@@ -29,7 +29,7 @@ export default async function Home() {
     redirect("/login");
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return <ApiUnavailableScreen apiBaseUrl={error.baseUrl} locale={locale} />;
+      return <ApiUnavailableScreen locale={locale} />;
     }
 
     if (isYapdApiResponseError(error)) {

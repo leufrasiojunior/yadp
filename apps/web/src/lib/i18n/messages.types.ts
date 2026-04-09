@@ -14,9 +14,11 @@ export type WebMessages = {
     badge: string;
     title: string;
     description: string;
-    helpTitle: string;
-    helpDescription: (apiBaseUrl: string) => string;
-    retry: string;
+    checking: string;
+    nextAttemptIn: (seconds: number) => string;
+    attempt: (attempt: number) => string;
+    reloadNow: string;
+    helpDescription: string;
   };
   apiError: {
     badge: string;
@@ -33,8 +35,6 @@ export type WebMessages = {
       interactiveLogin: string;
       formTitle: string;
       formDescription: string;
-      unavailableTitle: string;
-      unavailableDescription: string;
     };
     login: {
       badge: string;
@@ -42,8 +42,6 @@ export type WebMessages = {
       description: string;
       ephemeralPassword: string;
       serviceSecrets: string;
-      unavailableTitle: string;
-      unavailableDescription: string;
     };
   };
   forms: {
@@ -251,8 +249,6 @@ export type WebMessages = {
     overviewButton: string;
     queriesButton: string;
     instancesButton: string;
-    unavailableTitle: string;
-    unavailableDescription: string;
   };
   sidebar: {
     groups: {
