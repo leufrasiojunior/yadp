@@ -1,44 +1,34 @@
 import {
   Activity,
   Binary,
-  FileText,
+  Globe,
   LayoutDashboard,
   List,
   type LucideIcon,
   MonitorSmartphone,
-  ShieldCheck,
-  Users,
   Waypoints,
 } from "lucide-react";
 
 import type { WebMessages } from "@/lib/i18n/messages";
 
-export interface NavSubItem {
+export type SidebarItem = {
   title: string;
   url: string;
-  icon?: LucideIcon;
-  comingSoon?: boolean;
-  newTab?: boolean;
-  isNew?: boolean;
-}
+  icon: LucideIcon;
+  isActive?: boolean;
+  items?: {
+    title: string;
+    url: string;
+  }[];
+};
 
-export interface NavMainItem {
-  title: string;
-  url: string;
-  icon?: LucideIcon;
-  subItems?: NavSubItem[];
-  comingSoon?: boolean;
-  newTab?: boolean;
-  isNew?: boolean;
-}
-
-export interface NavGroup {
+export type SidebarGroup = {
   id: number;
-  label?: string;
-  items: NavMainItem[];
-}
+  label: string;
+  items: SidebarItem[];
+};
 
-export function getSidebarItems(messages: WebMessages): NavGroup[] {
+export function getSidebarItems(messages: WebMessages): SidebarGroup[] {
   return [
     {
       id: 1,
@@ -52,17 +42,28 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
         {
           title: messages.sidebar.items.queries,
           url: "/queries",
-          icon: FileText,
+          icon: Activity,
         },
+      ],
+    },
+    {
+      id: 2,
+      label: messages.sidebar.groups.operations,
+      items: [
         {
           title: messages.sidebar.items.groups,
           url: "/groups",
-          icon: Users,
+          icon: Waypoints,
         },
         {
           title: messages.sidebar.items.clients,
           url: "/clients",
           icon: MonitorSmartphone,
+        },
+        {
+          title: messages.sidebar.items.domains,
+          url: "/domains",
+          icon: Globe,
         },
         {
           title: messages.sidebar.items.lists,
@@ -77,30 +78,12 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
       ],
     },
     {
-      id: 2,
-      label: messages.sidebar.groups.operations,
-      items: [
-        {
-          title: messages.sidebar.items.baselineLogin,
-          url: "/login",
-          icon: ShieldCheck,
-          newTab: true,
-        },
-        {
-          title: messages.sidebar.items.setupBaseline,
-          url: "/setup",
-          icon: Waypoints,
-          newTab: true,
-        },
-      ],
-    },
-    {
       id: 3,
       label: messages.sidebar.groups.status,
       items: [
         {
-          title: messages.sidebar.items.apiHealth,
-          url: "/dashboard",
+          title: "teste",
+          url: "/Teste",
           icon: Activity,
         },
       ],

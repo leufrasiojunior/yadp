@@ -394,7 +394,9 @@ export const ModelName = {
   SyncOperationPreset: 'SyncOperationPreset',
   SyncJob: 'SyncJob',
   SyncAttempt: 'SyncAttempt',
-  ManagedList: 'ManagedList'
+  ManagedList: 'ManagedList',
+  ManagedDomain: 'ManagedDomain',
+  RegexFilter: 'RegexFilter'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -410,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList"
+    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1228,6 +1230,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ManagedDomain: {
+      payload: Prisma.$ManagedDomainPayload<ExtArgs>
+      fields: Prisma.ManagedDomainFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ManagedDomainFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ManagedDomainFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>
+        }
+        findFirst: {
+          args: Prisma.ManagedDomainFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ManagedDomainFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>
+        }
+        findMany: {
+          args: Prisma.ManagedDomainFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>[]
+        }
+        create: {
+          args: Prisma.ManagedDomainCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>
+        }
+        createMany: {
+          args: Prisma.ManagedDomainCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ManagedDomainCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>[]
+        }
+        delete: {
+          args: Prisma.ManagedDomainDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>
+        }
+        update: {
+          args: Prisma.ManagedDomainUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>
+        }
+        deleteMany: {
+          args: Prisma.ManagedDomainDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ManagedDomainUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ManagedDomainUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>[]
+        }
+        upsert: {
+          args: Prisma.ManagedDomainUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManagedDomainPayload>
+        }
+        aggregate: {
+          args: Prisma.ManagedDomainAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateManagedDomain>
+        }
+        groupBy: {
+          args: Prisma.ManagedDomainGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManagedDomainGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ManagedDomainCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManagedDomainCountAggregateOutputType> | number
+        }
+      }
+    }
+    RegexFilter: {
+      payload: Prisma.$RegexFilterPayload<ExtArgs>
+      fields: Prisma.RegexFilterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RegexFilterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RegexFilterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>
+        }
+        findFirst: {
+          args: Prisma.RegexFilterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RegexFilterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>
+        }
+        findMany: {
+          args: Prisma.RegexFilterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>[]
+        }
+        create: {
+          args: Prisma.RegexFilterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>
+        }
+        createMany: {
+          args: Prisma.RegexFilterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RegexFilterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>[]
+        }
+        delete: {
+          args: Prisma.RegexFilterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>
+        }
+        update: {
+          args: Prisma.RegexFilterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>
+        }
+        deleteMany: {
+          args: Prisma.RegexFilterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RegexFilterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RegexFilterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>[]
+        }
+        upsert: {
+          args: Prisma.RegexFilterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegexFilterPayload>
+        }
+        aggregate: {
+          args: Prisma.RegexFilterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRegexFilter>
+        }
+        groupBy: {
+          args: Prisma.RegexFilterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RegexFilterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RegexFilterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RegexFilterCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1422,6 +1572,33 @@ export const ManagedListScalarFieldEnum = {
 } as const
 
 export type ManagedListScalarFieldEnum = (typeof ManagedListScalarFieldEnum)[keyof typeof ManagedListScalarFieldEnum]
+
+
+export const ManagedDomainScalarFieldEnum = {
+  id: 'id',
+  domain: 'domain',
+  type: 'type',
+  kind: 'kind',
+  comment: 'comment',
+  groups: 'groups',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ManagedDomainScalarFieldEnum = (typeof ManagedDomainScalarFieldEnum)[keyof typeof ManagedDomainScalarFieldEnum]
+
+
+export const RegexFilterScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  pattern: 'pattern',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RegexFilterScalarFieldEnum = (typeof RegexFilterScalarFieldEnum)[keyof typeof RegexFilterScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1744,6 +1921,8 @@ export type GlobalOmitConfig = {
   syncJob?: Prisma.SyncJobOmit
   syncAttempt?: Prisma.SyncAttemptOmit
   managedList?: Prisma.ManagedListOmit
+  managedDomain?: Prisma.ManagedDomainOmit
+  regexFilter?: Prisma.RegexFilterOmit
 }
 
 /* Types for Logging */

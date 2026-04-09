@@ -308,6 +308,7 @@ export const ptBRMessages: WebMessages = {
       queries: "Queries Log",
       groups: "Grupos",
       clients: "Clientes",
+      domains: "Domínios",
       lists: "Ad-lists",
       instances: "Instâncias",
       baselineLogin: "Login da baseline",
@@ -845,5 +846,58 @@ export const ptBRMessages: WebMessages = {
       loadFailed: "Falha ao carregar listas de bloqueio.",
     },
     defaultComment: "Adicionado via YAPD",
+  },
+  domains: {
+    eyebrow: "Pi-hole",
+    title: "Domínios",
+    description: "Gerencie domínios permitidos e bloqueados em todas as instâncias.",
+    table: {
+      domain: "Domínio / Regex",
+      status: "Status",
+      comment: "Comentários",
+      group: "Grupo Designado",
+      actions: "Ações",
+      edit: "Ver mais",
+      delete: "Remover",
+      searchPlaceholder: "Filtrar por domínio ou comentário...",
+      selectAll: "Selecionar todos",
+      selectRow: (domain) => `Selecionar domínio ${domain}`,
+      emptyTitle: "Nenhum domínio encontrado",
+      emptyDescription: "Domínios gerenciados aparecerão aqui após a sincronização.",
+      addAllow: "Permitir",
+      addDeny: "Bloquear",
+    },
+    filters: {
+      exactAllow: "Permitir Exato",
+      regexAllow: "Permitir Regex",
+      exactDeny: "Bloquear Exato",
+      regexDeny: "Bloquear Regex",
+    },
+    create: {
+      domainLabel: "Domínio / Regex",
+      commentLabel: "Comentário",
+      groupLabel: "Designar Grupos",
+      kindLabel: "Tipo de Filtro",
+      kinds: {
+        exact: {
+          label: "Domínio Exato",
+          description: "Bloqueia apenas o domínio informado.",
+        },
+        regexSpecific: {
+          label: "Regex: TLD Específico",
+          description: "Bloqueia o nome exato com um TLD específico (ex: .com).",
+        },
+        regexAny: {
+          label: "Regex: Qualquer TLD",
+          description: "Bloqueia o nome exato em qualquer TLD (.com, .net, .org, etc).",
+        },
+      },
+    },
+    toasts: {
+      updateSuccess: "Domínio atualizado com sucesso em todas as instâncias.",
+      updatePartial: (successCount, failedCount) =>
+        `Atualização parcial: ${successCount} sucessos, ${failedCount} falhas.`,
+      loadFailed: "Falha ao carregar lista de domínios.",
+    },
   },
 };

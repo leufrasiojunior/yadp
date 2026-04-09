@@ -238,6 +238,13 @@ export type PiholeDomainOperationResult = {
   took: number | null;
 };
 
+export type PiholeDomainListResult = {
+  domains: PiholeManagedDomainEntry[];
+  took: number | null;
+};
+
+export type PiholeDomainMutationResult = PiholeDomainOperationResult;
+
 export type PiholeGroupCreateRequest = {
   names: string[];
   comment?: string | null;

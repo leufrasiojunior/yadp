@@ -586,4 +586,68 @@ export type ListsMutationResponse = {
   }>;
 };
 
+export type DomainItem = {
+  domain: string;
+  unicode: string | null;
+  type: "allow" | "deny";
+  kind: "exact" | "regex";
+  comment: string | null;
+  enabled: boolean;
+  groups: number[];
+  id: number;
+  dateAdded: number | null;
+  dateModified: number | null;
+  origin: {
+    instanceId: string;
+    instanceName: string;
+  };
+  sync: {
+    isFullySynced: boolean;
+    sourceInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    missingInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+  };
+};
+
+export type DomainsListResponse = {
+  items: DomainItem[];
+  source: {
+    baselineInstanceId: string;
+    baselineInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+  };
+  unavailableInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
+export type DomainsMutationResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalInstances: number;
+    successfulCount: number;
+    failedCount: number;
+  };
+  successfulInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+  }>;
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
 export type YapdSession = AppSession;

@@ -179,3 +179,26 @@ model ManagedList {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model ManagedDomain {
+  id        String   @id @default(cuid())
+  domain    String
+  type      String   // allow | deny
+  kind      String   // exact | regex
+  comment   String?
+  groups    Int[]    @default([0])
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([domain, type, kind])
+}
+
+model RegexFilter {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  pattern   String   @unique
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

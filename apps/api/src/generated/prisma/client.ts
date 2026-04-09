@@ -94,3 +94,13 @@ export type SyncAttempt = Prisma.SyncAttemptModel
  * 
  */
 export type ManagedList = Prisma.ManagedListModel
+/**
+ * Model ManagedDomain
+ * 
+ */
+export type ManagedDomain = Prisma.ManagedDomainModel
+/**
+ * Model RegexFilter
+ * 
+ */
+export type RegexFilter = Prisma.RegexFilterModel

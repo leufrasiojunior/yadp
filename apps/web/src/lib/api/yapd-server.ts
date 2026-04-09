@@ -11,6 +11,7 @@ import type {
   ClientsSortDirection,
   ClientsSortField,
   DashboardOverviewResponse,
+  DomainsListResponse,
   GroupsListResponse,
   InstanceListResponse,
   ListsListResponse,
@@ -149,6 +150,25 @@ export async function getGroups(): Promise<GroupsListResponse> {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load groups.");
+  }
+
+  return data;
+}
+
+export async function getDomains(): Promise<DomainsListResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<DomainsListResponse>("/domains");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load domains.");
   }
 
   return data;

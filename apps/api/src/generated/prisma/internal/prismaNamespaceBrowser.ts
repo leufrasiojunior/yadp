@@ -61,7 +61,9 @@ export const ModelName = {
   SyncOperationPreset: 'SyncOperationPreset',
   SyncJob: 'SyncJob',
   SyncAttempt: 'SyncAttempt',
-  ManagedList: 'ManagedList'
+  ManagedList: 'ManagedList',
+  ManagedDomain: 'ManagedDomain',
+  RegexFilter: 'RegexFilter'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -235,6 +237,33 @@ export const ManagedListScalarFieldEnum = {
 } as const
 
 export type ManagedListScalarFieldEnum = (typeof ManagedListScalarFieldEnum)[keyof typeof ManagedListScalarFieldEnum]
+
+
+export const ManagedDomainScalarFieldEnum = {
+  id: 'id',
+  domain: 'domain',
+  type: 'type',
+  kind: 'kind',
+  comment: 'comment',
+  groups: 'groups',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ManagedDomainScalarFieldEnum = (typeof ManagedDomainScalarFieldEnum)[keyof typeof ManagedDomainScalarFieldEnum]
+
+
+export const RegexFilterScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  pattern: 'pattern',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RegexFilterScalarFieldEnum = (typeof RegexFilterScalarFieldEnum)[keyof typeof RegexFilterScalarFieldEnum]
 
 
 export const SortOrder = {

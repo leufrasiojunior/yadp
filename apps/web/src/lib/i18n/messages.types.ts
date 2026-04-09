@@ -266,6 +266,7 @@ export type WebMessages = {
       queries: string;
       groups: string;
       clients: string;
+      domains: string;
       lists: string;
       instances: string;
       baselineLogin: string;
@@ -764,5 +765,57 @@ export type WebMessages = {
       loadFailed: string;
     };
     defaultComment: string;
+  };
+  domains: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    table: {
+      domain: string;
+      status: string;
+      comment: string;
+      group: string;
+      actions: string;
+      edit: string;
+      delete: string;
+      searchPlaceholder: string;
+      selectAll: string;
+      selectRow: (domain: string) => string;
+      emptyTitle: string;
+      emptyDescription: string;
+      addAllow: string;
+      addDeny: string;
+    };
+    filters: {
+      exactAllow: string;
+      regexAllow: string;
+      exactDeny: string;
+      regexDeny: string;
+    };
+    create: {
+      domainLabel: string;
+      commentLabel: string;
+      groupLabel: string;
+      kindLabel: string;
+      kinds: {
+        exact: {
+          label: string;
+          description: string;
+        };
+        regexSpecific: {
+          label: string;
+          description: string;
+        };
+        regexAny: {
+          label: string;
+          description: string;
+        };
+      };
+    };
+    toasts: {
+      updateSuccess: string;
+      updatePartial: (successCount: number, failedCount: number) => string;
+      loadFailed: string;
+    };
   };
 };

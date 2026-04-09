@@ -48,3 +48,6 @@ https://github.com/hagezi/dns-blocklists
 
 
 quando o cookie expirar, ja redirecionar direto para /login
+
+
+ajustar os graficos para mostrar de hora em hora, nao a cada hora e minuto 5.

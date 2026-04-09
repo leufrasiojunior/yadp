@@ -90,7 +90,7 @@ type ClientSeriesAccumulator = {
   points: Map<number, number>;
 };
 
-type NormalizedLookup = Map<string, unknown>;
+export type NormalizedLookup = Map<string, unknown>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -210,7 +210,7 @@ function normalizeLookupKey(value: string) {
   return value.replaceAll(/[^a-z0-9]+/gi, "").toLowerCase();
 }
 
-function createLookup(record: Record<string, unknown>): NormalizedLookup {
+export function createLookup(record: Record<string, unknown>): NormalizedLookup {
   const lookup: NormalizedLookup = new Map();
 
   for (const [key, value] of Object.entries(record)) {
@@ -220,7 +220,7 @@ function createLookup(record: Record<string, unknown>): NormalizedLookup {
   return lookup;
 }
 
-function readLookupValue(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupValue(lookup: NormalizedLookup, aliases: string[]) {
   for (const alias of aliases) {
     const value = lookup.get(normalizeLookupKey(alias));
 
@@ -232,23 +232,23 @@ function readLookupValue(lookup: NormalizedLookup, aliases: string[]) {
   return undefined;
 }
 
-function readLookupString(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupString(lookup: NormalizedLookup, aliases: string[]) {
   return readString(readLookupValue(lookup, aliases));
 }
 
-function readLookupNumber(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupNumber(lookup: NormalizedLookup, aliases: string[]) {
   return readNumber(readLookupValue(lookup, aliases));
 }
 
-function readLookupNumberArray(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupNumberArray(lookup: NormalizedLookup, aliases: string[]) {
   return readNumberArray(readLookupValue(lookup, aliases));
 }
 
-function readLookupBoolean(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupBoolean(lookup: NormalizedLookup, aliases: string[]) {
   return readBoolean(readLookupValue(lookup, aliases));
 }
 
-function readLookupRecord(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupRecord(lookup: NormalizedLookup, aliases: string[]) {
   const value = readLookupValue(lookup, aliases);
   return isRecord(value) ? value : null;
 }
@@ -548,6 +548,81 @@ export class PiholeService {
         enabled: operation.enabled ?? true,
       },
     });
+
+    return this.normalizeDomainOperation(payload, connection, path);
+  }
+
+  async listDomains(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeDomainListResult> {
+    const path = "/domains";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeDomainList(payload, connection, path);
+  }
+
+  async updateDomain(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    domain: string,
+    type: string,
+    kind: string,
+    update: { comment?: string | null; groups: number[]; enabled: boolean },
+  ): Promise<PiholeDomainMutationResult> {
+    const path = `/domains/${type}/${kind}/${encodeURIComponent(domain)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "PUT",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        comment: update.comment ?? "",
+        groups: update.groups,
+        enabled: update.enabled,
+      },
+    });
+
+    if (payload === undefined) {
+      return {
+        domains: [],
+        processed: {
+          errors: [],
+          success: [{ item: domain }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeDomainOperation(payload, connection, path);
+  }
+
+  async deleteDomain(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    domain: string,
+    type: string,
+    kind: string,
+  ): Promise<PiholeDomainMutationResult> {
+    const path = `/domains/${type}/${kind}/${encodeURIComponent(domain)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    if (payload === undefined) {
+      return {
+        domains: [],
+        processed: {
+          errors: [],
+          success: [{ item: domain }],
+        },
+        took: 0,
+      };
+    }
 
     return this.normalizeDomainOperation(payload, connection, path);
   }
@@ -1355,6 +1430,26 @@ export class PiholeService {
       id: readLookupNumber(lookup, ["id"]),
       dateAdded: readLookupNumber(lookup, ["date_added", "dateAdded", "created_at", "createdAt"]),
       dateModified: readLookupNumber(lookup, ["date_modified", "dateModified", "updated_at", "updatedAt"]),
+    };
+  }
+
+  private normalizeDomainList(payload: unknown, connection: PiholeConnection, path: string): PiholeDomainListResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawDomains = readLookupValue(payloadLookup, ["domains", "domain", "items", "results"]);
+
+    if (!Array.isArray(rawDomains)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      domains: rawDomains
+        .filter((item): item is Record<string, unknown> => isRecord(item))
+        .map((item) => this.normalizeManagedDomain(item)),
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
     };
   }
 

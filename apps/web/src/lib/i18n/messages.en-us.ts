@@ -306,6 +306,7 @@ export const enUSMessages: WebMessages = {
       queries: "Queries Log",
       groups: "Groups",
       clients: "Clients",
+      domains: "Domains",
       lists: "Ad-lists",
       instances: "Instances",
       baselineLogin: "Baseline login",
@@ -840,5 +841,58 @@ export const enUSMessages: WebMessages = {
       loadFailed: "Failed to load blocklists.",
     },
     defaultComment: "Add from YAPD",
+  },
+  domains: {
+    eyebrow: "Pi-hole",
+    title: "Domains",
+    description: "Manage allowed and blocked domains across all instances.",
+    table: {
+      domain: "Domain / Regex",
+      status: "Status",
+      comment: "Comments",
+      group: "Designated Group",
+      actions: "Actions",
+      edit: "See more",
+      delete: "Remove",
+      searchPlaceholder: "Filter by domain or comment...",
+      selectAll: "Select all",
+      selectRow: (domain) => `Select domain ${domain}`,
+      emptyTitle: "No domains found",
+      emptyDescription: "Managed domains will appear here after synchronization.",
+      addAllow: "Allow",
+      addDeny: "Block",
+    },
+    filters: {
+      exactAllow: "Exact Allow",
+      regexAllow: "Regex Allow",
+      exactDeny: "Exact Deny",
+      regexDeny: "Regex Deny",
+    },
+    create: {
+      domainLabel: "Domain / Regex",
+      commentLabel: "Comment",
+      groupLabel: "Assign Groups",
+      kindLabel: "Filter Type",
+      kinds: {
+        exact: {
+          label: "Exact Domain",
+          description: "Blocks only the provided domain.",
+        },
+        regexSpecific: {
+          label: "Regex: Specific TLD",
+          description: "Blocks exact name with a specific TLD (e.g. .com).",
+        },
+        regexAny: {
+          label: "Regex: Any TLD",
+          description: "Blocks exact name on any TLD (.com, .net, .org, etc).",
+        },
+      },
+    },
+    toasts: {
+      updateSuccess: "Domain updated successfully across all instances.",
+      updatePartial: (successCount, failedCount) =>
+        `Partial update: ${successCount} successes, ${failedCount} failures.`,
+      loadFailed: "Failed to load domain list.",
+    },
   },
 };
