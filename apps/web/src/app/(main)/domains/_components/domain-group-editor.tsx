@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import type { DomainItem, GroupItem } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
@@ -54,34 +53,39 @@ export function DomainGroupEditor({ item, groups, onSave, disabled }: DomainGrou
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" disabled={disabled} className="gap-2">
-          <Tags className="h-4 w-4" />
-          <div className="flex gap-1 overflow-hidden">
-            {item.groups.length > 0 ? (
-              item.groups.slice(0, 2).map((groupId) => {
-                const group = groups.find((g) => g.id === groupId);
-                return (
-                  <Badge key={groupId} variant="secondary" className="h-5 px-1 text-[10px]">
-                    {group?.name ?? groupId}
-                  </Badge>
-                );
-              })
-            ) : (
-              <span className="text-muted-foreground text-xs">{messages.common.notConfigured}</span>
-            )}
-            {item.groups.length > 2 && (
-              <Badge variant="secondary" className="h-5 px-1 text-[10px]">
-                +{item.groups.length - 2}
-              </Badge>
-            )}
-          </div>
-        </Button>
-      </DialogTrigger>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={disabled}
+        className="h-9 w-full justify-start gap-2 overflow-hidden"
+        onClick={() => setOpen(true)}
+      >
+        <Tags className="h-4 w-4 shrink-0" />
+        <div className="pointer-events-none flex min-w-0 gap-1 overflow-hidden">
+          {item.groups.length > 0 ? (
+            item.groups.slice(0, 2).map((groupId) => {
+              const group = groups.find((g) => g.id === groupId);
+              return (
+                <Badge key={groupId} variant="secondary" className="h-5 px-1 text-[10px]">
+                  {group?.name ?? groupId}
+                </Badge>
+              );
+            })
+          ) : (
+            <span className="text-muted-foreground text-xs">{messages.common.notConfigured}</span>
+          )}
+          {item.groups.length > 2 && (
+            <Badge variant="secondary" className="h-5 px-1 text-[10px]">
+              +{item.groups.length - 2}
+            </Badge>
+          )}
+        </div>
+      </Button>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{messages.lists.groupEditor.title}</DialogTitle>
-          <DialogDescription>{messages.lists.groupEditor.description}</DialogDescription>
+          <DialogTitle>{messages.domains.groupEditor.title}</DialogTitle>
+          <DialogDescription>{messages.domains.groupEditor.description}</DialogDescription>
         </DialogHeader>
 
         <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
@@ -109,15 +113,15 @@ export function DomainGroupEditor({ item, groups, onSave, disabled }: DomainGrou
         </div>
 
         {selectedGroupIds.length === 0 && (
-          <p className="text-destructive text-xs">{messages.lists.groupEditor.groupsRequired}</p>
+          <p className="text-destructive text-xs">{messages.domains.groupEditor.groupsRequired}</p>
         )}
 
         <DialogFooter>
           <Button variant="outline" disabled={isSaving} onClick={() => setOpen(false)}>
-            {messages.groups.edit.cancel}
+            {messages.domains.groupEditor.cancel}
           </Button>
           <Button disabled={isSaving || selectedGroupIds.length === 0} onClick={handleSave}>
-            {isSaving ? messages.lists.groupEditor.saving : messages.lists.groupEditor.save}
+            {isSaving ? messages.domains.groupEditor.saving : messages.domains.groupEditor.save}
           </Button>
         </DialogFooter>
       </DialogContent>

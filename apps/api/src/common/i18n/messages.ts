@@ -15,6 +15,7 @@ type ApiMessageKey =
   | "dashboard.noInstances"
   | "domains.instanceIdRequired"
   | "domains.operationRejected"
+  | "lists.defaultComment"
   | "groups.alreadyExists"
   | "groups.baselineSkippedAfterFailure"
   | "groups.defaultImmutable"
@@ -85,6 +86,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.noInstances": "Nenhuma instância Pi-hole está cadastrada no YAPD.",
     "domains.instanceIdRequired": "Selecione uma instância válida para aplicar esta ação de domínio.",
     "domains.operationRejected": ({ baseUrl }) => `O Pi-hole em ${baseUrl} recusou a alteração de domínio.`,
+    "lists.defaultComment": "Adicionado via YAPD",
     "groups.alreadyExists": ({ name }) => `O grupo "${name}" já existe em pelo menos uma instância.`,
     "groups.baselineSkippedAfterFailure":
       "A baseline não foi alterada porque uma ou mais instâncias secundárias falharam durante a sincronização.",
@@ -171,6 +173,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.noInstances": "No Pi-hole instance is registered in YAPD.",
     "domains.instanceIdRequired": "Select a valid instance to apply this domain action.",
     "domains.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the domain change.`,
+    "lists.defaultComment": "Added from YAPD",
     "groups.alreadyExists": ({ name }) => `The group "${name}" already exists on at least one instance.`,
     "groups.baselineSkippedAfterFailure":
       "The baseline was left unchanged because one or more secondary instances failed during synchronization.",

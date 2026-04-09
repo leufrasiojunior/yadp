@@ -218,7 +218,7 @@ export function ListEditDialog({ list, groups, onSave, open, onOpenChange, disab
 
         <DialogFooter>
           <Button variant="outline" disabled={isSaving} onClick={() => onOpenChange(false)}>
-            {messages.groups.edit.cancel}
+            {messages.lists.groupEditor.cancel}
           </Button>
           <Button disabled={isSaving || selectedGroupIds.length === 0} onClick={handleSave}>
             {isSaving ? messages.lists.groupEditor.saving : messages.lists.groupEditor.save}

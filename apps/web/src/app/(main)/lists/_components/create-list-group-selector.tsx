@@ -58,7 +58,7 @@ export function CreateListGroupSelector({
                 );
               })
             ) : (
-              <span className="text-muted-foreground text-sm">{messages.clients.table.group}</span>
+              <span className="text-muted-foreground text-sm">{messages.lists.create.groupLabel}</span>
             )}
             {selectedGroupIds.length > 2 && (
               <Badge variant="secondary" className="h-5 px-1 text-[10px]">
@@ -98,7 +98,7 @@ export function CreateListGroupSelector({
         </div>
 
         <DialogFooter>
-          <Button onClick={() => setOpen(false)}>{messages.sidebar.sync.close}</Button>
+          <Button onClick={() => setOpen(false)}>{messages.lists.groupEditor.cancel}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

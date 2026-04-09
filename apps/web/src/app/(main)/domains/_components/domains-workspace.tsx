@@ -1,10 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ArrowLeftRight, CircleAlert, Globe, Info, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeftRight,
+  ArrowUp,
+  ArrowUpDown,
+  CircleAlert,
+  Globe,
+  Info,
+  MoreHorizontal,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
+import { ManagedItemsPagination } from "@/app/(main)/_components/managed-items-pagination";
+import { ManagedItemsPartialAlert } from "@/app/(main)/_components/managed-items-partial-alert";
+import { ManagedItemsSearchInput } from "@/app/(main)/_components/managed-items-search-input";
+import { ManagedItemsTableSkeleton } from "@/app/(main)/_components/managed-items-table-skeleton";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -42,13 +57,23 @@ import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
+  DomainFilterValue,
   DomainItem,
   DomainOperationResponse,
+  DomainPatternMode,
   DomainsListResponse,
   DomainsMutationResponse,
+  DomainsSortDirection,
+  DomainsSortField,
   GroupItem,
 } from "@/lib/api/yapd-types";
 import { getClientCookie, setClientCookie } from "@/lib/cookie.client";
+import {
+  ALL_DOMAIN_FILTERS,
+  DEFAULT_DOMAINS_SORT_DIRECTION,
+  DEFAULT_DOMAINS_SORT_FIELD,
+  getDefaultDomainsSortDirection,
+} from "@/lib/domains/domains-sorting";
 import { useWebI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
@@ -63,34 +88,33 @@ type DeleteDialogState = {
   description: string;
 } | null;
 
-type SyncSelectionState = Record<
-  string,
-  {
-    sourceInstanceId: string;
-    targetInstanceIds: string[];
-  }
->;
-
 type DomainSyncInstanceState = {
   instanceId: string;
   instanceName: string;
   hasDomain: boolean;
 };
 
-type DomainFilterType = "exact-allow" | "regex-allow" | "exact-deny" | "regex-deny";
-
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+function getDomainKey(item: Pick<DomainItem, "domain" | "type" | "kind">) {
+  return `${item.domain}-${item.type}-${item.kind}`;
+}
 
 function sortSyncInstanceStates(states: DomainSyncInstanceState[], baselineInstanceId: string) {
   return [...states].sort((left, right) => {
-    if (left.instanceId === baselineInstanceId && right.instanceId !== baselineInstanceId) return -1;
-    if (left.instanceId !== baselineInstanceId && right.instanceId === baselineInstanceId) return 1;
+    if (left.instanceId === baselineInstanceId && right.instanceId !== baselineInstanceId) {
+      return -1;
+    }
+
+    if (left.instanceId !== baselineInstanceId && right.instanceId === baselineInstanceId) {
+      return 1;
+    }
+
     return left.instanceName.localeCompare(right.instanceName);
   });
 }
 
 function getDomainSyncInstanceStates(item: DomainItem, baselineInstanceId: string) {
   const instanceStates = new Map<string, DomainSyncInstanceState>();
+
   for (const instance of item.sync.sourceInstances) {
     instanceStates.set(instance.instanceId, {
       instanceId: instance.instanceId,
@@ -98,6 +122,7 @@ function getDomainSyncInstanceStates(item: DomainItem, baselineInstanceId: strin
       hasDomain: true,
     });
   }
+
   for (const instance of item.sync.missingInstances) {
     instanceStates.set(instance.instanceId, {
       instanceId: instance.instanceId,
@@ -105,145 +130,193 @@ function getDomainSyncInstanceStates(item: DomainItem, baselineInstanceId: strin
       hasDomain: false,
     });
   }
+
   return sortSyncInstanceStates([...instanceStates.values()], baselineInstanceId);
 }
 
 function buildDefaultSyncTargetIds(item: DomainItem, baselineInstanceId: string, sourceInstanceId: string) {
   const sourceState = getDomainSyncInstanceStates(item, baselineInstanceId).find(
-    (i) => i.instanceId === sourceInstanceId,
+    (instance) => instance.instanceId === sourceInstanceId,
   );
-  if (!sourceState) return [];
-  return getDomainSyncInstanceStates(item, baselineInstanceId)
-    .filter((i) => i.instanceId !== sourceInstanceId && i.hasDomain !== sourceState.hasDomain)
-    .map((i) => i.instanceId);
-}
 
-function buildSyncSelections(items: DomainItem[], baselineInstanceId: string): SyncSelectionState {
-  return Object.fromEntries(
-    items
-      .filter((i) => i.sync.missingInstances.length > 0)
-      .map((i) => [
-        `${i.domain}-${i.type}-${i.kind}`,
-        {
-          sourceInstanceId: i.origin.instanceId,
-          targetInstanceIds: buildDefaultSyncTargetIds(i, baselineInstanceId, i.origin.instanceId),
-        },
-      ]),
-  );
+  if (!sourceState) {
+    return [];
+  }
+
+  return getDomainSyncInstanceStates(item, baselineInstanceId)
+    .filter((instance) => instance.instanceId !== sourceInstanceId && instance.hasDomain !== sourceState.hasDomain)
+    .map((instance) => instance.instanceId);
 }
 
 export function DomainsWorkspace({
-  initialItems,
-  initialSource,
+  initialData,
   groups,
 }: Readonly<{
-  initialItems: DomainItem[];
-  initialSource: DomainsListResponse["source"];
+  initialData: DomainsListResponse;
   groups: GroupItem[];
 }>) {
   const { messages } = useWebI18n();
   const { csrfToken } = useAppSession();
   const client = useMemo(() => getBrowserApiClient(), []);
-  const [items, setItems] = useState(initialItems);
-  const [source, setSource] = useState(initialSource);
+  const [data, setData] = useState(initialData);
   const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [busyAction, setBusyAction] = useState<string | null>(null);
-
-  // Creation form state
   const [newDomain, setNewDomain] = useState("");
   const [newComment, setNewComment] = useState("");
   const [newGroupIds, setNewGroupIds] = useState<number[]>([0]);
-  const [newKind, setNewKind] = useState<"exact" | "regex_specific" | "regex_any">("exact");
-
-  // Filtering state
-  const [activeFilters, setActiveFilters] = useState<DomainFilterType[]>([
-    "exact-allow",
-    "regex-allow",
-    "exact-deny",
-    "regex-deny",
-  ]);
-
-  // Pagination state
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  // Edit state
+  const [newPatternMode, setNewPatternMode] = useState<DomainPatternMode>("exact");
+  const [activeFilters, setActiveFilters] = useState<DomainFilterValue[]>(ALL_DOMAIN_FILTERS);
   const [editingItem, setEditingItem] = useState<DomainItem | null>(null);
-
-  // Sync state
-  const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
-  const [syncDialogAddress, setSyncDialogAddress] = useState<string | null>(null);
-  const [syncDialogType, setSyncDialogType] = useState<"allow" | "deny" | null>(null);
-  const [syncDialogKind, setSyncDialogKind] = useState<"exact" | "regex" | null>(null);
-  const [syncSelections, setSyncSelections] = useState<SyncSelectionState>(() =>
-    buildSyncSelections(initialItems, initialSource.baselineInstanceId),
-  );
-
-  // Delete state
+  const [syncItem, setSyncItem] = useState<DomainItem | null>(null);
+  const [syncSourceInstanceId, setSyncSourceInstanceId] = useState("");
+  const [syncTargetInstanceIds, setSyncTargetInstanceIds] = useState<string[]>([]);
+  const [isBulkSyncDialogOpen, setIsBulkSyncDialogOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(null);
   const [rememberDeleteChoice, setRememberDeleteChoice] = useState(false);
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
+  const [sortBy, setSortBy] = useState<DomainsSortField>(DEFAULT_DOMAINS_SORT_FIELD);
+  const [sortDirection, setSortDirection] = useState<DomainsSortDirection>(DEFAULT_DOMAINS_SORT_DIRECTION);
 
-  useEffect(() => {
-    setSkipDeleteConfirm(getClientCookie(FRONTEND_CONFIG.groups.deleteConfirmCookieKey) === "1");
-  }, []);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setSearchTerm(searchDraft.trim().toLowerCase());
-      setPage(1); // Reset page on search
-    }, FRONTEND_CONFIG.groups.searchDebounceMs);
-    return () => window.clearTimeout(timeoutId);
-  }, [searchDraft]);
-
-  const filteredItems = useMemo(() => {
-    let result = items;
-
-    // Search filter
-    if (searchTerm.length > 0) {
-      result = result.filter(
-        (i) => i.domain.toLowerCase().includes(searchTerm) || (i.comment?.toLowerCase().includes(searchTerm) ?? false),
-      );
-    }
-
-    // Checkbox filters
-    result = result.filter((item) => {
-      const typeKey = item.type === "deny" ? "deny" : "allow";
-      const filterKey = `${item.kind}-${typeKey}` as DomainFilterType;
-      return activeFilters.includes(filterKey);
-    });
-
-    return result;
-  }, [items, searchTerm, activeFilters]);
-
-  const paginatedItems = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredItems.slice(start, start + pageSize);
-  }, [filteredItems, page, pageSize]);
-
-  const totalPages = Math.ceil(filteredItems.length / pageSize);
+  const isReloading =
+    busyAction === "refresh" ||
+    busyAction === "page" ||
+    busyAction === "page-size" ||
+    busyAction === "sort" ||
+    busyAction === "search" ||
+    busyAction === "filters";
+  const isMutating = busyAction !== null;
 
   const selectedKeySet = useMemo(() => new Set(selectedKeys), [selectedKeys]);
   const allVisibleSelected =
-    filteredItems.length > 0 && filteredItems.every((i) => selectedKeySet.has(`${i.domain}-${i.type}-${i.kind}`));
-  const someVisibleSelected = filteredItems.some((i) => selectedKeySet.has(`${i.domain}-${i.type}-${i.kind}`));
-  const isMutating = busyAction !== null;
+    data.items.length > 0 && data.items.every((item) => selectedKeySet.has(getDomainKey(item)));
+  const someVisibleSelected = data.items.some((item) => selectedKeySet.has(getDomainKey(item)));
+  const selectedItems = data.items.filter((item) => selectedKeySet.has(getDomainKey(item)));
+  const syncInstanceStates = useMemo(
+    () => (syncItem ? getDomainSyncInstanceStates(syncItem, data.source.baselineInstanceId) : []),
+    [data.source.baselineInstanceId, syncItem],
+  );
+  const syncTargetStates = syncInstanceStates.filter((instance) => instance.instanceId !== syncSourceInstanceId);
 
-  const refreshDomains = async () => {
-    const { data, response } = await client.GET<DomainsListResponse>("/domains");
-    if (!response.ok || !data) {
-      toast.error(messages.domains.toasts.loadFailed);
-      return null;
-    }
-    setItems(data.items);
-    setSource(data.source);
-    return data;
-  };
+  const refreshDomains = useCallback(
+    async (
+      page = data.pagination.page,
+      pageSize = data.pagination.pageSize,
+      nextSortBy = sortBy,
+      nextSortDirection = sortDirection,
+      nextSearchTerm = searchTerm,
+      nextFilters = activeFilters,
+    ) => {
+      const { data: nextData, response } = await client.GET<DomainsListResponse>("/domains", {
+        params: {
+          query: {
+            page,
+            pageSize,
+            sortBy: nextSortBy,
+            sortDirection: nextSortDirection,
+            search: nextSearchTerm,
+            filters: nextFilters,
+          },
+        },
+      });
+
+      if (!response.ok || !nextData) {
+        toast.error(messages.domains.toasts.refreshFailed);
+        return null;
+      }
+
+      setData(nextData);
+      return nextData;
+    },
+    [
+      activeFilters,
+      client,
+      data.pagination.page,
+      data.pagination.pageSize,
+      messages.domains.toasts.refreshFailed,
+      searchTerm,
+      sortBy,
+      sortDirection,
+    ],
+  );
+
+  useEffect(() => {
+    setSkipDeleteConfirm(getClientCookie(FRONTEND_CONFIG.domains.deleteConfirmCookieKey) === "1");
+  }, []);
+
+  useEffect(() => {
+    const visibleKeys = new Set(data.items.map((item) => getDomainKey(item)));
+    setSelectedKeys((current) => current.filter((key) => visibleKeys.has(key)));
+  }, [data.items]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      const nextSearchTerm = searchDraft.trim();
+
+      if (nextSearchTerm === searchTerm) {
+        return;
+      }
+
+      const applySearch = async () => {
+        setBusyAction("search");
+
+        try {
+          const nextData = await refreshDomains(
+            1,
+            data.pagination.pageSize,
+            sortBy,
+            sortDirection,
+            nextSearchTerm,
+            activeFilters,
+          );
+
+          if (!cancelled && nextData) {
+            setSearchTerm(nextSearchTerm);
+          }
+        } finally {
+          if (!cancelled) {
+            setBusyAction(null);
+          }
+        }
+      };
+
+      void applySearch();
+    }, FRONTEND_CONFIG.domains.searchDebounceMs);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [activeFilters, data.pagination.pageSize, refreshDomains, searchDraft, searchTerm, sortBy, sortDirection]);
+
+  const notifyMutationResult = useCallback(
+    (
+      responseData: DomainsMutationResponse | DomainOperationResponse,
+      options: {
+        successMessage: string;
+        partialMessage: (successCount: number, failedCount: number) => string;
+      },
+    ) => {
+      if (responseData.failedInstances.length === 0) {
+        toast.success(options.successMessage);
+        return;
+      }
+
+      toast.warning(options.partialMessage(responseData.summary.successfulCount, responseData.summary.failedCount));
+      responseData.failedInstances.forEach((failure) => {
+        toast.error(messages.domains.toasts.instanceFailure(failure.instanceName, failure.message), {
+          description: messages.domains.toasts.syncHint,
+        });
+      });
+    },
+    [messages.domains.toasts.instanceFailure, messages.domains.toasts.syncHint],
+  );
 
   const runRefresh = async () => {
     setBusyAction("refresh");
+
     try {
       await refreshDomains();
     } finally {
@@ -251,228 +324,351 @@ export function DomainsWorkspace({
     }
   };
 
-  const submitCreate = async (type: "allow" | "deny") => {
-    if (!newDomain.trim()) return;
+  const changePageSize = async (nextPageSize: number) => {
+    setBusyAction("page-size");
 
-    setBusyAction(`create:${type}`);
+    try {
+      await refreshDomains(1, nextPageSize);
+    } finally {
+      setBusyAction(null);
+    }
+  };
 
-    let piholeKind: "exact" | "regex" = "exact";
-    let finalComment = newComment.trim() || messages.common.defaultComment;
+  const goToPage = async (page: number) => {
+    setBusyAction("page");
 
-    if (newKind === "regex_specific") {
-      piholeKind = "regex";
-      finalComment = "Bloquear um nome exato com TLD específico";
-    } else if (newKind === "regex_any") {
-      piholeKind = "regex";
-      finalComment = "Bloquear um nome exato com qualquer TLD";
+    try {
+      await refreshDomains(page, data.pagination.pageSize);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const toggleSort = async (field: DomainsSortField) => {
+    const nextSortDirection =
+      sortBy === field ? (sortDirection === "asc" ? "desc" : "asc") : getDefaultDomainsSortDirection(field);
+
+    setBusyAction("sort");
+
+    try {
+      const nextData = await refreshDomains(1, data.pagination.pageSize, field, nextSortDirection);
+
+      if (!nextData) {
+        return;
+      }
+
+      setSortBy(field);
+      setSortDirection(nextSortDirection);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const toggleFilter = async (filter: DomainFilterValue, checked: boolean) => {
+    if (checked !== true && activeFilters.length === 1 && activeFilters.includes(filter)) {
+      return;
     }
 
-    const { data, response } = await client.POST<DomainOperationResponse>("/domains/{type}/{kind}", {
+    const nextFilters = checked
+      ? [...new Set([...activeFilters, filter])]
+      : activeFilters.filter((value) => value !== filter);
+
+    setBusyAction("filters");
+
+    try {
+      const nextData = await refreshDomains(
+        1,
+        data.pagination.pageSize,
+        sortBy,
+        sortDirection,
+        searchTerm,
+        nextFilters,
+      );
+
+      if (!nextData) {
+        return;
+      }
+
+      setActiveFilters(nextFilters);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const submitCreate = async (type: "allow" | "deny") => {
+    if (!newDomain.trim()) {
+      return;
+    }
+
+    const piholeKind = newPatternMode === "exact" ? "exact" : "regex";
+
+    setBusyAction(`create:${type}`);
+    const { data: responseData, response } = await client.POST<DomainOperationResponse>("/domains/{type}/{kind}", {
       headers: { "x-yapd-csrf": csrfToken },
-      params: { path: { type, kind: piholeKind } },
+      params: {
+        path: {
+          type,
+          kind: piholeKind,
+        },
+      },
       body: {
         domain: newDomain.trim(),
-        comment: finalComment,
+        comment: newComment.trim() || messages.domains.defaultComment,
         scope: "all",
         groups: newGroupIds,
+        patternMode: newPatternMode,
       },
     });
-
     setBusyAction(null);
-    if (!response.ok || !data) {
+
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
 
+    notifyMutationResult(responseData, {
+      successMessage: messages.domains.toasts.createSuccess,
+      partialMessage: messages.domains.toasts.updatePartial,
+    });
     setNewDomain("");
     setNewComment("");
     setNewGroupIds([0]);
-    setNewKind("exact");
-    toast.success(messages.domains.toasts.updateSuccess);
+    setNewPatternMode("exact");
     await refreshDomains();
   };
 
   const toggleStatus = async (item: DomainItem, enabled: boolean) => {
-    const key = `${item.domain}-${item.type}-${item.kind}`;
+    const key = getDomainKey(item);
     setBusyAction(`toggle:${key}`);
-    const { data, response } = await client.PUT<DomainsMutationResponse>("/domains/{domain}/{type}/{kind}", {
-      headers: { "x-yapd-csrf": csrfToken },
-      params: {
-        path: { domain: item.domain, type: item.type, kind: item.kind },
-        query: { type: item.type },
+
+    const { data: responseData, response } = await client.PUT<DomainsMutationResponse>(
+      "/domains/{domain}/{type}/{kind}",
+      {
+        headers: { "x-yapd-csrf": csrfToken },
+        params: {
+          path: {
+            domain: item.domain,
+            type: item.type,
+            kind: item.kind,
+          },
+        },
+        body: {
+          comment: item.comment,
+          groups: item.groups,
+          enabled,
+        },
       },
-      body: { comment: item.comment, groups: item.groups, enabled },
-    });
+    );
     setBusyAction(null);
-    if (!response.ok || !data) {
+
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
-    toast.success(messages.domains.toasts.updateSuccess);
+
+    notifyMutationResult(responseData, {
+      successMessage: enabled ? messages.domains.toasts.enabledSuccess : messages.domains.toasts.disabledSuccess,
+      partialMessage: messages.domains.toasts.updatePartial,
+    });
     await refreshDomains();
   };
 
   const saveEdit = async (item: DomainItem, groupIds: number[], comment: string | null) => {
-    const key = `${item.domain}-${item.type}-${item.kind}`;
+    const key = getDomainKey(item);
     setBusyAction(`edit:${key}`);
-    const { data, response } = await client.PUT<DomainsMutationResponse>("/domains/{domain}/{type}/{kind}", {
-      headers: { "x-yapd-csrf": csrfToken },
-      params: {
-        path: { domain: item.domain, type: item.type, kind: item.kind },
-        query: { type: item.type },
+
+    const { data: responseData, response } = await client.PUT<DomainsMutationResponse>(
+      "/domains/{domain}/{type}/{kind}",
+      {
+        headers: { "x-yapd-csrf": csrfToken },
+        params: {
+          path: {
+            domain: item.domain,
+            type: item.type,
+            kind: item.kind,
+          },
+        },
+        body: {
+          comment,
+          groups: groupIds,
+          enabled: item.enabled,
+        },
       },
-      body: { comment, groups: groupIds, enabled: item.enabled },
-    });
+    );
     setBusyAction(null);
-    if (!response.ok || !data) {
+
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
-    toast.success(messages.domains.toasts.updateSuccess);
+
+    notifyMutationResult(responseData, {
+      successMessage: messages.domains.toasts.updateSuccess,
+      partialMessage: messages.domains.toasts.updatePartial,
+    });
     await refreshDomains();
   };
 
   const executeDelete = async (itemsToDelete: { item: string; type: "allow" | "deny"; kind: "exact" | "regex" }[]) => {
     setBusyAction("delete");
-    const { data, response } = await client.POST<DomainsMutationResponse>("/domains/batchDelete", {
+    const { data: responseData, response } = await client.POST<DomainsMutationResponse>("/domains/batchDelete", {
       headers: { "x-yapd-csrf": csrfToken },
       body: { items: itemsToDelete },
     });
     setBusyAction(null);
-    if (!response.ok || !data) {
+
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
+
     setDeleteDialog(null);
     setSelectedKeys([]);
-    toast.success(messages.groups.toasts.deleteSuccess);
+    notifyMutationResult(responseData, {
+      successMessage: messages.domains.toasts.deleteSuccess,
+      partialMessage: messages.domains.toasts.updatePartial,
+    });
     await refreshDomains();
   };
 
   const requestDelete = (itemsToDelete: { item: string; type: "allow" | "deny"; kind: "exact" | "regex" }[]) => {
-    if (isMutating || itemsToDelete.length === 0) return;
+    if (isMutating || itemsToDelete.length === 0) {
+      return;
+    }
+
     if (skipDeleteConfirm) {
       void executeDelete(itemsToDelete);
       return;
     }
+
     const firstItem = itemsToDelete[0];
-    if (!firstItem) return;
+
+    if (!firstItem) {
+      return;
+    }
 
     setDeleteDialog({
       items: itemsToDelete,
       title:
         itemsToDelete.length === 1
-          ? messages.groups.delete.titleSingle(firstItem.item)
-          : messages.groups.delete.titleBatch(itemsToDelete.length),
+          ? messages.domains.delete.titleSingle(firstItem.item)
+          : messages.domains.delete.titleBatch(itemsToDelete.length),
       description:
         itemsToDelete.length === 1
-          ? messages.groups.delete.descriptionSingle(firstItem.item)
-          : messages.groups.delete.descriptionBatch(itemsToDelete.length),
+          ? messages.domains.delete.descriptionSingle(firstItem.item)
+          : messages.domains.delete.descriptionBatch(itemsToDelete.length),
     });
   };
 
-  const openSyncDialog = (item?: DomainItem) => {
-    setSyncDialogAddress(item?.domain ?? null);
-    setSyncDialogType(item?.type ?? null);
-    setSyncDialogKind(item?.kind ?? null);
-    setSyncSelections(buildSyncSelections(items, source.baselineInstanceId));
-    setIsSyncDialogOpen(true);
+  const openSyncDialog = (item: DomainItem) => {
+    if (isMutating) {
+      return;
+    }
+
+    setSyncItem(item);
+    setSyncSourceInstanceId(item.origin.instanceId);
+    setSyncTargetInstanceIds(buildDefaultSyncTargetIds(item, data.source.baselineInstanceId, item.origin.instanceId));
+  };
+
+  const closeSyncDialog = () => {
+    if (syncItem && busyAction === `sync:${getDomainKey(syncItem)}`) {
+      return;
+    }
+
+    setSyncItem(null);
+    setSyncSourceInstanceId("");
+    setSyncTargetInstanceIds([]);
   };
 
   const runBulkSync = async () => {
     setBusyAction("sync:all");
-    const { data, response } = await client.POST<DomainsMutationResponse>("/domains/sync", {
+    const { data: responseData, response } = await client.POST<DomainsMutationResponse>("/domains/sync", {
       headers: { "x-yapd-csrf": csrfToken },
       body: {},
     });
     setBusyAction(null);
-    if (!response.ok || !data) {
+
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
-    toast.success(messages.groups.toasts.syncSuccess);
+
+    setIsBulkSyncDialogOpen(false);
+    notifyMutationResult(responseData, {
+      successMessage: messages.domains.toasts.syncSuccess,
+      partialMessage: messages.domains.toasts.partialWarning,
+    });
     await refreshDomains();
   };
 
-  const syncSingle = async (item: DomainItem) => {
-    const key = `${item.domain}-${item.type}-${item.kind}`;
-    const selection = syncSelections[key] || {
-      sourceInstanceId: item.origin.instanceId,
-      targetInstanceIds: buildDefaultSyncTargetIds(item, source.baselineInstanceId, item.origin.instanceId),
-    };
-    if (selection.targetInstanceIds.length === 0) {
-      toast.error(messages.groups.syncDialog.targetsRequired);
+  const syncSingle = async () => {
+    if (!syncItem) {
       return;
     }
-    setBusyAction(`sync:${key}`);
-    const { data, response } = await client.POST<DomainsMutationResponse>("/domains/sync", {
+
+    if (syncTargetInstanceIds.length === 0) {
+      toast.error(messages.domains.syncDialog.targetsRequired);
+      return;
+    }
+
+    setBusyAction(`sync:${getDomainKey(syncItem)}`);
+    const { data: responseData, response } = await client.POST<DomainsMutationResponse>("/domains/sync", {
       headers: { "x-yapd-csrf": csrfToken },
       body: {
-        domain: item.domain,
-        type: item.type,
-        kind: item.kind,
-        sourceInstanceId: selection.sourceInstanceId,
-        targetInstanceIds: selection.targetInstanceIds,
+        domain: syncItem.domain,
+        type: syncItem.type,
+        kind: syncItem.kind,
+        sourceInstanceId: syncSourceInstanceId,
+        targetInstanceIds: syncTargetInstanceIds,
       },
     });
     setBusyAction(null);
-    if (!response.ok || !data) {
+
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
-    toast.success(messages.groups.toasts.syncGroupSuccess(item.domain));
-    const refreshed = await refreshDomains();
-    if (refreshed) {
-      const stillUnsynced = syncDialogAddress
-        ? refreshed.items.some(
-            (i) =>
-              i.domain === syncDialogAddress &&
-              i.type === syncDialogType &&
-              i.kind === syncDialogKind &&
-              i.sync.missingInstances.length > 0,
-          )
-        : refreshed.items.some((i) => i.sync.missingInstances.length > 0);
-      if (!stillUnsynced) setIsSyncDialogOpen(false);
-    }
+
+    notifyMutationResult(responseData, {
+      successMessage: messages.domains.toasts.syncItemSuccess(syncItem.domain),
+      partialMessage: messages.domains.toasts.partialWarning,
+    });
+    closeSyncDialog();
+    await refreshDomains();
   };
 
   const toggleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedKeys(filteredItems.map((item) => `${item.domain}-${item.type}-${item.kind}`));
-    } else {
-      setSelectedKeys([]);
+      setSelectedKeys(data.items.map((item) => getDomainKey(item)));
+      return;
     }
+
+    setSelectedKeys([]);
   };
 
-  const toggleSelectRow = (domain: string, type: string, kind: string, checked: boolean) => {
-    const key = `${domain}-${type}-${kind}`;
-    setSelectedKeys((current) => (checked ? [...new Set([...current, key])] : current.filter((k) => k !== key)));
+  const toggleSelectRow = (item: DomainItem, checked: boolean) => {
+    const key = getDomainKey(item);
+    setSelectedKeys((current) =>
+      checked ? [...new Set([...current, key])] : current.filter((value) => value !== key),
+    );
   };
 
-  const toggleFilter = (filter: DomainFilterType, checked: boolean) => {
-    setActiveFilters((current) => (checked ? [...current, filter] : current.filter((f) => f !== filter)));
-    setPage(1); // Reset page on filter change
-  };
+  const renderSortIcon = (field: DomainsSortField) => {
+    if (sortBy !== field) {
+      return <ArrowUpDown className="size-3.5" />;
+    }
 
-  const unsyncedItems = useMemo(() => items.filter((item) => item.sync.missingInstances.length > 0), [items]);
-  const syncDialogItems = useMemo(
-    () =>
-      syncDialogAddress
-        ? unsyncedItems.filter(
-            (i) => i.domain === syncDialogAddress && i.type === syncDialogType && i.kind === syncDialogKind,
-          )
-        : unsyncedItems,
-    [syncDialogAddress, syncDialogType, syncDialogKind, unsyncedItems],
-  );
+    return sortDirection === "asc" ? <ArrowUp className="size-3.5" /> : <ArrowDown className="size-3.5" />;
+  };
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>{messages.common.add}</CardTitle>
-          <CardDescription>{messages.domains.description}</CardDescription>
+          <CardDescription>{messages.domains.create.description}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
             <Field className="gap-1.5">
               <FieldLabel htmlFor="new-domain">{messages.domains.create.domainLabel}</FieldLabel>
@@ -480,15 +676,15 @@ export function DomainsWorkspace({
                 id="new-domain"
                 placeholder="example.com"
                 value={newDomain}
-                onChange={(e) => setNewDomain(e.target.value)}
+                onChange={(event) => setNewDomain(event.target.value)}
                 disabled={isMutating}
               />
             </Field>
             <Field className="gap-1.5">
               <FieldLabel>{messages.domains.create.kindLabel}</FieldLabel>
               <Select
-                value={newKind}
-                onValueChange={(val) => setNewKind(val as "exact" | "regex_specific" | "regex_any")}
+                value={newPatternMode}
+                onValueChange={(value) => setNewPatternMode(value as DomainPatternMode)}
                 disabled={isMutating}
               >
                 <SelectTrigger>
@@ -507,8 +703,8 @@ export function DomainsWorkspace({
                 id="new-comment"
                 placeholder="..."
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                disabled={isMutating || newKind !== "exact"}
+                onChange={(event) => setNewComment(event.target.value)}
+                disabled={isMutating}
               />
             </Field>
             <Field className="gap-1.5">
@@ -522,121 +718,122 @@ export function DomainsWorkspace({
             </Field>
             <div className="flex items-end gap-2">
               <Button
-                onClick={() => submitCreate("allow")}
+                onClick={() => void submitCreate("allow")}
                 disabled={isMutating || !newDomain.trim()}
                 className="w-full bg-emerald-600 text-white hover:bg-emerald-700 lg:w-auto"
               >
-                {busyAction === "create:allow" ? messages.groups.create.submitLoading : messages.domains.table.addAllow}
+                {busyAction === "create:allow"
+                  ? messages.domains.create.submitLoading
+                  : messages.domains.table.addAllow}
               </Button>
               <Button
-                onClick={() => submitCreate("deny")}
+                onClick={() => void submitCreate("deny")}
                 disabled={isMutating || !newDomain.trim()}
                 variant="destructive"
                 className="w-full lg:w-auto"
               >
-                {busyAction === "create:deny" ? messages.groups.create.submitLoading : messages.domains.table.addDeny}
+                {busyAction === "create:deny" ? messages.domains.create.submitLoading : messages.domains.table.addDeny}
               </Button>
             </div>
           </div>
-          {newKind !== "exact" && (
-            <p className="mt-2 text-muted-foreground text-xs italic">
-              {newKind === "regex_specific"
+          <p className="text-muted-foreground text-xs italic">
+            {newPatternMode === "exact"
+              ? messages.domains.create.kinds.exact.description
+              : newPatternMode === "regex_specific"
                 ? messages.domains.create.kinds.regexSpecific.description
                 : messages.domains.create.kinds.regexAny.description}
-            </p>
-          )}
+          </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <CardTitle>
-              {items.length} {messages.domains.title}
-            </CardTitle>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="filter-exact-allow"
-                  checked={activeFilters.includes("exact-allow")}
-                  onCheckedChange={(c) => toggleFilter("exact-allow", c === true)}
-                />
-                <label htmlFor="filter-exact-allow" className="cursor-pointer font-medium text-xs">
-                  {messages.domains.filters.exactAllow}
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="filter-regex-allow"
-                  checked={activeFilters.includes("regex-allow")}
-                  onCheckedChange={(c) => toggleFilter("regex-allow", c === true)}
-                />
-                <label htmlFor="filter-regex-allow" className="cursor-pointer font-medium text-xs">
-                  {messages.domains.filters.regexAllow}
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="filter-exact-deny"
-                  checked={activeFilters.includes("exact-deny")}
-                  onCheckedChange={(c) => toggleFilter("exact-deny", c === true)}
-                />
-                <label htmlFor="filter-exact-deny" className="cursor-pointer font-medium text-xs">
-                  {messages.domains.filters.exactDeny}
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="filter-regex-deny"
-                  checked={activeFilters.includes("regex-deny")}
-                  onCheckedChange={(c) => toggleFilter("regex-deny", c === true)}
-                />
-                <label htmlFor="filter-regex-deny" className="cursor-pointer font-medium text-xs">
-                  {messages.domains.filters.regexDeny}
-                </label>
-              </div>
-            </div>
+          <div>
+            <CardTitle>{messages.domains.table.title}</CardTitle>
+            <CardDescription>{messages.domains.table.description(data.source.baselineInstanceName)}</CardDescription>
           </div>
           <CardAction className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            <Input
+            <ManagedItemsSearchInput
               value={searchDraft}
-              onChange={(e) => setSearchDraft(e.target.value)}
+              onChange={setSearchDraft}
               placeholder={messages.domains.table.searchPlaceholder}
-              disabled={isMutating}
-              className="min-w-64"
+              clearLabel={messages.domains.table.searchClear}
+              disabled={busyAction !== null && busyAction !== "search"}
             />
-            <Button variant="outline" size="sm" onClick={runRefresh} disabled={isMutating}>
-              <RefreshCw className={cn(busyAction === "refresh" && "animate-spin")} />
-              {busyAction === "refresh" ? messages.common.retry : messages.sidebar.sync.refresh}
+            <Button type="button" variant="outline" size="sm" disabled={isMutating} onClick={() => void runRefresh()}>
+              <RefreshCw className={cn(busyAction === "refresh" ? "animate-spin" : undefined)} />
+              {busyAction === "refresh" ? messages.domains.table.refreshLoading : messages.domains.table.refresh}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => openSyncDialog()} disabled={isMutating}>
-              <ArrowLeftRight />
-              {messages.groups.table.sync}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isMutating}
+              onClick={() => setIsBulkSyncDialogOpen(true)}
+            >
+              <ArrowLeftRight className={cn(busyAction === "sync:all" ? "animate-pulse" : undefined)} />
+              {busyAction === "sync:all" ? messages.domains.table.syncLoading : messages.domains.table.sync}
             </Button>
-            {selectedKeys.length > 0 && (
+            {selectedItems.length > 0 ? (
               <Button
                 variant="destructive"
                 size="sm"
+                disabled={isMutating}
                 onClick={() =>
                   requestDelete(
-                    items
-                      .filter((i) => selectedKeySet.has(`${i.domain}-${i.type}-${i.kind}`))
-                      .map((i) => ({
-                        item: i.domain,
-                        type: i.type as "allow" | "deny",
-                        kind: i.kind as "exact" | "regex",
-                      })),
+                    selectedItems.map((item) => ({
+                      item: item.domain,
+                      type: item.type,
+                      kind: item.kind,
+                    })),
                   )
                 }
-                disabled={isMutating}
               >
-                {messages.groups.table.deleteSelected(selectedKeys.length)}
+                {messages.domains.table.deleteSelected(selectedItems.length)}
               </Button>
-            )}
+            ) : null}
           </CardAction>
         </CardHeader>
-        <CardContent>
-          {filteredItems.length === 0 ? (
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-4">
+            {ALL_DOMAIN_FILTERS.map((filter) => {
+              const checkboxId = `domain-filter-${filter}`;
+              const messageKey =
+                filter === "exact-allow"
+                  ? messages.domains.filters.exactAllow
+                  : filter === "regex-allow"
+                    ? messages.domains.filters.regexAllow
+                    : filter === "exact-deny"
+                      ? messages.domains.filters.exactDeny
+                      : messages.domains.filters.regexDeny;
+
+              return (
+                <div key={filter} className="flex items-center gap-2">
+                  <Checkbox
+                    id={checkboxId}
+                    checked={activeFilters.includes(filter)}
+                    disabled={isMutating}
+                    onCheckedChange={(checked) => void toggleFilter(filter, checked === true)}
+                  />
+                  <label htmlFor={checkboxId} className="cursor-pointer font-medium text-xs">
+                    {messageKey}
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+
+          {data.source.unavailableInstanceCount > 0 ? (
+            <ManagedItemsPartialAlert
+              title={messages.domains.table.sync}
+              description={messages.domains.alerts.partialAvailability(
+                data.source.availableInstanceCount,
+                data.source.totalInstances,
+              )}
+            />
+          ) : null}
+
+          {data.items.length === 0 && !isReloading ? (
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -647,68 +844,172 @@ export function DomainsWorkspace({
               </EmptyHeader>
             </Empty>
           ) : (
-            <div className="space-y-4">
-              <div className="overflow-x-auto rounded-xl border">
-                <Table className="min-w-[800px] table-fixed">
+            <>
+              <ManagedItemsPagination
+                changePageSize={(nextPageSize) => void changePageSize(nextPageSize)}
+                goToPage={(page) => void goToPage(page)}
+                isReloading={isReloading}
+                nextLabel={messages.domains.table.next}
+                page={data.pagination.page}
+                pageSize={data.pagination.pageSize}
+                previousLabel={messages.domains.table.previous}
+                rowsPerPageLabel={messages.domains.table.rowsPerPage}
+                showingLabel={messages.domains.table.showing}
+                totalItems={data.pagination.totalItems}
+                totalPages={data.pagination.totalPages}
+              />
+
+              <div className="overflow-hidden rounded-xl border">
+                <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12 text-center">
                         <Checkbox
                           checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
-                          onCheckedChange={(c) => toggleSelectAll(c === true)}
+                          onCheckedChange={(checked) => toggleSelectAll(checked === true)}
                           disabled={isMutating}
+                          aria-label={messages.domains.table.selectAll}
                         />
                       </TableHead>
-                      <TableHead className="w-[30%]">{messages.domains.table.domain}</TableHead>
-                      <TableHead className="w-32 text-center">Tipo</TableHead>
-                      <TableHead className="w-32 text-center">{messages.domains.table.status}</TableHead>
-                      <TableHead className="w-[20%]">{messages.domains.table.comment}</TableHead>
-                      <TableHead className="w-[20%]">{messages.domains.table.group}</TableHead>
-                      <TableHead className="w-24 text-right">{messages.domains.table.actions}</TableHead>
+                      <TableHead
+                        aria-sort={
+                          sortBy === "domain" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"
+                        }
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("domain")}
+                        >
+                          {messages.domains.table.domain}
+                          {renderSortIcon("domain")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        className="text-center"
+                        aria-sort={sortBy === "type" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mx-auto h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("type")}
+                        >
+                          {messages.domains.table.type}
+                          {renderSortIcon("type")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        className="text-center"
+                        aria-sort={sortBy === "kind" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mx-auto h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("kind")}
+                        >
+                          {messages.domains.table.kind}
+                          {renderSortIcon("kind")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        className="text-center"
+                        aria-sort={
+                          sortBy === "enabled" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"
+                        }
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mx-auto h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("enabled")}
+                        >
+                          {messages.domains.table.status}
+                          {renderSortIcon("enabled")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        aria-sort={
+                          sortBy === "comment" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"
+                        }
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("comment")}
+                        >
+                          {messages.domains.table.comment}
+                          {renderSortIcon("comment")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        aria-sort={sortBy === "group" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("group")}
+                        >
+                          {messages.domains.table.group}
+                          {renderSortIcon("group")}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-right">{messages.domains.table.actions}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedItems.map((item) => {
-                      const key = `${item.domain}-${item.type}-${item.kind}`;
-                      return (
-                        <TableRow key={key} className="odd:bg-muted/50">
-                          <TableCell className="text-center">
-                            <Checkbox
-                              checked={selectedKeySet.has(key)}
-                              onCheckedChange={(c) => toggleSelectRow(item.domain, item.type, item.kind, c === true)}
-                              disabled={isMutating}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1 overflow-hidden">
-                              <span className="truncate font-medium font-mono text-xs" title={item.domain}>
-                                {item.domain}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                {item.sync.isFullySynced ? (
-                                  <Badge variant="secondary" className="bg-emerald-50 text-[10px] text-emerald-700">
-                                    Synced
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="secondary" className="bg-amber-50 text-[10px] text-amber-700">
-                                    Drift
-                                  </Badge>
-                                )}
-                                {!item.sync.isFullySynced && (
-                                  <Button
-                                    size="icon-xs"
-                                    variant="ghost"
-                                    className="h-4 w-4 text-amber-600"
-                                    onClick={() => openSyncDialog(item)}
-                                  >
-                                    <CircleAlert className="h-3 w-3" />
-                                  </Button>
-                                )}
+                    {isReloading ? (
+                      <ManagedItemsTableSkeleton columnCount={8} />
+                    ) : (
+                      data.items.map((item) => {
+                        const rowKey = getDomainKey(item);
+
+                        return (
+                          <TableRow key={rowKey}>
+                            <TableCell className="text-center">
+                              <Checkbox
+                                checked={selectedKeySet.has(rowKey)}
+                                onCheckedChange={(checked) => toggleSelectRow(item, checked === true)}
+                                disabled={isMutating}
+                                aria-label={messages.domains.table.selectRow(item.domain)}
+                              />
+                            </TableCell>
+                            <TableCell className="max-w-md">
+                              <div className="flex flex-col gap-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="truncate font-medium font-mono text-xs" title={item.domain}>
+                                    {item.domain}
+                                  </span>
+                                  {item.sync.missingInstances.length > 0 ? (
+                                    <Button
+                                      size="icon-xs"
+                                      variant="ghost"
+                                      className="h-4 w-4 text-amber-600 hover:text-amber-700"
+                                      disabled={isMutating}
+                                      aria-label={messages.domains.table.syncIssueAction(item.domain)}
+                                      title={messages.domains.table.syncIssueAction(item.domain)}
+                                      onClick={() => openSyncDialog(item)}
+                                    >
+                                      <CircleAlert className="h-3 w-3" />
+                                    </Button>
+                                  ) : null}
+                                </div>
+                                {item.unicode && item.unicode !== item.domain ? (
+                                  <span className="truncate text-muted-foreground text-xs">{item.unicode}</span>
+                                ) : null}
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-center gap-1">
+                            </TableCell>
+                            <TableCell className="text-center">
                               <Badge
                                 variant="outline"
                                 className={cn(
@@ -720,314 +1021,322 @@ export function DomainsWorkspace({
                               >
                                 {item.type}
                               </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
                               <Badge variant="outline" className="text-[10px] uppercase">
                                 {item.kind}
                               </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <DomainStatusToggle
-                              checked={item.enabled}
-                              disabled={isMutating}
-                              activeLabel={
-                                busyAction === `toggle:${key}` && item.enabled
-                                  ? messages.lists.status.disabling
-                                  : messages.lists.status.enabled
-                              }
-                              inactiveLabel={
-                                busyAction === `toggle:${key}` && !item.enabled
-                                  ? messages.lists.status.enabling
-                                  : messages.lists.status.disabled
-                              }
-                              onCheckedChange={(c) => void toggleStatus(item, c)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <span
-                              className={cn("block truncate text-sm", !item.comment && "text-muted-foreground")}
-                              title={item.comment || "N/A"}
-                            >
-                              {item.comment || "N/A"}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <DomainGroupEditor
-                              item={item}
-                              groups={groups}
-                              disabled={isMutating}
-                              onSave={(groupIds) => saveEdit(item, groupIds, item.comment)}
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon-sm" disabled={isMutating}>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem className="gap-2" onClick={() => setEditingItem(item)}>
-                                  <Info className="h-4 w-4" />
-                                  {messages.domains.table.edit}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="gap-2 text-destructive focus:text-destructive"
-                                  onClick={() =>
-                                    requestDelete([
-                                      {
-                                        item: item.domain,
-                                        type: item.type as "allow" | "deny",
-                                        kind: item.kind as "exact" | "regex",
-                                      },
-                                    ])
-                                  }
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  {messages.domains.table.delete}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <DomainStatusToggle
+                                checked={item.enabled}
+                                disabled={isMutating}
+                                activeLabel={
+                                  busyAction === `toggle:${rowKey}` && item.enabled
+                                    ? messages.domains.status.disabling
+                                    : messages.domains.status.enabled
+                                }
+                                inactiveLabel={
+                                  busyAction === `toggle:${rowKey}` && !item.enabled
+                                    ? messages.domains.status.enabling
+                                    : messages.domains.status.disabled
+                                }
+                                onCheckedChange={(checked) => void toggleStatus(item, checked)}
+                              />
+                            </TableCell>
+                            <TableCell className="max-w-xs">
+                              <span
+                                className={cn("block truncate text-sm", !item.comment && "text-muted-foreground")}
+                                title={item.comment ?? messages.common.versionUnavailable}
+                              >
+                                {item.comment || messages.common.versionUnavailable}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <DomainGroupEditor
+                                item={item}
+                                groups={groups}
+                                disabled={isMutating}
+                                onSave={(groupIds) => saveEdit(item, groupIds, item.comment)}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="icon-sm" disabled={isMutating}>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem className="gap-2" onClick={() => setEditingItem(item)}>
+                                    <Info className="h-4 w-4" />
+                                    {messages.domains.table.edit}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="gap-2 text-destructive focus:text-destructive"
+                                    onClick={() =>
+                                      requestDelete([{ item: item.domain, type: item.type, kind: item.kind }])
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    {messages.domains.table.delete}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
                   </TableBody>
                 </Table>
               </div>
 
-              {/* Pagination Controls */}
-              <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-xs">{messages.clients.table.rowsPerPage}</span>
-                  <Select value={`${pageSize}`} onValueChange={(v) => setPageSize(Number(v))}>
-                    <SelectTrigger className="h-8 w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAGE_SIZE_OPTIONS.map((size) => (
-                        <SelectItem key={size} value={`${size}`}>
-                          {size}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-muted-foreground text-xs">
-                    {messages.clients.table.showing(
-                      filteredItems.length === 0 ? 0 : (page - 1) * pageSize + 1,
-                      Math.min(page * pageSize, filteredItems.length),
-                      filteredItems.length,
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
-                    {messages.clients.table.previous}
-                  </Button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter((p) => {
-                        if (totalPages <= 5) return true;
-                        return Math.abs(p - page) <= 1 || p === 1 || p === totalPages;
-                      })
-                      .map((p, i, arr) => {
-                        const prev = arr[i - 1];
-                        const showGap = prev && p - prev > 1;
-                        return (
-                          <div key={p} className="flex items-center gap-1">
-                            {showGap && <span className="text-muted-foreground text-xs">...</span>}
-                            <Button
-                              variant={p === page ? "default" : "outline"}
-                              size="sm"
-                              className="h-8 w-8 p-0 text-xs"
-                              onClick={() => setPage(p)}
-                            >
-                              {p}
-                            </Button>
-                          </div>
-                        );
-                      })}
-                  </div>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                    {messages.clients.table.next}
-                  </Button>
-                </div>
-              </div>
-            </div>
+              <ManagedItemsPagination
+                changePageSize={(nextPageSize) => void changePageSize(nextPageSize)}
+                goToPage={(page) => void goToPage(page)}
+                isReloading={isReloading}
+                nextLabel={messages.domains.table.next}
+                page={data.pagination.page}
+                pageSize={data.pagination.pageSize}
+                previousLabel={messages.domains.table.previous}
+                rowsPerPageLabel={messages.domains.table.rowsPerPage}
+                showingLabel={messages.domains.table.showing}
+                totalItems={data.pagination.totalItems}
+                totalPages={data.pagination.totalPages}
+              />
+            </>
           )}
         </CardContent>
       </Card>
 
-      {editingItem && (
+      {editingItem ? (
         <DomainEditDialog
           item={editingItem}
           groups={groups}
           open={editingItem !== null}
-          onOpenChange={(o) => !o && setEditingItem(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingItem(null);
+            }
+          }}
           onSave={(groupIds, comment) => saveEdit(editingItem, groupIds, comment)}
           disabled={isMutating}
         />
-      )}
+      ) : null}
 
-      <Dialog open={isSyncDialogOpen} onOpenChange={setIsSyncDialogOpen}>
-        <DialogContent className="sm:max-w-3xl">
+      <Dialog open={syncItem !== null} onOpenChange={(open) => (!open ? closeSyncDialog() : undefined)}>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {syncDialogAddress
-                ? messages.groups.syncDialog.titleSingle(syncDialogAddress)
-                : messages.groups.syncDialog.titleAll}
+              {syncItem
+                ? messages.domains.syncDialog.titleSingle(syncItem.domain)
+                : messages.domains.syncDialog.titleAll}
             </DialogTitle>
             <DialogDescription>
-              {syncDialogAddress
-                ? messages.groups.syncDialog.descriptionSingle(syncDialogAddress)
-                : messages.groups.syncDialog.descriptionAll(source.baselineInstanceName)}
+              {syncItem
+                ? messages.domains.syncDialog.descriptionSingle(syncItem.domain)
+                : messages.domains.syncDialog.descriptionAll(data.source.baselineInstanceName)}
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
-            {syncDialogItems.map((item) => {
-              const key = `${item.domain}-${item.type}-${item.kind}`;
-              const states = getDomainSyncInstanceStates(item, source.baselineInstanceId);
-              const selection = syncSelections[key] || {
-                sourceInstanceId: item.origin.instanceId,
-                targetInstanceIds: buildDefaultSyncTargetIds(item, source.baselineInstanceId, item.origin.instanceId),
-              };
-              const targetStates = states.filter((s) => s.instanceId !== selection.sourceInstanceId);
-              const isSyncing = busyAction === `sync:${key}`;
-              return (
-                <Card key={key} size="sm" className="border py-4 shadow-none">
-                  <CardHeader className="px-4 py-2">
-                    <CardTitle className="truncate text-sm">
-                      {item.domain} ({item.type}/{item.kind})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4 px-4 py-2">
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <Field className="gap-1.5">
-                        <FieldLabel className="text-xs">{messages.groups.syncDialog.sourceLabel}</FieldLabel>
-                        <Select
-                          value={selection.sourceInstanceId}
-                          onValueChange={(v) =>
-                            setSyncSelections((prev) => ({
-                              ...prev,
-                              [key]: {
-                                ...selection,
-                                sourceInstanceId: v,
-                                targetInstanceIds: buildDefaultSyncTargetIds(item, source.baselineInstanceId, v),
-                              },
-                            }))
-                          }
+
+          {data.source.unavailableInstanceCount > 0 ? (
+            <ManagedItemsPartialAlert
+              title={messages.domains.table.sync}
+              description={messages.domains.syncDialog.partialAvailability(
+                data.source.availableInstanceCount,
+                data.source.totalInstances,
+              )}
+            />
+          ) : null}
+
+          {syncItem ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/20 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-medium">{syncItem.domain}</p>
+                  <Badge variant="outline" className="uppercase">
+                    {syncItem.type}
+                  </Badge>
+                  <Badge variant="outline" className="uppercase">
+                    {syncItem.kind}
+                  </Badge>
+                </div>
+                <p className="mt-2 text-muted-foreground text-sm">
+                  {messages.domains.syncDialog.availabilityHint(
+                    syncItem.sync.sourceInstances.length,
+                    syncItem.sync.missingInstances.length,
+                  )}
+                </p>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Field className="gap-2">
+                  <FieldLabel>{messages.domains.syncDialog.sourceLabel}</FieldLabel>
+                  <Select
+                    value={syncSourceInstanceId}
+                    onValueChange={(value) => {
+                      setSyncSourceInstanceId(value);
+
+                      if (syncItem) {
+                        setSyncTargetInstanceIds(
+                          buildDefaultSyncTargetIds(syncItem, data.source.baselineInstanceId, value),
+                        );
+                      }
+                    }}
+                    disabled={isMutating}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={messages.domains.syncDialog.sourcePlaceholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {syncInstanceStates.map((instance) => (
+                        <SelectItem key={instance.instanceId} value={instance.instanceId}>
+                          {instance.instanceName} ·{" "}
+                          {instance.hasDomain
+                            ? messages.domains.syncDialog.instanceHasItem
+                            : messages.domains.syncDialog.instanceMissingItem}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <div className="space-y-2">
+                  <FieldLabel>{messages.domains.syncDialog.targetsLabel}</FieldLabel>
+                  {syncTargetStates.length > 0 ? (
+                    <div className="grid gap-2">
+                      {syncTargetStates.map((instance) => (
+                        <div
+                          key={instance.instanceId}
+                          className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm"
                         >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {states.map((s) => (
-                              <SelectItem key={s.instanceId} value={s.instanceId} className="text-xs">
-                                {s.instanceName} ·{" "}
-                                {s.hasDomain
-                                  ? messages.groups.syncDialog.instanceHasGroup
-                                  : messages.groups.syncDialog.instanceMissingGroup}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                      <div className="space-y-2">
-                        <p className="font-medium text-xs">{messages.groups.syncDialog.targetsLabel}</p>
-                        <div className="grid gap-2">
-                          {targetStates.map((s) => (
-                            <div key={s.instanceId} className="flex items-center gap-2 rounded-md border p-2">
-                              <Checkbox
-                                id={`sync-${key}-${s.instanceId}`}
-                                checked={selection.targetInstanceIds.includes(s.instanceId)}
-                                onCheckedChange={(c) =>
-                                  setSyncSelections((prev) => ({
-                                    ...prev,
-                                    [key]: {
-                                      ...selection,
-                                      targetInstanceIds: c
-                                        ? [...new Set([...selection.targetInstanceIds, s.instanceId])]
-                                        : selection.targetInstanceIds.filter((id) => id !== s.instanceId),
-                                    },
-                                  }))
-                                }
-                              />
-                              <label htmlFor={`sync-${key}-${s.instanceId}`} className="text-xs">
-                                {s.instanceName} ({s.hasDomain ? "Has it" : "Missing"})
-                              </label>
-                            </div>
-                          ))}
+                          <Checkbox
+                            id={`sync-domain-${syncItem.domain}-${instance.instanceId}`}
+                            checked={syncTargetInstanceIds.includes(instance.instanceId)}
+                            disabled={isMutating}
+                            onCheckedChange={(checked) =>
+                              setSyncTargetInstanceIds((current) =>
+                                checked === true
+                                  ? [...new Set([...current, instance.instanceId])]
+                                  : current.filter((value) => value !== instance.instanceId),
+                              )
+                            }
+                          />
+                          <label
+                            htmlFor={`sync-domain-${syncItem.domain}-${instance.instanceId}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            {instance.instanceName}
+                          </label>
+                          <Badge variant="outline">
+                            {instance.hasDomain
+                              ? messages.domains.syncDialog.instanceHasItem
+                              : messages.domains.syncDialog.instanceMissingItem}
+                          </Badge>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        className="h-8 text-xs"
-                        onClick={() => syncSingle(item)}
-                        disabled={isMutating || selection.targetInstanceIds.length === 0}
-                      >
-                        <ArrowLeftRight className={cn("mr-2 h-3 w-3", isSyncing && "animate-spin")} />
-                        {isSyncing ? messages.groups.syncDialog.syncLoading : messages.groups.syncDialog.syncAction}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-          <DialogFooter className="flex w-full items-center justify-between">
-            {!syncDialogAddress && unsyncedItems.length > 0 && (
-              <Button size="sm" onClick={runBulkSync} disabled={isMutating}>
-                <ArrowLeftRight className={cn("mr-2 h-4 w-4", busyAction === "sync:all" && "animate-spin")} />
-                {messages.groups.table.sync} All
-              </Button>
-            )}
-            <div className="flex-1" />
-            <Button size="sm" variant="outline" onClick={() => setIsSyncDialogOpen(false)} disabled={isMutating}>
-              {messages.sidebar.sync.close}
+                  ) : (
+                    <p className="text-muted-foreground text-sm">{messages.domains.syncDialog.noTargets}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button variant="outline" disabled={isMutating} onClick={closeSyncDialog}>
+              {messages.domains.syncDialog.close}
+            </Button>
+            <Button disabled={isMutating || syncTargetInstanceIds.length === 0} onClick={() => void syncSingle()}>
+              <ArrowLeftRight
+                className={cn("mr-2 h-4 w-4", busyAction?.startsWith("sync:") ? "animate-spin" : undefined)}
+              />
+              {busyAction?.startsWith("sync:")
+                ? messages.domains.syncDialog.syncLoading
+                : messages.domains.syncDialog.syncAction}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteDialog !== null} onOpenChange={(o) => !o && !isMutating && setDeleteDialog(null)}>
+      <AlertDialog open={isBulkSyncDialogOpen} onOpenChange={setIsBulkSyncDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{messages.domains.syncDialog.bulkTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {messages.domains.syncDialog.bulkDescription(data.source.baselineInstanceName)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {data.source.unavailableInstanceCount > 0 ? (
+            <ManagedItemsPartialAlert
+              title={messages.domains.table.sync}
+              description={messages.domains.syncDialog.partialAvailability(
+                data.source.availableInstanceCount,
+                data.source.totalInstances,
+              )}
+            />
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isMutating}>{messages.domains.syncDialog.close}</AlertDialogCancel>
+            <Button disabled={isMutating} onClick={() => void runBulkSync()}>
+              {busyAction === "sync:all"
+                ? messages.domains.syncDialog.syncLoading
+                : messages.domains.syncDialog.confirmBulk}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteDialog !== null}
+        onOpenChange={(open) => (!open && !isMutating ? setDeleteDialog(null) : undefined)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{deleteDialog?.title}</AlertDialogTitle>
             <AlertDialogDescription>{deleteDialog?.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4">
-            <p className="text-rose-600 text-sm">{messages.groups.delete.irreversible}</p>
+            <p className="text-rose-600 text-sm">{messages.domains.delete.irreversible}</p>
             <div className="flex items-center gap-3 text-sm">
               <Checkbox
-                id="domains-delete-skip"
+                id="domains-delete-skip-confirm"
                 checked={rememberDeleteChoice}
-                onCheckedChange={(c) => setRememberDeleteChoice(c === true)}
+                onCheckedChange={(checked) => setRememberDeleteChoice(checked === true)}
                 disabled={isMutating}
               />
-              <label htmlFor="domains-delete-skip">{messages.groups.delete.dontAskAgain}</label>
+              <label htmlFor="domains-delete-skip-confirm">{messages.domains.delete.dontAskAgain}</label>
             </div>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isMutating}>{messages.groups.delete.cancel}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isMutating}>{messages.domains.delete.cancel}</AlertDialogCancel>
             <Button
               variant="destructive"
               disabled={isMutating}
               onClick={() => {
-                if (deleteDialog) {
-                  if (rememberDeleteChoice) {
-                    setClientCookie(
-                      FRONTEND_CONFIG.groups.deleteConfirmCookieKey,
-                      "1",
-                      FRONTEND_CONFIG.groups.deleteConfirmCookieDays,
-                    );
-                    setSkipDeleteConfirm(true);
-                  }
-                  executeDelete(deleteDialog.items);
+                if (!deleteDialog) {
+                  return;
                 }
+
+                if (rememberDeleteChoice) {
+                  setClientCookie(
+                    FRONTEND_CONFIG.domains.deleteConfirmCookieKey,
+                    "1",
+                    FRONTEND_CONFIG.domains.deleteConfirmCookieDays,
+                  );
+                  setSkipDeleteConfirm(true);
+                }
+
+                void executeDelete(deleteDialog.items);
               }}
             >
-              {isMutating ? messages.groups.delete.confirmLoading : messages.groups.delete.confirmSingle}
+              {isMutating
+                ? messages.domains.delete.confirmLoading
+                : deleteDialog && deleteDialog.items.length > 1
+                  ? messages.domains.delete.confirmBatch(deleteDialog.items.length)
+                  : messages.domains.delete.confirmSingle}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -251,17 +251,18 @@ export type ManagedListOrderByWithRelationInput = {
 
 export type ManagedListWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  address?: string
+  address_type?: Prisma.ManagedListAddressTypeCompoundUniqueInput
   AND?: Prisma.ManagedListWhereInput | Prisma.ManagedListWhereInput[]
   OR?: Prisma.ManagedListWhereInput[]
   NOT?: Prisma.ManagedListWhereInput | Prisma.ManagedListWhereInput[]
+  address?: Prisma.StringFilter<"ManagedList"> | string
   comment?: Prisma.StringNullableFilter<"ManagedList"> | string | null
   type?: Prisma.StringFilter<"ManagedList"> | string
   groups?: Prisma.IntNullableListFilter<"ManagedList">
   enabled?: Prisma.BoolFilter<"ManagedList"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ManagedList"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ManagedList"> | Date | string
-}, "id" | "address">
+}, "id" | "address_type">
 
 export type ManagedListOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -376,6 +377,11 @@ export type IntNullableListFilter<$PrismaModel = never> = {
   hasEvery?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
   hasSome?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
   isEmpty?: boolean
+}
+
+export type ManagedListAddressTypeCompoundUniqueInput = {
+  address: string
+  type: string
 }
 
 export type ManagedListCountOrderByAggregateInput = {

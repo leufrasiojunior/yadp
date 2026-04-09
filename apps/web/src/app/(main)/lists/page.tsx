@@ -3,12 +3,22 @@ import { ApiErrorScreen } from "@/components/yapd/api-error-screen";
 import { ApiUnavailableScreen } from "@/components/yapd/api-unavailable-screen";
 import { getGroups, getLists, isYapdApiResponseError, isYapdApiUnavailableError } from "@/lib/api/yapd-server";
 import { getServerI18n } from "@/lib/i18n/server";
+import { DEFAULT_LISTS_SORT_DIRECTION, DEFAULT_LISTS_SORT_FIELD } from "@/lib/lists/lists-sorting";
+import { DEFAULT_MANAGED_ITEMS_PAGE_SIZE } from "@/lib/managed-items/pagination";
 
 export default async function ListsPage() {
   const { locale, messages } = await getServerI18n();
 
   try {
-    const [lists, groups] = await Promise.all([getLists(), getGroups()]);
+    const [lists, groups] = await Promise.all([
+      getLists({
+        page: 1,
+        pageSize: DEFAULT_MANAGED_ITEMS_PAGE_SIZE,
+        sortBy: DEFAULT_LISTS_SORT_FIELD,
+        sortDirection: DEFAULT_LISTS_SORT_DIRECTION,
+      }),
+      getGroups(),
+    ]);
 
     return (
       <div className="space-y-6">
@@ -18,7 +28,7 @@ export default async function ListsPage() {
           <p className="mt-2 text-muted-foreground">{messages.lists.description}</p>
         </div>
 
-        <ListsWorkspace initialItems={lists.items} initialSource={lists.source} groups={groups.items} />
+        <ListsWorkspace initialData={lists} groups={groups.items} />
       </div>
     );
   } catch (error) {

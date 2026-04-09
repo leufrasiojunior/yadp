@@ -1,7 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-
-import type { PiholeListType } from "../../pihole/pihole.types";
+import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class UpdateListDto {
   @ApiProperty({
@@ -13,14 +11,6 @@ export class UpdateListDto {
   @IsString()
   @IsOptional()
   comment?: string | null;
-
-  @ApiProperty({
-    description: "Type of list",
-    enum: ["allow", "block"],
-    example: "block",
-  })
-  @IsEnum(["allow", "block"])
-  type!: PiholeListType;
 
   @ApiProperty({
     description: "Groups assigned to this list",

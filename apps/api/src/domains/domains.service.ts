@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, type OnModuleInit } from "@nestjs/common";
 import type { Request } from "express";
 
 import { AuditService } from "../audit/audit.service";
@@ -17,11 +17,18 @@ import type {
 import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
 import {
   DEFAULT_DOMAIN_OPERATION_COMMENT,
+  DEFAULT_DOMAINS_PAGE_SIZE,
+  DEFAULT_DOMAINS_SORT_DIRECTION,
+  DEFAULT_DOMAINS_SORT_FIELD,
+  type DomainFilterValue,
   type DomainItem,
   type DomainOperationKind,
   type DomainOperationResponse,
   type DomainOperationType,
+  type DomainPatternMode,
   type DomainScopeMode,
+  type DomainSortDirection,
+  type DomainSortField,
   type DomainsInstanceFailure,
   type DomainsInstanceSource,
   type DomainsListResponse,
@@ -29,7 +36,9 @@ import {
 } from "./domains.types";
 import type { ApplyDomainOperationDto } from "./dto/apply-domain-operation.dto";
 import type { BatchDeleteDomainsDto } from "./dto/batch-delete-domains.dto";
+import type { DomainItemParamsDto } from "./dto/domain-item-params.dto";
 import type { DomainOperationParamsDto } from "./dto/domain-operation-params.dto";
+import type { GetDomainsDto } from "./dto/get-domains.dto";
 import type { SyncDomainsDto } from "./dto/sync-domains.dto";
 import type { UpdateDomainDto } from "./dto/update-domain.dto";
 
@@ -48,6 +57,79 @@ type DomainSnapshotsResult = {
   snapshots: InstanceDomainsSnapshot[];
   unavailableInstances: DomainsInstanceFailure[];
 };
+
+function buildDomainKey(domain: string, type: string, kind: string) {
+  return `${domain}-${type}-${kind}`;
+}
+
+function matchesDomainSearch(item: DomainItem, searchTerm: string) {
+  const normalizedSearch = searchTerm.toLocaleLowerCase();
+  return (
+    item.domain.toLocaleLowerCase().includes(normalizedSearch) ||
+    item.type.toLocaleLowerCase().includes(normalizedSearch) ||
+    item.kind.toLocaleLowerCase().includes(normalizedSearch) ||
+    (item.comment?.toLocaleLowerCase().includes(normalizedSearch) ?? false)
+  );
+}
+
+function matchesDomainFilters(item: DomainItem, filters: DomainFilterValue[]) {
+  const filterKey = `${item.kind}-${item.type}` as DomainFilterValue;
+  return filters.includes(filterKey);
+}
+
+function compareNullableStrings(left: string | null | undefined, right: string | null | undefined) {
+  return (left ?? "").localeCompare(right ?? "", undefined, { sensitivity: "base" });
+}
+
+function compareBoolean(left: boolean, right: boolean) {
+  if (left === right) {
+    return 0;
+  }
+
+  return left ? 1 : -1;
+}
+
+function compareNumberArrays(left: number[], right: number[]) {
+  return left.join(",").localeCompare(right.join(","));
+}
+
+function sortDomainItems(items: DomainItem[], sortBy: DomainSortField, sortDirection: DomainSortDirection) {
+  const multiplier = sortDirection === "asc" ? 1 : -1;
+
+  return [...items].sort((left, right) => {
+    let comparison = 0;
+
+    switch (sortBy) {
+      case "domain":
+        comparison = left.domain.localeCompare(right.domain, undefined, { sensitivity: "base" });
+        break;
+      case "type":
+        comparison = left.type.localeCompare(right.type, undefined, { sensitivity: "base" });
+        break;
+      case "kind":
+        comparison = left.kind.localeCompare(right.kind, undefined, { sensitivity: "base" });
+        break;
+      case "enabled":
+        comparison = compareBoolean(left.enabled, right.enabled);
+        break;
+      case "comment":
+        comparison = compareNullableStrings(left.comment, right.comment);
+        break;
+      case "group":
+        comparison = compareNumberArrays(left.groups, right.groups);
+        break;
+    }
+
+    if (comparison === 0) {
+      comparison =
+        left.domain.localeCompare(right.domain, undefined, { sensitivity: "base" }) ||
+        left.type.localeCompare(right.type, undefined, { sensitivity: "base" }) ||
+        left.kind.localeCompare(right.kind, undefined, { sensitivity: "base" });
+    }
+
+    return comparison * multiplier;
+  });
+}
 
 @Injectable()
 export class DomainsService implements OnModuleInit {
@@ -91,8 +173,10 @@ export class DomainsService implements OnModuleInit {
     }
   }
 
-  async listDomains(request: Request): Promise<DomainsListResponse> {
+  async listDomains(query: GetDomainsDto, request: Request): Promise<DomainsListResponse> {
     const locale = getRequestLocale(request);
+    const searchTerm = query.search?.trim() ?? "";
+    const filters = query.filters ?? [];
     const instances = await this.loadManagedInstances();
     const baseline = instances.find((instance) => instance.isBaseline);
 
@@ -102,6 +186,10 @@ export class DomainsService implements OnModuleInit {
 
     const { snapshots, unavailableInstances } = await this.prepareSnapshotsForList(instances, request);
     const consolidatedItems = this.buildListedDomains(snapshots, baseline.id);
+    const filteredItems = consolidatedItems
+      .filter((item) => (searchTerm.length > 0 ? matchesDomainSearch(item, searchTerm) : true))
+      .filter((item) => matchesDomainFilters(item, filters));
+    const sortedItems = sortDomainItems(filteredItems, query.sortBy, query.sortDirection);
 
     // Persist to secondary DB
     await Promise.all(
@@ -131,8 +219,20 @@ export class DomainsService implements OnModuleInit {
       ),
     );
 
+    const pageSize = query.pageSize ?? DEFAULT_DOMAINS_PAGE_SIZE;
+    const totalItems = sortedItems.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const page = Math.min(query.page ?? 1, totalPages);
+    const startIndex = (page - 1) * pageSize;
+
     return {
-      items: consolidatedItems,
+      items: sortedItems.slice(startIndex, startIndex + pageSize),
+      pagination: {
+        page,
+        pageSize,
+        totalItems,
+        totalPages,
+      },
       source: {
         baselineInstanceId: baseline.id,
         baselineInstanceName: baseline.name,
@@ -144,6 +244,28 @@ export class DomainsService implements OnModuleInit {
     };
   }
 
+  async getDomain(params: DomainItemParamsDto, request: Request): Promise<DomainItem> {
+    const locale = getRequestLocale(request);
+    const instances = await this.loadManagedInstances();
+    const baseline = instances.find((instance) => instance.isBaseline);
+
+    if (!baseline) {
+      throw new BadRequestException(translateApi(locale, "session.baselineRequired"));
+    }
+
+    const { snapshots } = await this.prepareSnapshotsForList(instances, request);
+    const item = this.buildListedDomains(snapshots, baseline.id).find(
+      (candidate) =>
+        candidate.domain === params.domain && candidate.type === params.type && candidate.kind === params.kind,
+    );
+
+    if (!item) {
+      throw new NotFoundException("Domain not found.");
+    }
+
+    return item;
+  }
+
   async applyDomainOperation(
     params: DomainOperationParamsDto,
     body: ApplyDomainOperationDto,
@@ -152,10 +274,12 @@ export class DomainsService implements OnModuleInit {
     const locale = getRequestLocale(request);
     const normalizedDomain = body.domain.trim().toLowerCase();
     const comment = body.comment ?? DEFAULT_DOMAIN_OPERATION_COMMENT;
-    const value = params.kind === "regex" ? this.buildRegexPattern(normalizedDomain, body.comment) : normalizedDomain;
+    const patternMode = body.patternMode ?? null;
+    const value = params.kind === "regex" ? this.buildRegexPattern(normalizedDomain, patternMode) : normalizedDomain;
     const effectiveScope = params.type === "deny" && params.kind === "exact" ? "all" : body.scope;
-    const effectiveInstanceId = effectiveScope === "instance" ? body.instanceId : undefined;
+    const effectiveInstanceId = effectiveScope === "instance" ? (body.instanceId ?? undefined) : undefined;
     const instances = await this.resolveRequestedInstances(effectiveScope, effectiveInstanceId, locale);
+    const groups = body.groups ?? [0];
 
     // Save to local DB first
     await this.prisma.managedDomain.upsert({
@@ -166,14 +290,14 @@ export class DomainsService implements OnModuleInit {
           kind: params.kind,
         },
       },
-      update: { comment, enabled: true, groups: [0] },
+      update: { comment, enabled: true, groups },
       create: {
         domain: value,
         type: params.type,
         kind: params.kind,
         comment,
         enabled: true,
-        groups: [0],
+        groups,
       },
     });
 
@@ -186,7 +310,7 @@ export class DomainsService implements OnModuleInit {
               kind: params.kind as PiholeDomainOperationKind,
               value,
               comment,
-              groups: [0],
+              groups,
               enabled: true,
             }),
           );
@@ -258,6 +382,7 @@ export class DomainsService implements OnModuleInit {
         domain: normalizedDomain,
         value,
         comment,
+        patternMode,
         scope: effectiveScope,
         instanceId: effectiveInstanceId ?? null,
       },
@@ -417,7 +542,7 @@ export class DomainsService implements OnModuleInit {
 
       if (!sourceData) throw new BadRequestException("Domain not found on source instance");
 
-      const finalSourceData = sourceData;
+      const finalSourceData = sourceData as ManagedDomainRecord;
       for (const instance of targetInstances) {
         try {
           await this.instanceSessions.withActiveSession(instance.id, locale, async ({ connection, session }) => {
@@ -444,7 +569,11 @@ export class DomainsService implements OnModuleInit {
     // Bulk sync
     const { snapshots } = await this.prepareSnapshotsForList(instances, request);
     const allKeys = new Set<string>();
-    for (const s of snapshots) for (const key of s.domainsByKey.keys()) allKeys.add(key);
+    for (const snapshot of snapshots) {
+      for (const key of snapshot.domainsByKey.keys()) {
+        allKeys.add(key);
+      }
+    }
 
     const results: DomainsMutationResponse = {
       status: "success",
@@ -495,8 +624,9 @@ export class DomainsService implements OnModuleInit {
 
   private async loadManagedInstances(): Promise<ManagedInstanceRecord[]> {
     const instances = await this.prisma.instance.findMany({
+      where: { syncEnabled: true },
       select: { id: true, name: true, baseUrl: true, isBaseline: true },
-      orderBy: { name: "asc" },
+      orderBy: [{ isBaseline: "desc" }, { name: "asc" }],
     });
     return instances.map((i) => ({ ...i }));
   }
@@ -517,7 +647,7 @@ export class DomainsService implements OnModuleInit {
             const domainsByKey = new Map<string, ManagedDomainRecord>();
             for (const entry of result.domains) {
               if (entry.domain && entry.type && entry.kind) {
-                const key = `${entry.domain}-${entry.type}-${entry.kind}`;
+                const key = buildDomainKey(entry.domain, entry.type, entry.kind);
                 domainsByKey.set(key, {
                   domain: entry.domain,
                   unicode: entry.unicode,
@@ -586,14 +716,14 @@ export class DomainsService implements OnModuleInit {
         });
       }
     }
-    return items.sort((a, b) => a.domain.localeCompare(b.domain));
+    return sortDomainItems(items, DEFAULT_DOMAINS_SORT_FIELD, DEFAULT_DOMAINS_SORT_DIRECTION);
   }
 
-  private buildRegexPattern(domain: string, comment?: string | null) {
-    if (comment === "Bloquear um nome exato com TLD específico") {
+  private buildRegexPattern(domain: string, patternMode: DomainPatternMode | null) {
+    if (patternMode === "regex_specific") {
       return `(\\.|^)${domain.replaceAll(".", "\\.")}\\.com$`;
     }
-    if (comment === "Bloquear um nome exato com qualquer TLD") {
+    if (patternMode === "regex_any") {
       const base = domain.split(".")[0];
       return `(^|\\.)${base}(\\.[a-z]{2,})+$`;
     }

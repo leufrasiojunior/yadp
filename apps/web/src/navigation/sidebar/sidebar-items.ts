@@ -14,21 +14,30 @@ import type { WebMessages } from "@/lib/i18n/messages";
 export type SidebarItem = {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   isActive?: boolean;
-  items?: {
+  comingSoon?: boolean;
+  newTab?: boolean;
+  subItems?: {
     title: string;
     url: string;
+    icon?: LucideIcon;
+    comingSoon?: boolean;
+    newTab?: boolean;
   }[];
 };
 
 export type SidebarGroup = {
   id: number;
-  label: string;
+  label?: string;
   items: SidebarItem[];
 };
 
-export function getSidebarItems(messages: WebMessages): SidebarGroup[] {
+export type NavMainItem = SidebarItem;
+
+export type NavGroup = SidebarGroup;
+
+export function getSidebarItems(messages: WebMessages): NavGroup[] {
   return [
     {
       id: 1,

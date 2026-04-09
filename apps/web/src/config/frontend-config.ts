@@ -11,6 +11,16 @@ export const FRONTEND_CONFIG = {
   clients: {
     searchDebounceMs: 400,
   },
+  lists: {
+    searchDebounceMs: 400,
+    deleteConfirmCookieKey: "yapd-lists-skip-delete-confirm",
+    deleteConfirmCookieDays: 180,
+  },
+  domains: {
+    searchDebounceMs: 400,
+    deleteConfirmCookieKey: "yapd-domains-skip-delete-confirm",
+    deleteConfirmCookieDays: 180,
+  },
   instances: {
     discoveryCandidateLimit: 20,
   },

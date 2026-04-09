@@ -63,6 +63,10 @@ const domainItemSchema = {
   required: ["domain", "type", "kind", "enabled", "groups", "id", "origin", "sync"],
 };
 
+export const DOMAIN_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: domainItemSchema,
+};
+
 export const DOMAINS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
   schema: {
     type: "object",
@@ -88,12 +92,22 @@ export const DOMAINS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
           "unavailableInstanceCount",
         ],
       },
+      pagination: {
+        type: "object",
+        properties: {
+          page: { type: "number" },
+          pageSize: { type: "number" },
+          totalItems: { type: "number" },
+          totalPages: { type: "number" },
+        },
+        required: ["page", "pageSize", "totalItems", "totalPages"],
+      },
       unavailableInstances: {
         type: "array",
         items: failedInstanceSchema,
       },
     },
-    required: ["items", "source", "unavailableInstances"],
+    required: ["items", "pagination", "source", "unavailableInstances"],
   },
 };
 
@@ -136,10 +150,11 @@ export const DOMAIN_OPERATION_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
           domain: { type: "string" },
           value: { type: "string" },
           comment: { type: "string" },
+          patternMode: { type: "string", nullable: true, enum: ["exact", "regex_specific", "regex_any"] },
           scope: { type: "string" },
           instanceId: { type: "string", nullable: true },
         },
-        required: ["type", "kind", "domain", "value", "comment", "scope", "instanceId"],
+        required: ["type", "kind", "domain", "value", "comment", "patternMode", "scope", "instanceId"],
       },
       summary: {
         type: "object",

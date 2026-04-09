@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Inject, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Param, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { ApiCookieAuth, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
 import type { Request } from "express";
 
 import { CsrfGuard } from "../session/csrf.guard";
 import { SessionGuard } from "../session/session.guard";
 import {
+  DOMAIN_API_OK_RESPONSE,
   DOMAIN_OPERATION_API_OK_RESPONSE,
   DOMAINS_LIST_API_OK_RESPONSE,
   DOMAINS_MUTATION_API_OK_RESPONSE,
@@ -12,7 +13,9 @@ import {
 import { DomainsService } from "./domains.service";
 import type { ApplyDomainOperationDto } from "./dto/apply-domain-operation.dto";
 import type { BatchDeleteDomainsDto } from "./dto/batch-delete-domains.dto";
+import type { DomainItemParamsDto } from "./dto/domain-item-params.dto";
 import type { DomainOperationParamsDto } from "./dto/domain-operation-params.dto";
+import type { GetDomainsDto } from "./dto/get-domains.dto";
 import type { SyncDomainsDto } from "./dto/sync-domains.dto";
 import type { UpdateDomainDto } from "./dto/update-domain.dto";
 
@@ -25,8 +28,14 @@ export class DomainsController {
 
   @Get()
   @ApiOkResponse(DOMAINS_LIST_API_OK_RESPONSE)
-  listDomains(@Req() request: Request) {
-    return this.domainsService.listDomains(request);
+  listDomains(@Query() query: GetDomainsDto, @Req() request: Request) {
+    return this.domainsService.listDomains(query, request);
+  }
+
+  @Get(":domain/:type/:kind")
+  @ApiOkResponse(DOMAIN_API_OK_RESPONSE)
+  getDomain(@Param() params: DomainItemParamsDto, @Req() request: Request) {
+    return this.domainsService.getDomain(params, request);
   }
 
   @Post(":type/:kind")

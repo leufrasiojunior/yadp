@@ -716,8 +716,18 @@ export type WebMessages = {
     eyebrow: string;
     title: string;
     description: string;
+    create: {
+      description: string;
+      addressLabel: string;
+      commentLabel: string;
+      groupLabel: string;
+      submitLoading: string;
+    };
     table: {
+      title: string;
+      description: (baselineName: string) => string;
       address: string;
+      type: string;
       status: string;
       comment: string;
       group: string;
@@ -725,18 +735,35 @@ export type WebMessages = {
       edit: string;
       delete: string;
       searchPlaceholder: string;
+      searchClear: string;
+      refresh: string;
+      refreshLoading: string;
+      sync: string;
+      syncLoading: string;
       selectAll: string;
       selectRow: (address: string) => string;
+      deleteSelected: (count: number) => string;
+      rowsPerPage: string;
+      showing: (start: number, end: number, total: number) => string;
+      previous: string;
+      next: string;
+      syncHealthy: string;
+      syncIssue: string;
+      syncIssueAction: (address: string) => string;
       emptyTitle: string;
       emptyDescription: string;
       addAllow: string;
       addBlock: string;
+    };
+    alerts: {
+      partialAvailability: (availableCount: number, totalCount: number) => string;
     };
     groupEditor: {
       title: string;
       description: string;
       save: string;
       saving: string;
+      cancel: string;
       groupsRequired: string;
       tabs: {
         general: string;
@@ -753,6 +780,27 @@ export type WebMessages = {
         comment: string;
       };
     };
+    syncDialog: {
+      titleAll: string;
+      titleSingle: (address: string) => string;
+      descriptionAll: (baselineName: string) => string;
+      descriptionSingle: (address: string) => string;
+      bulkTitle: string;
+      bulkDescription: (baselineName: string) => string;
+      partialAvailability: (availableCount: number, totalCount: number) => string;
+      sourceLabel: string;
+      availabilityHint: (presentCount: number, missingCount: number) => string;
+      sourcePlaceholder: string;
+      targetsLabel: string;
+      instanceHasItem: string;
+      instanceMissingItem: string;
+      targetsRequired: string;
+      noTargets: string;
+      syncAction: string;
+      syncLoading: string;
+      confirmBulk: string;
+      close: string;
+    };
     status: {
       enabled: string;
       disabled: string;
@@ -760,43 +808,44 @@ export type WebMessages = {
       disabling: string;
     };
     toasts: {
+      refreshFailed: string;
+      createSuccess: string;
       updateSuccess: string;
       updatePartial: (successCount: number, failedCount: number) => string;
-      loadFailed: string;
+      deleteSuccess: string;
+      enabledSuccess: string;
+      disabledSuccess: string;
+      syncSuccess: string;
+      syncItemSuccess: (address: string) => string;
+      partialWarning: (successfulCount: number, failedCount: number) => string;
+      instanceFailure: (instanceName: string, message: string) => string;
+      syncHint: string;
     };
     defaultComment: string;
+    delete: {
+      titleSingle: (address: string) => string;
+      titleBatch: (count: number) => string;
+      descriptionSingle: (address: string) => string;
+      descriptionBatch: (count: number) => string;
+      irreversible: string;
+      dontAskAgain: string;
+      cancel: string;
+      confirmSingle: string;
+      confirmBatch: (count: number) => string;
+      confirmLoading: string;
+    };
   };
   domains: {
     eyebrow: string;
     title: string;
     description: string;
-    table: {
-      domain: string;
-      status: string;
-      comment: string;
-      group: string;
-      actions: string;
-      edit: string;
-      delete: string;
-      searchPlaceholder: string;
-      selectAll: string;
-      selectRow: (domain: string) => string;
-      emptyTitle: string;
-      emptyDescription: string;
-      addAllow: string;
-      addDeny: string;
-    };
-    filters: {
-      exactAllow: string;
-      regexAllow: string;
-      exactDeny: string;
-      regexDeny: string;
-    };
     create: {
+      description: string;
       domainLabel: string;
       commentLabel: string;
       groupLabel: string;
       kindLabel: string;
+      submitLoading: string;
       kinds: {
         exact: {
           label: string;
@@ -812,10 +861,122 @@ export type WebMessages = {
         };
       };
     };
+    table: {
+      title: string;
+      description: (baselineName: string) => string;
+      domain: string;
+      type: string;
+      kind: string;
+      status: string;
+      comment: string;
+      group: string;
+      actions: string;
+      edit: string;
+      delete: string;
+      searchPlaceholder: string;
+      searchClear: string;
+      refresh: string;
+      refreshLoading: string;
+      sync: string;
+      syncLoading: string;
+      selectAll: string;
+      selectRow: (domain: string) => string;
+      deleteSelected: (count: number) => string;
+      rowsPerPage: string;
+      showing: (start: number, end: number, total: number) => string;
+      previous: string;
+      next: string;
+      syncHealthy: string;
+      syncIssue: string;
+      syncIssueAction: (domain: string) => string;
+      emptyTitle: string;
+      emptyDescription: string;
+      addAllow: string;
+      addDeny: string;
+    };
+    alerts: {
+      partialAvailability: (availableCount: number, totalCount: number) => string;
+    };
+    filters: {
+      exactAllow: string;
+      regexAllow: string;
+      exactDeny: string;
+      regexDeny: string;
+    };
+    groupEditor: {
+      title: string;
+      description: string;
+      save: string;
+      saving: string;
+      cancel: string;
+      groupsRequired: string;
+      tabs: {
+        general: string;
+        groups: string;
+      };
+      fields: {
+        domain: string;
+        enabled: string;
+        dateAdded: string;
+        dateModified: string;
+        type: string;
+        kind: string;
+        comment: string;
+      };
+    };
+    syncDialog: {
+      titleAll: string;
+      titleSingle: (domain: string) => string;
+      descriptionAll: (baselineName: string) => string;
+      descriptionSingle: (domain: string) => string;
+      bulkTitle: string;
+      bulkDescription: (baselineName: string) => string;
+      partialAvailability: (availableCount: number, totalCount: number) => string;
+      sourceLabel: string;
+      availabilityHint: (presentCount: number, missingCount: number) => string;
+      sourcePlaceholder: string;
+      targetsLabel: string;
+      instanceHasItem: string;
+      instanceMissingItem: string;
+      targetsRequired: string;
+      noTargets: string;
+      syncAction: string;
+      syncLoading: string;
+      confirmBulk: string;
+      close: string;
+    };
+    status: {
+      enabled: string;
+      disabled: string;
+      enabling: string;
+      disabling: string;
+    };
+    delete: {
+      titleSingle: (domain: string) => string;
+      titleBatch: (count: number) => string;
+      descriptionSingle: (domain: string) => string;
+      descriptionBatch: (count: number) => string;
+      irreversible: string;
+      dontAskAgain: string;
+      cancel: string;
+      confirmSingle: string;
+      confirmBatch: (count: number) => string;
+      confirmLoading: string;
+    };
     toasts: {
+      refreshFailed: string;
+      createSuccess: string;
       updateSuccess: string;
       updatePartial: (successCount: number, failedCount: number) => string;
-      loadFailed: string;
+      deleteSuccess: string;
+      enabledSuccess: string;
+      disabledSuccess: string;
+      syncSuccess: string;
+      syncItemSuccess: (domain: string) => string;
+      partialWarning: (successfulCount: number, failedCount: number) => string;
+      instanceFailure: (instanceName: string, message: string) => string;
+      syncHint: string;
     };
+    defaultComment: string;
   };
 };

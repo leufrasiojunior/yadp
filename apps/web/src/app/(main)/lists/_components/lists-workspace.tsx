@@ -1,10 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ArrowLeftRight, CircleAlert, Info, List, MoreHorizontal, RefreshCw, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeftRight,
+  ArrowUp,
+  ArrowUpDown,
+  CircleAlert,
+  Info,
+  List,
+  MoreHorizontal,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
+import { ManagedItemsPagination } from "@/app/(main)/_components/managed-items-pagination";
+import { ManagedItemsPartialAlert } from "@/app/(main)/_components/managed-items-partial-alert";
+import { ManagedItemsSearchInput } from "@/app/(main)/_components/managed-items-search-input";
+import { ManagedItemsTableSkeleton } from "@/app/(main)/_components/managed-items-table-skeleton";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -41,9 +56,21 @@ import { useAppSession } from "@/components/yapd/app-session-provider";
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
-import type { GroupItem, ListItem, ListsListResponse, ListsMutationResponse } from "@/lib/api/yapd-types";
+import type {
+  GroupItem,
+  ListItem,
+  ListsListResponse,
+  ListsMutationResponse,
+  ListsSortDirection,
+  ListsSortField,
+} from "@/lib/api/yapd-types";
 import { getClientCookie, setClientCookie } from "@/lib/cookie.client";
 import { useWebI18n } from "@/lib/i18n/client";
+import {
+  DEFAULT_LISTS_SORT_DIRECTION,
+  DEFAULT_LISTS_SORT_FIELD,
+  getDefaultListsSortDirection,
+} from "@/lib/lists/lists-sorting";
 import { cn } from "@/lib/utils";
 
 import { CreateListGroupSelector } from "./create-list-group-selector";
@@ -57,28 +84,26 @@ type DeleteDialogState = {
   description: string;
 } | null;
 
-type SyncSelectionState = Record<
-  string,
-  {
-    sourceInstanceId: string;
-    targetInstanceIds: string[];
-  }
->;
-
 type ListSyncInstanceState = {
   instanceId: string;
   instanceName: string;
   hasList: boolean;
 };
 
+function getListKey(item: Pick<ListItem, "address" | "type">) {
+  return `${item.address}-${item.type}`;
+}
+
 function sortSyncInstanceStates(states: ListSyncInstanceState[], baselineInstanceId: string) {
   return [...states].sort((left, right) => {
     if (left.instanceId === baselineInstanceId && right.instanceId !== baselineInstanceId) {
       return -1;
     }
+
     if (left.instanceId !== baselineInstanceId && right.instanceId === baselineInstanceId) {
       return 1;
     }
+
     return left.instanceName.localeCompare(right.instanceName);
   });
 }
@@ -119,106 +144,161 @@ function buildDefaultSyncTargetIds(item: ListItem, baselineInstanceId: string, s
     .map((instance) => instance.instanceId);
 }
 
-function buildSyncSelections(items: ListItem[], baselineInstanceId: string): SyncSelectionState {
-  return Object.fromEntries(
-    items
-      .filter((item) => item.sync.missingInstances.length > 0)
-      .map((item) => [
-        `${item.address}-${item.type}`,
-        {
-          sourceInstanceId: item.origin.instanceId,
-          targetInstanceIds: buildDefaultSyncTargetIds(item, baselineInstanceId, item.origin.instanceId),
-        },
-      ]),
-  );
-}
-
 export function ListsWorkspace({
-  initialItems,
-  initialSource,
+  initialData,
   groups,
 }: Readonly<{
-  initialItems: ListItem[];
-  initialSource: ListsListResponse["source"];
+  initialData: ListsListResponse;
   groups: GroupItem[];
 }>) {
   const { messages } = useWebI18n();
   const { csrfToken } = useAppSession();
   const client = useMemo(() => getBrowserApiClient(), []);
-  const [items, setItems] = useState(initialItems);
-  const [source, setSource] = useState(initialSource);
+  const [data, setData] = useState(initialData);
   const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [busyAction, setBusyAction] = useState<string | null>(null);
-
-  // Creation form state
   const [newUrl, setNewUrl] = useState("");
   const [newComment, setNewComment] = useState("");
   const [newGroupIds, setNewGroupIds] = useState<number[]>([0]);
-
-  // Edit state
   const [editingList, setEditingList] = useState<ListItem | null>(null);
-
-  // Sync state
-  const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
-  const [syncDialogAddress, setSyncDialogAddress] = useState<string | null>(null);
-  const [syncDialogType, setSyncDialogType] = useState<"allow" | "block" | null>(null);
-  const [syncSelections, setSyncSelections] = useState<SyncSelectionState>(() =>
-    buildSyncSelections(initialItems, initialSource.baselineInstanceId),
-  );
-
-  // Delete state
+  const [syncList, setSyncList] = useState<ListItem | null>(null);
+  const [syncSourceInstanceId, setSyncSourceInstanceId] = useState("");
+  const [syncTargetInstanceIds, setSyncTargetInstanceIds] = useState<string[]>([]);
+  const [isBulkSyncDialogOpen, setIsBulkSyncDialogOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(null);
   const [rememberDeleteChoice, setRememberDeleteChoice] = useState(false);
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
+  const [sortBy, setSortBy] = useState<ListsSortField>(DEFAULT_LISTS_SORT_FIELD);
+  const [sortDirection, setSortDirection] = useState<ListsSortDirection>(DEFAULT_LISTS_SORT_DIRECTION);
+
+  const isReloading =
+    busyAction === "refresh" ||
+    busyAction === "page" ||
+    busyAction === "page-size" ||
+    busyAction === "sort" ||
+    busyAction === "search";
+  const isMutating = busyAction !== null;
+
+  const selectedKeySet = useMemo(() => new Set(selectedKeys), [selectedKeys]);
+  const allVisibleSelected = data.items.length > 0 && data.items.every((item) => selectedKeySet.has(getListKey(item)));
+  const someVisibleSelected = data.items.some((item) => selectedKeySet.has(getListKey(item)));
+  const selectedItems = data.items.filter((item) => selectedKeySet.has(getListKey(item)));
+  const syncInstanceStates = useMemo(
+    () => (syncList ? getListSyncInstanceStates(syncList, data.source.baselineInstanceId) : []),
+    [data.source.baselineInstanceId, syncList],
+  );
+  const syncTargetStates = syncInstanceStates.filter((instance) => instance.instanceId !== syncSourceInstanceId);
+
+  const refreshLists = useCallback(
+    async (
+      page = data.pagination.page,
+      pageSize = data.pagination.pageSize,
+      nextSortBy = sortBy,
+      nextSortDirection = sortDirection,
+      nextSearchTerm = searchTerm,
+    ) => {
+      const { data: nextData, response } = await client.GET<ListsListResponse>("/lists", {
+        params: {
+          query: {
+            page,
+            pageSize,
+            sortBy: nextSortBy,
+            sortDirection: nextSortDirection,
+            search: nextSearchTerm,
+          },
+        },
+      });
+
+      if (!response.ok || !nextData) {
+        toast.error(messages.lists.toasts.refreshFailed);
+        return null;
+      }
+
+      setData(nextData);
+      return nextData;
+    },
+    [
+      client,
+      data.pagination.page,
+      data.pagination.pageSize,
+      messages.lists.toasts.refreshFailed,
+      searchTerm,
+      sortBy,
+      sortDirection,
+    ],
+  );
 
   useEffect(() => {
-    setSkipDeleteConfirm(getClientCookie(FRONTEND_CONFIG.groups.deleteConfirmCookieKey) === "1");
+    setSkipDeleteConfirm(getClientCookie(FRONTEND_CONFIG.lists.deleteConfirmCookieKey) === "1");
   }, []);
 
   useEffect(() => {
+    const visibleKeys = new Set(data.items.map((item) => getListKey(item)));
+    setSelectedKeys((current) => current.filter((key) => visibleKeys.has(key)));
+  }, [data.items]);
+
+  useEffect(() => {
+    let cancelled = false;
     const timeoutId = window.setTimeout(() => {
-      setSearchTerm(searchDraft.trim().toLowerCase());
-    }, FRONTEND_CONFIG.groups.searchDebounceMs);
+      const nextSearchTerm = searchDraft.trim();
+
+      if (nextSearchTerm === searchTerm) {
+        return;
+      }
+
+      const applySearch = async () => {
+        setBusyAction("search");
+
+        try {
+          const nextData = await refreshLists(1, data.pagination.pageSize, sortBy, sortDirection, nextSearchTerm);
+
+          if (!cancelled && nextData) {
+            setSearchTerm(nextSearchTerm);
+          }
+        } finally {
+          if (!cancelled) {
+            setBusyAction(null);
+          }
+        }
+      };
+
+      void applySearch();
+    }, FRONTEND_CONFIG.lists.searchDebounceMs);
 
     return () => {
+      cancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [searchDraft]);
+  }, [data.pagination.pageSize, refreshLists, searchDraft, searchTerm, sortBy, sortDirection]);
 
-  const filteredItems = useMemo(() => {
-    if (searchTerm.length === 0) {
-      return items;
-    }
+  const notifyMutationResult = useCallback(
+    (
+      responseData: ListsMutationResponse,
+      options: {
+        successMessage: string;
+        partialMessage: (successCount: number, failedCount: number) => string;
+      },
+    ) => {
+      if (responseData.failedInstances.length === 0) {
+        toast.success(options.successMessage);
+        return;
+      }
 
-    return items.filter(
-      (item) =>
-        item.address.toLowerCase().includes(searchTerm) || (item.comment?.toLowerCase().includes(searchTerm) ?? false),
-    );
-  }, [items, searchTerm]);
-
-  const selectedKeySet = useMemo(() => new Set(selectedKeys), [selectedKeys]);
-  const allVisibleSelected =
-    filteredItems.length > 0 && filteredItems.every((item) => selectedKeySet.has(`${item.address}-${item.type}`));
-  const someVisibleSelected = filteredItems.some((item) => selectedKeySet.has(`${item.address}-${item.type}`));
-  const isMutating = busyAction !== null;
-
-  const refreshLists = async () => {
-    const { data, response } = await client.GET<ListsListResponse>("/lists");
-
-    if (!response.ok || !data) {
-      toast.error(messages.lists.toasts.loadFailed);
-      return null;
-    }
-
-    setItems(data.items);
-    setSource(data.source);
-    return data;
-  };
+      toast.warning(options.partialMessage(responseData.summary.successfulCount, responseData.summary.failedCount));
+      responseData.failedInstances.forEach((failure) => {
+        toast.error(messages.lists.toasts.instanceFailure(failure.instanceName, failure.message), {
+          description: messages.lists.toasts.syncHint,
+        });
+      });
+    },
+    [messages.lists.toasts.instanceFailure, messages.lists.toasts.syncHint],
+  );
 
   const runRefresh = async () => {
     setBusyAction("refresh");
+
     try {
       await refreshLists();
     } finally {
@@ -226,15 +306,57 @@ export function ListsWorkspace({
     }
   };
 
+  const changePageSize = async (nextPageSize: number) => {
+    setBusyAction("page-size");
+
+    try {
+      await refreshLists(1, nextPageSize);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const goToPage = async (page: number) => {
+    setBusyAction("page");
+
+    try {
+      await refreshLists(page, data.pagination.pageSize);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const toggleSort = async (field: ListsSortField) => {
+    const nextSortDirection =
+      sortBy === field ? (sortDirection === "asc" ? "desc" : "asc") : getDefaultListsSortDirection(field);
+
+    setBusyAction("sort");
+
+    try {
+      const nextData = await refreshLists(1, data.pagination.pageSize, field, nextSortDirection);
+
+      if (!nextData) {
+        return;
+      }
+
+      setSortBy(field);
+      setSortDirection(nextSortDirection);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
   const submitCreate = async (type: "allow" | "block") => {
-    if (!newUrl.trim()) return;
+    if (!newUrl.trim()) {
+      return;
+    }
 
     setBusyAction(`create:${type}`);
-    const { data, response } = await client.POST<ListsMutationResponse>("/lists", {
+    const { data: responseData, response } = await client.POST<ListsMutationResponse>("/lists", {
       headers: { "x-yapd-csrf": csrfToken },
       body: {
         address: newUrl.trim(),
-        comment: newComment.trim() || null,
+        comment: newComment.trim() || messages.lists.defaultComment,
         type,
         groups: newGroupIds,
         enabled: true,
@@ -243,36 +365,35 @@ export function ListsWorkspace({
 
     setBusyAction(null);
 
-    if (!response.ok || !data) {
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
 
+    notifyMutationResult(responseData, {
+      successMessage: messages.lists.toasts.createSuccess,
+      partialMessage: messages.lists.toasts.updatePartial,
+    });
     setNewUrl("");
     setNewComment("");
     setNewGroupIds([0]);
-
-    if (data.status === "partial") {
-      toast.warning(messages.lists.toasts.updatePartial(data.summary.successfulCount, data.summary.failedCount));
-    } else {
-      toast.success(messages.lists.toasts.updateSuccess);
-    }
-
     await refreshLists();
   };
 
   const toggleListStatus = async (list: ListItem, enabled: boolean) => {
-    setBusyAction(`toggle:${list.address}-${list.type}`);
+    const key = getListKey(list);
+    setBusyAction(`toggle:${key}`);
 
-    const { data, response } = await client.PUT<ListsMutationResponse>("/lists/{address}", {
+    const { data: responseData, response } = await client.PUT<ListsMutationResponse>("/lists/{type}/{address}", {
       headers: { "x-yapd-csrf": csrfToken },
       params: {
-        path: { address: list.address },
-        query: { type: list.type },
+        path: {
+          type: list.type,
+          address: list.address,
+        },
       },
       body: {
         comment: list.comment,
-        type: list.type,
         groups: list.groups,
         enabled,
       },
@@ -280,32 +401,32 @@ export function ListsWorkspace({
 
     setBusyAction(null);
 
-    if (!response.ok || !data) {
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
 
-    if (data.status === "partial") {
-      toast.warning(messages.lists.toasts.updatePartial(data.summary.successfulCount, data.summary.failedCount));
-    } else {
-      toast.success(messages.lists.toasts.updateSuccess);
-    }
-
+    notifyMutationResult(responseData, {
+      successMessage: enabled ? messages.lists.toasts.enabledSuccess : messages.lists.toasts.disabledSuccess,
+      partialMessage: messages.lists.toasts.updatePartial,
+    });
     await refreshLists();
   };
 
   const saveGroupsAndComment = async (list: ListItem, groupIds: number[], comment: string | null) => {
-    setBusyAction(`edit:${list.address}-${list.type}`);
+    const key = getListKey(list);
+    setBusyAction(`edit:${key}`);
 
-    const { data, response } = await client.PUT<ListsMutationResponse>("/lists/{address}", {
+    const { data: responseData, response } = await client.PUT<ListsMutationResponse>("/lists/{type}/{address}", {
       headers: { "x-yapd-csrf": csrfToken },
       params: {
-        path: { address: list.address },
-        query: { type: list.type },
+        path: {
+          type: list.type,
+          address: list.address,
+        },
       },
       body: {
         comment,
-        type: list.type,
         groups: groupIds,
         enabled: list.enabled,
       },
@@ -313,48 +434,44 @@ export function ListsWorkspace({
 
     setBusyAction(null);
 
-    if (!response.ok || !data) {
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
 
-    if (data.status === "partial") {
-      toast.warning(messages.lists.toasts.updatePartial(data.summary.successfulCount, data.summary.failedCount));
-    } else {
-      toast.success(messages.lists.toasts.updateSuccess);
-    }
-
+    notifyMutationResult(responseData, {
+      successMessage: messages.lists.toasts.updateSuccess,
+      partialMessage: messages.lists.toasts.updatePartial,
+    });
     await refreshLists();
   };
 
   const executeDelete = async (itemsToDelete: { item: string; type: "allow" | "block" }[]) => {
     setBusyAction("delete");
-    const { data, response } = await client.POST<ListsMutationResponse>("/lists/batchDelete", {
+    const { data: responseData, response } = await client.POST<ListsMutationResponse>("/lists/batchDelete", {
       headers: { "x-yapd-csrf": csrfToken },
       body: { items: itemsToDelete },
     });
-
     setBusyAction(null);
 
-    if (!response.ok || !data) {
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
 
     setDeleteDialog(null);
     setSelectedKeys([]);
-
-    if (data.status === "partial") {
-      toast.warning(messages.lists.toasts.updatePartial(data.summary.successfulCount, data.summary.failedCount));
-    } else {
-      toast.success(messages.groups.toasts.deleteSuccess);
-    }
-
+    notifyMutationResult(responseData, {
+      successMessage: messages.lists.toasts.deleteSuccess,
+      partialMessage: messages.lists.toasts.updatePartial,
+    });
     await refreshLists();
   };
 
   const requestDelete = (itemsToDelete: { item: string; type: "allow" | "block" }[]) => {
-    if (isMutating) return;
+    if (isMutating || itemsToDelete.length === 0) {
+      return;
+    }
 
     if (skipDeleteConfirm) {
       void executeDelete(itemsToDelete);
@@ -362,181 +479,153 @@ export function ListsWorkspace({
     }
 
     const firstItem = itemsToDelete[0];
-    if (!firstItem) return;
+
+    if (!firstItem) {
+      return;
+    }
 
     setDeleteDialog({
       items: itemsToDelete,
       title:
         itemsToDelete.length === 1
-          ? messages.groups.delete.titleSingle(firstItem.item)
-          : messages.groups.delete.titleBatch(itemsToDelete.length),
+          ? messages.lists.delete.titleSingle(firstItem.item)
+          : messages.lists.delete.titleBatch(itemsToDelete.length),
       description:
         itemsToDelete.length === 1
-          ? messages.groups.delete.descriptionSingle(firstItem.item)
-          : messages.groups.delete.descriptionBatch(itemsToDelete.length),
+          ? messages.lists.delete.descriptionSingle(firstItem.item)
+          : messages.lists.delete.descriptionBatch(itemsToDelete.length),
     });
   };
 
-  const openSyncDialog = (address?: string, type?: "allow" | "block") => {
-    setSyncDialogAddress(address ?? null);
-    setSyncDialogType(type ?? null);
-    setSyncSelections(buildSyncSelections(items, source.baselineInstanceId));
-    setIsSyncDialogOpen(true);
+  const openSyncDialog = (item: ListItem) => {
+    if (isMutating) {
+      return;
+    }
+
+    setSyncList(item);
+    setSyncSourceInstanceId(item.origin.instanceId);
+    setSyncTargetInstanceIds(buildDefaultSyncTargetIds(item, data.source.baselineInstanceId, item.origin.instanceId));
+  };
+
+  const closeSyncDialog = () => {
+    if (syncList && busyAction === `sync:${getListKey(syncList)}`) {
+      return;
+    }
+
+    setSyncList(null);
+    setSyncSourceInstanceId("");
+    setSyncTargetInstanceIds([]);
   };
 
   const runBulkSync = async () => {
     setBusyAction("sync:all");
-    const { data, response } = await client.POST<ListsMutationResponse>("/lists/sync", {
+    const { data: responseData, response } = await client.POST<ListsMutationResponse>("/lists/sync", {
       headers: { "x-yapd-csrf": csrfToken },
-      body: {}, // Bulk sync N-to-N
+      body: {},
     });
-
     setBusyAction(null);
 
-    if (!response.ok || !data) {
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
 
-    if (data.status === "partial") {
-      toast.warning(messages.groups.toasts.partialWarning(data.summary.successfulCount, data.summary.failedCount));
-    } else {
-      toast.success(messages.groups.toasts.syncSuccess);
-    }
-
+    setIsBulkSyncDialogOpen(false);
+    notifyMutationResult(responseData, {
+      successMessage: messages.lists.toasts.syncSuccess,
+      partialMessage: messages.lists.toasts.partialWarning,
+    });
     await refreshLists();
   };
 
-  const updateSyncSource = (address: string, type: "allow" | "block", sourceInstanceId: string) => {
-    const key = `${address}-${type}`;
-    const item = items.find((i) => i.address === address && i.type === type);
-    setSyncSelections((current) => ({
-      ...current,
-      [key]: {
-        sourceInstanceId,
-        targetInstanceIds: item ? buildDefaultSyncTargetIds(item, source.baselineInstanceId, sourceInstanceId) : [],
-      },
-    }));
-  };
-
-  const toggleSyncTarget = (address: string, type: "allow" | "block", targetInstanceId: string, checked: boolean) => {
-    const key = `${address}-${type}`;
-    setSyncSelections((current) => {
-      const previous = current[key];
-      const nextTargetIds = checked
-        ? [...new Set([...(previous?.targetInstanceIds ?? []), targetInstanceId])]
-        : (previous?.targetInstanceIds ?? []).filter((id) => id !== targetInstanceId);
-
-      return {
-        ...current,
-        [key]: {
-          sourceInstanceId:
-            previous?.sourceInstanceId ??
-            items.find((i) => i.address === address && i.type === type)?.origin.instanceId ??
-            "",
-          targetInstanceIds: nextTargetIds,
-        },
-      };
-    });
-  };
-
-  const syncSingleList = async (item: ListItem) => {
-    const key = `${item.address}-${item.type}`;
-    const selection = syncSelections[key] ?? {
-      sourceInstanceId: item.origin.instanceId,
-      targetInstanceIds: buildDefaultSyncTargetIds(item, source.baselineInstanceId, item.origin.instanceId),
-    };
-
-    if (selection.targetInstanceIds.length === 0) {
-      toast.error(messages.groups.syncDialog.targetsRequired);
+  const syncSingleList = async () => {
+    if (!syncList) {
       return;
     }
 
-    setBusyAction(`sync:${key}`);
-    const { data, response } = await client.POST<ListsMutationResponse>("/lists/sync", {
+    if (syncTargetInstanceIds.length === 0) {
+      toast.error(messages.lists.syncDialog.targetsRequired);
+      return;
+    }
+
+    setBusyAction(`sync:${getListKey(syncList)}`);
+    const { data: responseData, response } = await client.POST<ListsMutationResponse>("/lists/sync", {
       headers: { "x-yapd-csrf": csrfToken },
       body: {
-        address: item.address,
-        type: item.type,
-        sourceInstanceId: selection.sourceInstanceId,
-        targetInstanceIds: selection.targetInstanceIds,
+        address: syncList.address,
+        type: syncList.type,
+        sourceInstanceId: syncSourceInstanceId,
+        targetInstanceIds: syncTargetInstanceIds,
       },
     });
-
     setBusyAction(null);
 
-    if (!response.ok || !data) {
+    if (!response.ok || !responseData) {
       toast.error(await getApiErrorMessage(response));
       return;
     }
 
-    toast.success(messages.groups.toasts.syncGroupSuccess(item.address));
-    const refreshed = await refreshLists();
-    if (refreshed) {
-      const nextUnsynced = refreshed.items.filter((i) => i.sync.missingInstances.length > 0);
-      const stillUnsynced = syncDialogAddress
-        ? nextUnsynced.some((i) => i.address === syncDialogAddress && i.type === syncDialogType)
-        : nextUnsynced.length > 0;
-
-      if (!stillUnsynced) {
-        setIsSyncDialogOpen(false);
-      }
-    }
+    notifyMutationResult(responseData, {
+      successMessage: messages.lists.toasts.syncItemSuccess(syncList.address),
+      partialMessage: messages.lists.toasts.partialWarning,
+    });
+    closeSyncDialog();
+    await refreshLists();
   };
 
   const toggleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedKeys(filteredItems.map((item) => `${item.address}-${item.type}`));
-    } else {
-      setSelectedKeys([]);
+      setSelectedKeys(data.items.map((item) => getListKey(item)));
+      return;
     }
+
+    setSelectedKeys([]);
   };
 
-  const toggleSelectRow = (address: string, type: string, checked: boolean) => {
-    const key = `${address}-${type}`;
-    setSelectedKeys((current) => (checked ? [...new Set([...current, key])] : current.filter((k) => k !== key)));
+  const toggleSelectRow = (list: ListItem, checked: boolean) => {
+    const key = getListKey(list);
+    setSelectedKeys((current) => (checked ? [...new Set([...current, key])] : current.filter((item) => item !== key)));
   };
 
-  const unsyncedItems = useMemo(() => items.filter((item) => item.sync.missingInstances.length > 0), [items]);
-  const syncDialogItems = useMemo(
-    () =>
-      syncDialogAddress
-        ? unsyncedItems.filter((i) => i.address === syncDialogAddress && i.type === syncDialogType)
-        : unsyncedItems,
-    [syncDialogAddress, syncDialogType, unsyncedItems],
-  );
+  const renderSortIcon = (field: ListsSortField) => {
+    if (sortBy !== field) {
+      return <ArrowUpDown className="size-3.5" />;
+    }
+
+    return sortDirection === "asc" ? <ArrowUp className="size-3.5" /> : <ArrowDown className="size-3.5" />;
+  };
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>{messages.common.add}</CardTitle>
-          <CardDescription>{messages.lists.description}</CardDescription>
+          <CardDescription>{messages.lists.create.description}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
             <Field className="gap-1.5">
-              <FieldLabel htmlFor="new-list-url">URL</FieldLabel>
+              <FieldLabel htmlFor="new-list-url">{messages.lists.create.addressLabel}</FieldLabel>
               <Input
                 id="new-list-url"
                 placeholder="https://example.com/list.txt"
                 value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
+                onChange={(event) => setNewUrl(event.target.value)}
                 disabled={isMutating}
               />
             </Field>
             <Field className="gap-1.5">
-              <FieldLabel htmlFor="new-list-comment">{messages.lists.table.comment}</FieldLabel>
+              <FieldLabel htmlFor="new-list-comment">{messages.lists.create.commentLabel}</FieldLabel>
               <Input
                 id="new-list-comment"
                 placeholder="..."
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                onChange={(event) => setNewComment(event.target.value)}
                 disabled={isMutating}
               />
             </Field>
             <Field className="gap-1.5">
-              <FieldLabel>{messages.lists.table.group}</FieldLabel>
+              <FieldLabel>{messages.lists.create.groupLabel}</FieldLabel>
               <CreateListGroupSelector
                 groups={groups}
                 selectedGroupIds={newGroupIds}
@@ -546,19 +635,19 @@ export function ListsWorkspace({
             </Field>
             <div className="flex items-end gap-2">
               <Button
-                onClick={() => submitCreate("allow")}
+                onClick={() => void submitCreate("allow")}
                 disabled={isMutating || !newUrl.trim()}
                 className="w-full bg-emerald-600 text-white hover:bg-emerald-700 lg:w-auto"
               >
-                {busyAction === "create:allow" ? messages.groups.create.submitLoading : messages.lists.table.addAllow}
+                {busyAction === "create:allow" ? messages.lists.create.submitLoading : messages.lists.table.addAllow}
               </Button>
               <Button
-                onClick={() => submitCreate("block")}
+                onClick={() => void submitCreate("block")}
                 disabled={isMutating || !newUrl.trim()}
                 variant="destructive"
                 className="w-full lg:w-auto"
               >
-                {busyAction === "create:block" ? messages.groups.create.submitLoading : messages.lists.table.addBlock}
+                {busyAction === "create:block" ? messages.lists.create.submitLoading : messages.lists.table.addBlock}
               </Button>
             </div>
           </div>
@@ -567,47 +656,56 @@ export function ListsWorkspace({
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>
-              {items.length} {messages.lists.title}
-            </CardTitle>
+          <div>
+            <CardTitle>{messages.lists.table.title}</CardTitle>
+            <CardDescription>{messages.lists.table.description(data.source.baselineInstanceName)}</CardDescription>
           </div>
           <CardAction className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            <Input
+            <ManagedItemsSearchInput
               value={searchDraft}
-              onChange={(event) => setSearchDraft(event.target.value)}
+              onChange={setSearchDraft}
               placeholder={messages.lists.table.searchPlaceholder}
-              disabled={isMutating}
-              className="min-w-64"
+              clearLabel={messages.lists.table.searchClear}
+              disabled={busyAction !== null && busyAction !== "search"}
             />
             <Button type="button" variant="outline" size="sm" disabled={isMutating} onClick={() => void runRefresh()}>
               <RefreshCw className={cn(busyAction === "refresh" ? "animate-spin" : undefined)} />
-              {busyAction === "refresh" ? messages.common.retry : messages.sidebar.sync.refresh}
+              {busyAction === "refresh" ? messages.lists.table.refreshLoading : messages.lists.table.refresh}
             </Button>
-            <Button type="button" variant="outline" size="sm" disabled={isMutating} onClick={() => openSyncDialog()}>
-              <ArrowLeftRight />
-              {messages.groups.table.sync}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isMutating}
+              onClick={() => setIsBulkSyncDialogOpen(true)}
+            >
+              <ArrowLeftRight className={cn(busyAction === "sync:all" ? "animate-pulse" : undefined)} />
+              {busyAction === "sync:all" ? messages.lists.table.syncLoading : messages.lists.table.sync}
             </Button>
-            {selectedKeys.length > 0 && (
+            {selectedItems.length > 0 ? (
               <Button
                 variant="destructive"
                 size="sm"
                 disabled={isMutating}
-                onClick={() =>
-                  requestDelete(
-                    items
-                      .filter((i) => selectedKeySet.has(`${i.address}-${i.type}`))
-                      .map((i) => ({ item: i.address, type: i.type })),
-                  )
-                }
+                onClick={() => requestDelete(selectedItems.map((item) => ({ item: item.address, type: item.type })))}
               >
-                {messages.groups.table.deleteSelected(selectedKeys.length)}
+                {messages.lists.table.deleteSelected(selectedItems.length)}
               </Button>
-            )}
+            ) : null}
           </CardAction>
         </CardHeader>
-        <CardContent>
-          {filteredItems.length === 0 ? (
+        <CardContent className="space-y-4">
+          {data.source.unavailableInstanceCount > 0 ? (
+            <ManagedItemsPartialAlert
+              title={messages.lists.table.sync}
+              description={messages.lists.alerts.partialAvailability(
+                data.source.availableInstanceCount,
+                data.source.totalInstances,
+              )}
+            />
+          ) : null}
+
+          {data.items.length === 0 && !isReloading ? (
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -618,270 +716,430 @@ export function ListsWorkspace({
               </EmptyHeader>
             </Empty>
           ) : (
-            <div className="overflow-hidden rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12 text-center">
-                      <Checkbox
-                        checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
-                        onCheckedChange={(checked) => toggleSelectAll(checked === true)}
-                        disabled={isMutating}
-                      />
-                    </TableHead>
-                    <TableHead>{messages.lists.table.address}</TableHead>
-                    <TableHead className="text-center">{messages.lists.table.status}</TableHead>
-                    <TableHead>{messages.lists.table.comment}</TableHead>
-                    <TableHead>{messages.lists.table.group}</TableHead>
-                    <TableHead className="text-right">{messages.lists.table.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredItems.map((item) => (
-                    <TableRow key={`${item.address}-${item.type}`}>
-                      <TableCell className="text-center">
+            <>
+              <ManagedItemsPagination
+                changePageSize={(nextPageSize) => void changePageSize(nextPageSize)}
+                goToPage={(page) => void goToPage(page)}
+                isReloading={isReloading}
+                nextLabel={messages.lists.table.next}
+                page={data.pagination.page}
+                pageSize={data.pagination.pageSize}
+                previousLabel={messages.lists.table.previous}
+                rowsPerPageLabel={messages.lists.table.rowsPerPage}
+                showingLabel={messages.lists.table.showing}
+                totalItems={data.pagination.totalItems}
+                totalPages={data.pagination.totalPages}
+              />
+
+              <div className="overflow-hidden rounded-xl border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12 text-center">
                         <Checkbox
-                          checked={selectedKeySet.has(`${item.address}-${item.type}`)}
-                          onCheckedChange={(checked) => toggleSelectRow(item.address, item.type, checked === true)}
+                          checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
+                          onCheckedChange={(checked) => toggleSelectAll(checked === true)}
                           disabled={isMutating}
+                          aria-label={messages.lists.table.selectAll}
                         />
-                      </TableCell>
-                      <TableCell className="max-w-md">
-                        <div className="flex flex-col gap-1">
-                          <span className="truncate font-medium" title={item.address}>
-                            {item.address}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-[10px] uppercase",
-                                item.type === "allow"
-                                  ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                                  : "border-rose-500 text-rose-600 dark:text-rose-400",
-                              )}
-                            >
-                              {item.type}
-                            </Badge>
-                            {item.sync.isFullySynced ? (
-                              <Badge
-                                variant="secondary"
-                                className="bg-emerald-50 text-[10px] text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
-                              >
-                                Synced
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant="secondary"
-                                className="bg-amber-50 text-[10px] text-amber-700 dark:bg-amber-950 dark:text-amber-400"
-                              >
-                                Drift
-                              </Badge>
-                            )}
-                            {!item.sync.isFullySynced && (
-                              <Button
-                                size="icon-xs"
-                                variant="ghost"
-                                className="h-4 w-4 text-amber-600 hover:text-amber-700"
-                                onClick={() => openSyncDialog(item.address, item.type)}
-                              >
-                                <CircleAlert className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <ListStatusToggle
-                          checked={item.enabled}
+                      </TableHead>
+                      <TableHead
+                        aria-sort={
+                          sortBy === "address" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"
+                        }
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto px-2 py-1 font-medium"
                           disabled={isMutating}
-                          activeLabel={
-                            busyAction === `toggle:${item.address}-${item.type}` && item.enabled
-                              ? messages.lists.status.disabling
-                              : messages.lists.status.enabled
-                          }
-                          inactiveLabel={
-                            busyAction === `toggle:${item.address}-${item.type}` && !item.enabled
-                              ? messages.lists.status.enabling
-                              : messages.lists.status.disabled
-                          }
-                          onCheckedChange={(checked) => void toggleListStatus(item, checked)}
-                        />
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <span className={cn("truncate text-sm", !item.comment && "text-muted-foreground")}>
-                          {item.comment || messages.common.versionUnavailable}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <ListGroupEditor
-                          list={item}
-                          groups={groups}
+                          onClick={() => void toggleSort("address")}
+                        >
+                          {messages.lists.table.address}
+                          {renderSortIcon("address")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        className="text-center"
+                        aria-sort={sortBy === "type" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mx-auto h-auto px-2 py-1 font-medium"
                           disabled={isMutating}
-                          onSave={(groupIds) => saveGroupsAndComment(item, groupIds, item.comment)}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon-sm" disabled={isMutating}>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="gap-2" onClick={() => setEditingList(item)}>
-                              <Info className="h-4 w-4" />
-                              {messages.lists.table.edit}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="gap-2 text-destructive focus:text-destructive"
-                              onClick={() => requestDelete([{ item: item.address, type: item.type }])}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              {messages.lists.table.delete}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                          onClick={() => void toggleSort("type")}
+                        >
+                          {messages.lists.table.type}
+                          {renderSortIcon("type")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        className="text-center"
+                        aria-sort={
+                          sortBy === "enabled" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"
+                        }
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="mx-auto h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("enabled")}
+                        >
+                          {messages.lists.table.status}
+                          {renderSortIcon("enabled")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        aria-sort={
+                          sortBy === "comment" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"
+                        }
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("comment")}
+                        >
+                          {messages.lists.table.comment}
+                          {renderSortIcon("comment")}
+                        </Button>
+                      </TableHead>
+                      <TableHead
+                        aria-sort={sortBy === "group" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto px-2 py-1 font-medium"
+                          disabled={isMutating}
+                          onClick={() => void toggleSort("group")}
+                        >
+                          {messages.lists.table.group}
+                          {renderSortIcon("group")}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-right">{messages.lists.table.actions}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {isReloading ? (
+                      <ManagedItemsTableSkeleton columnCount={7} />
+                    ) : (
+                      data.items.map((item) => {
+                        const rowKey = getListKey(item);
+
+                        return (
+                          <TableRow key={rowKey}>
+                            <TableCell className="text-center">
+                              <Checkbox
+                                checked={selectedKeySet.has(rowKey)}
+                                onCheckedChange={(checked) => toggleSelectRow(item, checked === true)}
+                                disabled={isMutating}
+                                aria-label={messages.lists.table.selectRow(item.address)}
+                              />
+                            </TableCell>
+                            <TableCell className="max-w-md">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="truncate font-medium" title={item.address}>
+                                  {item.address}
+                                </span>
+                                {item.sync.missingInstances.length > 0 ? (
+                                  <Button
+                                    size="icon-xs"
+                                    variant="ghost"
+                                    className="h-4 w-4 text-amber-600 hover:text-amber-700"
+                                    disabled={isMutating}
+                                    aria-label={messages.lists.table.syncIssueAction(item.address)}
+                                    title={messages.lists.table.syncIssueAction(item.address)}
+                                    onClick={() => openSyncDialog(item)}
+                                  >
+                                    <CircleAlert className="h-3 w-3" />
+                                  </Button>
+                                ) : null}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[10px] uppercase",
+                                  item.type === "allow"
+                                    ? "border-emerald-500 text-emerald-600"
+                                    : "border-rose-500 text-rose-600",
+                                )}
+                              >
+                                {item.type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <ListStatusToggle
+                                checked={item.enabled}
+                                disabled={isMutating}
+                                activeLabel={
+                                  busyAction === `toggle:${rowKey}` && item.enabled
+                                    ? messages.lists.status.disabling
+                                    : messages.lists.status.enabled
+                                }
+                                inactiveLabel={
+                                  busyAction === `toggle:${rowKey}` && !item.enabled
+                                    ? messages.lists.status.enabling
+                                    : messages.lists.status.disabled
+                                }
+                                onCheckedChange={(checked) => void toggleListStatus(item, checked)}
+                              />
+                            </TableCell>
+                            <TableCell className="max-w-xs">
+                              <span
+                                className={cn("block truncate text-sm", !item.comment && "text-muted-foreground")}
+                                title={item.comment ?? messages.common.versionUnavailable}
+                              >
+                                {item.comment || messages.common.versionUnavailable}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <ListGroupEditor
+                                list={item}
+                                groups={groups}
+                                disabled={isMutating}
+                                onSave={(groupIds) => saveGroupsAndComment(item, groupIds, item.comment)}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="icon-sm" disabled={isMutating}>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem className="gap-2" onClick={() => setEditingList(item)}>
+                                    <Info className="h-4 w-4" />
+                                    {messages.lists.table.edit}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="gap-2 text-destructive focus:text-destructive"
+                                    onClick={() => requestDelete([{ item: item.address, type: item.type }])}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    {messages.lists.table.delete}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <ManagedItemsPagination
+                changePageSize={(nextPageSize) => void changePageSize(nextPageSize)}
+                goToPage={(page) => void goToPage(page)}
+                isReloading={isReloading}
+                nextLabel={messages.lists.table.next}
+                page={data.pagination.page}
+                pageSize={data.pagination.pageSize}
+                previousLabel={messages.lists.table.previous}
+                rowsPerPageLabel={messages.lists.table.rowsPerPage}
+                showingLabel={messages.lists.table.showing}
+                totalItems={data.pagination.totalItems}
+                totalPages={data.pagination.totalPages}
+              />
+            </>
           )}
         </CardContent>
       </Card>
 
-      {editingList && (
+      {editingList ? (
         <ListEditDialog
           list={editingList}
           groups={groups}
           open={editingList !== null}
-          onOpenChange={(open) => !open && setEditingList(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingList(null);
+            }
+          }}
           onSave={(groupIds, comment) => saveGroupsAndComment(editingList, groupIds, comment)}
           disabled={isMutating}
         />
-      )}
+      ) : null}
 
-      <Dialog open={isSyncDialogOpen} onOpenChange={setIsSyncDialogOpen}>
-        <DialogContent className="sm:max-w-3xl">
+      <Dialog open={syncList !== null} onOpenChange={(open) => (!open ? closeSyncDialog() : undefined)}>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {syncDialogAddress
-                ? messages.groups.syncDialog.titleSingle(syncDialogAddress)
-                : messages.groups.syncDialog.titleAll}
+              {syncList ? messages.lists.syncDialog.titleSingle(syncList.address) : messages.lists.syncDialog.titleAll}
             </DialogTitle>
             <DialogDescription>
-              {syncDialogAddress
-                ? messages.groups.syncDialog.descriptionSingle(syncDialogAddress)
-                : messages.groups.syncDialog.descriptionAll(source.baselineInstanceName)}
+              {syncList
+                ? messages.lists.syncDialog.descriptionSingle(syncList.address)
+                : messages.lists.syncDialog.descriptionAll(data.source.baselineInstanceName)}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
-            {syncDialogItems.map((item) => {
-              const key = `${item.address}-${item.type}`;
-              const instanceStates = getListSyncInstanceStates(item, source.baselineInstanceId);
-              const selection = syncSelections[key] || {
-                sourceInstanceId: item.origin.instanceId,
-                targetInstanceIds: buildDefaultSyncTargetIds(item, source.baselineInstanceId, item.origin.instanceId),
-              };
-              const targetStates = instanceStates.filter((inst) => inst.instanceId !== selection.sourceInstanceId);
-              const isSyncing = busyAction === `sync:${key}`;
+          {data.source.unavailableInstanceCount > 0 ? (
+            <ManagedItemsPartialAlert
+              title={messages.lists.table.sync}
+              description={messages.lists.syncDialog.partialAvailability(
+                data.source.availableInstanceCount,
+                data.source.totalInstances,
+              )}
+            />
+          ) : null}
 
-              return (
-                <Card key={key} size="sm" className="border py-4 shadow-none">
-                  <CardHeader className="gap-3">
-                    <CardTitle className="truncate text-sm">
-                      {item.address} ({item.type})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <Field className="gap-2">
-                        <FieldLabel>{messages.groups.syncDialog.sourceLabel}</FieldLabel>
-                        <Select
-                          value={selection.sourceInstanceId}
-                          onValueChange={(val) => updateSyncSource(item.address, item.type, val)}
-                          disabled={isMutating}
+          {syncList ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/20 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-medium">{syncList.address}</p>
+                  <Badge variant="outline" className="uppercase">
+                    {syncList.type}
+                  </Badge>
+                </div>
+                <p className="mt-2 text-muted-foreground text-sm">
+                  {messages.lists.syncDialog.availabilityHint(
+                    syncList.sync.sourceInstances.length,
+                    syncList.sync.missingInstances.length,
+                  )}
+                </p>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Field className="gap-2">
+                  <FieldLabel>{messages.lists.syncDialog.sourceLabel}</FieldLabel>
+                  <Select
+                    value={syncSourceInstanceId}
+                    onValueChange={(value) => {
+                      setSyncSourceInstanceId(value);
+
+                      if (syncList) {
+                        setSyncTargetInstanceIds(
+                          buildDefaultSyncTargetIds(syncList, data.source.baselineInstanceId, value),
+                        );
+                      }
+                    }}
+                    disabled={isMutating}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={messages.lists.syncDialog.sourcePlaceholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {syncInstanceStates.map((instance) => (
+                        <SelectItem key={instance.instanceId} value={instance.instanceId}>
+                          {instance.instanceName} ·{" "}
+                          {instance.hasList
+                            ? messages.lists.syncDialog.instanceHasItem
+                            : messages.lists.syncDialog.instanceMissingItem}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <div className="space-y-2">
+                  <FieldLabel>{messages.lists.syncDialog.targetsLabel}</FieldLabel>
+                  {syncTargetStates.length > 0 ? (
+                    <div className="grid gap-2">
+                      {syncTargetStates.map((instance) => (
+                        <div
+                          key={instance.instanceId}
+                          className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm"
                         >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {instanceStates.map((inst) => (
-                              <SelectItem key={inst.instanceId} value={inst.instanceId}>
-                                {inst.instanceName} ·{" "}
-                                {inst.hasList
-                                  ? messages.groups.syncDialog.instanceHasGroup
-                                  : messages.groups.syncDialog.instanceMissingGroup}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                      <div className="space-y-2">
-                        <p className="font-medium text-sm">{messages.groups.syncDialog.targetsLabel}</p>
-                        <div className="grid gap-2">
-                          {targetStates.map((inst) => (
-                            <div key={inst.instanceId} className="flex items-center gap-2 rounded-md border p-2">
-                              <Checkbox
-                                id={`sync-${key}-${inst.instanceId}`}
-                                checked={selection.targetInstanceIds.includes(inst.instanceId)}
-                                onCheckedChange={(checked) =>
-                                  toggleSyncTarget(item.address, item.type, inst.instanceId, checked === true)
-                                }
-                                disabled={isMutating}
-                              />
-                              <label htmlFor={`sync-${key}-${inst.instanceId}`} className="text-xs">
-                                {inst.instanceName} ({inst.hasList ? "Has it" : "Missing"})
-                              </label>
-                            </div>
-                          ))}
+                          <Checkbox
+                            id={`sync-list-${syncList.address}-${instance.instanceId}`}
+                            checked={syncTargetInstanceIds.includes(instance.instanceId)}
+                            disabled={isMutating}
+                            onCheckedChange={(checked) =>
+                              setSyncTargetInstanceIds((current) =>
+                                checked === true
+                                  ? [...new Set([...current, instance.instanceId])]
+                                  : current.filter((value) => value !== instance.instanceId),
+                              )
+                            }
+                          />
+                          <label
+                            htmlFor={`sync-list-${syncList.address}-${instance.instanceId}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            {instance.instanceName}
+                          </label>
+                          <Badge variant="outline">
+                            {instance.hasList
+                              ? messages.lists.syncDialog.instanceHasItem
+                              : messages.lists.syncDialog.instanceMissingItem}
+                          </Badge>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        onClick={() => syncSingleList(item)}
-                        disabled={isMutating || selection.targetInstanceIds.length === 0}
-                      >
-                        <ArrowLeftRight className={cn("mr-2 h-4 w-4", isSyncing && "animate-spin")} />
-                        {isSyncing ? messages.groups.syncDialog.syncLoading : messages.groups.syncDialog.syncAction}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">{messages.lists.syncDialog.noTargets}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
-          <DialogFooter className="flex w-full items-center justify-between sm:justify-between">
-            {!syncDialogAddress && unsyncedItems.length > 0 && (
-              <Button variant="default" onClick={runBulkSync} disabled={isMutating}>
-                <ArrowLeftRight className={cn("mr-2 h-4 w-4", busyAction === "sync:all" && "animate-spin")} />
-                {busyAction === "sync:all"
-                  ? messages.groups.syncDialog.syncLoading
-                  : `${messages.groups.table.sync} All`}
-              </Button>
-            )}
-            <div className="flex-1" />
-            <Button variant="outline" onClick={() => setIsSyncDialogOpen(false)} disabled={isMutating}>
-              {messages.sidebar.sync.close}
+          <DialogFooter>
+            <Button variant="outline" disabled={isMutating} onClick={closeSyncDialog}>
+              {messages.lists.syncDialog.close}
+            </Button>
+            <Button disabled={isMutating || syncTargetInstanceIds.length === 0} onClick={() => void syncSingleList()}>
+              <ArrowLeftRight
+                className={cn("mr-2 h-4 w-4", busyAction?.startsWith("sync:") ? "animate-spin" : undefined)}
+              />
+              {busyAction?.startsWith("sync:")
+                ? messages.lists.syncDialog.syncLoading
+                : messages.lists.syncDialog.syncAction}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteDialog !== null} onOpenChange={(open) => !open && !isMutating && setDeleteDialog(null)}>
+      <AlertDialog open={isBulkSyncDialogOpen} onOpenChange={setIsBulkSyncDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{messages.lists.syncDialog.bulkTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {messages.lists.syncDialog.bulkDescription(data.source.baselineInstanceName)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {data.source.unavailableInstanceCount > 0 ? (
+            <ManagedItemsPartialAlert
+              title={messages.lists.table.sync}
+              description={messages.lists.syncDialog.partialAvailability(
+                data.source.availableInstanceCount,
+                data.source.totalInstances,
+              )}
+            />
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isMutating}>{messages.lists.syncDialog.close}</AlertDialogCancel>
+            <Button disabled={isMutating} onClick={() => void runBulkSync()}>
+              {busyAction === "sync:all"
+                ? messages.lists.syncDialog.syncLoading
+                : messages.lists.syncDialog.confirmBulk}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteDialog !== null}
+        onOpenChange={(open) => (!open && !isMutating ? setDeleteDialog(null) : undefined)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{deleteDialog?.title}</AlertDialogTitle>
             <AlertDialogDescription>{deleteDialog?.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4">
-            <p className="text-rose-600 text-sm">{messages.groups.delete.irreversible}</p>
+            <p className="text-rose-600 text-sm">{messages.lists.delete.irreversible}</p>
             <div className="flex items-center gap-3 text-sm">
               <Checkbox
                 id="lists-delete-skip-confirm"
@@ -889,29 +1147,36 @@ export function ListsWorkspace({
                 onCheckedChange={(checked) => setRememberDeleteChoice(checked === true)}
                 disabled={isMutating}
               />
-              <label htmlFor="lists-delete-skip-confirm">{messages.groups.delete.dontAskAgain}</label>
+              <label htmlFor="lists-delete-skip-confirm">{messages.lists.delete.dontAskAgain}</label>
             </div>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isMutating}>{messages.groups.delete.cancel}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isMutating}>{messages.lists.delete.cancel}</AlertDialogCancel>
             <Button
               variant="destructive"
               disabled={isMutating}
               onClick={() => {
-                if (deleteDialog) {
-                  if (rememberDeleteChoice) {
-                    setClientCookie(
-                      FRONTEND_CONFIG.groups.deleteConfirmCookieKey,
-                      "1",
-                      FRONTEND_CONFIG.groups.deleteConfirmCookieDays,
-                    );
-                    setSkipDeleteConfirm(true);
-                  }
-                  executeDelete(deleteDialog.items);
+                if (!deleteDialog) {
+                  return;
                 }
+
+                if (rememberDeleteChoice) {
+                  setClientCookie(
+                    FRONTEND_CONFIG.lists.deleteConfirmCookieKey,
+                    "1",
+                    FRONTEND_CONFIG.lists.deleteConfirmCookieDays,
+                  );
+                  setSkipDeleteConfirm(true);
+                }
+
+                void executeDelete(deleteDialog.items);
               }}
             >
-              {isMutating ? messages.groups.delete.confirmLoading : messages.groups.delete.confirmSingle}
+              {isMutating
+                ? messages.lists.delete.confirmLoading
+                : deleteDialog && deleteDialog.items.length > 1
+                  ? messages.lists.delete.confirmBatch(deleteDialog.items.length)
+                  : messages.lists.delete.confirmSingle}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

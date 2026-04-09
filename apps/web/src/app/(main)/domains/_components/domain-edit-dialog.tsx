@@ -73,14 +73,14 @@ export function DomainEditDialog({ item, groups, onSave, open, onOpenChange, dis
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{messages.lists.groupEditor.title}</DialogTitle>
-          <DialogDescription>{messages.lists.groupEditor.description}</DialogDescription>
+          <DialogTitle>{messages.domains.groupEditor.title}</DialogTitle>
+          <DialogDescription>{messages.domains.groupEditor.description}</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="general" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="general">{messages.lists.groupEditor.tabs.general}</TabsTrigger>
-            <TabsTrigger value="groups">{messages.lists.groupEditor.tabs.groups}</TabsTrigger>
+            <TabsTrigger value="general">{messages.domains.groupEditor.tabs.general}</TabsTrigger>
+            <TabsTrigger value="groups">{messages.domains.groupEditor.tabs.groups}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 py-4">
@@ -88,7 +88,7 @@ export function DomainEditDialog({ item, groups, onSave, open, onOpenChange, dis
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Tag className="h-3.5 w-3.5" />
-                  {messages.lists.groupEditor.fields.type}
+                  {messages.domains.groupEditor.fields.type}
                 </Label>
                 <div className="flex h-10 items-center">
                   <Badge
@@ -105,11 +105,11 @@ export function DomainEditDialog({ item, groups, onSave, open, onOpenChange, dis
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  {messages.lists.groupEditor.fields.enabled}
+                  {messages.domains.groupEditor.fields.enabled}
                 </Label>
                 <div className="flex h-10 items-center">
                   <Badge variant={item.enabled ? "default" : "secondary"}>
-                    {item.enabled ? messages.lists.status.enabled : messages.lists.status.disabled}
+                    {item.enabled ? messages.domains.status.enabled : messages.domains.status.disabled}
                   </Badge>
                 </div>
               </div>
@@ -117,7 +117,7 @@ export function DomainEditDialog({ item, groups, onSave, open, onOpenChange, dis
               <div className="col-span-2 space-y-2">
                 <Label className="flex items-center gap-2">
                   <Globe className="h-3.5 w-3.5" />
-                  {messages.domains.table.domain}
+                  {messages.domains.groupEditor.fields.domain}
                 </Label>
                 <div className="flex gap-2">
                   <Input value={item.domain} readOnly className="bg-muted font-mono text-xs" />
@@ -130,14 +130,14 @@ export function DomainEditDialog({ item, groups, onSave, open, onOpenChange, dis
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Calendar className="h-3.5 w-3.5" />
-                  {messages.lists.groupEditor.fields.dateAdded}
+                  {messages.domains.groupEditor.fields.dateAdded}
                 </Label>
                 <Input value={formatDate(item.dateAdded)} readOnly className="bg-muted text-sm" />
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" />
-                  {messages.lists.groupEditor.fields.dateModified}
+                  {messages.domains.groupEditor.fields.dateModified}
                 </Label>
                 <Input value={formatDate(item.dateModified)} readOnly className="bg-muted text-sm" />
               </div>
@@ -145,7 +145,7 @@ export function DomainEditDialog({ item, groups, onSave, open, onOpenChange, dis
               <div className="col-span-2 space-y-2">
                 <Label htmlFor="edit-comment" className="flex items-center gap-2">
                   <FileText className="h-3.5 w-3.5" />
-                  {messages.lists.groupEditor.fields.comment}
+                  {messages.domains.groupEditor.fields.comment}
                 </Label>
                 <Input
                   id="edit-comment"
@@ -190,10 +190,10 @@ export function DomainEditDialog({ item, groups, onSave, open, onOpenChange, dis
 
         <DialogFooter>
           <Button variant="outline" disabled={isSaving} onClick={() => onOpenChange(false)}>
-            {messages.groups.edit.cancel}
+            {messages.domains.groupEditor.cancel}
           </Button>
           <Button disabled={isSaving || selectedGroupIds.length === 0} onClick={handleSave}>
-            {isSaving ? messages.lists.groupEditor.saving : messages.lists.groupEditor.save}
+            {isSaving ? messages.domains.groupEditor.saving : messages.domains.groupEditor.save}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Param, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiCookieAuth, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
 import type { Request } from "express";
 
@@ -9,12 +9,18 @@ import { BatchDeleteListsDto } from "./dto/batch-delete-lists.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { CreateListDto } from "./dto/create-list.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
-import { ListAddressParamsDto } from "./dto/list-address-params.dto";
+import { GetListsDto } from "./dto/get-lists.dto";
+import type { ListItemParamsDto } from "./dto/list-item-params.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { SyncListsDto } from "./dto/sync-lists.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { UpdateListDto } from "./dto/update-list.dto";
-import { LISTS_LIST_API_OK_RESPONSE, LISTS_MUTATION_API_OK_RESPONSE, UPDATE_LIST_API_BODY } from "./lists.responses";
+import {
+  LIST_API_OK_RESPONSE,
+  LISTS_LIST_API_OK_RESPONSE,
+  LISTS_MUTATION_API_OK_RESPONSE,
+  UPDATE_LIST_API_BODY,
+} from "./lists.responses";
 import { ListsService } from "./lists.service";
 
 @ApiTags("lists")
@@ -22,6 +28,15 @@ import { ListsService } from "./lists.service";
 @UseGuards(SessionGuard)
 @Controller("lists")
 export class ListsController {
+  private static readonly LIST_TYPE_PARAM = {
+    name: "type",
+    schema: {
+      type: "string",
+      enum: ["allow", "block"],
+    },
+    example: "block",
+  } as const;
+
   private static readonly LIST_ADDRESS_PARAM = {
     name: "address",
     schema: {
@@ -34,8 +49,16 @@ export class ListsController {
 
   @Get()
   @ApiOkResponse(LISTS_LIST_API_OK_RESPONSE)
-  listLists(@Req() request: Request) {
-    return this.listsService.listLists(request);
+  listLists(@Query() query: GetListsDto, @Req() request: Request) {
+    return this.listsService.listLists(query, request);
+  }
+
+  @Get(":type/:address")
+  @ApiParam(ListsController.LIST_TYPE_PARAM)
+  @ApiParam(ListsController.LIST_ADDRESS_PARAM)
+  @ApiOkResponse(LIST_API_OK_RESPONSE)
+  getList(@Param() params: ListItemParamsDto, @Req() request: Request) {
+    return this.listsService.getList(params.type, params.address, request);
   }
 
   @Post()
@@ -45,13 +68,14 @@ export class ListsController {
     return this.listsService.createList(body, request);
   }
 
-  @Put(":address")
+  @Put(":type/:address")
   @UseGuards(CsrfGuard)
+  @ApiParam(ListsController.LIST_TYPE_PARAM)
   @ApiParam(ListsController.LIST_ADDRESS_PARAM)
   @ApiBody(UPDATE_LIST_API_BODY)
   @ApiOkResponse(LISTS_MUTATION_API_OK_RESPONSE)
-  updateList(@Param() params: ListAddressParamsDto, @Body() body: UpdateListDto, @Req() request: Request) {
-    return this.listsService.updateList(params.address, body, request);
+  updateList(@Param() params: ListItemParamsDto, @Body() body: UpdateListDto, @Req() request: Request) {
+    return this.listsService.updateList(params.type, params.address, body, request);
   }
 
   @Post("batchDelete")

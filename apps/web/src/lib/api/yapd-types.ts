@@ -409,6 +409,7 @@ export type DomainOperationResponse = {
     comment: string;
     scope: "all" | "instance";
     instanceId: string | null;
+    patternMode: DomainPatternMode | null;
   };
   summary: {
     totalInstances: number;
@@ -550,8 +551,18 @@ export type ListItem = {
   };
 };
 
+export type ListsSortField = "address" | "type" | "enabled" | "comment" | "group";
+
+export type ListsSortDirection = "asc" | "desc";
+
 export type ListsListResponse = {
   items: ListItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
   source: {
     baselineInstanceId: string;
     baselineInstanceName: string;
@@ -586,6 +597,14 @@ export type ListsMutationResponse = {
   }>;
 };
 
+export type DomainFilterValue = "exact-allow" | "regex-allow" | "exact-deny" | "regex-deny";
+
+export type DomainPatternMode = "exact" | "regex_specific" | "regex_any";
+
+export type DomainsSortField = "domain" | "type" | "kind" | "enabled" | "comment" | "group";
+
+export type DomainsSortDirection = "asc" | "desc";
+
 export type DomainItem = {
   domain: string;
   unicode: string | null;
@@ -616,6 +635,12 @@ export type DomainItem = {
 
 export type DomainsListResponse = {
   items: DomainItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
   source: {
     baselineInstanceId: string;
     baselineInstanceName: string;

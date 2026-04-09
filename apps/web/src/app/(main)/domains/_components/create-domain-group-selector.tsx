@@ -58,7 +58,7 @@ export function CreateDomainGroupSelector({
                 );
               })
             ) : (
-              <span className="text-muted-foreground text-sm">{messages.clients.table.group}</span>
+              <span className="text-muted-foreground text-sm">{messages.domains.create.groupLabel}</span>
             )}
             {selectedGroupIds.length > 2 && (
               <Badge variant="secondary" className="h-5 px-1 text-[10px]">
@@ -70,8 +70,8 @@ export function CreateDomainGroupSelector({
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{messages.lists.groupEditor.title}</DialogTitle>
-          <DialogDescription>{messages.lists.groupEditor.description}</DialogDescription>
+          <DialogTitle>{messages.domains.groupEditor.title}</DialogTitle>
+          <DialogDescription>{messages.domains.groupEditor.description}</DialogDescription>
         </DialogHeader>
 
         <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
@@ -98,7 +98,7 @@ export function CreateDomainGroupSelector({
         </div>
 
         <DialogFooter>
-          <Button onClick={() => setOpen(false)}>{messages.sidebar.sync.close}</Button>
+          <Button onClick={() => setOpen(false)}>{messages.domains.groupEditor.cancel}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

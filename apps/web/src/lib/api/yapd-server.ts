@@ -11,10 +11,15 @@ import type {
   ClientsSortDirection,
   ClientsSortField,
   DashboardOverviewResponse,
+  DomainFilterValue,
   DomainsListResponse,
+  DomainsSortDirection,
+  DomainsSortField,
   GroupsListResponse,
   InstanceListResponse,
   ListsListResponse,
+  ListsSortDirection,
+  ListsSortField,
   QueriesResponse,
   SetupStatus,
 } from "./yapd-types";
@@ -155,9 +160,27 @@ export async function getGroups(): Promise<GroupsListResponse> {
   return data;
 }
 
-export async function getDomains(): Promise<DomainsListResponse> {
+export async function getDomains(query?: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: DomainsSortField;
+  sortDirection?: DomainsSortDirection;
+  filters?: DomainFilterValue[];
+}): Promise<DomainsListResponse> {
   const { baseUrl, client } = await createServerApiClient();
-  const { data, response } = await client.GET<DomainsListResponse>("/domains");
+  const { data, response } = await client.GET<DomainsListResponse>("/domains", {
+    params: {
+      query: {
+        ...(query?.page !== undefined ? { page: query.page } : {}),
+        ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+        ...(query?.search !== undefined ? { search: query.search } : {}),
+        ...(query?.sortBy !== undefined ? { sortBy: query.sortBy } : {}),
+        ...(query?.sortDirection !== undefined ? { sortDirection: query.sortDirection } : {}),
+        ...(query?.filters !== undefined ? { filters: query.filters } : {}),
+      },
+    },
+  });
 
   throwIfApiUnavailable(baseUrl, response);
 
@@ -174,9 +197,25 @@ export async function getDomains(): Promise<DomainsListResponse> {
   return data;
 }
 
-export async function getLists(): Promise<ListsListResponse> {
+export async function getLists(query?: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: ListsSortField;
+  sortDirection?: ListsSortDirection;
+}): Promise<ListsListResponse> {
   const { baseUrl, client } = await createServerApiClient();
-  const { data, response } = await client.GET<ListsListResponse>("/lists");
+  const { data, response } = await client.GET<ListsListResponse>("/lists", {
+    params: {
+      query: {
+        ...(query?.page !== undefined ? { page: query.page } : {}),
+        ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+        ...(query?.search !== undefined ? { search: query.search } : {}),
+        ...(query?.sortBy !== undefined ? { sortBy: query.sortBy } : {}),
+        ...(query?.sortDirection !== undefined ? { sortDirection: query.sortDirection } : {}),
+      },
+    },
+  });
 
   throwIfApiUnavailable(baseUrl, response);
 

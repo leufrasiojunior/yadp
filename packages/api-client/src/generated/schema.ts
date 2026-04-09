@@ -100,6 +100,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/domains": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["DomainsController_listDomains"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/domains/{domain}/{type}/{kind}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["DomainsController_getDomain"];
+    put: operations["DomainsController_updateDomain"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/domains/{type}/{kind}": {
     parameters: {
       query?: never;
@@ -110,6 +142,38 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations["DomainsController_applyDomainOperation"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/domains/batchDelete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["DomainsController_batchDelete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/domains/sync": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["DomainsController_syncDomains"];
     delete?: never;
     options?: never;
     head?: never;
@@ -306,6 +370,70 @@ export interface paths {
     options?: never;
     head?: never;
     patch: operations["InstancesController_updateInstanceSync"];
+    trace?: never;
+  };
+  "/lists": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ListsController_listLists"];
+    put?: never;
+    post: operations["ListsController_createList"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/lists/{type}/{address}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ListsController_getList"];
+    put: operations["ListsController_updateList"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/lists/batchDelete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ListsController_batchDelete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/lists/sync": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ListsController_syncLists"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/queries": {
@@ -818,11 +946,182 @@ export interface operations {
       };
     };
   };
-  DomainsController_applyDomainOperation: {
+  DomainsController_listDomains: {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            items: {
+              domain: string;
+              unicode?: string | null;
+              /** @enum {string} */
+              type: "allow" | "deny";
+              /** @enum {string} */
+              kind: "exact" | "regex";
+              comment?: string | null;
+              enabled: boolean;
+              groups: number[];
+              id: number;
+              dateAdded?: number | null;
+              dateModified?: number | null;
+              origin: {
+                instanceId: string;
+                instanceName: string;
+              };
+              sync: {
+                isFullySynced: boolean;
+                sourceInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                }[];
+                missingInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                }[];
+              };
+            }[];
+            source: {
+              baselineInstanceId: string;
+              baselineInstanceName: string;
+              totalInstances: number;
+              availableInstanceCount: number;
+              unavailableInstanceCount: number;
+            };
+            pagination: {
+              page: number;
+              pageSize: number;
+              totalItems: number;
+              totalPages: number;
+            };
+            unavailableInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  DomainsController_getDomain: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            domain: string;
+            unicode?: string | null;
+            /** @enum {string} */
+            type: "allow" | "deny";
+            /** @enum {string} */
+            kind: "exact" | "regex";
+            comment?: string | null;
+            enabled: boolean;
+            groups: number[];
+            id: number;
+            dateAdded?: number | null;
+            dateModified?: number | null;
+            origin: {
+              instanceId: string;
+              instanceName: string;
+            };
+            sync: {
+              isFullySynced: boolean;
+              sourceInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+              missingInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+            };
+          };
+        };
+      };
+    };
+  };
+  DomainsController_updateDomain: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  DomainsController_applyDomainOperation: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        kind: "exact" | "regex";
+        type: "allow" | "deny";
+      };
       cookie?: never;
     };
     requestBody?: never;
@@ -841,8 +1140,9 @@ export interface operations {
               domain: string;
               value: string;
               comment: string;
-              /** @enum {string} */
-              scope: "all" | "instance";
+              /** @enum {string|null} */
+              patternMode: "exact" | "regex_specific" | "regex_any" | null;
+              scope: string;
               instanceId: string | null;
             };
             summary: {
@@ -853,16 +1153,97 @@ export interface operations {
             successfulInstances: {
               instanceId: string;
               instanceName: string;
-              processed: {
-                errors: {
-                  item: string | null;
-                  message: string | null;
-                }[];
-                success: {
-                  item: string | null;
-                }[];
-              };
               took: number | null;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  DomainsController_batchDelete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  DomainsController_syncDomains: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
             }[];
             failedInstances: {
               instanceId: string;
@@ -1603,6 +1984,327 @@ export interface operations {
               name: string;
               syncEnabled: boolean;
             };
+          };
+        };
+      };
+    };
+  };
+  ListsController_listLists: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            items: {
+              address: string;
+              comment: string | null;
+              enabled: boolean;
+              groups: number[];
+              id: number;
+              dateAdded: number | null;
+              dateModified: number | null;
+              /** @enum {string} */
+              type: "allow" | "block";
+              dateUpdated?: number | null;
+              number?: number | null;
+              invalidDomains?: number | null;
+              abpEntries?: number | null;
+              status?: number | null;
+              origin: {
+                instanceId: string;
+                instanceName: string;
+              };
+              sync: {
+                isFullySynced: boolean;
+                sourceInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                }[];
+                missingInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                }[];
+              };
+            }[];
+            source: {
+              baselineInstanceId: string;
+              baselineInstanceName: string;
+              totalInstances: number;
+              availableInstanceCount: number;
+              unavailableInstanceCount: number;
+            };
+            pagination: {
+              page: number;
+              pageSize: number;
+              totalItems: number;
+              totalPages: number;
+            };
+            unavailableInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  ListsController_createList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  ListsController_getList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        address: string;
+        type: "allow" | "block";
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            address: string;
+            comment: string | null;
+            enabled: boolean;
+            groups: number[];
+            id: number;
+            dateAdded: number | null;
+            dateModified: number | null;
+            /** @enum {string} */
+            type: "allow" | "block";
+            dateUpdated?: number | null;
+            number?: number | null;
+            invalidDomains?: number | null;
+            abpEntries?: number | null;
+            status?: number | null;
+            origin: {
+              instanceId: string;
+              instanceName: string;
+            };
+            sync: {
+              isFullySynced: boolean;
+              sourceInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+              missingInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+            };
+          };
+        };
+      };
+    };
+  };
+  ListsController_updateList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        address: string;
+        type: "allow" | "block";
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          comment?: string | null;
+          groups: number[];
+          enabled: boolean;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  ListsController_batchDelete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  ListsController_syncLists: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
           };
         };
       };

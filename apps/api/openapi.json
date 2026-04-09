@@ -820,10 +820,436 @@
         "tags": ["dashboard"]
       }
     },
+    "/domains": {
+      "get": {
+        "operationId": "DomainsController_listDomains",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "domain": {
+                            "type": "string"
+                          },
+                          "unicode": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": ["allow", "deny"]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": ["exact", "regex"]
+                          },
+                          "comment": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "groups": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          },
+                          "id": {
+                            "type": "number"
+                          },
+                          "dateAdded": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "dateModified": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "origin": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          },
+                          "sync": {
+                            "type": "object",
+                            "properties": {
+                              "isFullySynced": {
+                                "type": "boolean"
+                              },
+                              "sourceInstances": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["instanceId", "instanceName"]
+                                }
+                              },
+                              "missingInstances": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["instanceId", "instanceName"]
+                                }
+                              }
+                            },
+                            "required": ["isFullySynced", "sourceInstances", "missingInstances"]
+                          }
+                        },
+                        "required": ["domain", "type", "kind", "enabled", "groups", "id", "origin", "sync"]
+                      }
+                    },
+                    "source": {
+                      "type": "object",
+                      "properties": {
+                        "baselineInstanceId": {
+                          "type": "string"
+                        },
+                        "baselineInstanceName": {
+                          "type": "string"
+                        },
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "availableInstanceCount": {
+                          "type": "number"
+                        },
+                        "unavailableInstanceCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "baselineInstanceId",
+                        "baselineInstanceName",
+                        "totalInstances",
+                        "availableInstanceCount",
+                        "unavailableInstanceCount"
+                      ]
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "pageSize": {
+                          "type": "number"
+                        },
+                        "totalItems": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["page", "pageSize", "totalItems", "totalPages"]
+                    },
+                    "unavailableInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["items", "pagination", "source", "unavailableInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["domains"]
+      }
+    },
+    "/domains/{domain}/{type}/{kind}": {
+      "get": {
+        "operationId": "DomainsController_getDomain",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "domain": {
+                      "type": "string"
+                    },
+                    "unicode": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": ["allow", "deny"]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": ["exact", "regex"]
+                    },
+                    "comment": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    "id": {
+                      "type": "number"
+                    },
+                    "dateAdded": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "dateModified": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "origin": {
+                      "type": "object",
+                      "properties": {
+                        "instanceId": {
+                          "type": "string"
+                        },
+                        "instanceName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["instanceId", "instanceName"]
+                    },
+                    "sync": {
+                      "type": "object",
+                      "properties": {
+                        "isFullySynced": {
+                          "type": "boolean"
+                        },
+                        "sourceInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          }
+                        },
+                        "missingInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          }
+                        }
+                      },
+                      "required": ["isFullySynced", "sourceInstances", "missingInstances"]
+                    }
+                  },
+                  "required": ["domain", "type", "kind", "enabled", "groups", "id", "origin", "sync"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["domains"]
+      },
+      "put": {
+        "operationId": "DomainsController_updateDomain",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalInstances", "successfulCount", "failedCount"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "successfulInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["domains"]
+      }
+    },
     "/domains/{type}/{kind}": {
       "post": {
         "operationId": "DomainsController_applyDomainOperation",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["exact", "regex"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["allow", "deny"],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -852,16 +1278,20 @@
                         "comment": {
                           "type": "string"
                         },
-                        "scope": {
+                        "patternMode": {
                           "type": "string",
-                          "enum": ["all", "instance"]
+                          "nullable": true,
+                          "enum": ["exact", "regex_specific", "regex_any"]
+                        },
+                        "scope": {
+                          "type": "string"
                         },
                         "instanceId": {
                           "type": "string",
                           "nullable": true
                         }
                       },
-                      "required": ["type", "kind", "domain", "value", "comment", "scope", "instanceId"]
+                      "required": ["type", "kind", "domain", "value", "comment", "patternMode", "scope", "instanceId"]
                     },
                     "summary": {
                       "type": "object",
@@ -889,48 +1319,12 @@
                           "instanceName": {
                             "type": "string"
                           },
-                          "processed": {
-                            "type": "object",
-                            "properties": {
-                              "errors": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "item": {
-                                      "type": "string",
-                                      "nullable": true
-                                    },
-                                    "message": {
-                                      "type": "string",
-                                      "nullable": true
-                                    }
-                                  },
-                                  "required": ["item", "message"]
-                                }
-                              },
-                              "success": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "item": {
-                                      "type": "string",
-                                      "nullable": true
-                                    }
-                                  },
-                                  "required": ["item"]
-                                }
-                              }
-                            },
-                            "required": ["errors", "success"]
-                          },
                           "took": {
                             "type": "number",
                             "nullable": true
                           }
                         },
-                        "required": ["instanceId", "instanceName", "processed", "took"]
+                        "required": ["instanceId", "instanceName", "took"]
                       }
                     },
                     "failedInstances": {
@@ -965,6 +1359,188 @@
                     }
                   },
                   "required": ["request", "summary", "successfulInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["domains"]
+      }
+    },
+    "/domains/batchDelete": {
+      "post": {
+        "operationId": "DomainsController_batchDelete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalInstances", "successfulCount", "failedCount"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "successfulInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["domains"]
+      }
+    },
+    "/domains/sync": {
+      "post": {
+        "operationId": "DomainsController_syncDomains",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalInstances", "successfulCount", "failedCount"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "successfulInstances", "failedInstances"]
                 }
               }
             }
@@ -2493,6 +3069,792 @@
           }
         ],
         "tags": ["instances"]
+      }
+    },
+    "/lists": {
+      "get": {
+        "operationId": "ListsController_listLists",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "address": {
+                            "type": "string"
+                          },
+                          "comment": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "groups": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          },
+                          "id": {
+                            "type": "number"
+                          },
+                          "dateAdded": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "dateModified": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": ["allow", "block"]
+                          },
+                          "dateUpdated": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "number": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "invalidDomains": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "abpEntries": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "status": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "origin": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          },
+                          "sync": {
+                            "type": "object",
+                            "properties": {
+                              "isFullySynced": {
+                                "type": "boolean"
+                              },
+                              "sourceInstances": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["instanceId", "instanceName"]
+                                }
+                              },
+                              "missingInstances": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["instanceId", "instanceName"]
+                                }
+                              }
+                            },
+                            "required": ["isFullySynced", "sourceInstances", "missingInstances"]
+                          }
+                        },
+                        "required": [
+                          "address",
+                          "comment",
+                          "enabled",
+                          "groups",
+                          "id",
+                          "dateAdded",
+                          "dateModified",
+                          "type",
+                          "origin",
+                          "sync"
+                        ]
+                      }
+                    },
+                    "source": {
+                      "type": "object",
+                      "properties": {
+                        "baselineInstanceId": {
+                          "type": "string"
+                        },
+                        "baselineInstanceName": {
+                          "type": "string"
+                        },
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "availableInstanceCount": {
+                          "type": "number"
+                        },
+                        "unavailableInstanceCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "baselineInstanceId",
+                        "baselineInstanceName",
+                        "totalInstances",
+                        "availableInstanceCount",
+                        "unavailableInstanceCount"
+                      ]
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "pageSize": {
+                          "type": "number"
+                        },
+                        "totalItems": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["page", "pageSize", "totalItems", "totalPages"]
+                    },
+                    "unavailableInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["items", "pagination", "source", "unavailableInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["lists"]
+      },
+      "post": {
+        "operationId": "ListsController_createList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalInstances", "successfulCount", "failedCount"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "successfulInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["lists"]
+      }
+    },
+    "/lists/{type}/{address}": {
+      "get": {
+        "operationId": "ListsController_getList",
+        "parameters": [
+          {
+            "name": "address",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "enum": ["allow", "block"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": "string"
+                    },
+                    "comment": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    "id": {
+                      "type": "number"
+                    },
+                    "dateAdded": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "dateModified": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": ["allow", "block"]
+                    },
+                    "dateUpdated": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "number": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "invalidDomains": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "abpEntries": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "status": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "origin": {
+                      "type": "object",
+                      "properties": {
+                        "instanceId": {
+                          "type": "string"
+                        },
+                        "instanceName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["instanceId", "instanceName"]
+                    },
+                    "sync": {
+                      "type": "object",
+                      "properties": {
+                        "isFullySynced": {
+                          "type": "boolean"
+                        },
+                        "sourceInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          }
+                        },
+                        "missingInstances": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "instanceId": {
+                                "type": "string"
+                              },
+                              "instanceName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["instanceId", "instanceName"]
+                          }
+                        }
+                      },
+                      "required": ["isFullySynced", "sourceInstances", "missingInstances"]
+                    }
+                  },
+                  "required": [
+                    "address",
+                    "comment",
+                    "enabled",
+                    "groups",
+                    "id",
+                    "dateAdded",
+                    "dateModified",
+                    "type",
+                    "origin",
+                    "sync"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["lists"]
+      },
+      "put": {
+        "operationId": "ListsController_updateList",
+        "parameters": [
+          {
+            "name": "address",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "enum": ["allow", "block"]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "comment": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["groups", "enabled"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalInstances", "successfulCount", "failedCount"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "successfulInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["lists"]
+      }
+    },
+    "/lists/batchDelete": {
+      "post": {
+        "operationId": "ListsController_batchDelete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalInstances", "successfulCount", "failedCount"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "successfulInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["lists"]
+      }
+    },
+    "/lists/sync": {
+      "post": {
+        "operationId": "ListsController_syncLists",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalInstances", "successfulCount", "failedCount"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "successfulInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["lists"]
       }
     },
     "/queries": {

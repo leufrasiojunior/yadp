@@ -1,7 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 
-import { DOMAIN_SCOPE_VALUES, type DomainScopeMode } from "../domains.types";
+import {
+  DOMAIN_PATTERN_MODE_VALUES,
+  DOMAIN_SCOPE_VALUES,
+  type DomainPatternMode,
+  type DomainScopeMode,
+} from "../domains.types";
 
 export class ApplyDomainOperationDto {
   @ApiProperty({
@@ -48,4 +53,14 @@ export class ApplyDomainOperationDto {
   @IsNumber({}, { each: true })
   @IsOptional()
   groups?: number[];
+
+  @ApiProperty({
+    description: "How the submitted domain should be interpreted before creating the Pi-hole entry",
+    enum: DOMAIN_PATTERN_MODE_VALUES,
+    example: "regex_specific",
+    required: false,
+  })
+  @IsEnum(DOMAIN_PATTERN_MODE_VALUES)
+  @IsOptional()
+  patternMode?: DomainPatternMode;
 }

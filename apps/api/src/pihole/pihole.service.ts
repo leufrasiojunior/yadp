@@ -17,6 +17,8 @@ import type {
   PiholeClientUpdateRequest,
   PiholeConnection,
   PiholeDiscoveryResult,
+  PiholeDomainListResult,
+  PiholeDomainMutationResult,
   PiholeDomainOperationRequest,
   PiholeDomainOperationResult,
   PiholeGroupCreateRequest,

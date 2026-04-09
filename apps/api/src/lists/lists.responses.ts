@@ -66,6 +66,10 @@ const listItemSchema = {
   required: ["address", "comment", "enabled", "groups", "id", "dateAdded", "dateModified", "type", "origin", "sync"],
 };
 
+export const LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: listItemSchema,
+};
+
 export const LISTS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
   schema: {
     type: "object",
@@ -91,12 +95,22 @@ export const LISTS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
           "unavailableInstanceCount",
         ],
       },
+      pagination: {
+        type: "object",
+        properties: {
+          page: { type: "number" },
+          pageSize: { type: "number" },
+          totalItems: { type: "number" },
+          totalPages: { type: "number" },
+        },
+        required: ["page", "pageSize", "totalItems", "totalPages"],
+      },
       unavailableInstances: {
         type: "array",
         items: failedInstanceSchema,
       },
     },
-    required: ["items", "source", "unavailableInstances"],
+    required: ["items", "pagination", "source", "unavailableInstances"],
   },
 };
 
@@ -132,10 +146,9 @@ export const UPDATE_LIST_API_BODY: ApiBodyOptions = {
     type: "object",
     properties: {
       comment: { type: "string", nullable: true },
-      type: { type: "string", enum: ["allow", "block"] },
       groups: { type: "array", items: { type: "number" } },
       enabled: { type: "boolean" },
     },
-    required: ["type", "groups", "enabled"],
+    required: ["groups", "enabled"],
   },
 };

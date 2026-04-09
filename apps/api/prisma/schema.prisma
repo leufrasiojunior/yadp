@@ -171,13 +171,15 @@ model SyncAttempt {
 
 model ManagedList {
   id        String   @id @default(cuid())
-  address   String   @unique
+  address   String
   comment   String?
   type      String   @default("block")
   groups    Int[]    @default([0])
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([address, type])
 }
 
 model ManagedDomain {
