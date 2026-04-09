@@ -9,12 +9,14 @@ import {
   Waypoints,
 } from "lucide-react";
 
+import type { NavigationSummaryResponse } from "@/lib/api/yapd-types";
 import type { WebMessages } from "@/lib/i18n/messages";
 
 export type SidebarItem = {
   title: string;
   url: string;
   icon?: LucideIcon;
+  count?: number;
   isActive?: boolean;
   comingSoon?: boolean;
   newTab?: boolean;
@@ -37,7 +39,7 @@ export type NavMainItem = SidebarItem;
 
 export type NavGroup = SidebarGroup;
 
-export function getSidebarItems(messages: WebMessages): NavGroup[] {
+export function getSidebarItems(messages: WebMessages, summary?: NavigationSummaryResponse | null): NavGroup[] {
   return [
     {
       id: 1,
@@ -63,6 +65,7 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
           title: messages.sidebar.items.groups,
           url: "/groups",
           icon: Waypoints,
+          count: summary?.groups.total,
         },
         {
           title: messages.sidebar.items.clients,
@@ -73,11 +76,13 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
           title: messages.sidebar.items.domains,
           url: "/domains",
           icon: Globe,
+          count: summary?.domains.total,
         },
         {
           title: messages.sidebar.items.lists,
           url: "/lists",
           icon: List,
+          count: summary?.lists.total,
         },
         {
           title: messages.sidebar.items.instances,

@@ -24,6 +24,9 @@ export type GroupItem = {
 
 export type GroupsListResponse = {
   items: GroupItem[];
+  summary: {
+    totalItems: number;
+  };
   source: {
     baselineInstanceId: string;
     baselineInstanceName: string;

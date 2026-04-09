@@ -436,6 +436,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/navigation/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["NavigationController_getSummary"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/queries": {
     parameters: {
       query?: never;
@@ -990,6 +1006,15 @@ export interface operations {
                 }[];
               };
             }[];
+            summary: {
+              totalItems: number;
+              allowTotal: number;
+              denyTotal: number;
+              allowExact: number;
+              allowRegex: number;
+              denyExact: number;
+              denyRegex: number;
+            };
             source: {
               baselineInstanceId: string;
               baselineInstanceName: string;
@@ -1302,6 +1327,9 @@ export interface operations {
                 }[];
               };
             }[];
+            summary: {
+              totalItems: number;
+            };
             source: {
               baselineInstanceId: string;
               baselineInstanceName: string;
@@ -2035,6 +2063,9 @@ export interface operations {
                 }[];
               };
             }[];
+            summary: {
+              totalItems: number;
+            };
             source: {
               baselineInstanceId: string;
               baselineInstanceName: string;
@@ -2305,6 +2336,35 @@ export interface operations {
                 | "unknown";
               message: string;
             }[];
+          };
+        };
+      };
+    };
+  };
+  NavigationController_getSummary: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            groups: {
+              total: number;
+            };
+            lists: {
+              total: number;
+            };
+            domains: {
+              total: number;
+            };
           };
         };
       };

@@ -47,6 +47,15 @@ export type DomainItem = {
 
 export type DomainsListResponse = {
   items: DomainItem[];
+  summary: {
+    totalItems: number;
+    allowTotal: number;
+    denyTotal: number;
+    allowExact: number;
+    allowRegex: number;
+    denyExact: number;
+    denyRegex: number;
+  };
   pagination: {
     page: number;
     pageSize: number;

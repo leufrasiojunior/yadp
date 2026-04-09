@@ -25,7 +25,11 @@ adicionar um passo opcional no setup, depois de configurar as instancias, ja per
 (perguntar 2x, pois pode ser uma acao destrutiva, ou seja, quando aceitar a primeira vez, perguntar de novo com titulo diferente. Usar a rota de export para exportar e depois importar em todas as instancias. Lembrar de apagar o ZIP gerado)
 
 
-Na tela de instancias, adicionar mais informacoes da instancia, e tornar possivel mudar o pihole primario
+Na tela de instancias, adicionar mais informacoes da instancia, e tornar possivel mudar o pihole primario. 
+Rota para pegar informacoes da instancia: 
+/info/system
+/info/host
+/info/version
 
 na tela de clientes, adicionar mais detalhes de um unico host -> admin/queries?client_ip=192.168.31.18
 Adicionar:
@@ -34,9 +38,15 @@ Mostrar grafico de mais pesquisados
 Top acessados
 Top bloqueados
 
---
 
-Na tela de clientes talves adicionar tags de identificacao para os clientes(iot, crianca, pcs.......)
+Usar a rota /info/messages 
+para implementar notificacoes. Tanto notificacoes de sistema (exemplo, falhar a syncronizacao automatica ou manual mais de 1 vez, e outros erros de sistema)
+quanto as notificacoes do proprio pihole, separado por instancia.
+a rota /info/messages/count ja retorna a quantidade de mensagens, ver se faz sentido usar ou somar direto no front.(principalmente para evitar mais chamadas juntas para a mesma instancia)
+
+
+
+--
 
 Ajustar a tela de erro de comunicacao com o back. somente informar que o backend ainda nao subiu, atualizando a pagina ate conseguir(atualizar a cada 10 segundos, com link para atualizar agora)
 
@@ -51,3 +61,5 @@ quando o cookie expirar, ja redirecionar direto para /login
 
 
 ajustar os graficos para mostrar de hora em hora, nao a cada hora e minuto 5.
+
+tornar o container acessivel via https com certificado auto-assinado, alem de permitir http.

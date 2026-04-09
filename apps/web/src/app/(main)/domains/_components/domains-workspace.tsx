@@ -8,10 +8,14 @@ import {
   ArrowUp,
   ArrowUpDown,
   CircleAlert,
+  CircleDot,
+  Code2,
   Globe,
   Info,
   MoreHorizontal,
   RefreshCw,
+  ShieldCheck,
+  ShieldX,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -76,6 +80,7 @@ import {
 } from "@/lib/domains/domains-sorting";
 import { useWebI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
+import { useNavigationSummaryStore } from "@/stores/navigation-summary/navigation-summary-provider";
 
 import { CreateDomainGroupSelector } from "./create-domain-group-selector";
 import { DomainEditDialog } from "./domain-edit-dialog";
@@ -158,6 +163,7 @@ export function DomainsWorkspace({
   const { messages } = useWebI18n();
   const { csrfToken } = useAppSession();
   const client = useMemo(() => getBrowserApiClient(), []);
+  const refreshNavigationSummary = useNavigationSummaryStore((state) => state.refreshSummary);
   const [data, setData] = useState(initialData);
   const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -435,6 +441,7 @@ export function DomainsWorkspace({
     setNewGroupIds([0]);
     setNewPatternMode("exact");
     await refreshDomains();
+    await refreshNavigationSummary();
   };
 
   const toggleStatus = async (item: DomainItem, enabled: boolean) => {
@@ -529,6 +536,7 @@ export function DomainsWorkspace({
       partialMessage: messages.domains.toasts.updatePartial,
     });
     await refreshDomains();
+    await refreshNavigationSummary();
   };
 
   const requestDelete = (itemsToDelete: { item: string; type: "allow" | "deny"; kind: "exact" | "regex" }[]) => {
@@ -663,6 +671,96 @@ export function DomainsWorkspace({
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardContent className="grid gap-4 pt-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="rounded-xl border bg-muted/30 p-4">
+            <div className="flex flex-col items-center justify-center gap-4 text-center">
+              <div className="flex flex-col items-center">
+                <p className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-[0.16em]">
+                  <Globe className="size-3.5" />
+                  {messages.domains.summary.total}
+                </p>
+                <p className="mt-2 font-semibold text-3xl">{data.summary.totalItems}</p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Badge variant="secondary" className="rounded-full px-2.5">
+                  <Globe className="mr-1 size-3.5" />
+                  {messages.common.total}: {data.summary.totalItems}
+                </Badge>
+                <Badge className="rounded-full bg-emerald-600 px-2.5 text-white hover:bg-emerald-600">
+                  <ShieldCheck className="mr-1 size-3.5" />
+                  {messages.domains.summary.allowed}: {data.summary.allowTotal}
+                </Badge>
+                <Badge variant="destructive" className="rounded-full px-2.5">
+                  <ShieldX className="mr-1 size-3.5" />
+                  {messages.domains.summary.blocked}: {data.summary.denyTotal}
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-center">
+            <p className="flex items-center justify-center gap-2 font-medium text-emerald-700 text-sm dark:text-emerald-300">
+              <ShieldCheck className="size-4" />
+              {messages.domains.summary.allowed}
+            </p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="flex flex-col items-center">
+                <p className="flex items-center justify-center gap-1.5 text-muted-foreground text-xs">
+                  <Globe className="size-3.5" />
+                  {messages.common.total}
+                </p>
+                <p className="font-semibold text-xl">{data.summary.allowTotal}</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <p className="flex items-center justify-center gap-1.5 text-muted-foreground text-xs">
+                  <CircleDot className="size-3.5" />
+                  {messages.domains.summary.exact}
+                </p>
+                <p className="font-semibold text-xl">{data.summary.allowExact}</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <p className="flex items-center justify-center gap-1.5 text-muted-foreground text-xs">
+                  <Code2 className="size-3.5" />
+                  {messages.domains.summary.regex}
+                </p>
+                <p className="font-semibold text-xl">{data.summary.allowRegex}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-center">
+            <p className="flex items-center justify-center gap-2 font-medium text-red-700 text-sm dark:text-red-300">
+              <ShieldX className="size-4" />
+              {messages.domains.summary.blocked}
+            </p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="flex flex-col items-center">
+                <p className="flex items-center justify-center gap-1.5 text-muted-foreground text-xs">
+                  <Globe className="size-3.5" />
+                  {messages.common.total}
+                </p>
+                <p className="font-semibold text-xl">{data.summary.denyTotal}</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <p className="flex items-center justify-center gap-1.5 text-muted-foreground text-xs">
+                  <CircleDot className="size-3.5" />
+                  {messages.domains.summary.exact}
+                </p>
+                <p className="font-semibold text-xl">{data.summary.denyExact}</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <p className="flex items-center justify-center gap-1.5 text-muted-foreground text-xs">
+                  <Code2 className="size-3.5" />
+                  {messages.domains.summary.regex}
+                </p>
+                <p className="font-semibold text-xl">{data.summary.denyRegex}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>{messages.common.add}</CardTitle>

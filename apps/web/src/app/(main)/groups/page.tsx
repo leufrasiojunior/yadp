@@ -18,7 +18,7 @@ export default async function GroupsPage() {
           <p className="mt-2 text-muted-foreground">{messages.groups.description}</p>
         </div>
 
-        <GroupsWorkspace initialItems={groups.items} initialSource={groups.source} />
+        <GroupsWorkspace initialData={groups} />
       </div>
     );
   } catch (error) {

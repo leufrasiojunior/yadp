@@ -154,6 +154,9 @@ export type GroupItem = {
 
 export type GroupsListResponse = {
   items: GroupItem[];
+  summary: {
+    totalItems: number;
+  };
   source: {
     baselineInstanceId: string;
     baselineInstanceName: string;
@@ -186,6 +189,18 @@ export type GroupsMutationResponse = {
     kind: DashboardInstanceErrorKind;
     message: string;
   }>;
+};
+
+export type NavigationSummaryResponse = {
+  groups: {
+    total: number;
+  };
+  lists: {
+    total: number;
+  };
+  domains: {
+    total: number;
+  };
 };
 
 export type ClientsSortField = "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
@@ -557,6 +572,9 @@ export type ListsSortDirection = "asc" | "desc";
 
 export type ListsListResponse = {
   items: ListItem[];
+  summary: {
+    totalItems: number;
+  };
   pagination: {
     page: number;
     pageSize: number;
@@ -635,6 +653,15 @@ export type DomainItem = {
 
 export type DomainsListResponse = {
   items: DomainItem[];
+  summary: {
+    totalItems: number;
+    allowTotal: number;
+    denyTotal: number;
+    allowExact: number;
+    allowRegex: number;
+    denyExact: number;
+    denyRegex: number;
+  };
   pagination: {
     page: number;
     pageSize: number;

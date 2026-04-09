@@ -75,6 +75,19 @@ export const DOMAINS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
         type: "array",
         items: domainItemSchema,
       },
+      summary: {
+        type: "object",
+        properties: {
+          totalItems: { type: "number" },
+          allowTotal: { type: "number" },
+          denyTotal: { type: "number" },
+          allowExact: { type: "number" },
+          allowRegex: { type: "number" },
+          denyExact: { type: "number" },
+          denyRegex: { type: "number" },
+        },
+        required: ["totalItems", "allowTotal", "denyTotal", "allowExact", "allowRegex", "denyExact", "denyRegex"],
+      },
       source: {
         type: "object",
         properties: {
@@ -107,7 +120,7 @@ export const DOMAINS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
         items: failedInstanceSchema,
       },
     },
-    required: ["items", "pagination", "source", "unavailableInstances"],
+    required: ["items", "summary", "pagination", "source", "unavailableInstances"],
   },
 };
 

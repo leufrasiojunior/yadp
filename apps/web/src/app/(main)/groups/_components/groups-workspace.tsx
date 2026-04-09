@@ -43,6 +43,7 @@ import type { GroupItem, GroupsListResponse, GroupsMutationResponse } from "@/li
 import { getClientCookie, setClientCookie } from "@/lib/cookie.client";
 import { useWebI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
+import { useNavigationSummaryStore } from "@/stores/navigation-summary/navigation-summary-provider";
 
 import {
   buildCreateGroupSchema,
@@ -165,19 +166,19 @@ function buildSyncSelections(items: GroupItem[], baselineInstanceId: string): Sy
 }
 
 export function GroupsWorkspace({
-  initialItems,
-  initialSource,
+  initialData,
 }: Readonly<{
-  initialItems: GroupItem[];
-  initialSource: GroupsListResponse["source"];
+  initialData: GroupsListResponse;
 }>) {
   const { messages } = useWebI18n();
   const { csrfToken } = useAppSession();
   const client = useMemo(() => getBrowserApiClient(), []);
   const createSchema = useMemo(() => buildCreateGroupSchema(messages), [messages]);
   const editSchema = useMemo(() => buildEditGroupSchema(messages), [messages]);
-  const [items, setItems] = useState(() => sortGroupItems(initialItems));
-  const [source, setSource] = useState(initialSource);
+  const refreshNavigationSummary = useNavigationSummaryStore((state) => state.refreshSummary);
+  const [items, setItems] = useState(() => sortGroupItems(initialData.items));
+  const [source, setSource] = useState(initialData.source);
+  const [summary, setSummary] = useState(initialData.summary);
   const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -190,7 +191,7 @@ export function GroupsWorkspace({
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
   const [syncDialogGroupName, setSyncDialogGroupName] = useState<string | null>(null);
   const [syncSelections, setSyncSelections] = useState<SyncSelectionState>(() =>
-    buildSyncSelections(initialItems, initialSource.baselineInstanceId),
+    buildSyncSelections(initialData.items, initialData.source.baselineInstanceId),
   );
   const [syncError, setSyncError] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(null);
@@ -256,6 +257,7 @@ export function GroupsWorkspace({
 
     setItems(sortGroupItems(data.items));
     setSource(data.source);
+    setSummary(data.summary);
     return data;
   };
 
@@ -424,6 +426,7 @@ export function GroupsWorkspace({
 
     createForm.reset(DEFAULT_CREATE_GROUP_FORM_VALUES);
     await handleMutationSuccess(data, messages.groups.toasts.createSuccess);
+    await refreshNavigationSummary();
   };
 
   const openEditDialog = (group: GroupItem) => {
@@ -560,6 +563,7 @@ export function GroupsWorkspace({
     setDeleteDialog(null);
     setSelectedIds([]);
     await handleMutationSuccess(result.data, messages.groups.toasts.deleteSuccess);
+    await refreshNavigationSummary();
     return true;
   };
 
@@ -699,7 +703,12 @@ export function GroupsWorkspace({
       <Card>
         <CardHeader>
           <div>
-            <CardTitle>{messages.groups.table.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle>{messages.groups.table.title}</CardTitle>
+              <Badge variant="secondary" className="rounded-full px-2.5">
+                {summary.totalItems}
+              </Badge>
+            </div>
             <CardDescription>{messages.groups.table.description(source.baselineInstanceName)}</CardDescription>
           </div>
           <CardAction className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">

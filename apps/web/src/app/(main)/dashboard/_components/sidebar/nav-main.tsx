@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { ChevronRight } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
@@ -34,6 +35,18 @@ const IsComingSoon = () => (
   <span className="ml-auto rounded-md bg-gray-200 px-2 py-1 text-xs dark:text-gray-800">Soon</span>
 );
 
+const NavItemCount = ({ count }: { count?: number }) => {
+  if (count === undefined) {
+    return null;
+  }
+
+  return (
+    <Badge variant="secondary" className="ml-auto min-w-8 justify-center rounded-full px-2 font-medium text-[11px]">
+      {count}
+    </Badge>
+  );
+};
+
 const NavItemExpanded = ({
   item,
   isActive,
@@ -55,6 +68,7 @@ const NavItemExpanded = ({
             >
               {item.icon && <item.icon />}
               <span>{item.title}</span>
+              <NavItemCount count={item.count} />
               {item.comingSoon && <IsComingSoon />}
               <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
@@ -68,6 +82,7 @@ const NavItemExpanded = ({
               <Link prefetch={false} href={item.url} target={item.newTab ? "_blank" : undefined}>
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
+                <NavItemCount count={item.count} />
                 {item.comingSoon && <IsComingSoon />}
               </Link>
             </SidebarMenuButton>

@@ -72,6 +72,7 @@ import {
   getDefaultListsSortDirection,
 } from "@/lib/lists/lists-sorting";
 import { cn } from "@/lib/utils";
+import { useNavigationSummaryStore } from "@/stores/navigation-summary/navigation-summary-provider";
 
 import { CreateListGroupSelector } from "./create-list-group-selector";
 import { ListEditDialog } from "./list-edit-dialog";
@@ -154,6 +155,7 @@ export function ListsWorkspace({
   const { messages } = useWebI18n();
   const { csrfToken } = useAppSession();
   const client = useMemo(() => getBrowserApiClient(), []);
+  const refreshNavigationSummary = useNavigationSummaryStore((state) => state.refreshSummary);
   const [data, setData] = useState(initialData);
   const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -378,6 +380,7 @@ export function ListsWorkspace({
     setNewComment("");
     setNewGroupIds([0]);
     await refreshLists();
+    await refreshNavigationSummary();
   };
 
   const toggleListStatus = async (list: ListItem, enabled: boolean) => {
@@ -466,6 +469,7 @@ export function ListsWorkspace({
       partialMessage: messages.lists.toasts.updatePartial,
     });
     await refreshLists();
+    await refreshNavigationSummary();
   };
 
   const requestDelete = (itemsToDelete: { item: string; type: "allow" | "block" }[]) => {
@@ -657,7 +661,12 @@ export function ListsWorkspace({
       <Card>
         <CardHeader>
           <div>
-            <CardTitle>{messages.lists.table.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle>{messages.lists.table.title}</CardTitle>
+              <Badge variant="secondary" className="rounded-full px-2.5">
+                {data.summary.totalItems}
+              </Badge>
+            </div>
             <CardDescription>{messages.lists.table.description(data.source.baselineInstanceName)}</CardDescription>
           </div>
           <CardAction className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">

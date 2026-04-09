@@ -20,6 +20,7 @@ import type {
   ListsListResponse,
   ListsSortDirection,
   ListsSortField,
+  NavigationSummaryResponse,
   QueriesResponse,
   SetupStatus,
 } from "./yapd-types";
@@ -155,6 +156,25 @@ export async function getGroups(): Promise<GroupsListResponse> {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load groups.");
+  }
+
+  return data;
+}
+
+export async function getNavigationSummary(): Promise<NavigationSummaryResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<NavigationSummaryResponse>("/navigation/summary");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load navigation summary.");
   }
 
   return data;

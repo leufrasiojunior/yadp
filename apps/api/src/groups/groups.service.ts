@@ -115,9 +115,13 @@ export class GroupsService {
     }
 
     const { snapshots, unavailableInstances } = await this.prepareSnapshotsForList(instances, locale);
+    const items = this.buildListedGroups(snapshots);
 
     return {
-      items: this.buildListedGroups(snapshots),
+      items,
+      summary: {
+        totalItems: items.length,
+      },
       source: {
         baselineInstanceId: baseline.id,
         baselineInstanceName: baseline.name,

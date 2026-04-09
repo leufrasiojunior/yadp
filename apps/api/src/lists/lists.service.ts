@@ -169,6 +169,9 @@ export class ListsService {
 
     return {
       items: sortedItems.slice(startIndex, startIndex + pageSize),
+      summary: {
+        totalItems: consolidatedItems.length,
+      },
       pagination: {
         page,
         pageSize,

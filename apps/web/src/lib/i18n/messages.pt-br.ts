@@ -995,6 +995,13 @@ export const ptBRMessages: WebMessages = {
       exactDeny: "Bloquear Exato",
       regexDeny: "Bloquear Regex",
     },
+    summary: {
+      total: "Resumo de domínios",
+      allowed: "Permitidos",
+      blocked: "Bloqueados",
+      exact: "Exato",
+      regex: "Regex",
+    },
     groupEditor: {
       title: "Editar domínio",
       description: "Visualize detalhes e altere os grupos e comentários deste domínio.",

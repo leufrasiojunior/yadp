@@ -903,6 +903,13 @@ export type WebMessages = {
       exactDeny: string;
       regexDeny: string;
     };
+    summary: {
+      total: string;
+      allowed: string;
+      blocked: string;
+      exact: string;
+      regex: string;
+    };
     groupEditor: {
       title: string;
       description: string;

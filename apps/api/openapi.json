@@ -931,6 +931,41 @@
                         "required": ["domain", "type", "kind", "enabled", "groups", "id", "origin", "sync"]
                       }
                     },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalItems": {
+                          "type": "number"
+                        },
+                        "allowTotal": {
+                          "type": "number"
+                        },
+                        "denyTotal": {
+                          "type": "number"
+                        },
+                        "allowExact": {
+                          "type": "number"
+                        },
+                        "allowRegex": {
+                          "type": "number"
+                        },
+                        "denyExact": {
+                          "type": "number"
+                        },
+                        "denyRegex": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "totalItems",
+                        "allowTotal",
+                        "denyTotal",
+                        "allowExact",
+                        "allowRegex",
+                        "denyExact",
+                        "denyRegex"
+                      ]
+                    },
                     "source": {
                       "type": "object",
                       "properties": {
@@ -1007,7 +1042,7 @@
                       }
                     }
                   },
-                  "required": ["items", "pagination", "source", "unavailableInstances"]
+                  "required": ["items", "summary", "pagination", "source", "unavailableInstances"]
                 }
               }
             }
@@ -1647,6 +1682,15 @@
                         "required": ["name", "comment", "enabled", "id", "dateAdded", "dateModified", "origin", "sync"]
                       }
                     },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalItems": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalItems"]
+                    },
                     "source": {
                       "type": "object",
                       "properties": {
@@ -1705,7 +1749,7 @@
                       }
                     }
                   },
-                  "required": ["items", "source", "unavailableInstances"]
+                  "required": ["items", "summary", "source", "unavailableInstances"]
                 }
               }
             }
@@ -3205,6 +3249,15 @@
                         ]
                       }
                     },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalItems": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalItems"]
+                    },
                     "source": {
                       "type": "object",
                       "properties": {
@@ -3281,7 +3334,7 @@
                       }
                     }
                   },
-                  "required": ["items", "pagination", "source", "unavailableInstances"]
+                  "required": ["items", "summary", "pagination", "source", "unavailableInstances"]
                 }
               }
             }
@@ -3855,6 +3908,60 @@
           }
         ],
         "tags": ["lists"]
+      }
+    },
+    "/navigation/summary": {
+      "get": {
+        "operationId": "NavigationController_getSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "groups": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["total"]
+                    },
+                    "lists": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["total"]
+                    },
+                    "domains": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["total"]
+                    }
+                  },
+                  "required": ["groups", "lists", "domains"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["navigation"]
       }
     },
     "/queries": {

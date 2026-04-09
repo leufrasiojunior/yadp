@@ -40,6 +40,9 @@ export type ListItem = {
 
 export type ListsListResponse = {
   items: ListItem[];
+  summary: {
+    totalItems: number;
+  };
   pagination: {
     page: number;
     pageSize: number;

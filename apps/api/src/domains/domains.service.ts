@@ -227,6 +227,7 @@ export class DomainsService implements OnModuleInit {
 
     return {
       items: sortedItems.slice(startIndex, startIndex + pageSize),
+      summary: this.buildDomainsSummary(consolidatedItems),
       pagination: {
         page,
         pageSize,
@@ -717,6 +718,43 @@ export class DomainsService implements OnModuleInit {
       }
     }
     return sortDomainItems(items, DEFAULT_DOMAINS_SORT_FIELD, DEFAULT_DOMAINS_SORT_DIRECTION);
+  }
+
+  private buildDomainsSummary(items: DomainItem[]) {
+    return items.reduce(
+      (summary, item) => {
+        summary.totalItems += 1;
+
+        if (item.type === "allow") {
+          summary.allowTotal += 1;
+
+          if (item.kind === "exact") {
+            summary.allowExact += 1;
+          } else if (item.kind === "regex") {
+            summary.allowRegex += 1;
+          }
+        } else if (item.type === "deny") {
+          summary.denyTotal += 1;
+
+          if (item.kind === "exact") {
+            summary.denyExact += 1;
+          } else if (item.kind === "regex") {
+            summary.denyRegex += 1;
+          }
+        }
+
+        return summary;
+      },
+      {
+        totalItems: 0,
+        allowTotal: 0,
+        denyTotal: 0,
+        allowExact: 0,
+        allowRegex: 0,
+        denyExact: 0,
+        denyRegex: 0,
+      },
+    );
   }
 
   private buildRegexPattern(domain: string, patternMode: DomainPatternMode | null) {

@@ -9,5 +9,6 @@ import { GroupsService } from "./groups.service";
   imports: [PiholeModule, SessionModule],
   controllers: [GroupsController],
   providers: [GroupsService],
+  exports: [GroupsService],
 })
 export class GroupsModule {}

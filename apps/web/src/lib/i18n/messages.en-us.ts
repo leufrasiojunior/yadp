@@ -990,6 +990,13 @@ export const enUSMessages: WebMessages = {
       exactDeny: "Exact Deny",
       regexDeny: "Regex Deny",
     },
+    summary: {
+      total: "Domain summary",
+      allowed: "Allowed",
+      blocked: "Blocked",
+      exact: "Exact",
+      regex: "Regex",
+    },
     groupEditor: {
       title: "Edit domain",
       description: "Review details and update groups and comments for this domain.",
