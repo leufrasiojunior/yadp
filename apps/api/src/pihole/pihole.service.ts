@@ -26,6 +26,8 @@ import type {
   PiholeGroupMutationResult,
   PiholeGroupUpdateRequest,
   PiholeHistoryPoint,
+  PiholeInfoMessage,
+  PiholeInfoMessagesResult,
   PiholeListCreateRequest,
   PiholeListListResult,
   PiholeListMutationResult,
@@ -531,6 +533,33 @@ export class PiholeService {
     });
 
     return this.normalizeQuerySuggestions(payload, connection, "/queries/suggestions");
+  }
+
+  async listInfoMessages(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeInfoMessagesResult> {
+    const path = "/info/messages";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeInfoMessages(payload, connection, path);
+  }
+
+  async deleteInfoMessage(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    messageId: string,
+  ) {
+    const path = `/info/messages/${encodeURIComponent(messageId)}`;
+
+    await this.request<void>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
   }
 
   async applyDomainOperation(
@@ -1383,6 +1412,54 @@ export class PiholeService {
     return {
       suggestions,
       took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeInfoMessages(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeInfoMessagesResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawMessages = readLookupValue(payloadLookup, ["messages", "items", "results"]);
+
+    if (!Array.isArray(rawMessages)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const messages = rawMessages
+      .filter((item): item is Record<string, unknown> => isRecord(item))
+      .map((item) => this.normalizeInfoMessage(item))
+      .filter((item): item is PiholeInfoMessage => item !== null)
+      .sort((left, right) => right.timestamp - left.timestamp || right.id - left.id);
+
+    return {
+      messages,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeInfoMessage(payload: Record<string, unknown>): PiholeInfoMessage | null {
+    const lookup = createLookup(payload);
+    const id = readLookupNumber(lookup, ["id"]);
+    const timestamp = readLookupNumber(lookup, ["timestamp", "time"]);
+    const type = readLookupString(lookup, ["type"]);
+    const plain = readLookupString(lookup, ["plain", "message", "text"]);
+
+    if (id === null || timestamp === null || !type || !plain) {
+      return null;
+    }
+
+    return {
+      id,
+      timestamp,
+      type,
+      plain,
+      html: readLookupString(lookup, ["html", "markup"]),
     };
   }
 

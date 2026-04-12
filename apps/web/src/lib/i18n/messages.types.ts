@@ -265,6 +265,7 @@ export type WebMessages = {
       domains: string;
       lists: string;
       instances: string;
+      notifications: string;
       baselineLogin: string;
       setupBaseline: string;
       apiHealth: string;
@@ -415,6 +416,77 @@ export type WebMessages = {
     toasts: {
       instanceFailure: (instanceName: string, message: string) => string;
       genericInstanceFailure: (instanceName: string) => string;
+    };
+  };
+  notifications: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    preview: {
+      title: string;
+      empty: string;
+      markAllRead: string;
+      seeAll: string;
+      unreadCount: (count: number) => string;
+      pushEnable: string;
+      pushDisable: string;
+      pushEnabled: string;
+      pushDenied: string;
+      pushUnsupported: string;
+      pushEnabling: string;
+    };
+    table: {
+      tabs: {
+        unread: string;
+        read: string;
+      };
+      type: string;
+      instance: string;
+      message: string;
+      time: string;
+      actions: string;
+      rowsPerPage: string;
+      showing: (start: number, end: number, total: number) => string;
+      previous: string;
+      next: string;
+      emptyUnreadTitle: string;
+      emptyUnreadDescription: string;
+      emptyReadTitle: string;
+      emptyReadDescription: string;
+      unreadBadge: (count: number) => string;
+      readBadge: (count: number) => string;
+      systemInstance: string;
+    };
+    actions: {
+      markRead: string;
+      delete: string;
+      deleting: string;
+      markingRead: string;
+    };
+    toasts: {
+      markReadSuccess: string;
+      deleteSuccess: string;
+      markAllReadSuccess: (count: number) => string;
+      pushEnabled: string;
+      pushDisabled: string;
+      pushUnsupported: string;
+      pushDenied: string;
+      pushFailed: string;
+      refreshFailed: string;
+    };
+    types: {
+      RATE_LIMIT: string;
+      CONNECTION_ERROR: string;
+      CLIENTS_FAILURE: string;
+      DOMAINS_FAILURE: string;
+      GROUPS_FAILURE: string;
+      INSTANCES_FAILURE: string;
+      LISTS_FAILURE: string;
+      NOTIFICATION_SYNC_ERROR: string;
+      INSTANCE_SESSION_ERROR: string;
+      SYNC_FAILURE: string;
+      SYSTEM_FAILURE: string;
+      unknown: (type: string) => string;
     };
   };
   queries: {

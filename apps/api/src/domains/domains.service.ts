@@ -373,6 +373,7 @@ export class DomainsService implements OnModuleInit {
           successfulCount: successfulInstances.length,
           failedCount: failedInstances.length,
         },
+        failedInstances: failedInstances as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -449,7 +450,14 @@ export class DomainsService implements OnModuleInit {
       targetType: "domain",
       targetId: domain,
       result: results.status === "success" ? "SUCCESS" : "FAILURE",
-      details: { domain, type, kind, body: body as unknown as Prisma.InputJsonValue, summary: results.summary },
+      details: {
+        domain,
+        type,
+        kind,
+        body: body as unknown as Prisma.InputJsonValue,
+        summary: results.summary,
+        failedInstances: results.failedInstances as unknown as Prisma.InputJsonValue,
+      },
     });
 
     return results;

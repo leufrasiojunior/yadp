@@ -1,6 +1,7 @@
 Filtrar por Grupo nas páginas do log
 
-em configuracoes, salvar no BD de acordo com o MAC (ver alguma rota que retorna o MAC) um nome para o dispositivo, e se possivel mostrar isso onde for necessario (ripo a pagina de queries)
+as notificacoes nao estao funcionando. desliguei uma instancia, tentei algumas acoes e ao falhar a notificacao entra normalmente na pagina de notificacoes (as vezes nao aparece no "sininho" do topbar), mas nao recebi a notificacao push
+
 admin/groups/domains permitir exportar em formato de lista txt
 Top Blocked Domains by period(pagina especifica, se nao me engano ja existe rota que posso enviar timestamp)
 
@@ -62,4 +63,5 @@ tornar o container acessivel via https com certificado auto-assinado, alem de pe
 
 adicionar uma pagina para verificar tudo e mostrar um resumo do que nao esta sincronizado, e dar a opcao de sincronizar
 adicionar os bodys nas rotas post/put/delete
+
 por ultimo, criar uma forma de o usuario mesmo criar o proprio tema de forma facil, com mocks das paginas e exemplos em tempo real.

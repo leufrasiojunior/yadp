@@ -412,6 +412,7 @@ export class ClientsService {
           targetInstanceIds: targetInstances.map((instance) => instance.id),
           status: response.status,
           summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
           comment: comment ?? null,
           alias: alias ?? null,
           tags: tags ?? [],
@@ -481,6 +482,7 @@ export class ClientsService {
           targetInstanceIds: targetInstances.map((instance) => instance.id),
           status: response.status,
           summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
         } satisfies Prisma.InputJsonObject,
       });
 

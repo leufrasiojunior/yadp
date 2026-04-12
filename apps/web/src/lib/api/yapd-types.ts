@@ -203,6 +203,88 @@ export type NavigationSummaryResponse = {
   };
 };
 
+export type NotificationSource = "PIHOLE" | "SYSTEM";
+export type NotificationState = "ACTIVE" | "RESOLVED";
+export type NotificationReadState = "unread" | "read";
+
+export type NotificationItem = {
+  id: string;
+  source: NotificationSource;
+  type:
+    | "RATE_LIMIT"
+    | "CONNECTION_ERROR"
+    | "CLIENTS_FAILURE"
+    | "DOMAINS_FAILURE"
+    | "GROUPS_FAILURE"
+    | "INSTANCES_FAILURE"
+    | "LISTS_FAILURE"
+    | "NOTIFICATION_SYNC_ERROR"
+    | "INSTANCE_SESSION_ERROR"
+    | "SYNC_FAILURE"
+    | "SYSTEM_FAILURE"
+    | string;
+  instanceId: string | null;
+  instanceName: string | null;
+  message: string;
+  state: NotificationState;
+  isRead: boolean;
+  readAt: string | null;
+  hiddenAt: string | null;
+  resolvedAt: string | null;
+  occurredAt: string;
+  lastSeenAt: string;
+  occurrenceCount: number;
+  canDeleteRemotely: boolean;
+};
+
+export type NotificationsListResponse = {
+  items: NotificationItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  unreadCount: number;
+  readState: NotificationReadState;
+};
+
+export type NotificationsPreviewResponse = {
+  items: NotificationItem[];
+  unreadCount: number;
+  push: {
+    available: boolean;
+  };
+};
+
+export type NotificationMutationResponse = {
+  notification: NotificationItem;
+};
+
+export type NotificationReadAllResponse = {
+  updatedCount: number;
+};
+
+export type PushPublicKeyResponse = {
+  available: boolean;
+  publicKey: string | null;
+};
+
+export type PushSubscriptionBody = {
+  endpoint: string;
+  keys: {
+    auth: string;
+    p256dh: string;
+  };
+  userAgent?: string;
+};
+
+export type PushSubscriptionResponse = {
+  ok: true;
+  available: boolean;
+  endpoint: string;
+};
+
 export type ClientsSortField = "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
 
 export type ClientsSortDirection = "asc" | "desc";

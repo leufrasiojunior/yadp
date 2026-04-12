@@ -289,6 +289,7 @@ export class ListsService {
       details: {
         body: body as unknown as Prisma.InputJsonValue,
         summary: results.summary,
+        failedInstances: results.failedInstances as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -375,6 +376,7 @@ export class ListsService {
         type,
         body: body as unknown as Prisma.InputJsonValue,
         summary: results.summary,
+        failedInstances: results.failedInstances as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -441,6 +443,7 @@ export class ListsService {
       details: {
         items: body.items as unknown as Prisma.InputJsonValue,
         summary: results.summary,
+        failedInstances: results.failedInstances as unknown as Prisma.InputJsonValue,
       },
     });
 

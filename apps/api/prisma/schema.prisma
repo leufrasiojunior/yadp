@@ -42,6 +42,11 @@ enum SyncAttemptStatus {
   SKIPPED
 }
 
+enum NotificationState {
+  ACTIVE
+  RESOLVED
+}
+
 model AppConfig {
   id           String       @id @default("singleton")
   loginMode    AppLoginMode @default(PIHOLE_MASTER)
@@ -65,6 +70,7 @@ model Instance {
   certificateTrust InstanceCertificateTrust?
   session          InstanceSession?
   syncAttempts     SyncAttempt[]
+  notifications    Notification[]
 }
 
 model InstanceSecret {
@@ -203,4 +209,49 @@ model RegexFilter {
   description String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id                   String            @id @default(cuid())
+  source               String
+  type                 String
+  instanceId           String?
+  instanceNameSnapshot String?
+  message              String
+  metadata             Json?
+  state                NotificationState @default(ACTIVE)
+  isRead               Boolean           @default(false)
+  readAt               DateTime?
+  hiddenAt             DateTime?
+  resolvedAt           DateTime?
+  firstSeenAt          DateTime          @default(now())
+  lastSeenAt           DateTime          @default(now())
+  occurredAt           DateTime          @default(now())
+  occurrenceCount      Int               @default(1)
+  sourceFingerprint    String
+  sourceExternalId     String?
+  deleteRequestedAt    DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  instance             Instance?         @relation(fields: [instanceId], references: [id], onDelete: SetNull)
+
+  @@index([sourceFingerprint])
+  @@index([hiddenAt, resolvedAt, occurredAt])
+  @@index([createdAt])
+}
+
+model PushSubscription {
+  id            String   @id @default(cuid())
+  endpoint      String   @unique
+  p256dh        String
+  auth          String
+  userAgent     String?
+  lastSuccessAt DateTime?
+  lastFailureAt DateTime?
+  failureCount  Int      @default(0)
+  disabledAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([disabledAt])
 }

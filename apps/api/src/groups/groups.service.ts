@@ -171,6 +171,7 @@ export class GroupsService {
           enabled,
           status: response.status,
           summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
           ...(comment !== undefined ? { comment } : {}),
         } satisfies Prisma.InputJsonObject,
       });
@@ -243,6 +244,7 @@ export class GroupsService {
           nextName: normalizedNextName,
           status: response.status,
           summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
           ...(normalizedComment !== undefined ? { comment: normalizedComment } : {}),
         } satisfies Prisma.InputJsonObject,
       });
@@ -312,6 +314,7 @@ export class GroupsService {
           enabled: dto.enabled,
           status: response.status,
           summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
         } satisfies Prisma.InputJsonObject,
       });
 
@@ -368,6 +371,7 @@ export class GroupsService {
         details: {
           status: response.status,
           summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
         } satisfies Prisma.InputJsonObject,
       });
 

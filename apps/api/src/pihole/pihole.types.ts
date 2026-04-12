@@ -192,6 +192,19 @@ export type PiholeQuerySuggestionsResult = {
   took: number | null;
 };
 
+export type PiholeInfoMessage = {
+  id: number;
+  timestamp: number;
+  type: string;
+  plain: string;
+  html: string | null;
+};
+
+export type PiholeInfoMessagesResult = {
+  messages: PiholeInfoMessage[];
+  took: number | null;
+};
+
 export const PIHOLE_DOMAIN_OPERATION_TYPES = ["allow", "deny"] as const;
 export const PIHOLE_DOMAIN_OPERATION_KINDS = ["exact", "regex"] as const;
 

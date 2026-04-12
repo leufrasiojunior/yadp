@@ -82,3 +82,13 @@ export type ManagedDomain = Prisma.ManagedDomainModel
  * 
  */
 export type RegexFilter = Prisma.RegexFilterModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model PushSubscription
+ * 
+ */
+export type PushSubscription = Prisma.PushSubscriptionModel

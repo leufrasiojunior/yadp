@@ -4,23 +4,39 @@
  */
 
 export interface paths {
-  "/clients": {
+  "/notifications": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations["ClientsController_listClients"];
+    get: operations["NotificationsController_listNotifications"];
     put?: never;
-    post: operations["ClientsController_saveClients"];
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  "/clients/sync": {
+  "/notifications/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["NotificationsController_getPreview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications/{id}/read": {
     parameters: {
       query?: never;
       header?: never;
@@ -29,8 +45,72 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    post: operations["ClientsController_syncClients"];
+    post?: never;
     delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["NotificationsController_markAsRead"];
+    trace?: never;
+  };
+  "/notifications/read-all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["NotificationsController_markAllAsRead"];
+    trace?: never;
+  };
+  "/notifications/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["NotificationsController_hideNotification"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications/push/public-key": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["NotificationsController_getPushPublicKey"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications/push/subscription": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["NotificationsController_upsertPushSubscription"];
+    post?: never;
+    delete: operations["NotificationsController_deletePushSubscription"];
     options?: never;
     head?: never;
     patch?: never;
@@ -82,6 +162,38 @@ export interface paths {
     options?: never;
     head?: never;
     patch: operations["SessionController_updatePreferences"];
+    trace?: never;
+  };
+  "/clients": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientsController_listClients"];
+    put?: never;
+    post: operations["ClientsController_saveClients"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/clients/sync": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientsController_syncClients"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/dashboard/overview": {
@@ -592,6 +704,402 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  NotificationsController_listNotifications: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            items: {
+              id: string;
+              /** @enum {string} */
+              source: "PIHOLE" | "SYSTEM";
+              /** @enum {string} */
+              type:
+                | "CLIENTS_FAILURE"
+                | "DOMAINS_FAILURE"
+                | "GROUPS_FAILURE"
+                | "INSTANCES_FAILURE"
+                | "LISTS_FAILURE"
+                | "NOTIFICATION_SYNC_ERROR"
+                | "INSTANCE_SESSION_ERROR"
+                | "SYNC_FAILURE"
+                | "SYSTEM_FAILURE"
+                | "RATE_LIMIT"
+                | "CONNECTION_ERROR";
+              instanceId: string | null;
+              instanceName: string | null;
+              message: string;
+              /** @enum {string} */
+              state: "ACTIVE" | "RESOLVED";
+              isRead: boolean;
+              /** Format: date-time */
+              readAt: string | null;
+              /** Format: date-time */
+              hiddenAt: string | null;
+              /** Format: date-time */
+              resolvedAt: string | null;
+              /** Format: date-time */
+              occurredAt: string;
+              /** Format: date-time */
+              lastSeenAt: string;
+              occurrenceCount: number;
+              canDeleteRemotely: boolean;
+            }[];
+            pagination: {
+              page: number;
+              pageSize: number;
+              totalItems: number;
+              totalPages: number;
+            };
+            unreadCount: number;
+            /** @enum {string} */
+            readState: "unread" | "read";
+          };
+        };
+      };
+    };
+  };
+  NotificationsController_getPreview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            items: {
+              id: string;
+              /** @enum {string} */
+              source: "PIHOLE" | "SYSTEM";
+              /** @enum {string} */
+              type:
+                | "CLIENTS_FAILURE"
+                | "DOMAINS_FAILURE"
+                | "GROUPS_FAILURE"
+                | "INSTANCES_FAILURE"
+                | "LISTS_FAILURE"
+                | "NOTIFICATION_SYNC_ERROR"
+                | "INSTANCE_SESSION_ERROR"
+                | "SYNC_FAILURE"
+                | "SYSTEM_FAILURE"
+                | "RATE_LIMIT"
+                | "CONNECTION_ERROR";
+              instanceId: string | null;
+              instanceName: string | null;
+              message: string;
+              /** @enum {string} */
+              state: "ACTIVE" | "RESOLVED";
+              isRead: boolean;
+              /** Format: date-time */
+              readAt: string | null;
+              /** Format: date-time */
+              hiddenAt: string | null;
+              /** Format: date-time */
+              resolvedAt: string | null;
+              /** Format: date-time */
+              occurredAt: string;
+              /** Format: date-time */
+              lastSeenAt: string;
+              occurrenceCount: number;
+              canDeleteRemotely: boolean;
+            }[];
+            unreadCount: number;
+            push: {
+              available: boolean;
+            };
+          };
+        };
+      };
+    };
+  };
+  NotificationsController_markAsRead: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            notification: {
+              id: string;
+              /** @enum {string} */
+              source: "PIHOLE" | "SYSTEM";
+              /** @enum {string} */
+              type:
+                | "CLIENTS_FAILURE"
+                | "DOMAINS_FAILURE"
+                | "GROUPS_FAILURE"
+                | "INSTANCES_FAILURE"
+                | "LISTS_FAILURE"
+                | "NOTIFICATION_SYNC_ERROR"
+                | "INSTANCE_SESSION_ERROR"
+                | "SYNC_FAILURE"
+                | "SYSTEM_FAILURE"
+                | "RATE_LIMIT"
+                | "CONNECTION_ERROR";
+              instanceId: string | null;
+              instanceName: string | null;
+              message: string;
+              /** @enum {string} */
+              state: "ACTIVE" | "RESOLVED";
+              isRead: boolean;
+              /** Format: date-time */
+              readAt: string | null;
+              /** Format: date-time */
+              hiddenAt: string | null;
+              /** Format: date-time */
+              resolvedAt: string | null;
+              /** Format: date-time */
+              occurredAt: string;
+              /** Format: date-time */
+              lastSeenAt: string;
+              occurrenceCount: number;
+              canDeleteRemotely: boolean;
+            };
+          };
+        };
+      };
+    };
+  };
+  NotificationsController_markAllAsRead: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            updatedCount: number;
+          };
+        };
+      };
+    };
+  };
+  NotificationsController_hideNotification: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            notification: {
+              id: string;
+              /** @enum {string} */
+              source: "PIHOLE" | "SYSTEM";
+              /** @enum {string} */
+              type:
+                | "CLIENTS_FAILURE"
+                | "DOMAINS_FAILURE"
+                | "GROUPS_FAILURE"
+                | "INSTANCES_FAILURE"
+                | "LISTS_FAILURE"
+                | "NOTIFICATION_SYNC_ERROR"
+                | "INSTANCE_SESSION_ERROR"
+                | "SYNC_FAILURE"
+                | "SYSTEM_FAILURE"
+                | "RATE_LIMIT"
+                | "CONNECTION_ERROR";
+              instanceId: string | null;
+              instanceName: string | null;
+              message: string;
+              /** @enum {string} */
+              state: "ACTIVE" | "RESOLVED";
+              isRead: boolean;
+              /** Format: date-time */
+              readAt: string | null;
+              /** Format: date-time */
+              hiddenAt: string | null;
+              /** Format: date-time */
+              resolvedAt: string | null;
+              /** Format: date-time */
+              occurredAt: string;
+              /** Format: date-time */
+              lastSeenAt: string;
+              occurrenceCount: number;
+              canDeleteRemotely: boolean;
+            };
+          };
+        };
+      };
+    };
+  };
+  NotificationsController_getPushPublicKey: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            available: boolean;
+            publicKey: string | null;
+          };
+        };
+      };
+    };
+  };
+  NotificationsController_upsertPushSubscription: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {boolean} */
+            ok: true;
+            available: boolean;
+            endpoint: string;
+          };
+        };
+      };
+    };
+  };
+  NotificationsController_deletePushSubscription: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {boolean} */
+            ok: true;
+            available: boolean;
+            endpoint: string;
+          };
+        };
+      };
+    };
+  };
+  SessionController_login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SessionController_getCurrentSession: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SessionController_logout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SessionController_updatePreferences: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   ClientsController_listClients: {
     parameters: {
       query?: {
@@ -813,74 +1321,6 @@ export interface operations {
             }[];
           };
         };
-      };
-    };
-  };
-  SessionController_login: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SessionController_getCurrentSession: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SessionController_logout: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SessionController_updatePreferences: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
       };
     };
   };

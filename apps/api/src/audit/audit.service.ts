@@ -2,8 +2,9 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 
 import { PrismaService } from "../common/prisma/prisma.service";
 import type { Prisma } from "../common/prisma/prisma-client";
+import { NotificationsService } from "../notifications/notifications.service";
 
-type AuditEntry = {
+export type AuditEntry = {
   action: string;
   actorType: string;
   actorLabel?: string | null;
@@ -17,11 +18,11 @@ type AuditEntry = {
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
-  private readonly prisma: PrismaService;
 
-  constructor(@Inject(PrismaService) prisma: PrismaService) {
-    this.prisma = prisma;
-  }
+  constructor(
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+  ) {}
 
   async record(entry: AuditEntry) {
     try {
@@ -37,6 +38,10 @@ export class AuditService {
           details: entry.details,
         },
       });
+
+      if (entry.result === "FAILURE") {
+        await this.notifications.recordAuditFailure(entry);
+      }
     } catch (error) {
       this.logger.error("Failed to persist audit log", error);
     }

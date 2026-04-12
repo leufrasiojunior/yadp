@@ -1,5 +1,6 @@
 import {
   Activity,
+  Bell,
   Binary,
   Globe,
   LayoutDashboard,
@@ -39,7 +40,11 @@ export type NavMainItem = SidebarItem;
 
 export type NavGroup = SidebarGroup;
 
-export function getSidebarItems(messages: WebMessages, summary?: NavigationSummaryResponse | null): NavGroup[] {
+export function getSidebarItems(
+  messages: WebMessages,
+  summary?: NavigationSummaryResponse | null,
+  notificationsUnreadCount?: number,
+): NavGroup[] {
   return [
     {
       id: 1,
@@ -96,20 +101,10 @@ export function getSidebarItems(messages: WebMessages, summary?: NavigationSumma
       label: messages.sidebar.groups.status,
       items: [
         {
-          title: "teste",
-          url: "/Teste",
-          icon: Activity,
-        },
-      ],
-    },
-    {
-      id: 4,
-      label: messages.sidebar.groups.status,
-      items: [
-        {
-          title: "teste",
-          url: "/Teste",
-          icon: Activity,
+          title: messages.sidebar.items.notifications,
+          url: "/notifications",
+          icon: Bell,
+          count: notificationsUnreadCount,
         },
       ],
     },

@@ -63,7 +63,9 @@ export const ModelName = {
   SyncAttempt: 'SyncAttempt',
   ManagedList: 'ManagedList',
   ManagedDomain: 'ManagedDomain',
-  RegexFilter: 'RegexFilter'
+  RegexFilter: 'RegexFilter',
+  Notification: 'Notification',
+  PushSubscription: 'PushSubscription'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -264,6 +266,50 @@ export const RegexFilterScalarFieldEnum = {
 } as const
 
 export type RegexFilterScalarFieldEnum = (typeof RegexFilterScalarFieldEnum)[keyof typeof RegexFilterScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  source: 'source',
+  type: 'type',
+  instanceId: 'instanceId',
+  instanceNameSnapshot: 'instanceNameSnapshot',
+  message: 'message',
+  metadata: 'metadata',
+  state: 'state',
+  isRead: 'isRead',
+  readAt: 'readAt',
+  hiddenAt: 'hiddenAt',
+  resolvedAt: 'resolvedAt',
+  firstSeenAt: 'firstSeenAt',
+  lastSeenAt: 'lastSeenAt',
+  occurredAt: 'occurredAt',
+  occurrenceCount: 'occurrenceCount',
+  sourceFingerprint: 'sourceFingerprint',
+  sourceExternalId: 'sourceExternalId',
+  deleteRequestedAt: 'deleteRequestedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const PushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  userAgent: 'userAgent',
+  lastSuccessAt: 'lastSuccessAt',
+  lastFailureAt: 'lastFailureAt',
+  failureCount: 'failureCount',
+  disabledAt: 'disabledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
 
 
 export const SortOrder = {

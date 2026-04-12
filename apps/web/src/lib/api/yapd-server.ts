@@ -21,6 +21,10 @@ import type {
   ListsSortDirection,
   ListsSortField,
   NavigationSummaryResponse,
+  NotificationReadState,
+  NotificationsListResponse,
+  NotificationsPreviewResponse,
+  PushPublicKeyResponse,
   QueriesResponse,
   SetupStatus,
 } from "./yapd-types";
@@ -175,6 +179,81 @@ export async function getNavigationSummary(): Promise<NavigationSummaryResponse>
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load navigation summary.");
+  }
+
+  return data;
+}
+
+export async function getNotifications(query?: {
+  page?: number;
+  pageSize?: number;
+  readState?: NotificationReadState;
+}): Promise<NotificationsListResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<NotificationsListResponse>("/notifications", {
+    params: {
+      query: {
+        ...(query?.page !== undefined ? { page: query.page } : {}),
+        ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+        ...(query?.readState !== undefined ? { readState: query.readState } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load notifications.");
+  }
+
+  return data;
+}
+
+export async function getNotificationsPreview(query?: { limit?: number }): Promise<NotificationsPreviewResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<NotificationsPreviewResponse>("/notifications/preview", {
+    params: {
+      query: {
+        ...(query?.limit !== undefined ? { limit: query.limit } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load notification preview.");
+  }
+
+  return data;
+}
+
+export async function getPushPublicKey(): Promise<PushPublicKeyResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<PushPublicKeyResponse>("/notifications/push/public-key");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load the push public key.");
   }
 
   return data;

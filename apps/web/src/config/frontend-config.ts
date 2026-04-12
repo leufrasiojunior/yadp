@@ -38,4 +38,10 @@ export const FRONTEND_CONFIG = {
       countdownTickIntervalMs: 1_000,
     },
   },
+  notifications: {
+    previewLimit: 5,
+    defaultPageSize: 10,
+    pageSizeOptions: [10, 25, 50, 100] as const,
+    previewRefreshIntervalMs: 30_000,
+  },
 } as const;
