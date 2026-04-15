@@ -198,6 +198,7 @@ export type ClientDeviceWhereInput = {
   tags?: Prisma.StringNullableListFilter<"ClientDevice">
   createdAt?: Prisma.DateTimeFilter<"ClientDevice"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClientDevice"> | Date | string
+  groupMemberships?: Prisma.ClientGroupMembershipListRelationFilter
 }
 
 export type ClientDeviceOrderByWithRelationInput = {
@@ -209,6 +210,7 @@ export type ClientDeviceOrderByWithRelationInput = {
   tags?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  groupMemberships?: Prisma.ClientGroupMembershipOrderByRelationAggregateInput
 }
 
 export type ClientDeviceWhereUniqueInput = Prisma.AtLeast<{
@@ -223,6 +225,7 @@ export type ClientDeviceWhereUniqueInput = Prisma.AtLeast<{
   tags?: Prisma.StringNullableListFilter<"ClientDevice">
   createdAt?: Prisma.DateTimeFilter<"ClientDevice"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClientDevice"> | Date | string
+  groupMemberships?: Prisma.ClientGroupMembershipListRelationFilter
 }, "id" | "hwaddr">
 
 export type ClientDeviceOrderByWithAggregationInput = {
@@ -262,6 +265,7 @@ export type ClientDeviceCreateInput = {
   tags?: Prisma.ClientDeviceCreatetagsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutClientDeviceInput
 }
 
 export type ClientDeviceUncheckedCreateInput = {
@@ -273,6 +277,7 @@ export type ClientDeviceUncheckedCreateInput = {
   tags?: Prisma.ClientDeviceCreatetagsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutClientDeviceInput
 }
 
 export type ClientDeviceUpdateInput = {
@@ -284,6 +289,7 @@ export type ClientDeviceUpdateInput = {
   tags?: Prisma.ClientDeviceUpdatetagsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutClientDeviceNestedInput
 }
 
 export type ClientDeviceUncheckedUpdateInput = {
@@ -295,6 +301,7 @@ export type ClientDeviceUncheckedUpdateInput = {
   tags?: Prisma.ClientDeviceUpdatetagsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutClientDeviceNestedInput
 }
 
 export type ClientDeviceCreateManyInput = {
@@ -367,6 +374,11 @@ export type ClientDeviceMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type ClientDeviceNullableScalarRelationFilter = {
+  is?: Prisma.ClientDeviceWhereInput | null
+  isNot?: Prisma.ClientDeviceWhereInput | null
+}
+
 export type ClientDeviceCreateipsInput = {
   set: string[]
 }
@@ -385,6 +397,111 @@ export type ClientDeviceUpdatetagsInput = {
   push?: string | string[]
 }
 
+export type ClientDeviceCreateNestedOneWithoutGroupMembershipsInput = {
+  create?: Prisma.XOR<Prisma.ClientDeviceCreateWithoutGroupMembershipsInput, Prisma.ClientDeviceUncheckedCreateWithoutGroupMembershipsInput>
+  connectOrCreate?: Prisma.ClientDeviceCreateOrConnectWithoutGroupMembershipsInput
+  connect?: Prisma.ClientDeviceWhereUniqueInput
+}
+
+export type ClientDeviceUpdateOneWithoutGroupMembershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientDeviceCreateWithoutGroupMembershipsInput, Prisma.ClientDeviceUncheckedCreateWithoutGroupMembershipsInput>
+  connectOrCreate?: Prisma.ClientDeviceCreateOrConnectWithoutGroupMembershipsInput
+  upsert?: Prisma.ClientDeviceUpsertWithoutGroupMembershipsInput
+  disconnect?: Prisma.ClientDeviceWhereInput | boolean
+  delete?: Prisma.ClientDeviceWhereInput | boolean
+  connect?: Prisma.ClientDeviceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientDeviceUpdateToOneWithWhereWithoutGroupMembershipsInput, Prisma.ClientDeviceUpdateWithoutGroupMembershipsInput>, Prisma.ClientDeviceUncheckedUpdateWithoutGroupMembershipsInput>
+}
+
+export type ClientDeviceCreateWithoutGroupMembershipsInput = {
+  id?: string
+  hwaddr: string
+  alias?: string | null
+  macVendor?: string | null
+  ips?: Prisma.ClientDeviceCreateipsInput | string[]
+  tags?: Prisma.ClientDeviceCreatetagsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClientDeviceUncheckedCreateWithoutGroupMembershipsInput = {
+  id?: string
+  hwaddr: string
+  alias?: string | null
+  macVendor?: string | null
+  ips?: Prisma.ClientDeviceCreateipsInput | string[]
+  tags?: Prisma.ClientDeviceCreatetagsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClientDeviceCreateOrConnectWithoutGroupMembershipsInput = {
+  where: Prisma.ClientDeviceWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientDeviceCreateWithoutGroupMembershipsInput, Prisma.ClientDeviceUncheckedCreateWithoutGroupMembershipsInput>
+}
+
+export type ClientDeviceUpsertWithoutGroupMembershipsInput = {
+  update: Prisma.XOR<Prisma.ClientDeviceUpdateWithoutGroupMembershipsInput, Prisma.ClientDeviceUncheckedUpdateWithoutGroupMembershipsInput>
+  create: Prisma.XOR<Prisma.ClientDeviceCreateWithoutGroupMembershipsInput, Prisma.ClientDeviceUncheckedCreateWithoutGroupMembershipsInput>
+  where?: Prisma.ClientDeviceWhereInput
+}
+
+export type ClientDeviceUpdateToOneWithWhereWithoutGroupMembershipsInput = {
+  where?: Prisma.ClientDeviceWhereInput
+  data: Prisma.XOR<Prisma.ClientDeviceUpdateWithoutGroupMembershipsInput, Prisma.ClientDeviceUncheckedUpdateWithoutGroupMembershipsInput>
+}
+
+export type ClientDeviceUpdateWithoutGroupMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  hwaddr?: Prisma.StringFieldUpdateOperationsInput | string
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  macVendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ips?: Prisma.ClientDeviceUpdateipsInput | string[]
+  tags?: Prisma.ClientDeviceUpdatetagsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClientDeviceUncheckedUpdateWithoutGroupMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  hwaddr?: Prisma.StringFieldUpdateOperationsInput | string
+  alias?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  macVendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ips?: Prisma.ClientDeviceUpdateipsInput | string[]
+  tags?: Prisma.ClientDeviceUpdatetagsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type ClientDeviceCountOutputType
+ */
+
+export type ClientDeviceCountOutputType = {
+  groupMemberships: number
+}
+
+export type ClientDeviceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  groupMemberships?: boolean | ClientDeviceCountOutputTypeCountGroupMembershipsArgs
+}
+
+/**
+ * ClientDeviceCountOutputType without action
+ */
+export type ClientDeviceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClientDeviceCountOutputType
+   */
+  select?: Prisma.ClientDeviceCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ClientDeviceCountOutputType without action
+ */
+export type ClientDeviceCountOutputTypeCountGroupMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClientGroupMembershipWhereInput
+}
 
 
 export type ClientDeviceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -396,6 +513,8 @@ export type ClientDeviceSelect<ExtArgs extends runtime.Types.Extensions.Internal
   tags?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  groupMemberships?: boolean | Prisma.ClientDevice$groupMembershipsArgs<ExtArgs>
+  _count?: boolean | Prisma.ClientDeviceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["clientDevice"]>
 
 export type ClientDeviceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -432,10 +551,18 @@ export type ClientDeviceSelectScalar = {
 }
 
 export type ClientDeviceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "hwaddr" | "alias" | "macVendor" | "ips" | "tags" | "createdAt" | "updatedAt", ExtArgs["result"]["clientDevice"]>
+export type ClientDeviceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  groupMemberships?: boolean | Prisma.ClientDevice$groupMembershipsArgs<ExtArgs>
+  _count?: boolean | Prisma.ClientDeviceCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type ClientDeviceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type ClientDeviceIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $ClientDevicePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ClientDevice"
-  objects: {}
+  objects: {
+    groupMemberships: Prisma.$ClientGroupMembershipPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     hwaddr: string
@@ -839,6 +966,7 @@ readonly fields: ClientDeviceFieldRefs;
  */
 export interface Prisma__ClientDeviceClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  groupMemberships<T extends Prisma.ClientDevice$groupMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientDevice$groupMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientGroupMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -893,6 +1021,10 @@ export type ClientDeviceFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
+  /**
    * Filter, which ClientDevice to fetch.
    */
   where: Prisma.ClientDeviceWhereUniqueInput
@@ -911,6 +1043,10 @@ export type ClientDeviceFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Exte
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
+  /**
    * Filter, which ClientDevice to fetch.
    */
   where: Prisma.ClientDeviceWhereUniqueInput
@@ -928,6 +1064,10 @@ export type ClientDeviceFindFirstArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the ClientDevice
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
   /**
    * Filter, which ClientDevice to fetch.
    */
@@ -977,6 +1117,10 @@ export type ClientDeviceFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Exten
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
+  /**
    * Filter, which ClientDevice to fetch.
    */
   where?: Prisma.ClientDeviceWhereInput
@@ -1024,6 +1168,10 @@ export type ClientDeviceFindManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the ClientDevice
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
   /**
    * Filter, which ClientDevices to fetch.
    */
@@ -1073,6 +1221,10 @@ export type ClientDeviceCreateArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
+  /**
    * The data needed to create a ClientDevice.
    */
   data: Prisma.XOR<Prisma.ClientDeviceCreateInput, Prisma.ClientDeviceUncheckedCreateInput>
@@ -1120,6 +1272,10 @@ export type ClientDeviceUpdateArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the ClientDevice
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
   /**
    * The data needed to update a ClientDevice.
    */
@@ -1187,6 +1343,10 @@ export type ClientDeviceUpsertArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
+  /**
    * The filter to search for the ClientDevice to update in case it exists.
    */
   where: Prisma.ClientDeviceWhereUniqueInput
@@ -1213,6 +1373,10 @@ export type ClientDeviceDeleteArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
+  /**
    * Filter which ClientDevice to delete.
    */
   where: Prisma.ClientDeviceWhereUniqueInput
@@ -1233,6 +1397,30 @@ export type ClientDeviceDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
+ * ClientDevice.groupMemberships
+ */
+export type ClientDevice$groupMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClientGroupMembership
+   */
+  select?: Prisma.ClientGroupMembershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClientGroupMembership
+   */
+  omit?: Prisma.ClientGroupMembershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientGroupMembershipInclude<ExtArgs> | null
+  where?: Prisma.ClientGroupMembershipWhereInput
+  orderBy?: Prisma.ClientGroupMembershipOrderByWithRelationInput | Prisma.ClientGroupMembershipOrderByWithRelationInput[]
+  cursor?: Prisma.ClientGroupMembershipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClientGroupMembershipScalarFieldEnum | Prisma.ClientGroupMembershipScalarFieldEnum[]
+}
+
+/**
  * ClientDevice without action
  */
 export type ClientDeviceDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1244,4 +1432,8 @@ export type ClientDeviceDefaultArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the ClientDevice
    */
   omit?: Prisma.ClientDeviceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientDeviceInclude<ExtArgs> | null
 }

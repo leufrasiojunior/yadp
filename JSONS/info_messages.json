@@ -1,0 +1,19 @@
+{
+  "messages": [
+    {
+      "id": 29,
+      "timestamp": 1775742573,
+      "type": "RATE_LIMIT",
+      "plain": "Rate-limiting 192.168.31.18 for at least 19 seconds",
+      "html": "Client <code>192.168.31.18</code> has been rate-limited for at least 19 seconds (current limit: 1000 queries per 60 seconds)"
+    },
+    {
+      "id": 30,
+      "timestamp": 1775780560,
+      "type": "CONNECTION_ERROR",
+      "plain": "Connection error (8.8.4.4#53): TCP connection failed while receiving payload length from upstream (Connection reset by peer)",
+      "html": "Connection error (<strong>8.8.4.4#53</strong>): TCP connection failed while receiving payload length from upstream (<strong>Connection reset by peer</strong>)"
+    }
+  ],
+  "took": 0.0011332035064697266
+}

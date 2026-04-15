@@ -596,6 +596,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/queries/group-memberships/refresh": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["QueriesController_refreshGroupMemberships"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/setup/status": {
     parameters: {
       query?: never;
@@ -2911,6 +2927,10 @@ export interface operations {
               reply: string[];
               dnssec: string[];
             };
+            groupOptions: {
+              id: number;
+              name: string;
+            }[];
             took: number;
             sources: {
               totalInstances: number;
@@ -2933,6 +2953,53 @@ export interface operations {
                 message: string;
               }[];
             };
+          };
+        };
+      };
+    };
+  };
+  QueriesController_refreshGroupMemberships: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** Format: date-time */
+            updatedAt: string | null;
+            summary: {
+              totalInstances: number;
+              refreshedInstances: number;
+              failedInstances: number;
+              groupsCached: number;
+              membershipsCached: number;
+              instancesNeedingReview: number;
+            };
+            requiresGroupReview: boolean;
+            /** @enum {string} */
+            reviewPath: "/groups";
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
           };
         };
       };

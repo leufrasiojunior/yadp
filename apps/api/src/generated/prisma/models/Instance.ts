@@ -219,6 +219,7 @@ export type InstanceWhereInput = {
   session?: Prisma.XOR<Prisma.InstanceSessionNullableScalarRelationFilter, Prisma.InstanceSessionWhereInput> | null
   syncAttempts?: Prisma.SyncAttemptListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  groupMemberships?: Prisma.ClientGroupMembershipListRelationFilter
 }
 
 export type InstanceOrderByWithRelationInput = {
@@ -236,6 +237,7 @@ export type InstanceOrderByWithRelationInput = {
   session?: Prisma.InstanceSessionOrderByWithRelationInput
   syncAttempts?: Prisma.SyncAttemptOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  groupMemberships?: Prisma.ClientGroupMembershipOrderByRelationAggregateInput
 }
 
 export type InstanceWhereUniqueInput = Prisma.AtLeast<{
@@ -256,6 +258,7 @@ export type InstanceWhereUniqueInput = Prisma.AtLeast<{
   session?: Prisma.XOR<Prisma.InstanceSessionNullableScalarRelationFilter, Prisma.InstanceSessionWhereInput> | null
   syncAttempts?: Prisma.SyncAttemptListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  groupMemberships?: Prisma.ClientGroupMembershipListRelationFilter
 }, "id">
 
 export type InstanceOrderByWithAggregationInput = {
@@ -303,6 +306,7 @@ export type InstanceCreateInput = {
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateInput = {
@@ -320,6 +324,7 @@ export type InstanceUncheckedCreateInput = {
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUpdateInput = {
@@ -337,6 +342,7 @@ export type InstanceUpdateInput = {
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateInput = {
@@ -354,6 +360,7 @@ export type InstanceUncheckedUpdateInput = {
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateManyInput = {
@@ -488,6 +495,20 @@ export type InstanceUpdateOneRequiredWithoutSessionNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutSessionInput, Prisma.InstanceUpdateWithoutSessionInput>, Prisma.InstanceUncheckedUpdateWithoutSessionInput>
 }
 
+export type InstanceCreateNestedOneWithoutGroupMembershipsInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutGroupMembershipsInput, Prisma.InstanceUncheckedCreateWithoutGroupMembershipsInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutGroupMembershipsInput
+  connect?: Prisma.InstanceWhereUniqueInput
+}
+
+export type InstanceUpdateOneRequiredWithoutGroupMembershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutGroupMembershipsInput, Prisma.InstanceUncheckedCreateWithoutGroupMembershipsInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutGroupMembershipsInput
+  upsert?: Prisma.InstanceUpsertWithoutGroupMembershipsInput
+  connect?: Prisma.InstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutGroupMembershipsInput, Prisma.InstanceUpdateWithoutGroupMembershipsInput>, Prisma.InstanceUncheckedUpdateWithoutGroupMembershipsInput>
+}
+
 export type InstanceCreateNestedOneWithoutSyncAttemptsInput = {
   create?: Prisma.XOR<Prisma.InstanceCreateWithoutSyncAttemptsInput, Prisma.InstanceUncheckedCreateWithoutSyncAttemptsInput>
   connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutSyncAttemptsInput
@@ -532,6 +553,7 @@ export type InstanceCreateWithoutSecretInput = {
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSecretInput = {
@@ -548,6 +570,7 @@ export type InstanceUncheckedCreateWithoutSecretInput = {
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSecretInput = {
@@ -580,6 +603,7 @@ export type InstanceUpdateWithoutSecretInput = {
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSecretInput = {
@@ -596,6 +620,7 @@ export type InstanceUncheckedUpdateWithoutSecretInput = {
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutCertificateTrustInput = {
@@ -612,6 +637,7 @@ export type InstanceCreateWithoutCertificateTrustInput = {
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
@@ -628,6 +654,7 @@ export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutCertificateTrustInput = {
@@ -660,6 +687,7 @@ export type InstanceUpdateWithoutCertificateTrustInput = {
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
@@ -676,6 +704,7 @@ export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutSessionInput = {
@@ -692,6 +721,7 @@ export type InstanceCreateWithoutSessionInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSessionInput = {
@@ -708,6 +738,7 @@ export type InstanceUncheckedCreateWithoutSessionInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSessionInput = {
@@ -740,6 +771,7 @@ export type InstanceUpdateWithoutSessionInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSessionInput = {
@@ -754,6 +786,91 @@ export type InstanceUncheckedUpdateWithoutSessionInput = {
   lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceCreateWithoutGroupMembershipsInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceUncheckedCreateWithoutGroupMembershipsInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceCreateOrConnectWithoutGroupMembershipsInput = {
+  where: Prisma.InstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutGroupMembershipsInput, Prisma.InstanceUncheckedCreateWithoutGroupMembershipsInput>
+}
+
+export type InstanceUpsertWithoutGroupMembershipsInput = {
+  update: Prisma.XOR<Prisma.InstanceUpdateWithoutGroupMembershipsInput, Prisma.InstanceUncheckedUpdateWithoutGroupMembershipsInput>
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutGroupMembershipsInput, Prisma.InstanceUncheckedCreateWithoutGroupMembershipsInput>
+  where?: Prisma.InstanceWhereInput
+}
+
+export type InstanceUpdateToOneWithWhereWithoutGroupMembershipsInput = {
+  where?: Prisma.InstanceWhereInput
+  data: Prisma.XOR<Prisma.InstanceUpdateWithoutGroupMembershipsInput, Prisma.InstanceUncheckedUpdateWithoutGroupMembershipsInput>
+}
+
+export type InstanceUpdateWithoutGroupMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceUncheckedUpdateWithoutGroupMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
 }
@@ -772,6 +889,7 @@ export type InstanceCreateWithoutSyncAttemptsInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSyncAttemptsInput = {
@@ -788,6 +906,7 @@ export type InstanceUncheckedCreateWithoutSyncAttemptsInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSyncAttemptsInput = {
@@ -820,6 +939,7 @@ export type InstanceUpdateWithoutSyncAttemptsInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSyncAttemptsInput = {
@@ -836,6 +956,7 @@ export type InstanceUncheckedUpdateWithoutSyncAttemptsInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutNotificationsInput = {
@@ -852,6 +973,7 @@ export type InstanceCreateWithoutNotificationsInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutNotificationsInput = {
@@ -868,6 +990,7 @@ export type InstanceUncheckedCreateWithoutNotificationsInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutNotificationsInput = {
@@ -900,6 +1023,7 @@ export type InstanceUpdateWithoutNotificationsInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutNotificationsInput = {
@@ -916,6 +1040,7 @@ export type InstanceUncheckedUpdateWithoutNotificationsInput = {
   certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 
@@ -926,11 +1051,13 @@ export type InstanceUncheckedUpdateWithoutNotificationsInput = {
 export type InstanceCountOutputType = {
   syncAttempts: number
   notifications: number
+  groupMemberships: number
 }
 
 export type InstanceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   syncAttempts?: boolean | InstanceCountOutputTypeCountSyncAttemptsArgs
   notifications?: boolean | InstanceCountOutputTypeCountNotificationsArgs
+  groupMemberships?: boolean | InstanceCountOutputTypeCountGroupMembershipsArgs
 }
 
 /**
@@ -957,6 +1084,13 @@ export type InstanceCountOutputTypeCountNotificationsArgs<ExtArgs extends runtim
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * InstanceCountOutputType without action
+ */
+export type InstanceCountOutputTypeCountGroupMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClientGroupMembershipWhereInput
+}
+
 
 export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -973,6 +1107,7 @@ export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   session?: boolean | Prisma.Instance$sessionArgs<ExtArgs>
   syncAttempts?: boolean | Prisma.Instance$syncAttemptsArgs<ExtArgs>
   notifications?: boolean | Prisma.Instance$notificationsArgs<ExtArgs>
+  groupMemberships?: boolean | Prisma.Instance$groupMembershipsArgs<ExtArgs>
   _count?: boolean | Prisma.InstanceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instance"]>
 
@@ -1019,6 +1154,7 @@ export type InstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   session?: boolean | Prisma.Instance$sessionArgs<ExtArgs>
   syncAttempts?: boolean | Prisma.Instance$syncAttemptsArgs<ExtArgs>
   notifications?: boolean | Prisma.Instance$notificationsArgs<ExtArgs>
+  groupMemberships?: boolean | Prisma.Instance$groupMembershipsArgs<ExtArgs>
   _count?: boolean | Prisma.InstanceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InstanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1032,6 +1168,7 @@ export type $InstancePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     session: Prisma.$InstanceSessionPayload<ExtArgs> | null
     syncAttempts: Prisma.$SyncAttemptPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    groupMemberships: Prisma.$ClientGroupMembershipPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1442,6 +1579,7 @@ export interface Prisma__InstanceClient<T, Null = never, ExtArgs extends runtime
   session<T extends Prisma.Instance$sessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$sessionArgs<ExtArgs>>): Prisma.Prisma__InstanceSessionClient<runtime.Types.Result.GetResult<Prisma.$InstanceSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   syncAttempts<T extends Prisma.Instance$syncAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$syncAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SyncAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Instance$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  groupMemberships<T extends Prisma.Instance$groupMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$groupMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientGroupMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1975,6 +2113,30 @@ export type Instance$notificationsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * Instance.groupMemberships
+ */
+export type Instance$groupMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClientGroupMembership
+   */
+  select?: Prisma.ClientGroupMembershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClientGroupMembership
+   */
+  omit?: Prisma.ClientGroupMembershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientGroupMembershipInclude<ExtArgs> | null
+  where?: Prisma.ClientGroupMembershipWhereInput
+  orderBy?: Prisma.ClientGroupMembershipOrderByWithRelationInput | Prisma.ClientGroupMembershipOrderByWithRelationInput[]
+  cursor?: Prisma.ClientGroupMembershipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClientGroupMembershipScalarFieldEnum | Prisma.ClientGroupMembershipScalarFieldEnum[]
 }
 
 /**

@@ -505,6 +505,7 @@ export type WebMessages = {
       length: string;
       domain: string;
       clientIp: string;
+      groups: string;
       upstream: string;
       type: string;
       status: string;
@@ -561,6 +562,8 @@ export type WebMessages = {
       actionPartial: (action: string, successCount: number, failedCount: number) => string;
       instanceFailure: (instanceName: string, message: string) => string;
       genericInstanceFailure: (instanceName: string) => string;
+      groupReviewWarning: (reviewCount: number, failedCount: number) => string;
+      reviewGroupsAction: string;
     };
     statusTypes: {
       cache: string;

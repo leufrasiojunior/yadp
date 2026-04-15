@@ -4921,6 +4921,21 @@
                         "dnssec"
                       ]
                     },
+                    "groupOptions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["id", "name"]
+                      }
+                    },
                     "took": {
                       "type": "number"
                     },
@@ -4979,7 +4994,107 @@
                       "required": ["totalInstances", "successfulInstances", "failedInstances"]
                     }
                   },
-                  "required": ["suggestions", "took", "sources"]
+                  "required": ["suggestions", "groupOptions", "took", "sources"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["queries"]
+      }
+    },
+    "/queries/group-memberships/refresh": {
+      "post": {
+        "operationId": "QueriesController_refreshGroupMemberships",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "refreshedInstances": {
+                          "type": "number"
+                        },
+                        "failedInstances": {
+                          "type": "number"
+                        },
+                        "groupsCached": {
+                          "type": "number"
+                        },
+                        "membershipsCached": {
+                          "type": "number"
+                        },
+                        "instancesNeedingReview": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "totalInstances",
+                        "refreshedInstances",
+                        "failedInstances",
+                        "groupsCached",
+                        "membershipsCached",
+                        "instancesNeedingReview"
+                      ]
+                    },
+                    "requiresGroupReview": {
+                      "type": "boolean"
+                    },
+                    "reviewPath": {
+                      "type": "string",
+                      "enum": ["/groups"]
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["updatedAt", "summary", "requiresGroupReview", "reviewPath", "failedInstances"]
                 }
               }
             }

@@ -1,0 +1,32 @@
+{
+  "clients": [
+    {
+      "client": "44:FA:66:26:C7:09",
+      "name": "",
+      "comment": null,
+      "groups": [3],
+      "id": 1,
+      "date_added": 1747831315,
+      "date_modified": 1747831320
+    },
+    {
+      "client": "BC:24:11:70:5E:05",
+      "name": "",
+      "comment": null,
+      "groups": [],
+      "id": 3,
+      "date_added": 1775332114,
+      "date_modified": 1775332125
+    },
+    {
+      "client": "D8:43:AE:A7:D0:3F",
+      "name": "",
+      "comment": null,
+      "groups": [11],
+      "id": 4,
+      "date_added": 1775960289,
+      "date_modified": 1775960289
+    }
+  ],
+  "took": 0.0053949356079101562
+}

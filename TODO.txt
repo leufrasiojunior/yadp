@@ -2,8 +2,19 @@ Filtrar por Grupo nas páginas do log
 
 as notificacoes nao estao funcionando. desliguei uma instancia, tentei algumas acoes e ao falhar a notificacao entra normalmente na pagina de notificacoes (as vezes nao aparece no "sininho" do topbar), mas nao recebi a notificacao push
 
-admin/groups/domains permitir exportar em formato de lista txt
+admin/groups/domains permitir exportar em formato de lista txt. nao existe rota export nativa do pihole, devemos criar uma do yapd
 Top Blocked Domains by period(pagina especifica, se nao me engano ja existe rota que posso enviar timestamp)
+
+ver se vale a pena adicionar no YAPD uma busca no github para obter a versao mais recente. checagem a cada 2hs, para mandar uma notificacao push quando as instancias tiverem updates
+
+
+TypeError: groupIds.filter is not a function
+[api]     at QueryGroupMembershipsService.loadAllowedIpsByInstance (/home/leonald/pessoal/yapd/yapd/apps/api/src/queries/query-group-memberships.service.ts:368:53)
+[api]     at QueriesService.getQuerySuggestionsWithGroupIds (/home/leonald/pessoal/yapd/yapd/apps/api/src/queries/queries.service.ts:658:67)
+[api]     at QueriesService.getQuerySuggestions (/home/leonald/pessoal/yapd/yapd/apps/api/src/queries/queries.service.ts:183:19)
+[api]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[api]     at async /home/leonald/pessoal/yapd/yapd/node_modules/@nestjs/core/router/router-execution-context.js:46:28
+[api]     at async /home/leonald/pessoal/yapd/yapd/node_modules/@nestjs/core/router/router-proxy.js:9:17
 
 salvar tambem as configuracoes selecionadas no BD, mas manter o cookie como primario. Cookie manda.
 

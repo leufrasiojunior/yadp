@@ -4,10 +4,11 @@ import { PiholeModule } from "../pihole/pihole.module";
 import { SessionModule } from "../session/session.module";
 import { QueriesController } from "./queries.controller";
 import { QueriesService } from "./queries.service";
+import { QueryGroupMembershipsService } from "./query-group-memberships.service";
 
 @Module({
   imports: [PiholeModule, SessionModule],
   controllers: [QueriesController],
-  providers: [QueriesService],
+  providers: [QueriesService, QueryGroupMembershipsService],
 })
 export class QueriesModule {}

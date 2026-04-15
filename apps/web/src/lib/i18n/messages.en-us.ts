@@ -559,6 +559,7 @@ export const enUSMessages: WebMessages = {
       length: "Length",
       domain: "Domain",
       clientIp: "Client IP",
+      groups: "Groups",
       upstream: "Upstream",
       type: "Type",
       status: "Status",
@@ -618,6 +619,11 @@ export const enUSMessages: WebMessages = {
         `${action} completed on ${successCount} instances, with ${failedCount} failures.`,
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       genericInstanceFailure: (instanceName) => `${instanceName}: the domain action failed.`,
+      groupReviewWarning: (reviewCount, failedCount) =>
+        failedCount > 0
+          ? `${reviewCount} instance(s) need group review and ${failedCount} failed while refreshing the cache.`
+          : `${reviewCount} instance(s) need group review to keep query filters accurate.`,
+      reviewGroupsAction: "Open /groups",
     },
     statusTypes: {
       cache: "CACHE: response served directly from cache.",

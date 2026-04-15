@@ -53,6 +53,16 @@ export type AuditLog = Prisma.AuditLogModel
  */
 export type ClientDevice = Prisma.ClientDeviceModel
 /**
+ * Model ClientGroup
+ * 
+ */
+export type ClientGroup = Prisma.ClientGroupModel
+/**
+ * Model ClientGroupMembership
+ * 
+ */
+export type ClientGroupMembership = Prisma.ClientGroupMembershipModel
+/**
  * Model SyncOperationPreset
  * 
  */

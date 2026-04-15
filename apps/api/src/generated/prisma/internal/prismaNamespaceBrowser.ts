@@ -58,6 +58,8 @@ export const ModelName = {
   InstanceSession: 'InstanceSession',
   AuditLog: 'AuditLog',
   ClientDevice: 'ClientDevice',
+  ClientGroup: 'ClientGroup',
+  ClientGroupMembership: 'ClientGroupMembership',
   SyncOperationPreset: 'SyncOperationPreset',
   SyncJob: 'SyncJob',
   SyncAttempt: 'SyncAttempt',
@@ -183,6 +185,32 @@ export const ClientDeviceScalarFieldEnum = {
 } as const
 
 export type ClientDeviceScalarFieldEnum = (typeof ClientDeviceScalarFieldEnum)[keyof typeof ClientDeviceScalarFieldEnum]
+
+
+export const ClientGroupScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClientGroupScalarFieldEnum = (typeof ClientGroupScalarFieldEnum)[keyof typeof ClientGroupScalarFieldEnum]
+
+
+export const ClientGroupMembershipScalarFieldEnum = {
+  groupId: 'groupId',
+  instanceId: 'instanceId',
+  clientKey: 'clientKey',
+  clientDeviceId: 'clientDeviceId',
+  rawClientValue: 'rawClientValue',
+  rawClientName: 'rawClientName',
+  resolvedIps: 'resolvedIps',
+  lastSyncedAt: 'lastSyncedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClientGroupMembershipScalarFieldEnum = (typeof ClientGroupMembershipScalarFieldEnum)[keyof typeof ClientGroupMembershipScalarFieldEnum]
 
 
 export const SyncOperationPresetScalarFieldEnum = {

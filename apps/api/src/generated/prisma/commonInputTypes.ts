@@ -277,13 +277,6 @@ export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
   _max?: Prisma.NestedJsonNullableFilter<$PrismaModel>
 }
 
-export type EnumSyncOperationKeyFilter<$PrismaModel = never> = {
-  equals?: $Enums.SyncOperationKey | Prisma.EnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  in?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  notIn?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel> | $Enums.SyncOperationKey
-}
-
 export type IntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -293,16 +286,6 @@ export type IntFilter<$PrismaModel = never> = {
   gt?: number | Prisma.IntFieldRefInput<$PrismaModel>
   gte?: number | Prisma.IntFieldRefInput<$PrismaModel>
   not?: Prisma.NestedIntFilter<$PrismaModel> | number
-}
-
-export type EnumSyncOperationKeyWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.SyncOperationKey | Prisma.EnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  in?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  notIn?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumSyncOperationKeyWithAggregatesFilter<$PrismaModel> | $Enums.SyncOperationKey
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel>
 }
 
 export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -319,6 +302,23 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedIntFilter<$PrismaModel>
   _max?: Prisma.NestedIntFilter<$PrismaModel>
+}
+
+export type EnumSyncOperationKeyFilter<$PrismaModel = never> = {
+  equals?: $Enums.SyncOperationKey | Prisma.EnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  in?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel> | $Enums.SyncOperationKey
+}
+
+export type EnumSyncOperationKeyWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SyncOperationKey | Prisma.EnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  in?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSyncOperationKeyWithAggregatesFilter<$PrismaModel> | $Enums.SyncOperationKey
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel>
 }
 
 export type JsonFilter<$PrismaModel = never> =
@@ -672,23 +672,6 @@ export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
 }
 
-export type NestedEnumSyncOperationKeyFilter<$PrismaModel = never> = {
-  equals?: $Enums.SyncOperationKey | Prisma.EnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  in?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  notIn?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel> | $Enums.SyncOperationKey
-}
-
-export type NestedEnumSyncOperationKeyWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.SyncOperationKey | Prisma.EnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  in?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  notIn?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumSyncOperationKeyWithAggregatesFilter<$PrismaModel> | $Enums.SyncOperationKey
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel>
-}
-
 export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -714,6 +697,23 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number
+}
+
+export type NestedEnumSyncOperationKeyFilter<$PrismaModel = never> = {
+  equals?: $Enums.SyncOperationKey | Prisma.EnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  in?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel> | $Enums.SyncOperationKey
+}
+
+export type NestedEnumSyncOperationKeyWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SyncOperationKey | Prisma.EnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  in?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SyncOperationKey[] | Prisma.ListEnumSyncOperationKeyFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSyncOperationKeyWithAggregatesFilter<$PrismaModel> | $Enums.SyncOperationKey
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSyncOperationKeyFilter<$PrismaModel>
 }
 
 export type NestedEnumSyncJobStatusFilter<$PrismaModel = never> = {

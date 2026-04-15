@@ -471,6 +471,26 @@ export type QueriesResponse = {
   };
 };
 
+export type QueryGroupMembershipRefreshResponse = {
+  updatedAt: string | null;
+  summary: {
+    totalInstances: number;
+    refreshedInstances: number;
+    failedInstances: number;
+    groupsCached: number;
+    membershipsCached: number;
+    instancesNeedingReview: number;
+  };
+  requiresGroupReview: boolean;
+  reviewPath: "/groups";
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
 export type QuerySuggestionsResponse = {
   suggestions: {
     domain: string[];
@@ -482,6 +502,10 @@ export type QuerySuggestionsResponse = {
     reply: string[];
     dnssec: string[];
   };
+  groupOptions: Array<{
+    id: number;
+    name: string;
+  }>;
   took: number;
   sources: {
     totalInstances: number;

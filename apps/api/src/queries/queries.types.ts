@@ -1,4 +1,8 @@
-import type { PiholeQuerySuggestions, PiholeRequestErrorKind } from "../pihole/pihole.types";
+import type {
+  PIHOLE_QUERY_SUGGESTION_KEYS,
+  PiholeQuerySuggestions,
+  PiholeRequestErrorKind,
+} from "../pihole/pihole.types";
 
 export const QUERIES_SCOPE_VALUES = ["all", "instance"] as const;
 export const DEFAULT_QUERIES_LENGTH = 10;
@@ -6,6 +10,7 @@ export const MAX_QUERIES_LENGTH = 1000;
 export const MAX_QUERIES_START = 1000;
 
 export type QueriesScopeMode = (typeof QUERIES_SCOPE_VALUES)[number];
+export type QuerySuggestionKey = (typeof PIHOLE_QUERY_SUGGESTION_KEYS)[number];
 
 export type QueriesInstanceSource = {
   instanceId: string;
@@ -15,6 +20,11 @@ export type QueriesInstanceSource = {
 export type QueriesInstanceFailure = QueriesInstanceSource & {
   kind: PiholeRequestErrorKind;
   message: string;
+};
+
+export type QueryGroupOption = {
+  id: number;
+  name: string;
 };
 
 export type QueryLogRecord = {
@@ -44,6 +54,21 @@ export type QueryLogRecord = {
   cname: string | null;
 };
 
+export type QueryGroupMembershipRefreshResponse = {
+  updatedAt: string | null;
+  summary: {
+    totalInstances: number;
+    refreshedInstances: number;
+    failedInstances: number;
+    groupsCached: number;
+    membershipsCached: number;
+    instancesNeedingReview: number;
+  };
+  requiresGroupReview: boolean;
+  reviewPath: "/groups";
+  failedInstances: QueriesInstanceFailure[];
+};
+
 export type QueriesResponse = {
   queries: QueryLogRecord[];
   cursor: number | null;
@@ -61,6 +86,7 @@ export type QueriesResponse = {
 
 export type QuerySuggestionsResponse = {
   suggestions: PiholeQuerySuggestions;
+  groupOptions: QueryGroupOption[];
   took: number;
   sources: {
     totalInstances: number;

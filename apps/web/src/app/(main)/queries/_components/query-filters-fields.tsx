@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+
 import { CalendarIcon, ChevronDown, XIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -31,8 +34,57 @@ type DateTimeRangePickerProps = {
   untilValue: string;
 };
 
+type SuggestionMultiSelectProps = {
+  emptyText: string;
+  inputId: string;
+  label: string;
+  labelClassName?: string;
+  onChange: (values: number[]) => void;
+  options: Array<{
+    label: string;
+    value: number;
+  }>;
+  placeholder: string;
+  values: number[];
+};
+
 function normalizeText(value: string) {
   return value.trim();
+}
+
+function toSortedUniqueOptions(
+  options: Array<{
+    label: string;
+    value: number;
+  }>,
+) {
+  const uniqueOptions = new Map<number, { label: string; value: number }>();
+
+  for (const option of options) {
+    const normalizedLabel = normalizeText(option.label);
+
+    if (normalizedLabel.length === 0 || !Number.isInteger(option.value) || option.value < 0) {
+      continue;
+    }
+
+    uniqueOptions.set(option.value, {
+      label: normalizedLabel,
+      value: option.value,
+    });
+  }
+
+  return [...uniqueOptions.values()].sort((left, right) => {
+    const labelResult = left.label.localeCompare(right.label, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+
+    if (labelResult !== 0) {
+      return labelResult;
+    }
+
+    return left.value - right.value;
+  });
 }
 
 function toDatetimeLocalValue(value: Date) {
@@ -141,9 +193,153 @@ export function SuggestionCombobox({
   );
 }
 
+export function SuggestionMultiSelect({
+  emptyText,
+  inputId,
+  label,
+  labelClassName,
+  onChange,
+  options,
+  placeholder,
+  values,
+}: Readonly<SuggestionMultiSelectProps>) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const normalizedValues = useMemo(
+    () =>
+      [...new Set(values.filter((value) => Number.isInteger(value) && value >= 0))].sort((left, right) => left - right),
+    [values],
+  );
+  const incomingOptions = useMemo(() => toSortedUniqueOptions(options), [options]);
+  const [knownOptions, setKnownOptions] = useState(() => toSortedUniqueOptions(options));
+
+  useEffect(() => {
+    setKnownOptions((currentOptions) => {
+      const currentOptionsByValue = new Map(currentOptions.map((option) => [option.value, option]));
+      const selectedOptions = normalizedValues.map((value) => {
+        const matchedOption = incomingOptions.find((option) => option.value === value);
+
+        return matchedOption ?? currentOptionsByValue.get(value) ?? { label: `${value}`, value };
+      });
+
+      return toSortedUniqueOptions([...currentOptions, ...incomingOptions, ...selectedOptions]);
+    });
+  }, [incomingOptions, normalizedValues]);
+
+  const normalizedOptions = useMemo(() => toSortedUniqueOptions(knownOptions), [knownOptions]);
+  const selectedValues = new Set(normalizedValues);
+  const selectedLabels = normalizedValues.map(
+    (value) => normalizedOptions.find((option) => option.value === value)?.label ?? `${value}`,
+  );
+
+  function toggleValue(value: number) {
+    if (!Number.isInteger(value) || value < 0) {
+      return;
+    }
+
+    if (selectedValues.has(value)) {
+      onChange(normalizedValues.filter((item) => item !== value));
+      setSearchValue("");
+      return;
+    }
+
+    onChange([...normalizedValues, value]);
+    setSearchValue("");
+  }
+
+  const triggerLabel =
+    selectedLabels.length === 0
+      ? placeholder
+      : selectedLabels.length <= 2
+        ? selectedLabels.join(", ")
+        : `${selectedLabels.slice(0, 2).join(", ")} +${selectedLabels.length - 2}`;
+
+  const hasSuggestions = normalizedOptions.length > 0;
+
+  function clearValues() {
+    onChange([]);
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className={cn("font-medium text-sm", labelClassName)} htmlFor={inputId}>
+        {label}
+      </label>
+      <div className="flex items-center gap-2">
+        <Popover
+          open={isOpen}
+          onOpenChange={(nextOpen) => {
+            setIsOpen(nextOpen);
+
+            if (!nextOpen) {
+              setSearchValue("");
+            }
+          }}
+        >
+          <PopoverTrigger asChild>
+            <Button
+              id={inputId}
+              type="button"
+              variant="outline"
+              className="h-9 flex-1 justify-between overflow-hidden font-normal"
+            >
+              <span
+                className={cn("min-w-0 truncate text-left", normalizedValues.length === 0 && "text-muted-foreground")}
+              >
+                {triggerLabel}
+              </span>
+              <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-(--radix-popover-trigger-width) p-0">
+            <Command>
+              <CommandInput placeholder={placeholder} value={searchValue} onValueChange={setSearchValue} />
+              <CommandList className="max-h-72">
+                <CommandEmpty>{emptyText}</CommandEmpty>
+                {normalizedOptions.map((option) => {
+                  const selected = selectedValues.has(option.value);
+
+                  return (
+                    <CommandItem
+                      key={`${inputId}-option-${option.value}`}
+                      data-checked={selected}
+                      value={option.label}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onSelect={() => {
+                        toggleValue(option.value);
+                        window.requestAnimationFrame(() => {
+                          setSearchValue("");
+                          setIsOpen(true);
+                        });
+                      }}
+                    >
+                      <span className="flex-1 truncate">{option.label}</span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        {normalizedValues.length > 0 ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            aria-label={`${placeholder}: ${label}`}
+            onClick={clearValues}
+          >
+            <XIcon />
+          </Button>
+        ) : null}
+      </div>
+      {!hasSuggestions ? <p className="text-muted-foreground text-xs">{emptyText}</p> : null}
+    </div>
+  );
+}
+
 export function DateTimeRangePicker({
   clearLabel,
-  description,
   fromLabel,
   fromValue,
   label,

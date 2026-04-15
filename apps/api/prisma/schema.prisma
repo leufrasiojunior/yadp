@@ -71,6 +71,7 @@ model Instance {
   session          InstanceSession?
   syncAttempts     SyncAttempt[]
   notifications    Notification[]
+  groupMemberships ClientGroupMembership[]
 }
 
 model InstanceSecret {
@@ -125,14 +126,43 @@ model AuditLog {
 }
 
 model ClientDevice {
-  id        String   @id @default(cuid())
-  hwaddr    String   @unique
-  alias     String?
-  macVendor String?
-  ips       String[] @default([])
-  tags      String[] @default([])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String                  @id @default(cuid())
+  hwaddr           String                  @unique
+  alias            String?
+  macVendor        String?
+  ips              String[]                @default([])
+  tags             String[]                @default([])
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  groupMemberships ClientGroupMembership[]
+}
+
+model ClientGroup {
+  id          Int                     @id
+  name        String                  @unique
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  memberships ClientGroupMembership[]
+}
+
+model ClientGroupMembership {
+  groupId        Int
+  instanceId     String
+  clientKey      String
+  clientDeviceId String?
+  rawClientValue String?
+  rawClientName  String?
+  resolvedIps    String[]   @default([])
+  lastSyncedAt   DateTime
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  group          ClientGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  instance       Instance    @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  clientDevice   ClientDevice? @relation(fields: [clientDeviceId], references: [id], onDelete: SetNull)
+
+  @@id([groupId, instanceId, clientKey])
+  @@index([instanceId, groupId])
+  @@index([clientDeviceId])
 }
 
 model SyncOperationPreset {

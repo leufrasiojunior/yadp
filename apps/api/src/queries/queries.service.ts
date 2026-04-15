@@ -14,6 +14,7 @@ import type {
   PiholeQuerySuggestionsResult,
   PiholeRequestErrorKind,
 } from "../pihole/pihole.types";
+import { PIHOLE_QUERY_SUGGESTION_KEYS } from "../pihole/pihole.types";
 import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
 import type { GetQueriesDto } from "./dto/get-queries.dto";
 import type { GetQuerySuggestionsDto } from "./dto/get-query-suggestions.dto";
@@ -21,8 +22,13 @@ import type {
   QueriesInstanceFailure,
   QueriesInstanceSource,
   QueriesResponse,
+  QueryGroupMembershipRefreshResponse,
+  QueryGroupOption,
+  QuerySuggestionKey,
   QuerySuggestionsResponse,
 } from "./queries.types";
+import { QueryGroupMembershipsService } from "./query-group-memberships.service";
+import { isIP } from "node:net";
 
 type QueryResultWithInstance = PiholeQueryLogEntry & QueriesInstanceSource;
 
@@ -32,6 +38,38 @@ type FulfilledInstanceResult<T> = {
   result: T;
 };
 
+type AllowedIpScopedInstanceQueries = {
+  instance: PiholeManagedInstanceSummary;
+  sourceRecordsTotal: number;
+  filteredQueries: QueryResultWithInstance[];
+  filteredEarliestTimestamp: number | null;
+};
+
+const GROUP_FILTER_BATCH_SIZE = 200;
+
+function sortStrings(values: string[]) {
+  return [...values].sort((left, right) =>
+    left.localeCompare(right, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    }),
+  );
+}
+
+function normalizeGroupIds(value: unknown) {
+  const values = Array.isArray(value) ? value : value === undefined || value === null ? [] : [value];
+
+  return [
+    ...new Set(
+      values
+        .flatMap((entry) => `${entry}`.split(","))
+        .map((entry) => Number(entry.trim()))
+        .filter((entry) => Number.isFinite(entry))
+        .map((entry) => Math.max(0, Math.floor(entry))),
+    ),
+  ];
+}
+
 @Injectable()
 export class QueriesService {
   private readonly logger = new Logger(QueriesService.name);
@@ -40,6 +78,7 @@ export class QueriesService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(PiholeInstanceSessionService) private readonly instanceSessions: PiholeInstanceSessionService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
+    @Inject(QueryGroupMembershipsService) private readonly queryGroupMemberships: QueryGroupMembershipsService,
   ) {}
 
   async getQueries(query: GetQueriesDto, request: Request): Promise<QueriesResponse> {
@@ -49,6 +88,10 @@ export class QueriesService {
 
     if (instances.length === 0) {
       return this.buildEmptyQueriesResponse(0, Date.now() - startedAt);
+    }
+
+    if (this.shouldUseCachedGroupFiltering(query.groupIds, query.client_ip)) {
+      return this.getQueriesWithGroupIds(query, instances, locale, startedAt);
     }
 
     if (query.scope === "instance") {
@@ -141,24 +184,32 @@ export class QueriesService {
   async getQuerySuggestions(query: GetQuerySuggestionsDto, request: Request): Promise<QuerySuggestionsResponse> {
     const locale = getRequestLocale(request);
     const startedAt = Date.now();
-    const instances = await this.resolveRequestedInstances(query.scope, query.instanceId, locale);
+    const [instances, groupOptions] = await Promise.all([
+      this.resolveRequestedInstances(query.scope, query.instanceId, locale),
+      this.queryGroupMemberships.listGroupOptions(),
+    ]);
 
     if (instances.length === 0) {
-      return this.buildEmptySuggestionsResponse(0, Date.now() - startedAt);
+      return this.buildEmptySuggestionsResponse(0, Date.now() - startedAt, groupOptions);
+    }
+
+    if (this.shouldUseCachedGroupFiltering(query.groupIds, query.client_ip)) {
+      return this.getQuerySuggestionsWithGroupIds(query, instances, locale, startedAt, groupOptions);
     }
 
     if (query.scope === "instance") {
       const instance = instances[0];
 
       if (!instance) {
-        return this.buildEmptySuggestionsResponse(0, Date.now() - startedAt);
+        return this.buildEmptySuggestionsResponse(0, Date.now() - startedAt, groupOptions);
       }
 
       try {
         const result = await this.loadSuggestionsForInstance(instance, locale);
 
         return {
-          suggestions: result.suggestions,
+          suggestions: this.finalizeSuggestions(result.suggestions),
+          groupOptions,
           took: this.toDurationSeconds(Date.now() - startedAt),
           sources: {
             totalInstances: 1,
@@ -169,19 +220,17 @@ export class QueriesService {
       } catch (error) {
         const failure = this.mapInstanceFailure(instance, error, locale);
         this.logger.warn(`Query suggestion request failed for "${instance.name}" (${instance.id}): ${failure.message}`);
-        return this.buildEmptySuggestionsResponse(1, Date.now() - startedAt, [failure]);
+        return this.buildEmptySuggestionsResponse(1, Date.now() - startedAt, groupOptions, [failure]);
       }
     }
 
     const settled = await Promise.all(
       instances.map(async (instance) => {
         try {
-          const result = await this.loadSuggestionsForInstance(instance, locale);
-
           return {
             status: "fulfilled" as const,
             instance,
-            result,
+            result: await this.loadSuggestionsForInstance(instance, locale),
           };
         } catch (error) {
           return {
@@ -210,7 +259,8 @@ export class QueriesService {
     }
 
     return {
-      suggestions,
+      suggestions: this.finalizeSuggestions(suggestions),
+      groupOptions,
       took: this.toDurationSeconds(Date.now() - startedAt),
       sources: {
         totalInstances: instances.length,
@@ -218,6 +268,10 @@ export class QueriesService {
         failedInstances: failed,
       },
     };
+  }
+
+  refreshGroupMemberships(request: Request): Promise<QueryGroupMembershipRefreshResponse> {
+    return this.queryGroupMemberships.refreshGroupMemberships(request);
   }
 
   private async loadQueriesForInstance(
@@ -257,6 +311,37 @@ export class QueriesService {
     };
   }
 
+  private buildGroupFilteredQueryRequest(query: GetQueriesDto, start: number, length: number): PiholeQueryListRequest {
+    return {
+      from: query.from,
+      until: query.until,
+      length,
+      start,
+      domain: query.domain,
+      clientIp: query.client_ip,
+      upstream: query.upstream,
+      type: query.type,
+      status: query.status,
+      reply: query.reply,
+      dnssec: query.dnssec,
+      disk: query.disk,
+    };
+  }
+
+  private buildLocalSuggestionQueryRequest(
+    query: GetQuerySuggestionsDto,
+    start: number,
+    length: number,
+  ): PiholeQueryListRequest {
+    return {
+      from: query.from,
+      until: query.until,
+      length,
+      start,
+      disk: query.disk,
+    };
+  }
+
   private buildAggregatedQueryRequest(query: GetQueriesDto, requestedLength: number): PiholeQueryListRequest {
     return {
       from: query.from,
@@ -288,6 +373,10 @@ export class QueriesService {
     }
 
     return this.instanceSessions.listInstanceSummaries();
+  }
+
+  private shouldUseCachedGroupFiltering(groupIds: unknown, clientIp: string | undefined) {
+    return normalizeGroupIds(groupIds).length > 0 && (clientIp?.trim().length ?? 0) === 0;
   }
 
   private attachInstanceMetadata(
@@ -379,10 +468,12 @@ export class QueriesService {
   private buildEmptySuggestionsResponse(
     totalInstances: number,
     durationMs: number,
+    groupOptions: QueryGroupOption[],
     failedInstances: QueriesInstanceFailure[] = [],
   ): QuerySuggestionsResponse {
     return {
       suggestions: this.createEmptySuggestions(),
+      groupOptions,
       took: this.toDurationSeconds(durationMs),
       sources: {
         totalInstances,
@@ -405,16 +496,132 @@ export class QueriesService {
     };
   }
 
+  private finalizeSuggestions(suggestions: PiholeQuerySuggestions): PiholeQuerySuggestions {
+    return {
+      domain: sortStrings(suggestions.domain),
+      client_ip: sortStrings(suggestions.client_ip.filter((value) => isIP(value) !== 0)),
+      client_name: sortStrings(suggestions.client_name),
+      upstream: sortStrings(suggestions.upstream),
+      type: sortStrings(suggestions.type),
+      status: sortStrings(suggestions.status),
+      reply: sortStrings(suggestions.reply),
+      dnssec: sortStrings(suggestions.dnssec),
+    };
+  }
+
   private mergeSuggestions(target: PiholeQuerySuggestions, source: PiholeQuerySuggestionsResult["suggestions"]) {
-    for (const key of Object.keys(target) as Array<keyof PiholeQuerySuggestions>) {
+    for (const key of PIHOLE_QUERY_SUGGESTION_KEYS) {
       const values = source[key] ?? [];
 
-      for (const value of values) {
-        if (!target[key].includes(value)) {
-          target[key].push(value);
-        }
-      }
+      this.mergeSuggestionValues(target[key], values);
     }
+  }
+
+  private mergeSuggestionValues(target: string[], values: string[]) {
+    for (const value of values) {
+      const normalizedValue = value.trim();
+
+      if (normalizedValue.length === 0 || target.includes(normalizedValue)) {
+        continue;
+      }
+
+      target.push(normalizedValue);
+    }
+  }
+
+  private matchesOptionalFilterValue(source: string | null | undefined, expected: string | undefined) {
+    const normalizedExpected = expected?.trim() ?? "";
+
+    if (normalizedExpected.length === 0) {
+      return true;
+    }
+
+    return (source?.trim() ?? "") === normalizedExpected;
+  }
+
+  private matchesSuggestionFilters(
+    entry: QueryResultWithInstance,
+    query: GetQuerySuggestionsDto,
+    ignoredKey: QuerySuggestionKey,
+  ) {
+    if (ignoredKey !== "domain" && !this.matchesOptionalFilterValue(entry.domain, query.domain)) {
+      return false;
+    }
+
+    if (ignoredKey !== "client_ip" && !this.matchesOptionalFilterValue(entry.client?.ip, query.client_ip)) {
+      return false;
+    }
+
+    if (ignoredKey !== "upstream" && !this.matchesOptionalFilterValue(entry.upstream, query.upstream)) {
+      return false;
+    }
+
+    if (ignoredKey !== "type" && !this.matchesOptionalFilterValue(entry.type, query.type)) {
+      return false;
+    }
+
+    if (ignoredKey !== "status" && !this.matchesOptionalFilterValue(entry.status, query.status)) {
+      return false;
+    }
+
+    if (ignoredKey !== "reply" && !this.matchesOptionalFilterValue(entry.reply?.type, query.reply)) {
+      return false;
+    }
+
+    if (ignoredKey !== "dnssec" && !this.matchesOptionalFilterValue(entry.dnssec, query.dnssec)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private getSuggestionValue(entry: QueryResultWithInstance, key: QuerySuggestionKey) {
+    switch (key) {
+      case "domain":
+        return entry.domain?.trim() ?? "";
+      case "client_ip":
+        return entry.client?.ip?.trim() ?? "";
+      case "client_name":
+        return entry.client?.name?.trim() ?? "";
+      case "upstream":
+        return entry.upstream?.trim() ?? "";
+      case "type":
+        return entry.type?.trim() ?? "";
+      case "status":
+        return entry.status?.trim() ?? "";
+      case "reply":
+        return entry.reply?.type?.trim() ?? "";
+      case "dnssec":
+        return entry.dnssec?.trim() ?? "";
+    }
+  }
+
+  private collectSuggestionValues(
+    entries: QueryResultWithInstance[],
+    query: GetQuerySuggestionsDto,
+    key: QuerySuggestionKey,
+  ) {
+    const values = new Set<string>();
+
+    for (const entry of entries) {
+      if (!this.matchesSuggestionFilters(entry, query, key)) {
+        continue;
+      }
+
+      const value = this.getSuggestionValue(entry, key);
+
+      if (value.length === 0) {
+        continue;
+      }
+
+      if (key === "client_ip" && isIP(value) === 0) {
+        continue;
+      }
+
+      values.add(value);
+    }
+
+    return [...values];
   }
 
   private minTimestamp(values: Array<number | null>) {
@@ -439,6 +646,201 @@ export class QueriesService {
     return {
       instanceId: instance.id,
       instanceName: instance.name,
+    };
+  }
+
+  private filterQueriesByAllowedIps(
+    instance: PiholeManagedInstanceSummary,
+    queries: PiholeQueryLogEntry[],
+    allowedIps: Set<string>,
+  ) {
+    return queries
+      .filter((entry) => {
+        const clientIp = entry.client?.ip?.trim() ?? "";
+        return clientIp.length > 0 && allowedIps.has(clientIp);
+      })
+      .map((entry) => this.attachInstanceMetadata(instance, entry));
+  }
+
+  private async getQuerySuggestionsWithGroupIds(
+    query: GetQuerySuggestionsDto,
+    instances: PiholeManagedInstanceSummary[],
+    locale: ReturnType<typeof getRequestLocale>,
+    startedAt: number,
+    groupOptions: QueryGroupOption[],
+  ): Promise<QuerySuggestionsResponse> {
+    const allowedIpsByInstance = await this.queryGroupMemberships.loadAllowedIpsByInstance(
+      normalizeGroupIds(query.groupIds),
+      instances.map((instance) => instance.id),
+    );
+    const settled = await Promise.all(
+      instances.map(async (instance) => {
+        try {
+          return {
+            status: "fulfilled" as const,
+            result: await this.loadAllowedIpScopedQueriesForInstance(
+              instance,
+              locale,
+              allowedIpsByInstance.get(instance.id) ?? new Set<string>(),
+              (start, length) => this.buildLocalSuggestionQueryRequest(query, start, length),
+            ),
+          };
+        } catch (error) {
+          return {
+            status: "rejected" as const,
+            failure: this.mapInstanceFailure(instance, error, locale),
+          };
+        }
+      }),
+    );
+
+    const successful: AllowedIpScopedInstanceQueries[] = [];
+    const failed: QueriesInstanceFailure[] = [];
+
+    for (const item of settled) {
+      if (item.status === "fulfilled") {
+        successful.push(item.result);
+      } else {
+        failed.push(item.failure);
+      }
+    }
+
+    const suggestions = this.createEmptySuggestions();
+    const filteredQueries = successful.flatMap((item) => item.filteredQueries);
+
+    for (const key of PIHOLE_QUERY_SUGGESTION_KEYS) {
+      this.mergeSuggestionValues(suggestions[key], this.collectSuggestionValues(filteredQueries, query, key));
+    }
+
+    return {
+      suggestions: this.finalizeSuggestions(suggestions),
+      groupOptions,
+      took: this.toDurationSeconds(Date.now() - startedAt),
+      sources: {
+        totalInstances: instances.length,
+        successfulInstances: successful.map((item) => this.toSourceSummary(item.instance)),
+        failedInstances: failed,
+      },
+    };
+  }
+
+  private async getQueriesWithGroupIds(
+    query: GetQueriesDto,
+    instances: PiholeManagedInstanceSummary[],
+    locale: ReturnType<typeof getRequestLocale>,
+    startedAt: number,
+  ): Promise<QueriesResponse> {
+    const allowedIpsByInstance = await this.queryGroupMemberships.loadAllowedIpsByInstance(
+      normalizeGroupIds(query.groupIds),
+      instances.map((instance) => instance.id),
+    );
+    const settled = await Promise.all(
+      instances.map(async (instance) => {
+        try {
+          return {
+            status: "fulfilled" as const,
+            result: await this.loadAllowedIpScopedQueriesForInstance(
+              instance,
+              locale,
+              allowedIpsByInstance.get(instance.id) ?? new Set<string>(),
+              (start, length) => this.buildGroupFilteredQueryRequest(query, start, length),
+            ),
+          };
+        } catch (error) {
+          return {
+            status: "rejected" as const,
+            failure: this.mapInstanceFailure(instance, error, locale),
+          };
+        }
+      }),
+    );
+
+    const successful: AllowedIpScopedInstanceQueries[] = [];
+    const failed: QueriesInstanceFailure[] = [];
+
+    for (const item of settled) {
+      if (item.status === "fulfilled") {
+        successful.push(item.result);
+      } else {
+        failed.push(item.failure);
+      }
+    }
+
+    const filteredQueries = successful
+      .flatMap((item) => item.filteredQueries)
+      .sort(
+        (left, right) =>
+          right.time - left.time || right.id - left.id || left.instanceId.localeCompare(right.instanceId),
+      );
+    const visibleQueries = filteredQueries.slice(query.start, query.start + query.length);
+    const clientAliases = await this.loadClientAliasesForQueries(visibleQueries);
+
+    return {
+      queries: visibleQueries.map((entry) => this.serializeQueryRecord(entry, clientAliases)),
+      cursor: null,
+      recordsTotal: successful.reduce((total, item) => total + item.sourceRecordsTotal, 0),
+      recordsFiltered: filteredQueries.length,
+      earliestTimestamp: this.toIsoTimestamp(
+        this.minTimestamp(successful.map((item) => item.filteredEarliestTimestamp)),
+      ),
+      earliestTimestampDisk: this.toIsoTimestamp(
+        this.minTimestamp(successful.map((item) => item.filteredEarliestTimestamp)),
+      ),
+      took: this.toDurationSeconds(Date.now() - startedAt),
+      sources: {
+        totalInstances: instances.length,
+        successfulInstances: successful.map((item) => this.toSourceSummary(item.instance)),
+        failedInstances: failed,
+      },
+    };
+  }
+
+  private async loadAllowedIpScopedQueriesForInstance(
+    instance: PiholeManagedInstanceSummary,
+    locale: ReturnType<typeof getRequestLocale>,
+    allowedIps: Set<string>,
+    buildFilters: (start: number, length: number) => PiholeQueryListRequest,
+  ): Promise<AllowedIpScopedInstanceQueries> {
+    if (allowedIps.size === 0) {
+      return {
+        instance,
+        sourceRecordsTotal: 0,
+        filteredQueries: [],
+        filteredEarliestTimestamp: null,
+      };
+    }
+
+    const batchSize = Math.max(
+      buildFilters(0, GROUP_FILTER_BATCH_SIZE).length ?? GROUP_FILTER_BATCH_SIZE,
+      GROUP_FILTER_BATCH_SIZE,
+    );
+    const batches: PiholeQueryListResult[] = [];
+    let start = 0;
+
+    while (true) {
+      const batch = await this.loadQueriesForInstance(instance, locale, buildFilters(start, batchSize));
+      batches.push(batch);
+
+      if (batch.queries.length === 0) {
+        break;
+      }
+
+      start += batch.queries.length;
+
+      if (batch.queries.length < batchSize || start >= batch.recordsFiltered) {
+        break;
+      }
+    }
+
+    const filteredQueries = batches.flatMap((batch) =>
+      this.filterQueriesByAllowedIps(instance, batch.queries, allowedIps),
+    );
+
+    return {
+      instance,
+      sourceRecordsTotal: batches[0]?.recordsTotal ?? 0,
+      filteredQueries,
+      filteredEarliestTimestamp: this.minTimestamp(filteredQueries.map((item) => item.time)),
     };
   }
 

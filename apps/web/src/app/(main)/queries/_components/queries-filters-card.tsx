@@ -7,21 +7,19 @@ import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import type { QuerySuggestionsResponse } from "@/lib/api/yapd-types";
 import type { WebMessages } from "@/lib/i18n/messages";
 import type { QueryFilters } from "@/lib/queries/queries-filters";
 import { cn } from "@/lib/utils";
 
-import { DateTimeRangePicker, SuggestionCombobox } from "./query-filters-fields";
-
-const FILTER_SUGGESTION_SKELETON_KEYS = Array.from({ length: 7 }, (_value, index) => `query-filter-${index}`);
+import { DateTimeRangePicker, SuggestionCombobox, SuggestionMultiSelect } from "./query-filters-fields";
 
 type QueriesFiltersCardProps = {
   applyFilters: () => void;
   clearFilters: () => void;
   draftFilters: QueryFilters;
+  groupOptions: QuerySuggestionsResponse["groupOptions"];
   isFiltersOpen: boolean;
   isReloading: boolean;
   isSuggestionsLoading: boolean;
@@ -38,11 +36,11 @@ export function QueriesFiltersCard({
   applyFilters,
   clearFilters,
   draftFilters,
+  groupOptions,
   isFiltersOpen,
   isReloading,
   isSuggestionsLoading,
   messages,
-  responsiveSummary,
   setIsFiltersOpen,
   setIsLiveEnabled,
   suggestions,
@@ -94,98 +92,103 @@ export function QueriesFiltersCard({
                     untilValue={draftFilters.until}
                   />
                 </div>
-
-                {isSuggestionsLoading ? (
-                  FILTER_SUGGESTION_SKELETON_KEYS.map((key) => (
-                    <Skeleton key={key} className="h-17 w-full rounded-xl" />
-                  ))
-                ) : (
-                  <>
-                    <SuggestionCombobox
-                      emptyText={messages.queries.filters.empty}
-                      inputId={`${datalistPrefix}-domain`}
-                      label={messages.queries.filters.domain}
-                      placeholder={messages.queries.filters.suggestionPlaceholder}
-                      suggestions={suggestions.domain}
-                      value={draftFilters.domain}
-                      onChange={(value) => updateDraft("domain", value)}
-                    />
-                    <SuggestionCombobox
-                      emptyText={messages.queries.filters.empty}
-                      inputId={`${datalistPrefix}-client-ip`}
-                      label={messages.queries.filters.clientIp}
-                      placeholder={messages.queries.filters.suggestionPlaceholder}
-                      suggestions={suggestions.client_ip}
-                      value={draftFilters.clientIp}
-                      onChange={(value) => updateDraft("clientIp", value)}
-                    />
-                    <SuggestionCombobox
-                      emptyText={messages.queries.filters.empty}
-                      inputId={`${datalistPrefix}-upstream`}
-                      label={messages.queries.filters.upstream}
-                      placeholder={messages.queries.filters.suggestionPlaceholder}
-                      suggestions={suggestions.upstream}
-                      value={draftFilters.upstream}
-                      onChange={(value) => updateDraft("upstream", value)}
-                    />
-                    <SuggestionCombobox
-                      emptyText={messages.queries.filters.empty}
-                      inputId={`${datalistPrefix}-type`}
-                      label={messages.queries.filters.type}
-                      placeholder={messages.queries.filters.suggestionPlaceholder}
-                      suggestions={suggestions.type}
-                      value={draftFilters.type}
-                      onChange={(value) => updateDraft("type", value)}
-                    />
-                    <SuggestionCombobox
-                      emptyText={messages.queries.filters.empty}
-                      inputId={`${datalistPrefix}-status`}
-                      label={messages.queries.filters.status}
-                      placeholder={messages.queries.filters.suggestionPlaceholder}
-                      suggestions={suggestions.status}
-                      value={draftFilters.status}
-                      onChange={(value) => updateDraft("status", value)}
-                    />
-                    <SuggestionCombobox
-                      emptyText={messages.queries.filters.empty}
-                      inputId={`${datalistPrefix}-reply`}
-                      label={messages.queries.filters.reply}
-                      placeholder={messages.queries.filters.suggestionPlaceholder}
-                      suggestions={suggestions.reply}
-                      value={draftFilters.reply}
-                      onChange={(value) => updateDraft("reply", value)}
-                    />
-                    <SuggestionCombobox
-                      emptyText={messages.queries.filters.empty}
-                      inputId={`${datalistPrefix}-dnssec`}
-                      label={messages.queries.filters.dnssec}
-                      placeholder={messages.queries.filters.suggestionPlaceholder}
-                      suggestions={suggestions.dnssec}
-                      value={draftFilters.dnssec}
-                      onChange={(value) => updateDraft("dnssec", value)}
-                    />
-                    <div className="md:col-span-2 xl:col-span-4">
-                      <div className="flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
-                        <div className="space-y-1">
-                          <p className="font-medium text-sm">{messages.queries.filters.disk}</p>
-                          <p className="text-muted-foreground text-xs">{messages.queries.filters.diskDescription}</p>
-                        </div>
-                        <Switch
-                          checked={draftFilters.disk}
-                          onCheckedChange={(checked) => {
-                            const nextValue = Boolean(checked);
-
-                            updateDraft("disk", nextValue);
-
-                            if (nextValue) {
-                              setIsLiveEnabled(false);
-                            }
-                          }}
-                        />
-                      </div>
+                <SuggestionCombobox
+                  emptyText={messages.queries.filters.empty}
+                  inputId={`${datalistPrefix}-domain`}
+                  label={messages.queries.filters.domain}
+                  placeholder={messages.queries.filters.suggestionPlaceholder}
+                  suggestions={suggestions.domain}
+                  value={draftFilters.domain}
+                  onChange={(value) => updateDraft("domain", value)}
+                />
+                <SuggestionCombobox
+                  emptyText={messages.queries.filters.empty}
+                  inputId={`${datalistPrefix}-client-ip`}
+                  label={messages.queries.filters.clientIp}
+                  placeholder={messages.queries.filters.suggestionPlaceholder}
+                  suggestions={suggestions.client_ip}
+                  value={draftFilters.clientIp}
+                  onChange={(value) => updateDraft("clientIp", value)}
+                />
+                <div className="md:col-span-2 xl:col-span-2">
+                  <SuggestionMultiSelect
+                    emptyText={messages.queries.filters.empty}
+                    inputId={`${datalistPrefix}-groups`}
+                    label={messages.queries.filters.groups}
+                    placeholder={messages.queries.filters.suggestionPlaceholder}
+                    options={groupOptions.map((option) => ({
+                      label: option.name,
+                      value: option.id,
+                    }))}
+                    values={draftFilters.groupIds}
+                    onChange={(value) => updateDraft("groupIds", value)}
+                  />
+                </div>
+                <SuggestionCombobox
+                  emptyText={messages.queries.filters.empty}
+                  inputId={`${datalistPrefix}-upstream`}
+                  label={messages.queries.filters.upstream}
+                  placeholder={messages.queries.filters.suggestionPlaceholder}
+                  suggestions={suggestions.upstream}
+                  value={draftFilters.upstream}
+                  onChange={(value) => updateDraft("upstream", value)}
+                />
+                <SuggestionCombobox
+                  emptyText={messages.queries.filters.empty}
+                  inputId={`${datalistPrefix}-type`}
+                  label={messages.queries.filters.type}
+                  placeholder={messages.queries.filters.suggestionPlaceholder}
+                  suggestions={suggestions.type}
+                  value={draftFilters.type}
+                  onChange={(value) => updateDraft("type", value)}
+                />
+                <SuggestionCombobox
+                  emptyText={messages.queries.filters.empty}
+                  inputId={`${datalistPrefix}-status`}
+                  label={messages.queries.filters.status}
+                  placeholder={messages.queries.filters.suggestionPlaceholder}
+                  suggestions={suggestions.status}
+                  value={draftFilters.status}
+                  onChange={(value) => updateDraft("status", value)}
+                />
+                <SuggestionCombobox
+                  emptyText={messages.queries.filters.empty}
+                  inputId={`${datalistPrefix}-reply`}
+                  label={messages.queries.filters.reply}
+                  placeholder={messages.queries.filters.suggestionPlaceholder}
+                  suggestions={suggestions.reply}
+                  value={draftFilters.reply}
+                  onChange={(value) => updateDraft("reply", value)}
+                />
+                <SuggestionCombobox
+                  emptyText={messages.queries.filters.empty}
+                  inputId={`${datalistPrefix}-dnssec`}
+                  label={messages.queries.filters.dnssec}
+                  placeholder={messages.queries.filters.suggestionPlaceholder}
+                  suggestions={suggestions.dnssec}
+                  value={draftFilters.dnssec}
+                  onChange={(value) => updateDraft("dnssec", value)}
+                />
+                <div className="md:col-span-2 xl:col-span-4">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm">{messages.queries.filters.disk}</p>
+                      <p className="text-muted-foreground text-xs">{messages.queries.filters.diskDescription}</p>
                     </div>
-                  </>
-                )}
+                    <Switch
+                      checked={draftFilters.disk}
+                      onCheckedChange={(checked) => {
+                        const nextValue = Boolean(checked);
+
+                        updateDraft("disk", nextValue);
+
+                        if (nextValue) {
+                          setIsLiveEnabled(false);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">

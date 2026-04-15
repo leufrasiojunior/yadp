@@ -562,6 +562,7 @@ export const ptBRMessages: WebMessages = {
       length: "Quantidade",
       domain: "Domínio",
       clientIp: "Client IP",
+      groups: "Grupos",
       upstream: "Upstream",
       type: "Tipo",
       status: "Status",
@@ -621,6 +622,11 @@ export const ptBRMessages: WebMessages = {
         `${action} concluído em ${successCount} instâncias, com falha em ${failedCount}.`,
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       genericInstanceFailure: (instanceName) => `${instanceName}: a ação de domínio falhou.`,
+      groupReviewWarning: (reviewCount, failedCount) =>
+        failedCount > 0
+          ? `${reviewCount} instância(s) precisam de revisão de grupos e ${failedCount} falharam ao atualizar o cache.`
+          : `${reviewCount} instância(s) precisam de revisão de grupos para manter os filtros corretos.`,
+      reviewGroupsAction: "Abrir /groups",
     },
     statusTypes: {
       cache: "CACHE: resposta servida diretamente do cache.",

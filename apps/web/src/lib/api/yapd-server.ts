@@ -407,6 +407,7 @@ export async function getQueries(query: {
   cursor?: number;
   domain?: string;
   client_ip?: string;
+  groupIds?: number[];
   upstream?: string;
   type?: string;
   status?: string;
@@ -427,6 +428,7 @@ export async function getQueries(query: {
         ...(query.cursor !== undefined ? { cursor: query.cursor } : {}),
         ...(query.domain ? { domain: query.domain } : {}),
         ...(query.client_ip ? { client_ip: query.client_ip } : {}),
+        ...(query.groupIds && query.groupIds.length > 0 ? { groupIds: query.groupIds } : {}),
         ...(query.upstream ? { upstream: query.upstream } : {}),
         ...(query.type ? { type: query.type } : {}),
         ...(query.status ? { status: query.status } : {}),
