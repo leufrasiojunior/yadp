@@ -7,14 +7,12 @@ Top Blocked Domains by period(pagina especifica, se nao me engano ja existe rota
 
 ver se vale a pena adicionar no YAPD uma busca no github para obter a versao mais recente. checagem a cada 2hs, para mandar uma notificacao push quando as instancias tiverem updates
 
+colocar um modal com tabela so com nome (alias) e ip na pagina de grupos para mostrar os clientes atrelados ao ip.
 
-TypeError: groupIds.filter is not a function
-[api]     at QueryGroupMembershipsService.loadAllowedIpsByInstance (/home/leonald/pessoal/yapd/yapd/apps/api/src/queries/query-group-memberships.service.ts:368:53)
-[api]     at QueriesService.getQuerySuggestionsWithGroupIds (/home/leonald/pessoal/yapd/yapd/apps/api/src/queries/queries.service.ts:658:67)
-[api]     at QueriesService.getQuerySuggestions (/home/leonald/pessoal/yapd/yapd/apps/api/src/queries/queries.service.ts:183:19)
-[api]     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-[api]     at async /home/leonald/pessoal/yapd/yapd/node_modules/@nestjs/core/router/router-execution-context.js:46:28
-[api]     at async /home/leonald/pessoal/yapd/yapd/node_modules/@nestjs/core/router/router-proxy.js:9:17
+ajustar as notificacoes em push, e aproveitar e ja melhorar os motivos dos erros. Exemplo:
+WARN [PiholeService] [req:94] Pi-hole transport failure after 27ms method=POST requestUrl=https://192.168.31.16/api/auth configuredBaseUrl=https://192.168.31.16 normalizedBaseUrl=https://192.168.31.16 kind=unknown raw={"name":"TypeError","message":"fetch failed","code":"ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE","causeName":"Error","causeMessage":"001D559EEA7A0000:error:0A000410:SSL routines:ssl3_read_bytes:ssl/tls alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:918:SSL alert number 40\n","causeCode":"ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE"}
+
+retornar o causecode
 
 salvar tambem as configuracoes selecionadas no BD, mas manter o cookie como primario. Cookie manda.
 

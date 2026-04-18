@@ -2,11 +2,29 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "YAPD API Debug",
-      "type": "node-terminal",
+      "name": "YAPD Back",
+      "type": "pwa-node",
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "cwd": "${workspaceFolder}/apps/api",
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "yapd:dev:api:debug"
+    },
+    {
+      "name": "YAPD Front",
+      "type": "pwa-chrome",
       "request": "launch",
-      "command": "npm run debug --workspace @yapd/api",
-      "cwd": "${workspaceFolder}"
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/apps/web",
+      "preLaunchTask": "yapd:dev:web"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "YAPD Full Stack",
+      "configurations": ["YAPD Back", "YAPD Front"],
+      "stopAll": true
     }
   ]
 }

@@ -371,6 +371,57 @@ test("filters queries locally by cached group IP memberships when groupIds are p
   assert.equal(response.queries[0]?.client?.alias, "Notebook");
 });
 
+test("stops local group-filter pagination when Pi-hole repeats the same batch", async () => {
+  const instance = createInstance("alpha", "Alpha");
+  const repeatedQueries = Array.from({ length: 200 }, (_value, index) =>
+    createQueryEntry(
+      1_000 + index,
+      1_775_000_100 - index,
+      index === 0 ? "192.168.1.10" : "192.168.1.20",
+      index === 0 ? "allowed.example" : `blocked-${index}.example`,
+    ),
+  );
+  const repeatedBatch = createQueryResult(repeatedQueries, {
+    recordsTotal: 500,
+    recordsFiltered: 500,
+  });
+  const { service, calls } = createService(
+    [instance],
+    {
+      [instance.id]: {
+        queryPages: {
+          0: repeatedBatch,
+          200: repeatedBatch,
+        },
+      },
+    },
+    {
+      groupMemberships: {
+        allowedIpsByInstance: new Map([[instance.id, new Set(["192.168.1.10"])]]),
+      },
+    },
+  );
+
+  const response = await service.getQueries(
+    {
+      scope: "instance",
+      instanceId: instance.id,
+      groupIds: [11, 10],
+      length: 10,
+      start: 0,
+    },
+    REQUEST,
+  );
+
+  assert.equal(calls.getQueries.length, 2);
+  assert.equal(response.recordsFiltered, 2);
+  assert.equal(response.queries.length, 2);
+  assert.deepEqual(
+    response.queries.map((query) => query.domain),
+    ["allowed.example", "allowed.example"],
+  );
+});
+
 test("ignores cached group filtering when a native client_ip filter is present", async () => {
   const instance = createInstance("alpha", "Alpha");
   const { service, calls } = createService([instance], {
@@ -399,7 +450,7 @@ test("ignores cached group filtering when a native client_ip filter is present",
   assert.equal(calls.getQueries[0]?.filters.clientIp, "192.168.1.10");
 });
 
-test("builds filtered suggestions from cached memberships and still returns groupOptions", async () => {
+test("uses cached group memberships only for client IP suggestions", async () => {
   const instance = createInstance("alpha", "Alpha");
   const groupOptions = [
     { id: 3, name: "Guests" },
@@ -409,28 +460,12 @@ test("builds filtered suggestions from cached memberships and still returns grou
     [instance],
     {
       [instance.id]: {
-        queryPages: {
-          0: createQueryResult(
-            [
-              createQueryEntry(101, 1_775_000_100, "192.168.1.10", "allowed.example", {
-                client: {
-                  ip: "192.168.1.10",
-                  name: "Laptop",
-                },
-              }),
-              createQueryEntry(102, 1_775_000_090, "192.168.1.20", "blocked.example", {
-                client: {
-                  ip: "192.168.1.20",
-                  name: "TV",
-                },
-              }),
-            ],
-            {
-              recordsTotal: 2,
-              recordsFiltered: 2,
-            },
-          ),
-        },
+        suggestions: createSuggestions({
+          domain: ["alpha.example", "blocked.example"],
+          client_ip: ["192.168.1.20"],
+          client_name: ["Laptop", "TV"],
+          status: ["BLOCKED", "FORWARDED"],
+        }),
       },
     },
     {
@@ -451,24 +486,26 @@ test("builds filtered suggestions from cached memberships and still returns grou
   );
 
   assert.deepEqual(response.groupOptions, groupOptions);
-  assert.deepEqual(response.suggestions.domain, ["allowed.example"]);
+  assert.deepEqual(response.suggestions.domain, ["alpha.example", "blocked.example"]);
   assert.deepEqual(response.suggestions.client_ip, ["192.168.1.10"]);
-  assert.deepEqual(response.suggestions.client_name, ["Laptop"]);
+  assert.deepEqual(response.suggestions.client_name, ["Laptop", "TV"]);
+  assert.deepEqual(response.suggestions.status, ["BLOCKED", "FORWARDED"]);
   assert.equal(calls.listGroupOptions, 1);
   assert.equal(calls.loadAllowedIpsByInstance.length, 1);
-  assert.equal(calls.getQuerySuggestions.length, 0);
-  assert.equal(calls.getQueries.length, 1);
+  assert.deepEqual(calls.getQuerySuggestions, [instance.id]);
+  assert.equal(calls.getQueries.length, 0);
 });
 
-test("normalizes scalar groupIds from query strings before filtering suggestions", async () => {
+test("normalizes scalar groupIds from query strings before loading cached IP suggestions", async () => {
   const instance = createInstance("alpha", "Alpha");
   const { service, calls } = createService(
     [instance],
     {
       [instance.id]: {
-        queryPages: {
-          0: createQueryResult([createQueryEntry(101, 1_775_000_100, "192.168.1.10", "allowed.example")]),
-        },
+        suggestions: createSuggestions({
+          domain: ["allowed.example"],
+          client_ip: ["192.168.1.20"],
+        }),
       },
     },
     {
@@ -493,7 +530,9 @@ test("normalizes scalar groupIds from query strings before filtering suggestions
       instanceIds: [instance.id],
     },
   ]);
+  assert.deepEqual(calls.getQuerySuggestions, [instance.id]);
   assert.deepEqual(response.suggestions.domain, ["allowed.example"]);
+  assert.deepEqual(response.suggestions.client_ip, ["192.168.1.10"]);
 });
 
 test("merges native Pi-hole suggestions and attaches cached group options when no group filter is active", async () => {

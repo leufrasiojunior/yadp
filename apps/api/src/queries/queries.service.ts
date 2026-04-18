@@ -193,10 +193,6 @@ export class QueriesService {
       return this.buildEmptySuggestionsResponse(0, Date.now() - startedAt, groupOptions);
     }
 
-    if (this.shouldUseCachedGroupFiltering(query.groupIds, query.client_ip)) {
-      return this.getQuerySuggestionsWithGroupIds(query, instances, locale, startedAt, groupOptions);
-    }
-
     if (query.scope === "instance") {
       const instance = instances[0];
 
@@ -206,9 +202,10 @@ export class QueriesService {
 
       try {
         const result = await this.loadSuggestionsForInstance(instance, locale);
+        const suggestions = await this.applyCachedGroupIpSuggestions(result.suggestions, query, [instance]);
 
         return {
-          suggestions: this.finalizeSuggestions(result.suggestions),
+          suggestions: this.finalizeSuggestions(suggestions),
           groupOptions,
           took: this.toDurationSeconds(Date.now() - startedAt),
           sources: {
@@ -258,8 +255,14 @@ export class QueriesService {
       this.mergeSuggestions(suggestions, item.result.suggestions);
     }
 
+    const scopedSuggestions = await this.applyCachedGroupIpSuggestions(
+      suggestions,
+      query,
+      successful.map((item) => item.instance),
+    );
+
     return {
-      suggestions: this.finalizeSuggestions(suggestions),
+      suggestions: this.finalizeSuggestions(scopedSuggestions),
       groupOptions,
       took: this.toDurationSeconds(Date.now() - startedAt),
       sources: {
@@ -311,12 +314,18 @@ export class QueriesService {
     };
   }
 
-  private buildGroupFilteredQueryRequest(query: GetQueriesDto, start: number, length: number): PiholeQueryListRequest {
+  private buildGroupFilteredQueryRequest(
+    query: GetQueriesDto,
+    start: number,
+    length: number,
+    cursor?: number,
+  ): PiholeQueryListRequest {
     return {
       from: query.from,
       until: query.until,
       length,
       start,
+      ...(cursor !== undefined ? { cursor } : {}),
       domain: query.domain,
       clientIp: query.client_ip,
       upstream: query.upstream,
@@ -527,6 +536,35 @@ export class QueriesService {
 
       target.push(normalizedValue);
     }
+  }
+
+  private async applyCachedGroupIpSuggestions(
+    suggestions: PiholeQuerySuggestions,
+    query: GetQuerySuggestionsDto,
+    instances: PiholeManagedInstanceSummary[],
+  ): Promise<PiholeQuerySuggestions> {
+    const groupIds = normalizeGroupIds(query.groupIds);
+
+    if (groupIds.length === 0 || instances.length === 0) {
+      return suggestions;
+    }
+
+    const allowedIpsByInstance = await this.queryGroupMemberships.loadAllowedIpsByInstance(
+      groupIds,
+      instances.map((instance) => instance.id),
+    );
+    const clientIps = new Set<string>();
+
+    for (const ips of allowedIpsByInstance.values()) {
+      for (const ip of ips) {
+        clientIps.add(ip);
+      }
+    }
+
+    return {
+      ...suggestions,
+      client_ip: [...clientIps],
+    };
   }
 
   private matchesOptionalFilterValue(source: string | null | undefined, expected: string | undefined) {
@@ -799,7 +837,7 @@ export class QueriesService {
     instance: PiholeManagedInstanceSummary,
     locale: ReturnType<typeof getRequestLocale>,
     allowedIps: Set<string>,
-    buildFilters: (start: number, length: number) => PiholeQueryListRequest,
+    buildFilters: (start: number, length: number, cursor?: number) => PiholeQueryListRequest,
   ): Promise<AllowedIpScopedInstanceQueries> {
     if (allowedIps.size === 0) {
       return {
@@ -815,19 +853,55 @@ export class QueriesService {
       GROUP_FILTER_BATCH_SIZE,
     );
     const batches: PiholeQueryListResult[] = [];
+    const seenBatchSignatures = new Set<string>();
+    const seenCursors = new Set<number>();
     let start = 0;
+    let cursor: number | undefined;
 
     while (true) {
-      const batch = await this.loadQueriesForInstance(instance, locale, buildFilters(start, batchSize));
+      const batch = await this.loadQueriesForInstance(instance, locale, buildFilters(start, batchSize, cursor));
       batches.push(batch);
 
       if (batch.queries.length === 0) {
         break;
       }
 
-      start += batch.queries.length;
+      const batchSignature = batch.queries
+        .map((entry) => `${entry.id}:${entry.time}:${entry.client?.ip ?? ""}:${entry.domain ?? ""}`)
+        .join("|");
 
-      if (batch.queries.length < batchSize || start >= batch.recordsFiltered) {
+      if (seenBatchSignatures.has(batchSignature)) {
+        this.logger.warn(
+          `Stopping repeated query batch for "${instance.name}" (${instance.id}) while applying cached group filters.`,
+        );
+        break;
+      }
+
+      seenBatchSignatures.add(batchSignature);
+
+      const nextStart = start + batch.queries.length;
+
+      if (batch.queries.length < batchSize) {
+        break;
+      }
+
+      if (batch.cursor !== null) {
+        if (seenCursors.has(batch.cursor)) {
+          this.logger.warn(
+            `Stopping repeated query cursor for "${instance.name}" (${instance.id}) while applying cached group filters.`,
+          );
+          break;
+        }
+
+        seenCursors.add(batch.cursor);
+        cursor = batch.cursor;
+        start = nextStart;
+        continue;
+      }
+
+      start = nextStart;
+
+      if (start >= batch.recordsFiltered) {
         break;
       }
     }
