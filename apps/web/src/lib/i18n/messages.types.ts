@@ -759,6 +759,68 @@ export type WebMessages = {
       submitIdle: string;
       submitLoading: string;
     };
+    members: {
+      menuAction: string;
+      title: (name: string) => string;
+      description: (name: string) => string;
+      close: string;
+      tabs: {
+        clients: string;
+        editGroups: string;
+      };
+      clients: {
+        title: string;
+        description: string;
+        loading: string;
+        emptyTitle: string;
+        emptyDescription: string;
+        selectAll: string;
+        selectRow: (client: string) => string;
+        alias: string;
+        ip: string;
+        actions: string;
+        editGroups: string;
+        selectedCount: (count: number) => string;
+        manageSelected: string;
+      };
+      editor: {
+        title: (client: string) => string;
+        bulkTitle: (count: number) => string;
+        description: string;
+        bulkDescription: string;
+        selectedGroups: string;
+        selectedClients: string;
+        save: string;
+        saving: string;
+        cancel: string;
+        groupsRequired: string;
+        retryHint: string;
+      };
+      bulk: {
+        title: string;
+        description: string;
+        emptySelectionTitle: string;
+        emptySelectionDescription: string;
+        selectedClients: string;
+        addGroups: string;
+        removeGroups: string;
+        noChanges: string;
+        apply: string;
+        applying: string;
+        groupsRequired: string;
+      };
+      toasts: {
+        loadFailed: string;
+        syncRequired: string;
+        saveSuccess: string;
+        bulkSaveSuccess: (count: number) => string;
+        bulkSavePartial: (successfulCount: number, failedCount: number) => string;
+        bulkSaveFailure: string;
+        requestFailure: (client: string, message: string) => string;
+        instanceFailure: (client: string, instanceName: string, message: string) => string;
+        bulkInstanceFailure: (count: number, instanceName: string, message: string) => string;
+      };
+    };
     delete: {
       titleSingle: (name: string) => string;
       titleBatch: (count: number) => string;

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Param, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiCookieAuth, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
 import type { Request } from "express";
 
@@ -9,6 +9,7 @@ import {
   CLIENTS_MUTATION_API_OK_RESPONSE,
   SAVE_CLIENTS_API_BODY,
   SYNC_CLIENTS_API_BODY,
+  UPDATE_CLIENT_API_BODY,
 } from "./clients.responses";
 import { ClientsService } from "./clients.service";
 import {
@@ -20,6 +21,7 @@ import {
 import type { GetClientsDto } from "./dto/get-clients.dto";
 import type { SaveClientsDto } from "./dto/save-clients.dto";
 import type { SyncClientsDto } from "./dto/sync-clients.dto";
+import type { UpdateClientDto } from "./dto/update-client.dto";
 
 @ApiTags("clients")
 @ApiCookieAuth()
@@ -56,6 +58,14 @@ export class ClientsController {
   @ApiOkResponse(CLIENTS_MUTATION_API_OK_RESPONSE)
   saveClients(@Body() body: SaveClientsDto, @Req() request: Request) {
     return this.clientsService.saveClients(body, request);
+  }
+
+  @Put(":client")
+  @UseGuards(CsrfGuard)
+  @ApiBody(UPDATE_CLIENT_API_BODY)
+  @ApiOkResponse(CLIENTS_MUTATION_API_OK_RESPONSE)
+  updateClient(@Param("client") client: string, @Body() body: UpdateClientDto, @Req() request: Request) {
+    return this.clientsService.updateClient(client, body, request);
   }
 
   @Post("sync")

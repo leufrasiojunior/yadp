@@ -835,6 +835,76 @@ export const ptBRMessages: WebMessages = {
       submitIdle: "Salvar alterações",
       submitLoading: "Salvando...",
     },
+    members: {
+      menuAction: "Ver clientes",
+      title: (name) => `Clientes do group ${name}`,
+      description: (name) =>
+        `Veja os clientes atualmente vinculados ao group ${name} e ajuste os groups de forma individual ou em lote.`,
+      close: "Fechar",
+      tabs: {
+        clients: "Clientes",
+        editGroups: "Editar groups",
+      },
+      clients: {
+        title: "Clientes vinculados",
+        description: "A lista abaixo mostra apenas clientes que atualmente pertencem a este group.",
+        loading: "Carregando clientes vinculados...",
+        emptyTitle: "Nenhum cliente vinculado",
+        emptyDescription: "Quando houver clientes associados a este group eles aparecerão aqui.",
+        selectAll: "Selecionar todos os clientes visíveis",
+        selectRow: (client) => `Selecionar o cliente ${client}`,
+        alias: "Cliente",
+        ip: "IP",
+        actions: "Ações",
+        editGroups: "Editar groups",
+        selectedCount: (count) => (count === 1 ? "1 cliente selecionado" : `${count} clientes selecionados`),
+        manageSelected: "Gerenciar selecionados",
+      },
+      editor: {
+        title: (client) => `Editar groups de ${client}`,
+        bulkTitle: (count) => (count === 1 ? "Editar groups de 1 cliente" : `Editar groups de ${count} clientes`),
+        description: "Atualize os groups deste cliente usando a mesma seleção consolidada do baseline.",
+        bulkDescription:
+          "Os groups marcados serão aplicados igualmente a todos os clientes selecionados. Os não marcados serão removidos.",
+        selectedGroups: "Groups selecionados",
+        selectedClients: "Clientes selecionados",
+        save: "Salvar groups",
+        saving: "Salvando...",
+        cancel: "Cancelar",
+        groupsRequired: "Selecione pelo menos um group antes de salvar.",
+        retryHint: "Algumas alterações falharam. Revise os toasts e tente salvar novamente.",
+      },
+      bulk: {
+        title: "Editar groups em lote",
+        description:
+          "Aplique diferenças sobre os clientes selecionados sem sobrescrever os demais groups já existentes.",
+        emptySelectionTitle: "Selecione clientes para continuar",
+        emptySelectionDescription: "Volte para a aba Clientes e marque pelo menos um cliente para editar em lote.",
+        selectedClients: "Clientes selecionados",
+        addGroups: "Adicionar groups",
+        removeGroups: "Remover groups",
+        noChanges: "Marque ao menos um group para adicionar ou remover.",
+        apply: "Aplicar alterações",
+        applying: "Aplicando...",
+        groupsRequired: "A alteração deixaria um ou mais clientes sem group. Ajuste a seleção antes de salvar.",
+      },
+      toasts: {
+        loadFailed: "Não foi possível carregar os clientes vinculados a este group.",
+        syncRequired: "Sincronize os groups antes de revisar os clientes vinculados.",
+        saveSuccess: "Groups do cliente atualizados com sucesso.",
+        bulkSaveSuccess: (count) =>
+          count === 1 ? "Alterações aplicadas em 1 cliente." : `Alterações aplicadas em ${count} clientes.`,
+        bulkSavePartial: (successfulCount, failedCount) =>
+          successfulCount === 1 && failedCount === 1
+            ? "1 cliente foi atualizado e 1 falhou."
+            : `${successfulCount} clientes foram atualizados e ${failedCount} falharam.`,
+        bulkSaveFailure: "Não foi possível atualizar os groups dos clientes selecionados.",
+        requestFailure: (client, message) => `${client}: ${message}`,
+        instanceFailure: (client, instanceName, message) => `${client} · ${instanceName}: ${message}`,
+        bulkInstanceFailure: (count, instanceName, message) =>
+          count === 1 ? `${instanceName}: ${message}` : `${instanceName} (${count} clientes): ${message}`,
+      },
+    },
     delete: {
       titleSingle: (name) => `Apagar ${name}?`,
       titleBatch: (count) => (count === 1 ? "Apagar 1 group?" : `Apagar ${count} groups?`),

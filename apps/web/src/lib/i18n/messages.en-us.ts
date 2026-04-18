@@ -830,6 +830,75 @@ export const enUSMessages: WebMessages = {
       submitIdle: "Save changes",
       submitLoading: "Saving...",
     },
+    members: {
+      menuAction: "View clients",
+      title: (name) => `Clients in ${name}`,
+      description: (name) =>
+        `Review the clients currently linked to the ${name} group and adjust their group memberships individually or in bulk.`,
+      close: "Close",
+      tabs: {
+        clients: "Clients",
+        editGroups: "Edit groups",
+      },
+      clients: {
+        title: "Linked clients",
+        description: "This list only shows clients that currently belong to this group.",
+        loading: "Loading linked clients...",
+        emptyTitle: "No linked clients",
+        emptyDescription: "Clients associated with this group will appear here.",
+        selectAll: "Select all visible clients",
+        selectRow: (client) => `Select client ${client}`,
+        alias: "Client",
+        ip: "IP",
+        actions: "Actions",
+        editGroups: "Edit groups",
+        selectedCount: (count) => (count === 1 ? "1 client selected" : `${count} clients selected`),
+        manageSelected: "Manage selected",
+      },
+      editor: {
+        title: (client) => `Edit groups for ${client}`,
+        bulkTitle: (count) => (count === 1 ? "Edit groups for 1 client" : `Edit groups for ${count} clients`),
+        description: "Update this client's groups using the same baseline-backed group selection.",
+        bulkDescription:
+          "The checked groups will be applied equally to every selected client. Unchecked groups will be removed.",
+        selectedGroups: "Selected groups",
+        selectedClients: "Selected clients",
+        save: "Save groups",
+        saving: "Saving...",
+        cancel: "Cancel",
+        groupsRequired: "Select at least one group before saving.",
+        retryHint: "Some changes failed. Review the toasts and try saving again.",
+      },
+      bulk: {
+        title: "Bulk group editing",
+        description: "Apply differences to the selected clients without overwriting any other existing groups.",
+        emptySelectionTitle: "Select clients to continue",
+        emptySelectionDescription: "Go back to the Clients tab and select at least one client for bulk editing.",
+        selectedClients: "Selected clients",
+        addGroups: "Add groups",
+        removeGroups: "Remove groups",
+        noChanges: "Select at least one group to add or remove.",
+        apply: "Apply changes",
+        applying: "Applying...",
+        groupsRequired: "This change would leave one or more clients without any group. Adjust the selection first.",
+      },
+      toasts: {
+        loadFailed: "Could not load the clients linked to this group.",
+        syncRequired: "Synchronize the groups before reviewing linked clients.",
+        saveSuccess: "Client groups updated successfully.",
+        bulkSaveSuccess: (count) =>
+          count === 1 ? "Changes applied to 1 client." : `Changes applied to ${count} clients.`,
+        bulkSavePartial: (successfulCount, failedCount) =>
+          successfulCount === 1 && failedCount === 1
+            ? "1 client was updated and 1 failed."
+            : `${successfulCount} clients were updated and ${failedCount} failed.`,
+        bulkSaveFailure: "Could not update the groups for the selected clients.",
+        requestFailure: (client, message) => `${client}: ${message}`,
+        instanceFailure: (client, instanceName, message) => `${client} · ${instanceName}: ${message}`,
+        bulkInstanceFailure: (count, instanceName, message) =>
+          count === 1 ? `${instanceName}: ${message}` : `${instanceName} (${count} clients): ${message}`,
+      },
+    },
     delete: {
       titleSingle: (name) => `Delete ${name}?`,
       titleBatch: (count) => (count === 1 ? "Delete 1 group?" : `Delete ${count} groups?`),

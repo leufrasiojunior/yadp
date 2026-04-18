@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeftRight, CircleAlert, Pencil, RefreshCw, Trash2, Users } from "lucide-react";
+import { ArrowLeftRight, CircleAlert, Ellipsis, Pencil, RefreshCw, Tags, Trash2, Users } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -29,6 +29,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -39,7 +45,14 @@ import { useAppSession } from "@/components/yapd/app-session-provider";
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
-import type { GroupItem, GroupsListResponse, GroupsMutationResponse } from "@/lib/api/yapd-types";
+import type {
+  ClientListItem,
+  ClientsListResponse,
+  ClientsMutationResponse,
+  GroupItem,
+  GroupsListResponse,
+  GroupsMutationResponse,
+} from "@/lib/api/yapd-types";
 import { getClientCookie, setClientCookie } from "@/lib/cookie.client";
 import { useWebI18n } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
@@ -83,6 +96,8 @@ type GroupSyncInstanceState = {
   hasGroup: boolean;
 };
 
+const CLIENTS_PAGE_SIZE = 100;
+
 function sortGroupItems(items: GroupItem[]) {
   return [...items].sort((left, right) => {
     if (isImmutableGroup(left) && !isImmutableGroup(right)) {
@@ -95,6 +110,51 @@ function sortGroupItems(items: GroupItem[]) {
 
     return left.name.localeCompare(right.name);
   });
+}
+
+function sortNumberArray(values: number[]) {
+  return [...values].sort((left, right) => left - right);
+}
+
+function areNumberArraysEqual(left: number[], right: number[]) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function getClientPrimaryIp(item: Pick<ClientListItem, "ips">) {
+  return item.ips.find((ip) => ip.trim().length > 0) ?? null;
+}
+
+function getClientDisplayValue(item: ClientListItem) {
+  const alias = item.alias?.trim() ?? "";
+  const ip = getClientPrimaryIp(item);
+
+  if (alias.length > 0 && ip) {
+    return `${alias} (${ip})`;
+  }
+
+  if (alias.length > 0) {
+    return alias;
+  }
+
+  if (ip) {
+    return ip;
+  }
+
+  return null;
+}
+
+function buildSharedGroupIds(items: ClientListItem[]) {
+  if (items.length === 0) {
+    return [];
+  }
+
+  return sortNumberArray(items[0]?.groupIds ?? []).filter((groupId) =>
+    items.every((item) => item.groupIds.includes(groupId)),
+  );
 }
 
 function isImmutableGroup(item: GroupItem) {
@@ -194,6 +254,14 @@ export function GroupsWorkspace({
     buildSyncSelections(initialData.items, initialData.source.baselineInstanceId),
   );
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [cachedClients, setCachedClients] = useState<ClientListItem[] | null>(null);
+  const [membersDialogGroup, setMembersDialogGroup] = useState<GroupItem | null>(null);
+  const [membersDialogError, setMembersDialogError] = useState<string | null>(null);
+  const [groupMembers, setGroupMembers] = useState<ClientListItem[]>([]);
+  const [selectedMemberHwaddrs, setSelectedMemberHwaddrs] = useState<string[]>([]);
+  const [memberEditorClients, setMemberEditorClients] = useState<ClientListItem[]>([]);
+  const [memberEditorDraftGroupIds, setMemberEditorDraftGroupIds] = useState<number[]>([]);
+  const [memberEditorError, setMemberEditorError] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(null);
   const [rememberDeleteChoice, setRememberDeleteChoice] = useState(false);
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
@@ -246,6 +314,31 @@ export function GroupsWorkspace({
     selectableVisibleItems.length > 0 && selectableVisibleItems.every((item) => selectedIdSet.has(item.id));
   const someVisibleSelected = selectableVisibleItems.some((item) => selectedIdSet.has(item.id));
   const isMutating = busyAction !== null;
+  const selectedMemberHwaddrSet = useMemo(() => new Set(selectedMemberHwaddrs), [selectedMemberHwaddrs]);
+  const selectedGroupMembers = useMemo(
+    () => groupMembers.filter((item) => selectedMemberHwaddrSet.has(item.hwaddr)),
+    [groupMembers, selectedMemberHwaddrSet],
+  );
+  const allMembersSelected =
+    groupMembers.length > 0 && groupMembers.every((item) => selectedMemberHwaddrSet.has(item.hwaddr));
+  const someMembersSelected = groupMembers.some((item) => selectedMemberHwaddrSet.has(item.hwaddr));
+  const memberEditorClientCount = memberEditorClients.length;
+  const isBulkMemberEditor = memberEditorClientCount > 1;
+  const memberEditorPrimaryClient = memberEditorClients[0] ?? null;
+  const memberEditorClientNames = memberEditorClients
+    .map((item) => getClientDisplayValue(item) ?? item.hwaddr)
+    .join(", ");
+  const memberEditorSelectedGroupNames = memberEditorDraftGroupIds
+    .map((groupId) => items.find((group) => group.id === groupId)?.name ?? null)
+    .filter((value): value is string => value !== null)
+    .join(", ");
+  const hasMemberEditorChanges =
+    memberEditorClients.length > 0 &&
+    (isBulkMemberEditor
+      ? memberEditorClients.some(
+          (item) => !areNumberArraysEqual(sortNumberArray(item.groupIds), memberEditorDraftGroupIds),
+        )
+      : !areNumberArraysEqual(sortNumberArray(memberEditorClients[0]?.groupIds ?? []), memberEditorDraftGroupIds));
 
   const refreshGroups = async () => {
     const { data, response } = await client.GET<GroupsListResponse>("/groups");
@@ -259,6 +352,263 @@ export function GroupsWorkspace({
     setSource(data.source);
     setSummary(data.summary);
     return data;
+  };
+
+  useEffect(() => {
+    if (!membersDialogGroup) {
+      return;
+    }
+
+    const refreshedGroup = items.find((item) => item.id === membersDialogGroup.id) ?? null;
+
+    if (!refreshedGroup) {
+      setMembersDialogGroup(null);
+      setGroupMembers([]);
+      setSelectedMemberHwaddrs([]);
+      setMemberEditorClients([]);
+      return;
+    }
+
+    setMembersDialogGroup(refreshedGroup);
+  }, [items, membersDialogGroup]);
+
+  useEffect(() => {
+    if (!membersDialogGroup || !cachedClients) {
+      return;
+    }
+
+    const nextMembers = cachedClients.filter((item) => item.groupIds.includes(membersDialogGroup.id));
+    setGroupMembers(nextMembers);
+    setSelectedMemberHwaddrs((current) =>
+      current.filter((hwaddr) => nextMembers.some((item) => item.hwaddr === hwaddr)),
+    );
+    setMemberEditorClients((current) =>
+      current
+        .map((item) => nextMembers.find((candidate) => candidate.hwaddr === item.hwaddr) ?? null)
+        .filter((value): value is ClientListItem => value !== null),
+    );
+  }, [cachedClients, membersDialogGroup]);
+
+  const loadAllClients = async () => {
+    const collected: ClientListItem[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    while (page <= totalPages) {
+      const { data, response } = await client.GET<ClientsListResponse>("/clients", {
+        params: {
+          query: {
+            page,
+            pageSize: CLIENTS_PAGE_SIZE,
+            sortBy: "numQueries",
+            sortDirection: "desc",
+          },
+        },
+      });
+
+      if (!response.ok || !data) {
+        throw new Error(await getApiErrorMessage(response));
+      }
+
+      collected.push(...data.items);
+      totalPages = data.pagination.totalPages;
+      page += 1;
+    }
+
+    return collected;
+  };
+
+  const refreshMembersCache = async () => {
+    const allClients = await loadAllClients();
+    setCachedClients(allClients);
+    return allClients;
+  };
+
+  const closeMembersDialog = () => {
+    if (isMutating) {
+      return;
+    }
+
+    setMembersDialogGroup(null);
+    setMembersDialogError(null);
+    setGroupMembers([]);
+    setSelectedMemberHwaddrs([]);
+    setMemberEditorClients([]);
+    setMemberEditorDraftGroupIds([]);
+    setMemberEditorError(null);
+  };
+
+  const openMemberEditor = (item: ClientListItem) => {
+    setMemberEditorClients([item]);
+    setMemberEditorDraftGroupIds(sortNumberArray(item.groupIds));
+    setMemberEditorError(null);
+  };
+
+  const openBulkMemberEditor = () => {
+    if (selectedGroupMembers.length === 0) {
+      return;
+    }
+
+    setMemberEditorClients(selectedGroupMembers);
+    setMemberEditorDraftGroupIds(buildSharedGroupIds(selectedGroupMembers));
+    setMemberEditorError(null);
+  };
+
+  const toggleMemberEditorGroup = (groupId: number, checked: boolean) => {
+    setMemberEditorDraftGroupIds((current) => {
+      const next = checked ? [...new Set([...current, groupId])] : current.filter((value) => value !== groupId);
+      return sortNumberArray(next);
+    });
+    setMemberEditorError(null);
+  };
+
+  const closeMemberEditor = () => {
+    if (isMutating) {
+      return;
+    }
+
+    setMemberEditorClients([]);
+    setMemberEditorDraftGroupIds([]);
+    setMemberEditorError(null);
+  };
+
+  const toggleSelectedMember = (hwaddr: string, checked: boolean) => {
+    setSelectedMemberHwaddrs((current) =>
+      checked ? [...new Set([...current, hwaddr])] : current.filter((value) => value !== hwaddr),
+    );
+  };
+
+  const toggleAllMembers = (checked: boolean) => {
+    if (!checked) {
+      setSelectedMemberHwaddrs([]);
+      return;
+    }
+
+    setSelectedMemberHwaddrs(groupMembers.map((item) => item.hwaddr));
+  };
+
+  const openMembersDialog = async (group: GroupItem) => {
+    if (group.sync.missingInstances.length > 0) {
+      toast.error(messages.groups.members.toasts.syncRequired);
+      return;
+    }
+
+    setMembersDialogGroup(group);
+    setMembersDialogError(null);
+    setSelectedMemberHwaddrs([]);
+    setMemberEditorClients([]);
+    setMemberEditorDraftGroupIds([]);
+    setMemberEditorError(null);
+
+    try {
+      setBusyAction(`members:load:${group.id}`);
+      const allClients = cachedClients ?? (await refreshMembersCache());
+      setGroupMembers(allClients.filter((item) => item.groupIds.includes(group.id)));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : messages.groups.members.toasts.loadFailed;
+      setMembersDialogError(message);
+      setGroupMembers([]);
+      toast.error(message);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const saveMemberGroups = async () => {
+    if (memberEditorClients.length === 0) {
+      return;
+    }
+
+    if (!hasMemberEditorChanges) {
+      return;
+    }
+
+    const currentTargets = [...memberEditorClients];
+    const targetGroupIds = [...memberEditorDraftGroupIds];
+    const busyKey = isBulkMemberEditor ? "members:save:bulk" : `members:save:${currentTargets[0]?.hwaddr ?? "client"}`;
+    let successfulTargetCount = 0;
+    let failedTargetCount = 0;
+
+    setBusyAction(busyKey);
+    setMemberEditorError(null);
+
+    try {
+      for (const member of currentTargets) {
+        const label = getClientDisplayValue(member) ?? member.hwaddr;
+        const { data, response } = await client.PUT<ClientsMutationResponse>("/clients/{client}", {
+          headers: {
+            "x-yapd-csrf": csrfToken,
+          },
+          params: {
+            path: {
+              client: member.hwaddr,
+            },
+          },
+          body: {
+            groups: targetGroupIds,
+          },
+        });
+
+        if (!response.ok || !data) {
+          failedTargetCount += 1;
+          const message = await getApiErrorMessage(response);
+          toast.error(messages.groups.members.toasts.requestFailure(label, message));
+          continue;
+        }
+
+        successfulTargetCount += 1;
+
+        if (data.failedInstances.length > 0) {
+          failedTargetCount += 1;
+          data.failedInstances.forEach((failure) => {
+            toast.error(messages.groups.members.toasts.instanceFailure(label, failure.instanceName, failure.message));
+          });
+        }
+      }
+
+      if (failedTargetCount > 0) {
+        setMemberEditorError(messages.groups.members.editor.retryHint);
+        if (successfulTargetCount > 0) {
+          toast.warning(messages.groups.members.toasts.bulkSavePartial(successfulTargetCount, failedTargetCount));
+        } else {
+          toast.error(messages.groups.members.toasts.bulkSaveFailure);
+        }
+      } else if (isBulkMemberEditor) {
+        toast.success(messages.groups.members.toasts.bulkSaveSuccess(currentTargets.length));
+      } else {
+        toast.success(messages.groups.members.toasts.saveSuccess);
+      }
+
+      const refreshedClients = await refreshMembersCache();
+
+      if (!membersDialogGroup) {
+        return;
+      }
+
+      const refreshedMembers = refreshedClients.filter((item) => item.groupIds.includes(membersDialogGroup.id));
+      setGroupMembers(refreshedMembers);
+      setSelectedMemberHwaddrs((current) =>
+        current.filter((hwaddr) => refreshedMembers.some((candidate) => candidate.hwaddr === hwaddr)),
+      );
+      const refreshedTargets = currentTargets
+        .map((target) => refreshedClients.find((item) => item.hwaddr === target.hwaddr) ?? null)
+        .filter((value): value is ClientListItem => value !== null);
+      setMemberEditorClients(refreshedTargets);
+      setMemberEditorDraftGroupIds(
+        refreshedTargets.length > 1
+          ? buildSharedGroupIds(refreshedTargets)
+          : sortNumberArray(refreshedTargets[0]?.groupIds ?? targetGroupIds),
+      );
+
+      if (failedTargetCount === 0) {
+        closeMemberEditor();
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : messages.groups.members.toasts.loadFailed);
+      setMemberEditorError(messages.groups.members.editor.retryHint);
+    } finally {
+      setBusyAction(null);
+    }
   };
 
   const runRefresh = async () => {
@@ -827,29 +1177,36 @@ export function GroupsWorkspace({
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="icon-sm"
-                              variant="outline"
-                              aria-label={messages.groups.table.edit}
-                              title={messages.groups.table.edit}
-                              disabled={immutable || isMutating}
-                              onClick={() => openEditDialog(item)}
-                            >
-                              <Pencil />
-                            </Button>
-                            <Button
-                              size="icon-sm"
-                              variant="outline"
-                              aria-label={messages.groups.table.delete}
-                              title={messages.groups.table.delete}
-                              className="text-destructive hover:text-destructive"
-                              disabled={immutable || isMutating}
-                              onClick={() => requestDelete([item.name])}
-                            >
-                              <Trash2 />
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                size="icon-sm"
+                                variant="outline"
+                                aria-label={messages.groups.table.actions}
+                                title={messages.groups.table.actions}
+                                disabled={immutable || isMutating}
+                              >
+                                <Ellipsis />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem onSelect={() => void openMembersDialog(item)}>
+                                <Users />
+                                {messages.groups.members.menuAction}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => openEditDialog(item)}>
+                                <Pencil />
+                                {messages.groups.table.edit}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onSelect={() => requestDelete([item.name])}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 />
+                                {messages.groups.table.delete}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     );
@@ -1091,6 +1448,218 @@ export function GroupsWorkspace({
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={membersDialogGroup !== null} onOpenChange={(open) => !open && closeMembersDialog()}>
+        <DialogContent className="sm:max-w-5xl" showCloseButton={!isMutating}>
+          <DialogHeader>
+            <DialogTitle>
+              {membersDialogGroup ? messages.groups.members.title(membersDialogGroup.name) : messages.groups.title}
+            </DialogTitle>
+            <DialogDescription>
+              {membersDialogGroup
+                ? messages.groups.members.description(membersDialogGroup.name)
+                : messages.groups.description}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {membersDialogError ? (
+              <Alert variant="destructive">
+                <AlertTitle>{messages.groups.members.menuAction}</AlertTitle>
+                <AlertDescription>{membersDialogError}</AlertDescription>
+              </Alert>
+            ) : null}
+
+            <div className="flex flex-col gap-3 rounded-xl border bg-muted/10 p-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <h3 className="font-medium">{messages.groups.members.clients.title}</h3>
+                <p className="text-muted-foreground text-sm">{messages.groups.members.clients.description}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedGroupMembers.length > 0 ? (
+                  <Badge variant="secondary">
+                    {messages.groups.members.clients.selectedCount(selectedGroupMembers.length)}
+                  </Badge>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={selectedGroupMembers.length === 0 || isMutating}
+                  onClick={openBulkMemberEditor}
+                >
+                  <Tags />
+                  {messages.groups.members.clients.manageSelected}
+                </Button>
+              </div>
+            </div>
+
+            {busyAction === `members:load:${membersDialogGroup?.id}` ? (
+              <div className="rounded-xl border bg-muted/10 p-6 text-muted-foreground text-sm">
+                {messages.groups.members.clients.loading}
+              </div>
+            ) : groupMembers.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Users />
+                  </EmptyMedia>
+                  <EmptyTitle>{messages.groups.members.clients.emptyTitle}</EmptyTitle>
+                  <EmptyDescription>{messages.groups.members.clients.emptyDescription}</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="overflow-hidden rounded-xl border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12 text-center">
+                        <Checkbox
+                          checked={allMembersSelected ? true : someMembersSelected ? "indeterminate" : false}
+                          aria-label={messages.groups.members.clients.selectAll}
+                          disabled={isMutating}
+                          onCheckedChange={(checked) => toggleAllMembers(checked === true)}
+                        />
+                      </TableHead>
+                      <TableHead>{messages.groups.members.clients.alias}</TableHead>
+                      <TableHead>{messages.groups.members.clients.ip}</TableHead>
+                      <TableHead className="text-right">{messages.groups.members.clients.actions}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {groupMembers.map((member) => {
+                      const displayValue = getClientDisplayValue(member) ?? messages.common.versionUnavailable;
+                      const primaryIp = getClientPrimaryIp(member) ?? messages.common.versionUnavailable;
+
+                      return (
+                        <TableRow key={member.hwaddr}>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={selectedMemberHwaddrSet.has(member.hwaddr)}
+                              aria-label={messages.groups.members.clients.selectRow(displayValue)}
+                              disabled={isMutating}
+                              onCheckedChange={(checked) => toggleSelectedMember(member.hwaddr, checked === true)}
+                            />
+                          </TableCell>
+                          <TableCell>{displayValue}</TableCell>
+                          <TableCell className="text-muted-foreground">{primaryIp}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={isMutating}
+                              onClick={() => openMemberEditor(member)}
+                            >
+                              <Tags />
+                              {messages.groups.members.clients.editGroups}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={isMutating} onClick={closeMembersDialog}>
+              {messages.groups.members.close}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={memberEditorClients.length > 0} onOpenChange={(open) => !open && closeMemberEditor()}>
+        <DialogContent className="sm:max-w-2xl" showCloseButton={!isMutating}>
+          <DialogHeader>
+            <DialogTitle>
+              {memberEditorClients.length > 0
+                ? isBulkMemberEditor
+                  ? messages.groups.members.editor.bulkTitle(memberEditorClients.length)
+                  : messages.groups.members.editor.title(
+                      memberEditorPrimaryClient
+                        ? (getClientDisplayValue(memberEditorPrimaryClient) ?? memberEditorPrimaryClient.hwaddr)
+                        : "",
+                    )
+                : messages.groups.members.menuAction}
+            </DialogTitle>
+            <DialogDescription>
+              {isBulkMemberEditor
+                ? messages.groups.members.editor.bulkDescription
+                : messages.groups.members.editor.description}
+            </DialogDescription>
+          </DialogHeader>
+
+          {memberEditorClients.length > 0 ? (
+            <div className="space-y-4">
+              {memberEditorError ? (
+                <Alert variant="destructive">
+                  <AlertTitle>{messages.groups.members.clients.editGroups}</AlertTitle>
+                  <AlertDescription>{memberEditorError}</AlertDescription>
+                </Alert>
+              ) : null}
+
+              {isBulkMemberEditor ? (
+                <Field className="gap-2">
+                  <FieldLabel>{messages.groups.members.editor.selectedClients}</FieldLabel>
+                  <Textarea readOnly value={memberEditorClientNames} className="min-h-20 resize-none bg-muted/20" />
+                </Field>
+              ) : null}
+
+              <Field className="gap-2">
+                <FieldLabel>{messages.groups.members.editor.selectedGroups}</FieldLabel>
+                <Textarea
+                  readOnly
+                  value={memberEditorSelectedGroupNames || messages.common.versionUnavailable}
+                  className="min-h-20 resize-none bg-muted/20"
+                />
+              </Field>
+
+              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                {items.map((group) => {
+                  const checkboxId = `groups-member-editor-${memberEditorClients.map((item) => item.hwaddr).join("-")}-${group.id}`;
+
+                  return (
+                    <div
+                      key={group.id}
+                      className="flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm"
+                    >
+                      <Checkbox
+                        id={checkboxId}
+                        checked={memberEditorDraftGroupIds.includes(group.id)}
+                        disabled={isMutating}
+                        onCheckedChange={(checked) => toggleMemberEditorGroup(group.id, checked === true)}
+                      />
+                      <label htmlFor={checkboxId} className="flex-1">
+                        {group.name}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={isMutating} onClick={closeMemberEditor}>
+              {messages.groups.members.editor.cancel}
+            </Button>
+            <Button
+              type="button"
+              disabled={isMutating || memberEditorClients.length === 0 || !hasMemberEditorChanges}
+              onClick={() => void saveMemberGroups()}
+            >
+              <Tags />
+              {busyAction?.startsWith("members:save:")
+                ? messages.groups.members.editor.saving
+                : messages.groups.members.editor.save}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
