@@ -1,5 +1,6 @@
 import webpush from "web-push";
 
+import { PiholeRequestError } from "../pihole/pihole.service";
 import { NotificationsService } from "./notifications.service";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -8,6 +9,7 @@ type NotificationRecord = {
   id: string;
   source: "PIHOLE" | "SYSTEM";
   type: string;
+  title: string | null;
   instanceId: string | null;
   instanceNameSnapshot: string | null;
   message: string;
@@ -158,6 +160,7 @@ function makeNotification(overrides: Partial<NotificationRecord> = {}): Notifica
     id: overrides.id ?? `notification-${Math.random().toString(36).slice(2, 10)}`,
     source: overrides.source ?? "SYSTEM",
     type: overrides.type ?? "SYSTEM_FAILURE",
+    title: overrides.title ?? null,
     instanceId: overrides.instanceId ?? null,
     instanceNameSnapshot: overrides.instanceNameSnapshot ?? null,
     message: overrides.message ?? "Mensagem",
@@ -444,6 +447,7 @@ function getServiceInternals(service: NotificationsService) {
   return service as unknown as {
     recordPiholeMessage: (instance: unknown, message: unknown) => Promise<string>;
     resolveMissingPiholeMessages: (instanceId: string, activeFingerprints: Set<string>) => Promise<void>;
+    syncPiholeMessages: () => Promise<void>;
   };
 }
 
@@ -914,4 +918,115 @@ test("mesmo fingerprint de sistema atualiza enquanto ativo e cria novo registro 
   assert.equal(prisma.__state.notifications.length, 2);
   assert.equal(prisma.__state.notifications[1]?.message, "Voltou a falhar");
   assert.equal(prisma.__state.notifications[1]?.isRead, false);
+});
+
+test("usa code e causeMessage sanitizado em falhas de transporte do Pi-hole", async () => {
+  const { service, prisma, sessions } = createService();
+  const internals = getServiceInternals(service);
+
+  sessions.listInstanceSummaries = async () => [
+    {
+      id: "instance-1",
+      name: "Pi-hole Casa",
+      baseUrl: "https://192.168.31.16",
+    },
+  ];
+  sessions.withActiveSession = async () => {
+    throw new PiholeRequestError(502, "Falha amigável antiga", "unknown", {
+      cause: {
+        code: "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE",
+        causeCode: "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE",
+        causeMessage:
+          "006D54EDA27E0000:error:0A000410:SSL routines:ssl3_read_bytes:ssl/tls alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:918:SSL alert number 40\n",
+      },
+    } as const);
+  };
+
+  await internals.syncPiholeMessages();
+
+  assert.equal(prisma.__state.notifications.length, 1);
+  assert.equal(prisma.__state.notifications[0]?.title, "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE");
+  assert.equal(
+    prisma.__state.notifications[0]?.message,
+    "error:0A000410:SSL routines:ssl3_read_bytes:ssl/tls alert handshake failure: SSL alert number 40",
+  );
+});
+
+test("expõe title com fallback para type ao listar notificações", async () => {
+  const { service } = createService({
+    notifications: [
+      makeNotification({
+        id: "with-title",
+        type: "SYSTEM_FAILURE",
+        title: "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE",
+      }),
+      makeNotification({
+        id: "without-title",
+        type: "NOTIFICATION_SYNC_ERROR",
+        title: null,
+      }),
+    ],
+  });
+
+  const list = await service.listNotifications({ page: 1, pageSize: 10, readState: "unread" });
+
+  assert.equal(list.items.find((item) => item.id === "with-title")?.title, "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE");
+  assert.equal(list.items.find((item) => item.id === "without-title")?.title, "NOTIFICATION_SYNC_ERROR");
+});
+
+test("usa notification.title no payload de push", async () => {
+  const originalSetVapidDetails = webpush.setVapidDetails;
+  const originalSendNotification = webpush.sendNotification;
+  const validKeys = webpush.generateVAPIDKeys();
+  const payloads: Array<{ title: string; body: string; data: { url: string; notificationId: string } }> = [];
+
+  webpush.setVapidDetails = (() => {
+    // Intentionally stubbed for deterministic tests.
+  }) as typeof webpush.setVapidDetails;
+  webpush.sendNotification = (async (_subscription, payload) => {
+    payloads.push(JSON.parse(payload));
+  }) as typeof webpush.sendNotification;
+
+  try {
+    const { service } = createService(
+      {
+        pushSubscriptions: [
+          {
+            endpoint: "https://push.example/subscription-1",
+            p256dh: "key",
+            auth: "auth",
+            userAgent: "test",
+            lastSuccessAt: null,
+            lastFailureAt: null,
+            failureCount: 0,
+            disabledAt: null,
+            createdAt: new Date("2026-04-09T10:00:00.000Z"),
+            updatedAt: new Date("2026-04-09T10:00:00.000Z"),
+          },
+        ],
+      },
+      {
+        env: {
+          WEB_PUSH_VAPID_PUBLIC_KEY: validKeys.publicKey,
+          WEB_PUSH_VAPID_PRIVATE_KEY: validKeys.privateKey,
+        },
+      },
+    );
+
+    await service.onModuleInit();
+    await service.recordSystemEvent({
+      type: "SYSTEM_FAILURE",
+      title: "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE",
+      fingerprint: "system:push-title",
+      instanceName: "Pi-hole Casa",
+      message: "ssl/tls alert handshake failure",
+    });
+
+    assert.equal(payloads.length, 1);
+    assert.equal(payloads[0]?.title, "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE - Pi-hole Casa");
+    assert.equal(payloads[0]?.body, "ssl/tls alert handshake failure");
+  } finally {
+    webpush.setVapidDetails = originalSetVapidDetails;
+    webpush.sendNotification = originalSendNotification;
+  }
 });

@@ -48,12 +48,19 @@ type AuditFailureEntry = {
 type SystemNotificationInput = {
   type: SystemNotificationType;
   fingerprint: string;
+  title?: string;
   message: string;
   instanceId?: string | null;
   instanceName?: string | null;
   metadata?: Prisma.InputJsonValue;
   occurredAt?: Date;
   incrementOccurrence?: boolean;
+};
+
+type NotificationFailure = {
+  kind: PiholeRequestErrorKind;
+  title?: string;
+  message: string;
 };
 
 type VapidConfig = {
@@ -72,6 +79,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function readString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function sanitizeTransportCauseMessage(value: string) {
+  return value
+    .replace(/^[0-9A-F]{8,}:/i, "")
+    .replace(/:\.\.\/deps\/openssl\/openssl\/[^:\n]+(?::\d+)?/g, ": ")
+    .replace(/:\s*:/g, ": ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function readFailedInstanceEntries(value: unknown) {
@@ -399,6 +415,7 @@ export class NotificationsService implements OnModuleInit {
         where: { id: existing.id },
         data: {
           type: input.type,
+          title: input.title ?? null,
           message: input.message,
           instanceId: input.instanceId ?? null,
           instanceNameSnapshot: input.instanceName ?? null,
@@ -417,6 +434,7 @@ export class NotificationsService implements OnModuleInit {
       data: {
         source: "SYSTEM",
         type: input.type,
+        title: input.title ?? null,
         instanceId: input.instanceId ?? null,
         instanceNameSnapshot: input.instanceName ?? null,
         message: input.message,
@@ -543,6 +561,7 @@ export class NotificationsService implements OnModuleInit {
           await this.recordSystemEvent({
             type: "NOTIFICATION_SYNC_ERROR",
             fingerprint: syncErrorFingerprint,
+            title: failure.title,
             message: failure.message,
             instanceId: instance.id,
             instanceName: instance.name,
@@ -706,6 +725,7 @@ export class NotificationsService implements OnModuleInit {
       await this.prisma.notification.update({
         where: { id: existing.id },
         data: {
+          title: message.type,
           message: message.plain,
           instanceNameSnapshot: instance.name,
           lastSeenAt: now,
@@ -722,6 +742,7 @@ export class NotificationsService implements OnModuleInit {
       data: {
         source: "PIHOLE",
         type: message.type,
+        title: message.type,
         instanceId: instance.id,
         instanceNameSnapshot: instance.name,
         message: message.plain,
@@ -789,9 +810,10 @@ export class NotificationsService implements OnModuleInit {
       return;
     }
 
+    const titleBase = this.resolveNotificationTitle(notification);
     const title = notification.instanceNameSnapshot?.trim().length
-      ? `${notification.type} - ${notification.instanceNameSnapshot}`
-      : notification.type;
+      ? `${titleBase} - ${notification.instanceNameSnapshot}`
+      : titleBase;
     const payload = JSON.stringify({
       title,
       body: notification.message,
@@ -865,6 +887,7 @@ export class NotificationsService implements OnModuleInit {
       id: record.id,
       source: record.source as NotificationSource,
       type: record.type,
+      title: this.resolveNotificationTitle(record),
       instanceId: record.instanceId ?? null,
       instanceName: record.instanceNameSnapshot ?? null,
       message: record.message,
@@ -922,9 +945,11 @@ export class NotificationsService implements OnModuleInit {
 
   private mapNotificationFailure(instance: PiholeManagedInstanceSummary, error: unknown) {
     if (error instanceof PiholeRequestError) {
+      const transportFailure = this.extractTransportFailure(error);
       return {
         kind: error.kind,
-        message: error.message,
+        title: transportFailure?.title,
+        message: transportFailure?.message ?? error.message,
       };
     }
 
@@ -939,6 +964,33 @@ export class NotificationsService implements OnModuleInit {
       kind: "unknown" as PiholeRequestErrorKind,
       message: translateApi(DEFAULT_API_LOCALE, "pihole.unreachable", { baseUrl: instance.baseUrl }),
     };
+  }
+
+  private extractTransportFailure(error: PiholeRequestError): Pick<NotificationFailure, "title" | "message"> | null {
+    const payload = isRecord(error.payload) ? error.payload : null;
+    const cause = payload && isRecord(payload.cause) ? payload.cause : null;
+
+    if (!cause) {
+      return null;
+    }
+
+    const title = readString(cause.code) || readString(cause.causeCode);
+    const rawMessage = readString(cause.causeMessage);
+    const message = rawMessage.length > 0 ? sanitizeTransportCauseMessage(rawMessage) : readString(error.message);
+
+    if (title.length === 0 && message.length === 0) {
+      return null;
+    }
+
+    return {
+      ...(title.length > 0 ? { title } : {}),
+      message: message.length > 0 ? message : error.message,
+    };
+  }
+
+  private resolveNotificationTitle(record: Pick<NotificationRecord, "title" | "type">) {
+    const explicitTitle = readString(record.title);
+    return explicitTitle.length > 0 ? explicitTitle : record.type;
   }
 
   private getInstancePollFingerprint(instanceId: string) {

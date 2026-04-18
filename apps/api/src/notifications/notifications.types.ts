@@ -27,6 +27,7 @@ export type NotificationItem = {
   id: string;
   source: NotificationSource;
   type: NotificationType;
+  title: string;
   instanceId: string | null;
   instanceName: string | null;
   message: string;

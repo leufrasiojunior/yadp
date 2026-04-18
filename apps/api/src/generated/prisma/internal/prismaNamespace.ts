@@ -1934,6 +1934,7 @@ export const NotificationScalarFieldEnum = {
   id: 'id',
   source: 'source',
   type: 'type',
+  title: 'title',
   instanceId: 'instanceId',
   instanceNameSnapshot: 'instanceNameSnapshot',
   message: 'message',

@@ -44,6 +44,10 @@ export function getNotificationTypeLabel(type: NotificationItem["type"], message
   }
 }
 
+export function getNotificationTitle(item: NotificationItem, messages: WebMessages) {
+  return item.title?.trim().length ? item.title : getNotificationTypeLabel(item.type, messages);
+}
+
 export function getNotificationInstanceLabel(item: NotificationItem, messages: WebMessages) {
   return item.instanceName?.trim().length ? item.instanceName : messages.notifications.table.systemInstance;
 }

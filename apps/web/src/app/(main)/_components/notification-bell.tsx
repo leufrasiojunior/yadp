@@ -26,7 +26,7 @@ import type {
   PushSubscriptionResponse,
 } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
-import { getNotificationInstanceLabel, getNotificationTypeLabel } from "@/lib/notifications/notifications";
+import { getNotificationInstanceLabel, getNotificationTitle } from "@/lib/notifications/notifications";
 import { decodePushPublicKey, isCurrentPushSubscriptionServerKey } from "@/lib/notifications/push-subscription";
 import { cn } from "@/lib/utils";
 import { useNotificationsStore } from "@/stores/notifications/notifications-provider";
@@ -303,7 +303,7 @@ export function NotificationBell() {
                       <div className="min-w-0 space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className={cn("text-sm", !item.isRead && "font-semibold")}>
-                            {getNotificationTypeLabel(item.type, messages)}
+                            {getNotificationTitle(item, messages)}
                           </span>
                           <span className="text-muted-foreground text-xs">
                             {getNotificationInstanceLabel(item, messages)}

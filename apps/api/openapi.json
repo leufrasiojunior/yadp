@@ -41,6 +41,9 @@
                               "CONNECTION_ERROR"
                             ]
                           },
+                          "title": {
+                            "type": "string"
+                          },
                           "instanceId": {
                             "type": "string",
                             "nullable": true
@@ -93,6 +96,7 @@
                           "id",
                           "source",
                           "type",
+                          "title",
                           "instanceId",
                           "instanceName",
                           "message",
@@ -188,6 +192,9 @@
                               "CONNECTION_ERROR"
                             ]
                           },
+                          "title": {
+                            "type": "string"
+                          },
                           "instanceId": {
                             "type": "string",
                             "nullable": true
@@ -240,6 +247,7 @@
                           "id",
                           "source",
                           "type",
+                          "title",
                           "instanceId",
                           "instanceName",
                           "message",
@@ -320,6 +328,9 @@
                             "CONNECTION_ERROR"
                           ]
                         },
+                        "title": {
+                          "type": "string"
+                        },
                         "instanceId": {
                           "type": "string",
                           "nullable": true
@@ -372,6 +383,7 @@
                         "id",
                         "source",
                         "type",
+                        "title",
                         "instanceId",
                         "instanceName",
                         "message",
@@ -469,6 +481,9 @@
                             "CONNECTION_ERROR"
                           ]
                         },
+                        "title": {
+                          "type": "string"
+                        },
                         "instanceId": {
                           "type": "string",
                           "nullable": true
@@ -521,6 +536,7 @@
                         "id",
                         "source",
                         "type",
+                        "title",
                         "instanceId",
                         "instanceName",
                         "message",
@@ -568,9 +584,14 @@
                     "publicKey": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "source": {
+                      "type": "string",
+                      "enum": ["env", "database"],
+                      "nullable": true
                     }
                   },
-                  "required": ["available", "publicKey"]
+                  "required": ["available", "publicKey", "source"]
                 }
               }
             }
@@ -1069,6 +1090,116 @@
                   }
                 },
                 "required": ["client"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalInstances": {
+                          "type": "number"
+                        },
+                        "successfulCount": {
+                          "type": "number"
+                        },
+                        "failedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalInstances", "successfulCount", "failedCount"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName"]
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "invalid_credentials",
+                              "tls_error",
+                              "timeout",
+                              "dns_error",
+                              "connection_refused",
+                              "pihole_response_error",
+                              "unknown"
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["instanceId", "instanceName", "kind", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "successfulInstances", "failedInstances"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["clients"]
+      }
+    },
+    "/clients/{client}": {
+      "put": {
+        "operationId": "ClientsController_updateClient",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "example": [0]
+                  }
+                }
               }
             }
           }

@@ -223,6 +223,7 @@ export type NotificationItem = {
     | "SYNC_FAILURE"
     | "SYSTEM_FAILURE"
     | string;
+  title: string;
   instanceId: string | null;
   instanceName: string | null;
   message: string;

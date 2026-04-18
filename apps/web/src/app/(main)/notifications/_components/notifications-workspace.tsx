@@ -36,8 +36,8 @@ import type {
 import { useWebI18n } from "@/lib/i18n/client";
 import {
   getNotificationInstanceLabel,
+  getNotificationTitle,
   getNotificationTypeIcon,
-  getNotificationTypeLabel,
 } from "@/lib/notifications/notifications";
 import { cn } from "@/lib/utils";
 import { useNotificationsStore } from "@/stores/notifications/notifications-provider";
@@ -309,7 +309,7 @@ export function NotificationsWorkspace({ initialData }: Readonly<NotificationsWo
                           <TypeIcon className="size-4" />
                         </span>
                         {!item.isRead ? <span className="size-2 rounded-full bg-primary" aria-hidden /> : null}
-                        <span>{getNotificationTypeLabel(item.type, messages)}</span>
+                        <span>{getNotificationTitle(item, messages)}</span>
                       </span>
                     </TableCell>
                     <TableCell>

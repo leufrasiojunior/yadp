@@ -7,11 +7,6 @@ Top Blocked Domains by period(pagina especifica, se nao me engano ja existe rota
 
 ver se vale a pena adicionar no YAPD uma busca no github para obter a versao mais recente. checagem a cada 2hs, para mandar uma notificacao push quando as instancias tiverem updates
 
-ajustar as notificacoes em push, e aproveitar e ja melhorar os motivos dos erros. Exemplo:
-WARN [PiholeService] [req:94] Pi-hole transport failure after 27ms method=POST requestUrl=https://192.168.31.16/api/auth configuredBaseUrl=https://192.168.31.16 normalizedBaseUrl=https://192.168.31.16 kind=unknown raw={"name":"TypeError","message":"fetch failed","code":"ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE","causeName":"Error","causeMessage":"001D559EEA7A0000:error:0A000410:SSL routines:ssl3_read_bytes:ssl/tls alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:918:SSL alert number 40\n","causeCode":"ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE"}
-
-retornar o causecode
-
 salvar tambem as configuracoes selecionadas no BD, mas manter o cookie como primario. Cookie manda.
 
 -----
@@ -19,10 +14,6 @@ salvar tambem as configuracoes selecionadas no BD, mas manter o cookie como prim
 mandar o codex
 remover o aviso do checkbox de atualizando, e deixar um simples spiner ao lado.(como somente indicativo que esta atualizando)
 Botao de atualizar a tabela
-
-
-Adicionar bandeiras no seletor de idiomas
-Tambem adicionar um alternador do tema claro/escuro no top bar
 
 adicionar um passo opcional no setup, depois de configurar as instancias, ja perguntar se quer sincronizar(usar o teleport para todas as instancias, e ir 1 por vez nessa parte, com o componente progress, se uma instancia falhar,  perguntar se quer tentar de novo, se falhar 3x seguidas perguntar se quer fazer isso depois, ou cancelar. Salvar os estados das instancias para tentar recuperar tambem usando a mesma rota.)
 (perguntar 2x, pois pode ser uma acao destrutiva, ou seja, quando aceitar a primeira vez, perguntar de novo com titulo diferente. Usar a rota de export para exportar e depois importar em todas as instancias. Lembrar de apagar o ZIP gerado)
@@ -41,18 +32,7 @@ Mostrar grafico de mais pesquisados
 Top acessados
 Top bloqueados
 
-
-Usar a rota /info/messages 
-para implementar notificacoes. Tanto notificacoes de sistema (exemplo, falhar a syncronizacao automatica ou manual mais de 1 vez, e outros erros de sistema)
-quanto as notificacoes do proprio pihole, separado por instancia.
-a rota /info/messages/count ja retorna a quantidade de mensagens, ver se faz sentido usar ou somar direto no front.(principalmente para evitar mais chamadas juntas para a mesma instancia)
-
-
-
 --
-
-Ajustar a tela de erro de comunicacao com o back. somente informar que o backend ainda nao subiu, atualizando a pagina ate conseguir(atualizar a cada 10 segundos, com link para atualizar agora)
-
 
 
 Modelos de lista:
