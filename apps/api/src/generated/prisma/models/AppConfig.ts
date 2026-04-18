@@ -29,6 +29,9 @@ export type AppConfigMinAggregateOutputType = {
   loginMode: $Enums.AppLoginMode | null
   passwordHash: string | null
   timeZone: string | null
+  webPushVapidPublicKey: string | null
+  webPushVapidPrivateKeyEncrypted: string | null
+  webPushVapidSubject: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,6 +41,9 @@ export type AppConfigMaxAggregateOutputType = {
   loginMode: $Enums.AppLoginMode | null
   passwordHash: string | null
   timeZone: string | null
+  webPushVapidPublicKey: string | null
+  webPushVapidPrivateKeyEncrypted: string | null
+  webPushVapidSubject: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,6 +53,9 @@ export type AppConfigCountAggregateOutputType = {
   loginMode: number
   passwordHash: number
   timeZone: number
+  webPushVapidPublicKey: number
+  webPushVapidPrivateKeyEncrypted: number
+  webPushVapidSubject: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -58,6 +67,9 @@ export type AppConfigMinAggregateInputType = {
   loginMode?: true
   passwordHash?: true
   timeZone?: true
+  webPushVapidPublicKey?: true
+  webPushVapidPrivateKeyEncrypted?: true
+  webPushVapidSubject?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -67,6 +79,9 @@ export type AppConfigMaxAggregateInputType = {
   loginMode?: true
   passwordHash?: true
   timeZone?: true
+  webPushVapidPublicKey?: true
+  webPushVapidPrivateKeyEncrypted?: true
+  webPushVapidSubject?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -76,6 +91,9 @@ export type AppConfigCountAggregateInputType = {
   loginMode?: true
   passwordHash?: true
   timeZone?: true
+  webPushVapidPublicKey?: true
+  webPushVapidPrivateKeyEncrypted?: true
+  webPushVapidSubject?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -158,6 +176,9 @@ export type AppConfigGroupByOutputType = {
   loginMode: $Enums.AppLoginMode
   passwordHash: string | null
   timeZone: string
+  webPushVapidPublicKey: string | null
+  webPushVapidPrivateKeyEncrypted: string | null
+  webPushVapidSubject: string | null
   createdAt: Date
   updatedAt: Date
   _count: AppConfigCountAggregateOutputType | null
@@ -188,6 +209,9 @@ export type AppConfigWhereInput = {
   loginMode?: Prisma.EnumAppLoginModeFilter<"AppConfig"> | $Enums.AppLoginMode
   passwordHash?: Prisma.StringNullableFilter<"AppConfig"> | string | null
   timeZone?: Prisma.StringFilter<"AppConfig"> | string
+  webPushVapidPublicKey?: Prisma.StringNullableFilter<"AppConfig"> | string | null
+  webPushVapidPrivateKeyEncrypted?: Prisma.StringNullableFilter<"AppConfig"> | string | null
+  webPushVapidSubject?: Prisma.StringNullableFilter<"AppConfig"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AppConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AppConfig"> | Date | string
 }
@@ -197,6 +221,9 @@ export type AppConfigOrderByWithRelationInput = {
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  webPushVapidPublicKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  webPushVapidPrivateKeyEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  webPushVapidSubject?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -209,6 +236,9 @@ export type AppConfigWhereUniqueInput = Prisma.AtLeast<{
   loginMode?: Prisma.EnumAppLoginModeFilter<"AppConfig"> | $Enums.AppLoginMode
   passwordHash?: Prisma.StringNullableFilter<"AppConfig"> | string | null
   timeZone?: Prisma.StringFilter<"AppConfig"> | string
+  webPushVapidPublicKey?: Prisma.StringNullableFilter<"AppConfig"> | string | null
+  webPushVapidPrivateKeyEncrypted?: Prisma.StringNullableFilter<"AppConfig"> | string | null
+  webPushVapidSubject?: Prisma.StringNullableFilter<"AppConfig"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AppConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AppConfig"> | Date | string
 }, "id">
@@ -218,6 +248,9 @@ export type AppConfigOrderByWithAggregationInput = {
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  webPushVapidPublicKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  webPushVapidPrivateKeyEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  webPushVapidSubject?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AppConfigCountOrderByAggregateInput
@@ -233,6 +266,9 @@ export type AppConfigScalarWhereWithAggregatesInput = {
   loginMode?: Prisma.EnumAppLoginModeWithAggregatesFilter<"AppConfig"> | $Enums.AppLoginMode
   passwordHash?: Prisma.StringNullableWithAggregatesFilter<"AppConfig"> | string | null
   timeZone?: Prisma.StringWithAggregatesFilter<"AppConfig"> | string
+  webPushVapidPublicKey?: Prisma.StringNullableWithAggregatesFilter<"AppConfig"> | string | null
+  webPushVapidPrivateKeyEncrypted?: Prisma.StringNullableWithAggregatesFilter<"AppConfig"> | string | null
+  webPushVapidSubject?: Prisma.StringNullableWithAggregatesFilter<"AppConfig"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AppConfig"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AppConfig"> | Date | string
 }
@@ -242,6 +278,9 @@ export type AppConfigCreateInput = {
   loginMode?: $Enums.AppLoginMode
   passwordHash?: string | null
   timeZone?: string
+  webPushVapidPublicKey?: string | null
+  webPushVapidPrivateKeyEncrypted?: string | null
+  webPushVapidSubject?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -251,6 +290,9 @@ export type AppConfigUncheckedCreateInput = {
   loginMode?: $Enums.AppLoginMode
   passwordHash?: string | null
   timeZone?: string
+  webPushVapidPublicKey?: string | null
+  webPushVapidPrivateKeyEncrypted?: string | null
+  webPushVapidSubject?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -260,6 +302,9 @@ export type AppConfigUpdateInput = {
   loginMode?: Prisma.EnumAppLoginModeFieldUpdateOperationsInput | $Enums.AppLoginMode
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  webPushVapidPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  webPushVapidPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  webPushVapidSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -269,6 +314,9 @@ export type AppConfigUncheckedUpdateInput = {
   loginMode?: Prisma.EnumAppLoginModeFieldUpdateOperationsInput | $Enums.AppLoginMode
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  webPushVapidPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  webPushVapidPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  webPushVapidSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -278,6 +326,9 @@ export type AppConfigCreateManyInput = {
   loginMode?: $Enums.AppLoginMode
   passwordHash?: string | null
   timeZone?: string
+  webPushVapidPublicKey?: string | null
+  webPushVapidPrivateKeyEncrypted?: string | null
+  webPushVapidSubject?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -287,6 +338,9 @@ export type AppConfigUpdateManyMutationInput = {
   loginMode?: Prisma.EnumAppLoginModeFieldUpdateOperationsInput | $Enums.AppLoginMode
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  webPushVapidPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  webPushVapidPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  webPushVapidSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -296,6 +350,9 @@ export type AppConfigUncheckedUpdateManyInput = {
   loginMode?: Prisma.EnumAppLoginModeFieldUpdateOperationsInput | $Enums.AppLoginMode
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  webPushVapidPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  webPushVapidPrivateKeyEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  webPushVapidSubject?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -305,6 +362,9 @@ export type AppConfigCountOrderByAggregateInput = {
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  webPushVapidPublicKey?: Prisma.SortOrder
+  webPushVapidPrivateKeyEncrypted?: Prisma.SortOrder
+  webPushVapidSubject?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -314,6 +374,9 @@ export type AppConfigMaxOrderByAggregateInput = {
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  webPushVapidPublicKey?: Prisma.SortOrder
+  webPushVapidPrivateKeyEncrypted?: Prisma.SortOrder
+  webPushVapidSubject?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -323,6 +386,9 @@ export type AppConfigMinOrderByAggregateInput = {
   loginMode?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  webPushVapidPublicKey?: Prisma.SortOrder
+  webPushVapidPrivateKeyEncrypted?: Prisma.SortOrder
+  webPushVapidSubject?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -350,6 +416,9 @@ export type AppConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   loginMode?: boolean
   passwordHash?: boolean
   timeZone?: boolean
+  webPushVapidPublicKey?: boolean
+  webPushVapidPrivateKeyEncrypted?: boolean
+  webPushVapidSubject?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appConfig"]>
@@ -359,6 +428,9 @@ export type AppConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   loginMode?: boolean
   passwordHash?: boolean
   timeZone?: boolean
+  webPushVapidPublicKey?: boolean
+  webPushVapidPrivateKeyEncrypted?: boolean
+  webPushVapidSubject?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appConfig"]>
@@ -368,6 +440,9 @@ export type AppConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   loginMode?: boolean
   passwordHash?: boolean
   timeZone?: boolean
+  webPushVapidPublicKey?: boolean
+  webPushVapidPrivateKeyEncrypted?: boolean
+  webPushVapidSubject?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appConfig"]>
@@ -377,11 +452,14 @@ export type AppConfigSelectScalar = {
   loginMode?: boolean
   passwordHash?: boolean
   timeZone?: boolean
+  webPushVapidPublicKey?: boolean
+  webPushVapidPrivateKeyEncrypted?: boolean
+  webPushVapidSubject?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AppConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginMode" | "passwordHash" | "timeZone" | "createdAt" | "updatedAt", ExtArgs["result"]["appConfig"]>
+export type AppConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginMode" | "passwordHash" | "timeZone" | "webPushVapidPublicKey" | "webPushVapidPrivateKeyEncrypted" | "webPushVapidSubject" | "createdAt" | "updatedAt", ExtArgs["result"]["appConfig"]>
 
 export type $AppConfigPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AppConfig"
@@ -391,6 +469,9 @@ export type $AppConfigPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     loginMode: $Enums.AppLoginMode
     passwordHash: string | null
     timeZone: string
+    webPushVapidPublicKey: string | null
+    webPushVapidPrivateKeyEncrypted: string | null
+    webPushVapidSubject: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["appConfig"]>
@@ -820,6 +901,9 @@ export interface AppConfigFieldRefs {
   readonly loginMode: Prisma.FieldRef<"AppConfig", 'AppLoginMode'>
   readonly passwordHash: Prisma.FieldRef<"AppConfig", 'String'>
   readonly timeZone: Prisma.FieldRef<"AppConfig", 'String'>
+  readonly webPushVapidPublicKey: Prisma.FieldRef<"AppConfig", 'String'>
+  readonly webPushVapidPrivateKeyEncrypted: Prisma.FieldRef<"AppConfig", 'String'>
+  readonly webPushVapidSubject: Prisma.FieldRef<"AppConfig", 'String'>
   readonly createdAt: Prisma.FieldRef<"AppConfig", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AppConfig", 'DateTime'>
 }

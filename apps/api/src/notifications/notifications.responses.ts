@@ -123,8 +123,9 @@ export const PUSH_PUBLIC_KEY_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
     properties: {
       available: { type: "boolean" },
       publicKey: { type: "string", nullable: true },
+      source: { type: "string", enum: ["env", "database"], nullable: true },
     },
-    required: ["available", "publicKey"],
+    required: ["available", "publicKey", "source"],
   },
 };
 

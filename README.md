@@ -8,6 +8,16 @@ YAPD stores the selected time zone in the backend configuration and uses that va
 - The web app no longer depends on the browser time zone as the source of truth.
 - Docker containers can still define `TZ` for OS-level logs and processes, but YAPD date rendering follows the saved application preference.
 
+### Push notifications
+
+YAPD now keeps the Web Push VAPID key pair stable across restarts.
+
+- If `WEB_PUSH_VAPID_PUBLIC_KEY` and `WEB_PUSH_VAPID_PRIVATE_KEY` are provided, YAPD uses them as an explicit managed override.
+- If they are omitted, YAPD generates a VAPID key pair once and stores it in `AppConfig`.
+- The persisted private key is encrypted with `APP_ENCRYPTION_KEY`, so that value must remain stable across restarts and deployments.
+- If `APP_ENCRYPTION_KEY` changes, YAPD can no longer decrypt the stored VAPID private key and push delivery will fail until a valid configuration is restored.
+- Browsers that still hold an old subscription are automatically re-subscribed the next time the user opens the app.
+
 ### Database migrations
 
 YAPD now treats Prisma migrations in `apps/api/prisma/migrations` as the source of truth for database history.

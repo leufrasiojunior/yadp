@@ -27,6 +27,7 @@ import type {
 } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
 import { getNotificationInstanceLabel, getNotificationTypeLabel } from "@/lib/notifications/notifications";
+import { decodePushPublicKey, isCurrentPushSubscriptionServerKey } from "@/lib/notifications/push-subscription";
 import { cn } from "@/lib/utils";
 import { useNotificationsStore } from "@/stores/notifications/notifications-provider";
 
@@ -34,13 +35,6 @@ function isPushSupported() {
   return (
     typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator && "PushManager" in window
   );
-}
-
-function decodeUrlBase64(base64String: string) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replaceAll("-", "+").replaceAll("_", "/");
-  const raw = window.atob(base64);
-  return Uint8Array.from(raw, (char) => char.charCodeAt(0));
 }
 
 export function NotificationBell() {
@@ -51,6 +45,7 @@ export function NotificationBell() {
   const refreshPreview = useNotificationsStore((state) => state.refreshPreview);
   const [pushPermission, setPushPermission] = useState<string>("default");
   const [pushEndpoint, setPushEndpoint] = useState<string | null>(null);
+  const [pushAvailable, setPushAvailable] = useState(preview?.push.available ?? false);
   const [pushBusy, setPushBusy] = useState<"enable" | "disable" | null>(null);
   const unreadCount = preview?.unreadCount ?? 0;
 
@@ -62,13 +57,62 @@ export function NotificationBell() {
     let cancelled = false;
 
     const loadPushState = async () => {
+      const { data: publicKeyData, response: publicKeyResponse } = await client.GET<PushPublicKeyResponse>(
+        "/notifications/push/public-key",
+      );
+      const publicKey =
+        publicKeyResponse.ok && publicKeyData?.available && publicKeyData.publicKey ? publicKeyData.publicKey : null;
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      let subscription = await registration.pushManager.getSubscription();
+
+      if (
+        Notification.permission === "granted" &&
+        subscription &&
+        publicKey &&
+        !isCurrentPushSubscriptionServerKey(subscription.options.applicationServerKey, publicKey)
+      ) {
+        try {
+          await client.DELETE<PushSubscriptionResponse>("/notifications/push/subscription", {
+            headers: {
+              "x-yapd-csrf": csrfToken,
+            },
+            params: {
+              query: {
+                endpoint: subscription.endpoint,
+              },
+            },
+          });
+        } catch {
+          // Best-effort cleanup for stale subscriptions.
+        }
+
+        await subscription.unsubscribe();
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: decodePushPublicKey(publicKey),
+        });
+
+        const subscriptionJson = subscription.toJSON();
+        await client.PUT<PushSubscriptionResponse>("/notifications/push/subscription", {
+          headers: {
+            "x-yapd-csrf": csrfToken,
+          },
+          body: {
+            endpoint: subscription.endpoint,
+            keys: {
+              auth: subscriptionJson.keys?.auth ?? "",
+              p256dh: subscriptionJson.keys?.p256dh ?? "",
+            },
+            userAgent: navigator.userAgent,
+          },
+        });
+      }
 
       if (cancelled) {
         return;
       }
 
+      setPushAvailable(Boolean(publicKey));
       setPushPermission(Notification.permission);
       setPushEndpoint(subscription?.endpoint ?? null);
     };
@@ -78,7 +122,7 @@ export function NotificationBell() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [client, csrfToken]);
 
   const handleMarkAllAsRead = async () => {
     const { data, response } = await client.PATCH<NotificationReadAllResponse>("/notifications/read-all", {
@@ -118,16 +162,19 @@ export function NotificationBell() {
       );
 
       if (!publicKeyResponse.ok || !publicKeyData?.available || !publicKeyData.publicKey) {
+        setPushAvailable(false);
         toast.error(messages.notifications.toasts.pushFailed);
         return;
       }
+
+      setPushAvailable(true);
 
       const registration = await navigator.serviceWorker.ready;
       const subscription =
         (await registration.pushManager.getSubscription()) ??
         (await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: decodeUrlBase64(publicKeyData.publicKey),
+          applicationServerKey: decodePushPublicKey(publicKeyData.publicKey),
         }));
       const subscriptionJson = subscription.toJSON();
       const body: PushSubscriptionBody = {
@@ -202,6 +249,10 @@ export function NotificationBell() {
       return messages.notifications.preview.pushUnsupported;
     }
 
+    if (!pushAvailable) {
+      return messages.notifications.preview.pushUnsupported;
+    }
+
     if (pushPermission === "denied") {
       return messages.notifications.preview.pushDenied;
     }
@@ -223,7 +274,7 @@ export function NotificationBell() {
         <Button variant="outline" size="icon" className="relative">
           <Bell className="size-4" />
           {unreadCount > 0 ? (
-            <span className="absolute -top-1 -right-1 min-w-5 rounded-full bg-destructive px-1 text-center text-[10px] text-destructive-foreground">
+            <span className="-top-1 -right-1 absolute min-w-5 rounded-full bg-destructive px-1 text-center text-[10px] text-destructive-foreground">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           ) : null}
@@ -278,7 +329,7 @@ export function NotificationBell() {
             variant={pushEndpoint ? "outline" : "default"}
             size="sm"
             onClick={() => void (pushEndpoint ? handleDisablePush() : handleEnablePush())}
-            disabled={pushBusy !== null || !preview?.push.available}
+            disabled={pushBusy !== null || !pushAvailable}
           >
             {pushEndpoint ? <BellOff className="size-4" /> : <Bell className="size-4" />}
             {pushEndpoint ? messages.notifications.preview.pushDisable : pushLabel}

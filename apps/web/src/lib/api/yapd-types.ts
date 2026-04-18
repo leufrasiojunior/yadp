@@ -268,6 +268,7 @@ export type NotificationReadAllResponse = {
 export type PushPublicKeyResponse = {
   available: boolean;
   publicKey: string | null;
+  source: "env" | "database" | null;
 };
 
 export type PushSubscriptionBody = {

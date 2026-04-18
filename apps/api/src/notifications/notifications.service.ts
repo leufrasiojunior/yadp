@@ -10,6 +10,7 @@ import {
 import { Cron, CronExpression, Interval } from "@nestjs/schedule";
 import webpush from "web-push";
 
+import { CryptoService } from "../common/crypto/crypto.service";
 import { DEFAULT_API_LOCALE } from "../common/i18n/locale";
 import { translateApi } from "../common/i18n/messages";
 import { PrismaService } from "../common/prisma/prisma.service";
@@ -33,6 +34,7 @@ import type {
   PushSubscriptionResponse,
   SystemNotificationType,
 } from "./notifications.types";
+import { createHash } from "node:crypto";
 
 type NotificationRecord = Awaited<ReturnType<PrismaService["notification"]["findFirstOrThrow"]>>;
 
@@ -58,6 +60,7 @@ type VapidConfig = {
   publicKey: string;
   privateKey: string;
   subject: string;
+  source: "env" | "database";
 };
 
 const PIHOLE_TYPE_SET = new Set(BACKEND_CONFIG.notifications.piholeMessageTypes);
@@ -120,23 +123,21 @@ function notificationReadStateWhere(readState: NotificationReadState): Prisma.No
 export class NotificationsService implements OnModuleInit {
   private readonly logger = new Logger(NotificationsService.name);
   private readonly pollFingerprints = new Map<string, string>();
-  private readonly vapidConfig: VapidConfig | null;
+  private vapidConfig: VapidConfig | null;
   private syncInProgress = false;
 
   constructor(
     @Inject(AppEnvService) private readonly env: AppEnvService,
+    @Inject(CryptoService) private readonly crypto: CryptoService,
     @Inject(PiholeInstanceSessionService) private readonly instanceSessions: PiholeInstanceSessionService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {
-    this.vapidConfig = this.resolveVapidConfig();
-
-    if (this.vapidConfig) {
-      webpush.setVapidDetails(this.vapidConfig.subject, this.vapidConfig.publicKey, this.vapidConfig.privateKey);
-    }
+    this.vapidConfig = this.resolveEnvVapidConfig();
   }
 
-  onModuleInit() {
+  async onModuleInit() {
+    await this.ensureVapidConfig();
     void this.runScheduledSync("startup");
   }
 
@@ -323,6 +324,7 @@ export class NotificationsService implements OnModuleInit {
     return {
       available: this.vapidConfig !== null,
       publicKey: this.vapidConfig?.publicKey ?? null,
+      source: this.vapidConfig?.source ?? null,
     };
   }
 
@@ -823,6 +825,12 @@ export class NotificationsService implements OnModuleInit {
           });
         } catch (error) {
           const statusCode = this.readPushFailureStatusCode(error);
+          const endpointDiagnostic = this.buildEndpointDiagnostic(subscription.endpoint);
+          this.logger.warn(
+            `Failed to send push notification to ${endpointDiagnostic} (status: ${statusCode ?? "unknown"}): ${
+              error instanceof Error ? error.message : "unknown error"
+            }`,
+          );
           await this.prisma.pushSubscription.update({
             where: { endpoint: subscription.endpoint },
             data: {
@@ -845,6 +853,11 @@ export class NotificationsService implements OnModuleInit {
 
     const statusCode = error.statusCode;
     return typeof statusCode === "number" ? statusCode : null;
+  }
+
+  private buildEndpointDiagnostic(endpoint: string) {
+    const hash = createHash("sha256").update(endpoint).digest("hex").slice(0, 12);
+    return `subscription#${hash}`;
   }
 
   private mapNotificationItem(record: NotificationRecord): NotificationItem {
@@ -940,7 +953,7 @@ export class NotificationsService implements OnModuleInit {
     return fingerprint;
   }
 
-  private resolveVapidConfig(): VapidConfig | null {
+  private resolveEnvVapidConfig(): VapidConfig | null {
     const publicKey = this.env.values.WEB_PUSH_VAPID_PUBLIC_KEY?.trim();
     const privateKey = this.env.values.WEB_PUSH_VAPID_PRIVATE_KEY?.trim();
     const subject = this.env.values.WEB_PUSH_VAPID_SUBJECT.trim();
@@ -950,18 +963,76 @@ export class NotificationsService implements OnModuleInit {
         publicKey,
         privateKey,
         subject,
+        source: "env",
       };
     }
 
-    const generated = webpush.generateVAPIDKeys();
-    this.logger.warn(
-      "WEB_PUSH_VAPID_PUBLIC_KEY/PRIVATE_KEY were not configured. Generated ephemeral keys for this process.",
-    );
+    if (publicKey || privateKey) {
+      this.logger.warn(
+        "WEB_PUSH_VAPID_PUBLIC_KEY/PRIVATE_KEY must both be set. Falling back to persisted database configuration.",
+      );
+    }
 
-    return {
+    return null;
+  }
+
+  private async ensureVapidConfig() {
+    if (this.vapidConfig) {
+      this.applyVapidConfig(this.vapidConfig);
+      return this.vapidConfig;
+    }
+
+    const subject = this.env.values.WEB_PUSH_VAPID_SUBJECT.trim();
+    const appConfig = await this.prisma.appConfig.findUnique({
+      where: { id: "singleton" },
+    });
+    const persistedPublicKey = appConfig?.webPushVapidPublicKey?.trim();
+    const persistedPrivateKeyEncrypted = appConfig?.webPushVapidPrivateKeyEncrypted?.trim();
+    const persistedSubject = appConfig?.webPushVapidSubject?.trim() || subject;
+
+    if (persistedPublicKey && persistedPrivateKeyEncrypted) {
+      const resolved = {
+        publicKey: persistedPublicKey,
+        privateKey: this.crypto.decryptSecret(persistedPrivateKeyEncrypted),
+        subject: persistedSubject,
+        source: "database" as const,
+      };
+
+      this.applyVapidConfig(resolved);
+      this.vapidConfig = resolved;
+      return resolved;
+    }
+
+    const generated = webpush.generateVAPIDKeys();
+    const created = {
       publicKey: generated.publicKey,
       privateKey: generated.privateKey,
       subject,
+      source: "database" as const,
     };
+
+    await this.prisma.appConfig.upsert({
+      where: { id: "singleton" },
+      update: {
+        webPushVapidPublicKey: created.publicKey,
+        webPushVapidPrivateKeyEncrypted: this.crypto.encryptSecret(created.privateKey),
+        webPushVapidSubject: created.subject,
+      },
+      create: {
+        id: "singleton",
+        webPushVapidPublicKey: created.publicKey,
+        webPushVapidPrivateKeyEncrypted: this.crypto.encryptSecret(created.privateKey),
+        webPushVapidSubject: created.subject,
+      },
+    });
+    this.logger.log("Generated and persisted a new VAPID key pair for web push notifications.");
+
+    this.applyVapidConfig(created);
+    this.vapidConfig = created;
+    return created;
+  }
+
+  private applyVapidConfig(vapidConfig: VapidConfig) {
+    webpush.setVapidDetails(vapidConfig.subject, vapidConfig.publicKey, vapidConfig.privateKey);
   }
 }

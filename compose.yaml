@@ -42,6 +42,11 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/yapd?schema=public
       SESSION_SECRET: replace-this-session-secret
       APP_ENCRYPTION_KEY: replace-this-encryption-key
+      WEB_PUSH_VAPID_SUBJECT: mailto:admin@yapd.local
+      # Optional managed override. When omitted, YAPD generates a VAPID key pair once
+      # and stores it encrypted in AppConfig using APP_ENCRYPTION_KEY.
+      # WEB_PUSH_VAPID_PUBLIC_KEY: ""
+      # WEB_PUSH_VAPID_PRIVATE_KEY: ""
       COOKIE_SECURE: "false"
       SWAGGER_ENABLED: "false"
       YAPD_DB_MIGRATION_MAX_ATTEMPTS: "30"

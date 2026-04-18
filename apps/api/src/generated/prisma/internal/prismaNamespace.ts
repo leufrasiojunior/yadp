@@ -1722,6 +1722,9 @@ export const AppConfigScalarFieldEnum = {
   loginMode: 'loginMode',
   passwordHash: 'passwordHash',
   timeZone: 'timeZone',
+  webPushVapidPublicKey: 'webPushVapidPublicKey',
+  webPushVapidPrivateKeyEncrypted: 'webPushVapidPrivateKeyEncrypted',
+  webPushVapidSubject: 'webPushVapidSubject',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

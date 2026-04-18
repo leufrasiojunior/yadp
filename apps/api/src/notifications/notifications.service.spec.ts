@@ -1,3 +1,5 @@
+import webpush from "web-push";
+
 import { NotificationsService } from "./notifications.service";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -39,6 +41,18 @@ type PushSubscriptionRecord = {
   updatedAt: Date;
 };
 
+type AppConfigRecord = {
+  id: string;
+  loginMode: "PIHOLE_MASTER" | "YAPD_PASSWORD";
+  passwordHash: string | null;
+  timeZone: string;
+  webPushVapidPublicKey: string | null;
+  webPushVapidPrivateKeyEncrypted: string | null;
+  webPushVapidSubject: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 function cloneRecord<T>(value: T): T {
   return structuredClone(value);
 }
@@ -51,7 +65,7 @@ function compareValues(left: unknown, right: unknown) {
     return 0;
   }
 
-  return leftValue! > rightValue! ? 1 : -1;
+  return String(leftValue) > String(rightValue) ? 1 : -1;
 }
 
 function matchesWhere(item: Record<string, unknown>, where: Record<string, unknown> | undefined): boolean {
@@ -170,11 +184,26 @@ function createPrismaStub(
     notifications?: NotificationRecord[];
     pushSubscriptions?: PushSubscriptionRecord[];
     instances?: Array<Record<string, unknown>>;
+    appConfig?: Partial<AppConfigRecord> | null;
   } = {},
 ) {
   const notifications = seed.notifications ? [...seed.notifications] : [];
   const pushSubscriptions = seed.pushSubscriptions ? [...seed.pushSubscriptions] : [];
   const instances = seed.instances ? [...seed.instances] : [];
+  let appConfig = seed.appConfig
+    ? ({
+        id: "singleton",
+        loginMode: "PIHOLE_MASTER",
+        passwordHash: null,
+        timeZone: "UTC",
+        webPushVapidPublicKey: null,
+        webPushVapidPrivateKeyEncrypted: null,
+        webPushVapidSubject: null,
+        createdAt: new Date("2026-04-09T10:00:00.000Z"),
+        updatedAt: new Date("2026-04-09T10:00:00.000Z"),
+        ...seed.appConfig,
+      } satisfies AppConfigRecord)
+    : null;
 
   return {
     notification: {
@@ -309,14 +338,63 @@ function createPrismaStub(
     instance: {
       findMany: async () => cloneRecord(instances),
     },
+    appConfig: {
+      findUnique: async () => (appConfig ? cloneRecord(appConfig) : null),
+      upsert: async ({
+        create,
+        update,
+      }: {
+        where: { id: string };
+        create: Partial<AppConfigRecord>;
+        update: Partial<AppConfigRecord>;
+      }) => {
+        const now = new Date();
+
+        if (appConfig) {
+          appConfig = {
+            ...appConfig,
+            ...cloneRecord(update),
+            updatedAt: now,
+          };
+          return cloneRecord(appConfig);
+        }
+
+        appConfig = {
+          id: "singleton",
+          loginMode: "PIHOLE_MASTER",
+          passwordHash: null,
+          timeZone: "UTC",
+          webPushVapidPublicKey: null,
+          webPushVapidPrivateKeyEncrypted: null,
+          webPushVapidSubject: null,
+          createdAt: now,
+          updatedAt: now,
+          ...cloneRecord(create),
+        } satisfies AppConfigRecord;
+
+        return cloneRecord(appConfig);
+      },
+    },
     __state: {
       notifications,
       pushSubscriptions,
+      get appConfig() {
+        return appConfig ? cloneRecord(appConfig) : null;
+      },
     },
   };
 }
 
-function createService(seed: Parameters<typeof createPrismaStub>[0] = {}) {
+function createService(
+  seed: Parameters<typeof createPrismaStub>[0] = {},
+  options?: {
+    env?: Partial<{
+      WEB_PUSH_VAPID_SUBJECT: string;
+      WEB_PUSH_VAPID_PUBLIC_KEY: string;
+      WEB_PUSH_VAPID_PRIVATE_KEY: string;
+    }>;
+  },
+) {
   const prisma = createPrismaStub(seed);
   const deleteCalls: string[] = [];
   const sessions = {
@@ -338,20 +416,40 @@ function createService(seed: Parameters<typeof createPrismaStub>[0] = {}) {
       WEB_PUSH_VAPID_SUBJECT: "mailto:test@yapd.local",
       WEB_PUSH_VAPID_PUBLIC_KEY: "",
       WEB_PUSH_VAPID_PRIVATE_KEY: "",
+      ...options?.env,
     },
+  };
+  const crypto = {
+    encryptSecret: (value: string) => `encrypted:${value}`,
+    decryptSecret: (value: string) => value.replace(/^encrypted:/, ""),
   };
 
   return {
-    service: new NotificationsService(env as never, sessions as never, pihole as never, prisma as never),
+    service: new NotificationsService(
+      env as never,
+      crypto as never,
+      sessions as never,
+      pihole as never,
+      prisma as never,
+    ),
     prisma,
     sessions,
     pihole,
     deleteCalls,
+    crypto,
+  };
+}
+
+function getServiceInternals(service: NotificationsService) {
+  return service as unknown as {
+    recordPiholeMessage: (instance: unknown, message: unknown) => Promise<string>;
+    resolveMissingPiholeMessages: (instanceId: string, activeFingerprints: Set<string>) => Promise<void>;
   };
 }
 
 test("deduplica mensagens do Pi-hole pelo fingerprint entre polls", async () => {
   const { service, prisma } = createService();
+  const internals = getServiceInternals(service);
   const instance = {
     id: "instance-1",
     name: "Pi-hole Casa",
@@ -365,8 +463,8 @@ test("deduplica mensagens do Pi-hole pelo fingerprint entre polls", async () => 
     timestamp: 1_712_654_400,
   };
 
-  await service["recordPiholeMessage"](instance as never, message as never);
-  await service["recordPiholeMessage"](instance as never, { ...message, plain: "Atualizada" } as never);
+  await internals.recordPiholeMessage(instance as never, message as never);
+  await internals.recordPiholeMessage(instance as never, { ...message, plain: "Atualizada" } as never);
 
   assert.equal(prisma.__state.notifications.length, 1);
   assert.equal(prisma.__state.notifications[0]?.sourceFingerprint, "pihole:instance-1:42");
@@ -395,8 +493,9 @@ test("marca como resolvidas mensagens do Pi-hole que sumiram na origem", async (
   const { service, prisma } = createService({
     notifications: [active, preserved],
   });
+  const internals = getServiceInternals(service);
 
-  await service["resolveMissingPiholeMessages"]("instance-1", new Set(["pihole:instance-1:43"]));
+  await internals.resolveMissingPiholeMessages("instance-1", new Set(["pihole:instance-1:43"]));
 
   assert.equal(prisma.__state.notifications[0]?.state, "RESOLVED");
   assert.ok(prisma.__state.notifications[0]?.resolvedAt instanceof Date);
@@ -574,6 +673,218 @@ test("preview mostra 5 itens visíveis mais recentes e markAllRead zera o contad
   assert.ok(
     prisma.__state.notifications.find((item) => item.id === "notification-6")?.deleteRequestedAt instanceof Date,
   );
+});
+
+test("usa chaves VAPID do env quando configuradas", async () => {
+  const originalSetVapidDetails = webpush.setVapidDetails;
+  const calls: Array<{ subject: string; publicKey: string; privateKey: string }> = [];
+
+  webpush.setVapidDetails = ((subject: string, publicKey: string, privateKey: string) => {
+    calls.push({ subject, publicKey, privateKey });
+  }) as typeof webpush.setVapidDetails;
+
+  try {
+    const { service, prisma } = createService(
+      {},
+      {
+        env: {
+          WEB_PUSH_VAPID_SUBJECT: "mailto:env@yapd.local",
+          WEB_PUSH_VAPID_PUBLIC_KEY: "env-public",
+          WEB_PUSH_VAPID_PRIVATE_KEY: "env-private",
+        },
+      },
+    );
+
+    await service.onModuleInit();
+
+    assert.deepEqual(service.getPushPublicKey(), {
+      available: true,
+      publicKey: "env-public",
+      source: "env",
+    });
+    assert.equal(prisma.__state.appConfig, null);
+    assert.equal(calls.length, 1);
+    assert.deepEqual(calls[0], {
+      subject: "mailto:env@yapd.local",
+      publicKey: "env-public",
+      privateKey: "env-private",
+    });
+  } finally {
+    webpush.setVapidDetails = originalSetVapidDetails;
+  }
+});
+
+test("usa chaves VAPID persistidas no AppConfig quando env estiver vazio", async () => {
+  const originalSetVapidDetails = webpush.setVapidDetails;
+  const calls: Array<{ subject: string; publicKey: string; privateKey: string }> = [];
+
+  webpush.setVapidDetails = ((subject: string, publicKey: string, privateKey: string) => {
+    calls.push({ subject, publicKey, privateKey });
+  }) as typeof webpush.setVapidDetails;
+
+  try {
+    const { service } = createService({
+      appConfig: {
+        webPushVapidPublicKey: "db-public",
+        webPushVapidPrivateKeyEncrypted: "encrypted:db-private",
+        webPushVapidSubject: "mailto:db@yapd.local",
+      },
+    });
+
+    await service.onModuleInit();
+
+    assert.deepEqual(service.getPushPublicKey(), {
+      available: true,
+      publicKey: "db-public",
+      source: "database",
+    });
+    assert.equal(calls.length, 1);
+    assert.deepEqual(calls[0], {
+      subject: "mailto:db@yapd.local",
+      publicKey: "db-public",
+      privateKey: "db-private",
+    });
+  } finally {
+    webpush.setVapidDetails = originalSetVapidDetails;
+  }
+});
+
+test("gera e persiste VAPID uma única vez quando ainda não houver configuração", async () => {
+  const originalSetVapidDetails = webpush.setVapidDetails;
+  const originalGenerateVAPIDKeys = webpush.generateVAPIDKeys;
+  const calls: Array<{ subject: string; publicKey: string; privateKey: string }> = [];
+  let generatedCount = 0;
+
+  webpush.setVapidDetails = ((subject: string, publicKey: string, privateKey: string) => {
+    calls.push({ subject, publicKey, privateKey });
+  }) as typeof webpush.setVapidDetails;
+  webpush.generateVAPIDKeys = (() => {
+    generatedCount += 1;
+    return {
+      publicKey: "generated-public",
+      privateKey: "generated-private",
+    };
+  }) as typeof webpush.generateVAPIDKeys;
+
+  try {
+    const { service, prisma } = createService();
+
+    await service.onModuleInit();
+
+    assert.equal(generatedCount, 1);
+    assert.deepEqual(service.getPushPublicKey(), {
+      available: true,
+      publicKey: "generated-public",
+      source: "database",
+    });
+    assert.deepEqual(prisma.__state.appConfig, {
+      ...prisma.__state.appConfig,
+      id: "singleton",
+      loginMode: "PIHOLE_MASTER",
+      passwordHash: null,
+      timeZone: "UTC",
+      webPushVapidPublicKey: "generated-public",
+      webPushVapidPrivateKeyEncrypted: "encrypted:generated-private",
+      webPushVapidSubject: "mailto:test@yapd.local",
+    });
+    assert.equal(calls.length, 1);
+  } finally {
+    webpush.setVapidDetails = originalSetVapidDetails;
+    webpush.generateVAPIDKeys = originalGenerateVAPIDKeys;
+  }
+});
+
+test("reusa a mesma chave persistida em inicializações subsequentes", async () => {
+  const originalSetVapidDetails = webpush.setVapidDetails;
+  const originalGenerateVAPIDKeys = webpush.generateVAPIDKeys;
+  let generatedCount = 0;
+
+  webpush.setVapidDetails = (() => {
+    // Intentionally stubbed for deterministic tests.
+  }) as typeof webpush.setVapidDetails;
+  webpush.generateVAPIDKeys = (() => {
+    generatedCount += 1;
+    return {
+      publicKey: "generated-public",
+      privateKey: "generated-private",
+    };
+  }) as typeof webpush.generateVAPIDKeys;
+
+  try {
+    const first = createService();
+    await first.service.onModuleInit();
+
+    const second = createService({
+      appConfig: first.prisma.__state.appConfig ?? undefined,
+    });
+    await second.service.onModuleInit();
+
+    assert.equal(generatedCount, 1);
+    assert.deepEqual(second.service.getPushPublicKey(), {
+      available: true,
+      publicKey: "generated-public",
+      source: "database",
+    });
+  } finally {
+    webpush.setVapidDetails = originalSetVapidDetails;
+    webpush.generateVAPIDKeys = originalGenerateVAPIDKeys;
+  }
+});
+
+test("desabilita subscriptions 404/410 após falha de envio de push", async () => {
+  const originalSetVapidDetails = webpush.setVapidDetails;
+  const originalSendNotification = webpush.sendNotification;
+  const validKeys = webpush.generateVAPIDKeys();
+
+  webpush.setVapidDetails = (() => {
+    // Intentionally stubbed for deterministic tests.
+  }) as typeof webpush.setVapidDetails;
+  webpush.sendNotification = (async () => {
+    const error = new Error("gone");
+    Object.assign(error, { statusCode: 410 });
+    throw error;
+  }) as typeof webpush.sendNotification;
+
+  try {
+    const { service, prisma } = createService(
+      {
+        pushSubscriptions: [
+          {
+            endpoint: "https://push.example/subscription-1",
+            p256dh: "key",
+            auth: "auth",
+            userAgent: "test",
+            lastSuccessAt: null,
+            lastFailureAt: null,
+            failureCount: 0,
+            disabledAt: null,
+            createdAt: new Date("2026-04-09T10:00:00.000Z"),
+            updatedAt: new Date("2026-04-09T10:00:00.000Z"),
+          },
+        ],
+      },
+      {
+        env: {
+          WEB_PUSH_VAPID_PUBLIC_KEY: validKeys.publicKey,
+          WEB_PUSH_VAPID_PRIVATE_KEY: validKeys.privateKey,
+        },
+      },
+    );
+
+    await service.onModuleInit();
+    await service.recordSystemEvent({
+      type: "SYSTEM_FAILURE",
+      fingerprint: "system:push-failure",
+      message: "Falhou",
+    });
+
+    assert.equal(prisma.__state.pushSubscriptions[0]?.failureCount, 1);
+    assert.ok(prisma.__state.pushSubscriptions[0]?.lastFailureAt instanceof Date);
+    assert.ok(prisma.__state.pushSubscriptions[0]?.disabledAt instanceof Date);
+  } finally {
+    webpush.setVapidDetails = originalSetVapidDetails;
+    webpush.sendNotification = originalSendNotification;
+  }
 });
 
 test("mesmo fingerprint de sistema atualiza enquanto ativo e cria novo registro após resolução", async () => {
