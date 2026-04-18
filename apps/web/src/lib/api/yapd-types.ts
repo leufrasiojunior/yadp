@@ -811,4 +811,18 @@ export type DomainsMutationResponse = {
   }>;
 };
 
+export type DomainsImportResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalRows: number;
+    createdCount: number;
+    updatedCount: number;
+    invalidCount: number;
+  };
+  errors: Array<{
+    line: number;
+    message: string;
+  }>;
+};
+
 export type YapdSession = AppSession;

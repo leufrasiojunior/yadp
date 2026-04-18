@@ -180,6 +180,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/clients/{client}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["ClientsController_updateClient"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/clients/sync": {
     parameters: {
       query?: never;
@@ -222,6 +238,38 @@ export interface paths {
     get: operations["DomainsController_listDomains"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/domains/export": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["DomainsController_exportDomains"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/domains/import": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["DomainsController_importDomains"];
     delete?: never;
     options?: never;
     head?: never;
@@ -752,6 +800,7 @@ export interface operations {
                 | "SYSTEM_FAILURE"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
+              title: string;
               instanceId: string | null;
               instanceName: string | null;
               message: string;
@@ -817,6 +866,7 @@ export interface operations {
                 | "SYSTEM_FAILURE"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
+              title: string;
               instanceId: string | null;
               instanceName: string | null;
               message: string;
@@ -877,6 +927,7 @@ export interface operations {
                 | "SYSTEM_FAILURE"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
+              title: string;
               instanceId: string | null;
               instanceName: string | null;
               message: string;
@@ -954,6 +1005,7 @@ export interface operations {
                 | "SYSTEM_FAILURE"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
+              title: string;
               instanceId: string | null;
               instanceName: string | null;
               message: string;
@@ -995,6 +1047,8 @@ export interface operations {
           "application/json": {
             available: boolean;
             publicKey: string | null;
+            /** @enum {string|null} */
+            source: "env" | "database" | null;
           };
         };
       };
@@ -1283,6 +1337,62 @@ export interface operations {
       };
     };
   };
+  ClientsController_updateClient: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * @example [
+           *       0
+           *     ]
+           */
+          groups?: number[];
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
   ClientsController_syncClients: {
     parameters: {
       query?: never;
@@ -1496,6 +1606,65 @@ export interface operations {
                 | "connection_refused"
                 | "pihole_response_error"
                 | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  DomainsController_exportDomains: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  DomainsController_importDomains: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": {
+          /**
+           * Format: binary
+           * @description CSV file containing domain rows to import.
+           */
+          file: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalRows: number;
+              createdCount: number;
+              updatedCount: number;
+              invalidCount: number;
+            };
+            errors: {
+              line: number;
               message: string;
             }[];
           };

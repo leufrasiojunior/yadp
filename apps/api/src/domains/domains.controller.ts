@@ -1,12 +1,29 @@
-import { Body, Controller, Get, Inject, Param, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
-import { ApiCookieAuth, ApiOkResponse, ApiParam, ApiTags } from "@nestjs/swagger";
-import type { Request } from "express";
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  Res,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { ApiBody, ApiConsumes, ApiCookieAuth, ApiOkResponse, ApiParam, ApiProduces, ApiTags } from "@nestjs/swagger";
+import type { Request, Response } from "express";
 
 import { CsrfGuard } from "../session/csrf.guard";
 import { SessionGuard } from "../session/session.guard";
 import {
   DOMAIN_API_OK_RESPONSE,
   DOMAIN_OPERATION_API_OK_RESPONSE,
+  DOMAINS_IMPORT_API_BODY,
+  DOMAINS_IMPORT_API_OK_RESPONSE,
   DOMAINS_LIST_API_OK_RESPONSE,
   DOMAINS_MUTATION_API_OK_RESPONSE,
 } from "./domains.responses";
@@ -19,6 +36,10 @@ import type { GetDomainsDto } from "./dto/get-domains.dto";
 import type { SyncDomainsDto } from "./dto/sync-domains.dto";
 import type { UpdateDomainDto } from "./dto/update-domain.dto";
 
+type UploadedCsvFile = {
+  buffer: Buffer;
+};
+
 @ApiTags("domains")
 @ApiCookieAuth()
 @UseGuards(SessionGuard)
@@ -30,6 +51,29 @@ export class DomainsController {
   @ApiOkResponse(DOMAINS_LIST_API_OK_RESPONSE)
   listDomains(@Query() query: GetDomainsDto, @Req() request: Request) {
     return this.domainsService.listDomains(query, request);
+  }
+
+  @Get("export")
+  @ApiProduces("text/csv")
+  async exportDomains(
+    @Query() query: GetDomainsDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { filename, content } = await this.domainsService.exportDomainsCsv(query, request);
+    response.setHeader("content-type", "text/csv; charset=utf-8");
+    response.setHeader("content-disposition", `attachment; filename="${filename}"`);
+    return content;
+  }
+
+  @Post("import")
+  @UseGuards(CsrfGuard)
+  @UseInterceptors(FileInterceptor("file"))
+  @ApiConsumes("multipart/form-data")
+  @ApiBody(DOMAINS_IMPORT_API_BODY)
+  @ApiOkResponse(DOMAINS_IMPORT_API_OK_RESPONSE)
+  importDomains(@UploadedFile() file: UploadedCsvFile | undefined, @Req() request: Request) {
+    return this.domainsService.importDomainsCsv(file, request);
   }
 
   @Get(":domain/:type/:kind")

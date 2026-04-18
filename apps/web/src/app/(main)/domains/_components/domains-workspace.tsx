@@ -10,6 +10,7 @@ import {
   CircleAlert,
   CircleDot,
   Code2,
+  Download,
   Globe,
   Info,
   MoreHorizontal,
@@ -17,6 +18,7 @@ import {
   ShieldCheck,
   ShieldX,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,15 +58,18 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
+import { getBrowserApiBaseUrl } from "@/lib/api/base-url";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient, redirectToLogin } from "@/lib/api/yapd-client";
 import type {
   DomainFilterValue,
   DomainItem,
   DomainOperationResponse,
   DomainPatternMode,
+  DomainsImportResponse,
   DomainsListResponse,
   DomainsMutationResponse,
   DomainsSortDirection,
@@ -179,6 +184,9 @@ export function DomainsWorkspace({
   const [syncSourceInstanceId, setSyncSourceInstanceId] = useState("");
   const [syncTargetInstanceIds, setSyncTargetInstanceIds] = useState<string[]>([]);
   const [isBulkSyncDialogOpen, setIsBulkSyncDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>(null);
   const [rememberDeleteChoice, setRememberDeleteChoice] = useState(false);
   const [skipDeleteConfirm, setSkipDeleteConfirm] = useState(false);
@@ -246,6 +254,22 @@ export function DomainsWorkspace({
       sortDirection,
     ],
   );
+
+  const buildCurrentQueryString = useCallback(() => {
+    const searchParams = new URLSearchParams();
+    searchParams.set("sortBy", sortBy);
+    searchParams.set("sortDirection", sortDirection);
+
+    if (searchTerm.length > 0) {
+      searchParams.set("search", searchTerm);
+    }
+
+    activeFilters.forEach((filter) => {
+      searchParams.append("filters", filter);
+    });
+
+    return searchParams.toString();
+  }, [activeFilters, searchTerm, sortBy, sortDirection]);
 
   useEffect(() => {
     setSkipDeleteConfirm(getClientCookie(FRONTEND_CONFIG.domains.deleteConfirmCookieKey) === "1");
@@ -325,6 +349,109 @@ export function DomainsWorkspace({
 
     try {
       await refreshDomains();
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const exportCsv = async () => {
+    setBusyAction("export");
+
+    try {
+      const queryString = buildCurrentQueryString();
+      const response = await fetch(
+        `${getBrowserApiBaseUrl()}/domains/export${queryString.length > 0 ? `?${queryString}` : ""}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            accept: "text/csv",
+          },
+          cache: "no-store",
+        },
+      );
+
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
+
+      if (!response.ok) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const disposition = response.headers.get("content-disposition");
+      const filenameMatch = disposition?.match(/filename="?([^"]+)"?/i);
+      link.href = downloadUrl;
+      link.download = filenameMatch?.[1] ?? "domains.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success(messages.domains.toasts.exportSuccess);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const submitImport = async () => {
+    if (!importFile) {
+      toast.error(messages.domains.csv.fileRequired);
+      return;
+    }
+
+    setBusyAction("import");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", importFile);
+
+      const response = await fetch(`${getBrowserApiBaseUrl()}/domains/import`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "x-yapd-csrf": csrfToken,
+          accept: "application/json",
+        },
+        body: formData,
+      });
+
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
+
+      if (!response.ok) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      const payload = (await response.json()) as DomainsImportResponse;
+      const nextErrors = payload.errors.map((error) => `${error.line}: ${error.message}`);
+      setImportErrors(nextErrors);
+
+      if (payload.summary.invalidCount > 0) {
+        toast.warning(
+          messages.domains.toasts.importPartial(
+            payload.summary.createdCount,
+            payload.summary.updatedCount,
+            payload.summary.invalidCount,
+          ),
+        );
+      } else {
+        toast.success(
+          messages.domains.toasts.importSuccess(payload.summary.createdCount, payload.summary.updatedCount),
+        );
+        setIsImportDialogOpen(false);
+        setImportFile(null);
+      }
+
+      await refreshDomains(1, data.pagination.pageSize);
+      await refreshNavigationSummary();
     } finally {
       setBusyAction(null);
     }
@@ -862,6 +989,20 @@ export function DomainsWorkspace({
               <RefreshCw className={cn(busyAction === "refresh" ? "animate-spin" : undefined)} />
               {busyAction === "refresh" ? messages.domains.table.refreshLoading : messages.domains.table.refresh}
             </Button>
+            <Button type="button" variant="outline" size="sm" disabled={isMutating} onClick={() => void exportCsv()}>
+              <Download className={cn(busyAction === "export" ? "animate-pulse" : undefined)} />
+              {busyAction === "export" ? messages.domains.csv.exportLoading : messages.domains.csv.export}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isMutating}
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              <Upload className={cn(busyAction === "import" ? "animate-pulse" : undefined)} />
+              {messages.domains.csv.import}
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -1222,6 +1363,60 @@ export function DomainsWorkspace({
           disabled={isMutating}
         />
       ) : null}
+
+      <Dialog
+        open={isImportDialogOpen}
+        onOpenChange={(open) => {
+          setIsImportDialogOpen(open);
+
+          if (!open && busyAction !== "import") {
+            setImportFile(null);
+            setImportErrors([]);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{messages.domains.csv.importTitle}</DialogTitle>
+            <DialogDescription>{messages.domains.csv.importDescription}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Field className="gap-2">
+              <FieldLabel htmlFor="domains-import-file">{messages.domains.csv.importFileLabel}</FieldLabel>
+              <Input
+                id="domains-import-file"
+                type="file"
+                accept=".csv,text/csv"
+                disabled={busyAction === "import"}
+                onChange={(event) => {
+                  setImportFile(event.target.files?.[0] ?? null);
+                }}
+              />
+              <p className="text-muted-foreground text-xs">{messages.domains.csv.importHint}</p>
+            </Field>
+
+            <Field className="gap-2">
+              <FieldLabel htmlFor="domains-import-errors">{messages.domains.csv.importErrorsLabel}</FieldLabel>
+              <Textarea
+                id="domains-import-errors"
+                readOnly
+                value={importErrors.length > 0 ? importErrors.join("\n") : messages.domains.csv.importErrorsPlaceholder}
+                className="min-h-36"
+              />
+            </Field>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" disabled={busyAction === "import"} onClick={() => setIsImportDialogOpen(false)}>
+              {messages.domains.csv.importClose}
+            </Button>
+            <Button disabled={busyAction === "import"} onClick={() => void submitImport()}>
+              {busyAction === "import" ? messages.domains.csv.importSubmitting : messages.domains.csv.importSubmit}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={syncItem !== null} onOpenChange={(open) => (!open ? closeSyncDialog() : undefined)}>
         <DialogContent className="sm:max-w-2xl">

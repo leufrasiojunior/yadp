@@ -1,6 +1,3 @@
-Filtrar por Grupo nas páginas do log
-
-as notificacoes nao estao funcionando. desliguei uma instancia, tentei algumas acoes e ao falhar a notificacao entra normalmente na pagina de notificacoes (as vezes nao aparece no "sininho" do topbar), mas nao recebi a notificacao push
 
 admin/groups/domains permitir exportar em formato de lista txt. nao existe rota export nativa do pihole, devemos criar uma do yapd
 Top Blocked Domains by period(pagina especifica, se nao me engano ja existe rota que posso enviar timestamp)

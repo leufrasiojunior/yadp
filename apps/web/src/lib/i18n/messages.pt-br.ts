@@ -1195,6 +1195,21 @@ export const ptBRMessages: WebMessages = {
       enabling: "Ativando...",
       disabling: "Desativando...",
     },
+    csv: {
+      export: "Exportar CSV",
+      exportLoading: "Exportando...",
+      import: "Importar CSV",
+      importTitle: "Importar domínios por CSV",
+      importDescription: "Envie um CSV exportado do YAPD para cadastrar ou atualizar domínios em lote.",
+      importFileLabel: "Arquivo CSV",
+      importHint: "Colunas esperadas: domain, type, kind, enabled, comment, group.",
+      importErrorsLabel: "Erros encontrados",
+      importErrorsPlaceholder: "Nenhum erro de importação até agora.",
+      importSubmit: "Importar domínios",
+      importSubmitting: "Importando...",
+      importClose: "Fechar",
+      fileRequired: "Selecione um arquivo CSV para importar.",
+    },
     delete: {
       titleSingle: (domain) => `Remover ${domain}?`,
       titleBatch: (count) => (count === 1 ? "Remover 1 domínio?" : `Remover ${count} domínios?`),
@@ -1225,6 +1240,11 @@ export const ptBRMessages: WebMessages = {
         `${successfulCount} instâncias aplicaram a alteração e ${failedCount} falharam ou foram mantidas sem alteração.`,
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       syncHint: "Se necessário, use o botão de sync para uma reconciliação manual completa.",
+      exportSuccess: "CSV exportado com sucesso.",
+      importSuccess: (createdCount, updatedCount) =>
+        `Importação concluída: ${createdCount} criados e ${updatedCount} atualizados.`,
+      importPartial: (createdCount, updatedCount, invalidCount) =>
+        `Importação concluída com pendências: ${createdCount} criados, ${updatedCount} atualizados e ${invalidCount} inválidos.`,
     },
     defaultComment: "Adicionado via YAPD",
   },

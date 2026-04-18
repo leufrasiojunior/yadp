@@ -1842,6 +1842,105 @@
         "tags": ["domains"]
       }
     },
+    "/domains/export": {
+      "get": {
+        "operationId": "DomainsController_exportDomains",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["domains"]
+      }
+    },
+    "/domains/import": {
+      "post": {
+        "operationId": "DomainsController_importDomains",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "CSV file containing domain rows to import."
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalRows": {
+                          "type": "number"
+                        },
+                        "createdCount": {
+                          "type": "number"
+                        },
+                        "updatedCount": {
+                          "type": "number"
+                        },
+                        "invalidCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["totalRows", "createdCount", "updatedCount", "invalidCount"]
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "line": {
+                            "type": "number"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["line", "message"]
+                      }
+                    }
+                  },
+                  "required": ["status", "summary", "errors"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["domains"]
+      }
+    },
     "/domains/{domain}/{type}/{kind}": {
       "get": {
         "operationId": "DomainsController_getDomain",

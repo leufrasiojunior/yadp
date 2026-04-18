@@ -1,4 +1,4 @@
-import type { ApiResponseNoStatusOptions } from "@nestjs/swagger";
+import type { ApiBodyOptions, ApiResponseNoStatusOptions } from "@nestjs/swagger";
 
 import { PIHOLE_REQUEST_ERROR_KINDS } from "../pihole/pihole.types";
 import { DOMAIN_OPERATION_KINDS, DOMAIN_OPERATION_TYPES } from "./domains.types";
@@ -196,5 +196,50 @@ export const DOMAIN_OPERATION_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
       },
     },
     required: ["request", "summary", "successfulInstances", "failedInstances"],
+  },
+};
+
+export const DOMAINS_IMPORT_API_BODY: ApiBodyOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      file: {
+        type: "string",
+        format: "binary",
+        description: "CSV file containing domain rows to import.",
+      },
+    },
+    required: ["file"],
+  },
+};
+
+export const DOMAINS_IMPORT_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      status: { type: "string", enum: ["success", "partial"] },
+      summary: {
+        type: "object",
+        properties: {
+          totalRows: { type: "number" },
+          createdCount: { type: "number" },
+          updatedCount: { type: "number" },
+          invalidCount: { type: "number" },
+        },
+        required: ["totalRows", "createdCount", "updatedCount", "invalidCount"],
+      },
+      errors: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            line: { type: "number" },
+            message: { type: "string" },
+          },
+          required: ["line", "message"],
+        },
+      },
+    },
+    required: ["status", "summary", "errors"],
   },
 };

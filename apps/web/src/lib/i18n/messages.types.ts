@@ -1091,6 +1091,21 @@ export type WebMessages = {
       enabling: string;
       disabling: string;
     };
+    csv: {
+      export: string;
+      exportLoading: string;
+      import: string;
+      importTitle: string;
+      importDescription: string;
+      importFileLabel: string;
+      importHint: string;
+      importErrorsLabel: string;
+      importErrorsPlaceholder: string;
+      importSubmit: string;
+      importSubmitting: string;
+      importClose: string;
+      fileRequired: string;
+    };
     delete: {
       titleSingle: (domain: string) => string;
       titleBatch: (count: number) => string;
@@ -1116,6 +1131,9 @@ export type WebMessages = {
       partialWarning: (successfulCount: number, failedCount: number) => string;
       instanceFailure: (instanceName: string, message: string) => string;
       syncHint: string;
+      exportSuccess: string;
+      importSuccess: (createdCount: number, updatedCount: number) => string;
+      importPartial: (createdCount: number, updatedCount: number, invalidCount: number) => string;
     };
     defaultComment: string;
   };

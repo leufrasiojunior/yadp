@@ -120,3 +120,19 @@ export type DomainsMutationResponse = {
   successfulInstances: DomainsInstanceSource[];
   failedInstances: DomainsInstanceFailure[];
 };
+
+export type DomainsImportError = {
+  line: number;
+  message: string;
+};
+
+export type DomainsImportResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalRows: number;
+    createdCount: number;
+    updatedCount: number;
+    invalidCount: number;
+  };
+  errors: DomainsImportError[];
+};

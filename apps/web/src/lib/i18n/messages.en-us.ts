@@ -1189,6 +1189,21 @@ export const enUSMessages: WebMessages = {
       enabling: "Enabling...",
       disabling: "Disabling...",
     },
+    csv: {
+      export: "Export CSV",
+      exportLoading: "Exporting...",
+      import: "Import CSV",
+      importTitle: "Import domains from CSV",
+      importDescription: "Upload a CSV exported from YAPD to create or update domains in bulk.",
+      importFileLabel: "CSV file",
+      importHint: "Expected columns: domain, type, kind, enabled, comment, group.",
+      importErrorsLabel: "Import errors",
+      importErrorsPlaceholder: "No import errors yet.",
+      importSubmit: "Import domains",
+      importSubmitting: "Importing...",
+      importClose: "Close",
+      fileRequired: "Select a CSV file to import.",
+    },
     delete: {
       titleSingle: (domain) => `Remove ${domain}?`,
       titleBatch: (count) => (count === 1 ? "Remove 1 domain?" : `Remove ${count} domains?`),
@@ -1219,6 +1234,11 @@ export const enUSMessages: WebMessages = {
         `${successfulCount} instances applied the change and ${failedCount} failed or were left unchanged.`,
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       syncHint: "If needed, use the sync button for a full manual reconciliation.",
+      exportSuccess: "CSV exported successfully.",
+      importSuccess: (createdCount, updatedCount) =>
+        `Import completed: ${createdCount} created and ${updatedCount} updated.`,
+      importPartial: (createdCount, updatedCount, invalidCount) =>
+        `Import completed with issues: ${createdCount} created, ${updatedCount} updated, and ${invalidCount} invalid.`,
     },
     defaultComment: "Added from YAPD",
   },
