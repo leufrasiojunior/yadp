@@ -39,6 +39,70 @@ export type PiholeVersionInfo = {
   raw: unknown;
 };
 
+export type PiholeVersionComponentRelease = {
+  version: string | null;
+  branch: string | null;
+  hash: string | null;
+  date: string | null;
+};
+
+export type PiholeVersionComponentInfo = {
+  local: PiholeVersionComponentRelease | null;
+  remote: PiholeVersionComponentRelease | null;
+};
+
+export type PiholeVersionDetails = PiholeVersionInfo & {
+  core: PiholeVersionComponentInfo | null;
+  web: PiholeVersionComponentInfo | null;
+  ftl: PiholeVersionComponentInfo | null;
+  docker: PiholeVersionComponentInfo | null;
+};
+
+export type PiholeHostInfo = {
+  model: string | null;
+  nodename: string | null;
+  machine: string | null;
+  sysname: string | null;
+  release: string | null;
+  version: string | null;
+  domainname: string | null;
+};
+
+export type PiholeMemoryInfo = {
+  total: number | null;
+  free: number | null;
+  used: number | null;
+  available: number | null;
+  percentUsed: number | null;
+};
+
+export type PiholeSystemCpuLoad = {
+  raw: number[] | null;
+  percent: number[] | null;
+};
+
+export type PiholeSystemCpuInfo = {
+  nprocs: number | null;
+  percentCpu: number | null;
+  load: PiholeSystemCpuLoad | null;
+};
+
+export type PiholeSystemFtlInfo = {
+  percentMem: number | null;
+  percentCpu: number | null;
+};
+
+export type PiholeSystemInfo = {
+  uptime: number | null;
+  memory: {
+    ram: PiholeMemoryInfo | null;
+    swap: PiholeMemoryInfo | null;
+  };
+  procs: number | null;
+  cpu: PiholeSystemCpuInfo | null;
+  ftl: PiholeSystemFtlInfo | null;
+};
+
 export type PiholeDiscoveryResult = {
   baseUrl: string;
   authRequired: boolean;

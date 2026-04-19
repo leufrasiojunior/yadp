@@ -84,6 +84,67 @@ export type InstanceDetailResponse = {
   };
 };
 
+export type InstanceVersionComponentRelease = {
+  version: string | null;
+  branch: string | null;
+  hash: string | null;
+  date: string | null;
+};
+
+export type InstanceVersionComponentInfo = {
+  local: InstanceVersionComponentRelease | null;
+  remote: InstanceVersionComponentRelease | null;
+} | null;
+
+export type InstanceMemoryInfo = {
+  total: number | null;
+  free: number | null;
+  used: number | null;
+  available: number | null;
+  percentUsed: number | null;
+} | null;
+
+export type InstanceInfoResponse = {
+  instanceId: string;
+  fetchedAt: string;
+  version: {
+    summary: string;
+    core: InstanceVersionComponentInfo;
+    web: InstanceVersionComponentInfo;
+    ftl: InstanceVersionComponentInfo;
+    docker: InstanceVersionComponentInfo;
+  };
+  host: {
+    model: string | null;
+    nodename: string | null;
+    machine: string | null;
+    sysname: string | null;
+    release: string | null;
+    version: string | null;
+    domainname: string | null;
+  };
+  system: {
+    uptime: number | null;
+    memory: {
+      ram: InstanceMemoryInfo;
+      swap: InstanceMemoryInfo;
+    };
+    procs: number | null;
+    cpu: {
+      nprocs: number | null;
+      percentCpu: number | null;
+      load: {
+        raw: number[] | null;
+        percent: number[] | null;
+      } | null;
+    } | null;
+    ftl: {
+      percentMem: number | null;
+      percentCpu: number | null;
+    } | null;
+  };
+};
+
 export type InstanceMutationResponse = {
   instance: {
     id: string;

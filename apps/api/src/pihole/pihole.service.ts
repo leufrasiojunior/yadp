@@ -26,6 +26,7 @@ import type {
   PiholeGroupMutationResult,
   PiholeGroupUpdateRequest,
   PiholeHistoryPoint,
+  PiholeHostInfo,
   PiholeInfoMessage,
   PiholeInfoMessagesResult,
   PiholeListCreateRequest,
@@ -48,6 +49,8 @@ import type {
   PiholeQuerySuggestionsResult,
   PiholeRequestErrorKind,
   PiholeSession,
+  PiholeSystemInfo,
+  PiholeVersionDetails,
   PiholeVersionInfo,
 } from "./pihole.types";
 import { PIHOLE_QUERY_SUGGESTION_KEYS } from "./pihole.types";
@@ -373,15 +376,48 @@ export class PiholeService {
     connection: PiholeConnection,
     session?: Pick<PiholeSession, "sid" | "csrf">,
   ): Promise<PiholeVersionInfo> {
+    const version = await this.readVersionDetails(connection, session);
+
+    return {
+      summary: version.summary,
+      raw: version.raw,
+    };
+  }
+
+  async readVersionDetails(
+    connection: PiholeConnection,
+    session?: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeVersionDetails> {
     const payload = await this.request<unknown>(connection, "/info/version", {
       sid: session?.sid,
       csrf: session?.csrf,
     });
 
-    return {
-      summary: this.extractVersionSummary(payload, connection.locale),
-      raw: payload,
-    };
+    return this.normalizeVersionDetails(payload, connection.locale);
+  }
+
+  async readHostInfo(
+    connection: PiholeConnection,
+    session?: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeHostInfo> {
+    const payload = await this.request<unknown>(connection, "/info/host", {
+      sid: session?.sid,
+      csrf: session?.csrf,
+    });
+
+    return this.normalizeHostInfo(payload);
+  }
+
+  async readSystemInfo(
+    connection: PiholeConnection,
+    session?: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeSystemInfo> {
+    const payload = await this.request<unknown>(connection, "/info/system", {
+      sid: session?.sid,
+      csrf: session?.csrf,
+    });
+
+    return this.normalizeSystemInfo(payload);
   }
 
   async discoverClients(
@@ -2178,6 +2214,123 @@ export class PiholeService {
     }
 
     return translateApi(locale, "pihole.reachable");
+  }
+
+  private normalizeVersionDetails(payload: unknown, locale = DEFAULT_API_LOCALE): PiholeVersionDetails {
+    const versionRecord =
+      isRecord(payload) && isRecord(payload.version) ? payload.version : isRecord(payload) ? payload : {};
+
+    return {
+      summary: this.extractVersionSummary(payload, locale),
+      raw: payload,
+      core: this.normalizeVersionComponentInfo(versionRecord.core),
+      web: this.normalizeVersionComponentInfo(versionRecord.web),
+      ftl: this.normalizeVersionComponentInfo(versionRecord.ftl),
+      docker: this.normalizeVersionComponentInfo(versionRecord.docker),
+    };
+  }
+
+  private normalizeVersionComponentInfo(value: unknown) {
+    if (!isRecord(value)) {
+      return null;
+    }
+
+    const local =
+      isRecord(value.local) || this.hasVersionComponentFields(value)
+        ? this.normalizeVersionComponentRelease(value.local ?? value)
+        : null;
+    const remote = isRecord(value.remote) ? this.normalizeVersionComponentRelease(value.remote) : null;
+
+    if (!("local" in value) && !("remote" in value) && !this.hasVersionComponentFields(value)) {
+      return null;
+    }
+
+    return {
+      local,
+      remote,
+    };
+  }
+
+  private normalizeVersionComponentRelease(value: unknown) {
+    if (!isRecord(value)) {
+      return null;
+    }
+
+    return {
+      version: readString(value.version),
+      branch: readString(value.branch),
+      hash: readString(value.hash),
+      date: readString(value.date),
+    };
+  }
+
+  private hasVersionComponentFields(value: Record<string, unknown>) {
+    return "version" in value || "branch" in value || "hash" in value || "date" in value;
+  }
+
+  private normalizeHostInfo(payload: unknown): PiholeHostInfo {
+    const hostRecord = isRecord(payload) && isRecord(payload.host) ? payload.host : isRecord(payload) ? payload : {};
+    const unameRecord = isRecord(hostRecord.uname) ? hostRecord.uname : {};
+
+    return {
+      model: readString(hostRecord.model),
+      nodename: readString(unameRecord.nodename),
+      machine: readString(unameRecord.machine),
+      sysname: readString(unameRecord.sysname),
+      release: readString(unameRecord.release),
+      version: readString(unameRecord.version),
+      domainname: readString(unameRecord.domainname),
+    };
+  }
+
+  private normalizeSystemInfo(payload: unknown): PiholeSystemInfo {
+    const systemRecord =
+      isRecord(payload) && isRecord(payload.system) ? payload.system : isRecord(payload) ? payload : {};
+    const memoryRecord = isRecord(systemRecord.memory) ? systemRecord.memory : {};
+    const cpuRecord = isRecord(systemRecord.cpu) ? systemRecord.cpu : {};
+    const cpuLoadRecord = isRecord(cpuRecord.load) ? cpuRecord.load : {};
+    const ftlRecord = isRecord(systemRecord.ftl) ? systemRecord.ftl : {};
+
+    return {
+      uptime: readNumber(systemRecord.uptime),
+      memory: {
+        ram: this.normalizeMemoryInfo(memoryRecord.ram),
+        swap: this.normalizeMemoryInfo(memoryRecord.swap),
+      },
+      procs: readNumber(systemRecord.procs),
+      cpu: isRecord(systemRecord.cpu)
+        ? {
+            nprocs: readNumber(cpuRecord.nprocs),
+            percentCpu: readNumber(cpuRecord["%cpu"]),
+            load: isRecord(cpuRecord.load)
+              ? {
+                  raw: readNumericArray(cpuLoadRecord.raw),
+                  percent: readNumericArray(cpuLoadRecord.percent),
+                }
+              : null,
+          }
+        : null,
+      ftl: isRecord(systemRecord.ftl)
+        ? {
+            percentMem: readNumber(ftlRecord["%mem"]),
+            percentCpu: readNumber(ftlRecord["%cpu"]),
+          }
+        : null,
+    };
+  }
+
+  private normalizeMemoryInfo(value: unknown) {
+    if (!isRecord(value)) {
+      return null;
+    }
+
+    return {
+      total: readNumber(value.total),
+      free: readNumber(value.free),
+      used: readNumber(value.used),
+      available: readNumber(value.available),
+      percentUsed: readNumber(value["%used"]),
+    };
   }
 
   private normalizeBaseUrl(baseUrl: string) {
