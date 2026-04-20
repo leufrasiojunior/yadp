@@ -25,6 +25,7 @@ import type {
   DashboardOverviewResponse,
 } from "./dashboard.types";
 import type { GetDashboardOverviewDto } from "./dto/get-dashboard-overview.dto";
+import { performance } from "node:perf_hooks";
 
 type ClientSeriesAccumulator = {
   label: string;
@@ -62,7 +63,7 @@ export class DashboardService {
   async getOverview(query: GetDashboardOverviewDto, request: Request): Promise<DashboardOverviewResponse> {
     const locale = getRequestLocale(request);
     const overviewId = ++dashboardOverviewSequence;
-    const startedAt = Date.now();
+    const startedAt = performance.now();
     this.logger.log(
       `[overview:${overviewId}] Loading dashboard overview with scope="${query.scope}" instanceId="${query.instanceId ?? "-"}".`,
     );
@@ -82,7 +83,7 @@ export class DashboardService {
         });
 
         this.logger.debug(
-          `[overview:${overviewId}] Instance dashboard overview finished successfully for "${instance.name}" in ${Date.now() - startedAt}ms.`,
+          `[overview:${overviewId}] Instance dashboard overview finished successfully for "${instance.name}" in ${Math.round(performance.now() - startedAt)}ms.`,
         );
 
         return this.buildOverview(
@@ -98,7 +99,7 @@ export class DashboardService {
       } catch (error) {
         const failure = this.mapInstanceFailure(instance, error, locale);
         this.logger.error(
-          `[overview:${overviewId}] Dashboard overview failed for instance "${failure.instanceName}" (${failure.instanceId}) after ${Date.now() - startedAt}ms: ${failure.message}`,
+          `[overview:${overviewId}] Dashboard overview failed for instance "${failure.instanceName}" (${failure.instanceId}) after ${Math.round(performance.now() - startedAt)}ms: ${failure.message}`,
           error instanceof Error ? error.stack : undefined,
         );
         throw new BadGatewayException(`${failure.instanceName}: ${failure.message}`);
@@ -140,7 +141,7 @@ export class DashboardService {
 
     if (failed.length > 0) {
       this.logger.warn(
-        `[overview:${overviewId}] Dashboard overview completed with partial failures after ${Date.now() - startedAt}ms: ${failed
+        `[overview:${overviewId}] Dashboard overview completed with partial failures after ${Math.round(performance.now() - startedAt)}ms: ${failed
           .map((item) => `${item.instanceName}=${item.kind}`)
           .join(", ")}`,
       );
@@ -153,13 +154,13 @@ export class DashboardService {
           ? `${translateApi(locale, "dashboard.allInstancesFailed")} ${details}`
           : translateApi(locale, "dashboard.allInstancesFailed");
       this.logger.error(
-        `[overview:${overviewId}] Dashboard overview failed for all instances after ${Date.now() - startedAt}ms. ${details}`,
+        `[overview:${overviewId}] Dashboard overview failed for all instances after ${Math.round(performance.now() - startedAt)}ms. ${details}`,
       );
       throw new BadGatewayException(message);
     }
 
     this.logger.debug(
-      `[overview:${overviewId}] Dashboard overview loaded with ${successful.length} successful instance(s) and ${failed.length} failed instance(s) in ${Date.now() - startedAt}ms.`,
+      `[overview:${overviewId}] Dashboard overview loaded with ${successful.length} successful instance(s) and ${failed.length} failed instance(s) in ${Math.round(performance.now() - startedAt)}ms.`,
     );
 
     return this.buildOverview(
@@ -428,7 +429,7 @@ export class DashboardService {
     locale: ReturnType<typeof getRequestLocale>,
     context: MetricsAttemptContext,
   ) {
-    const startedAt = Date.now();
+    const startedAt = performance.now();
 
     return this.instanceSessions.withActiveSession(
       requestedInstance.id,
@@ -450,7 +451,7 @@ export class DashboardService {
         );
 
         this.logger.debug(
-          `[overview:${context.overviewId}] Instance "${instance.name}" (${instance.id}) metrics collected successfully on attempt=${context.attemptNumber} in ${Date.now() - startedAt}ms.`,
+          `[overview:${context.overviewId}] Instance "${instance.name}" (${instance.id}) metrics collected successfully on attempt=${context.attemptNumber} in ${Math.round(performance.now() - startedAt)}ms.`,
         );
 
         return {
@@ -469,7 +470,7 @@ export class DashboardService {
     context: MetricsAttemptContext,
     execute: () => Promise<T>,
   ) {
-    const startedAt = Date.now();
+    const startedAt = performance.now();
     this.logger.verbose(
       `[overview:${context.overviewId}] Route "${route}" start for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber}.`,
     );
@@ -477,12 +478,12 @@ export class DashboardService {
     try {
       const result = await execute();
       this.logger.verbose(
-        `[overview:${context.overviewId}] Route "${route}" success for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber} durationMs=${Date.now() - startedAt}.`,
+        `[overview:${context.overviewId}] Route "${route}" success for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber} durationMs=${Math.round(performance.now() - startedAt)}.`,
       );
       return result;
     } catch (error) {
       this.logger.warn(
-        `[overview:${context.overviewId}] Route "${route}" failed for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber} durationMs=${Date.now() - startedAt}. ${this.describeDashboardErrorForLog(error)}`,
+        `[overview:${context.overviewId}] Route "${route}" failed for instance "${instance.name}" (${instance.id}) attempt=${context.attemptNumber} durationMs=${Math.round(performance.now() - startedAt)}. ${this.describeDashboardErrorForLog(error)}`,
       );
       throw error;
     }

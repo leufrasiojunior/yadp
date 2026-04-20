@@ -679,6 +679,29 @@ test("preview mostra 5 itens visíveis mais recentes e markAllRead zera o contad
   );
 });
 
+test("preview usa o limite padrao quando a query chega sem limit", async () => {
+  const notifications = Array.from({ length: 6 }, (_, index) =>
+    makeNotification({
+      id: `notification-${index + 1}`,
+      message: `Mensagem ${index + 1}`,
+      occurredAt: new Date(Date.UTC(2026, 3, 9, 10, index, 0)),
+      createdAt: new Date(Date.UTC(2026, 3, 9, 10, index, 0)),
+      lastSeenAt: new Date(Date.UTC(2026, 3, 9, 10, index, 0)),
+      sourceFingerprint: `system:${index + 1}`,
+    }),
+  );
+  const { service } = createService({ notifications });
+
+  const preview = await service.getPreview({} as { limit?: number });
+
+  assert.equal(preview.unreadCount, 6);
+  assert.equal(preview.items.length, 5);
+  assert.deepEqual(
+    preview.items.map((item) => item.id),
+    ["notification-6", "notification-5", "notification-4", "notification-3", "notification-2"],
+  );
+});
+
 test("usa chaves VAPID do env quando configuradas", async () => {
   const originalSetVapidDetails = webpush.setVapidDetails;
   const calls: Array<{ subject: string; publicKey: string; privateKey: string }> = [];

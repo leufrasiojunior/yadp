@@ -10,7 +10,8 @@ import { BatchDeleteListsDto } from "./dto/batch-delete-lists.dto";
 import { CreateListDto } from "./dto/create-list.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { GetListsDto } from "./dto/get-lists.dto";
-import type { ListItemParamsDto } from "./dto/list-item-params.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { ListItemParamsDto } from "./dto/list-item-params.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { SyncListsDto } from "./dto/sync-lists.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.

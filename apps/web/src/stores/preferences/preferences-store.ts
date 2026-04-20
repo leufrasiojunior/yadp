@@ -36,7 +36,15 @@ export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
     language: init?.language ?? PREFERENCE_DEFAULTS.language,
     timeZone: init?.timeZone ?? PREFERENCE_DEFAULTS.time_zone,
     themeMode: init?.themeMode ?? PREFERENCE_DEFAULTS.theme_mode,
-    resolvedThemeMode: init?.resolvedThemeMode ?? "light",
+    resolvedThemeMode:
+      init?.resolvedThemeMode ??
+      (init?.themeMode === "light"
+        ? "light"
+        : init?.themeMode === "dark"
+          ? "dark"
+          : PREFERENCE_DEFAULTS.theme_mode === "dark"
+            ? "dark"
+            : "light"),
     themePreset: init?.themePreset ?? PREFERENCE_DEFAULTS.theme_preset,
     font: init?.font ?? PREFERENCE_DEFAULTS.font,
     contentLayout: init?.contentLayout ?? PREFERENCE_DEFAULTS.content_layout,

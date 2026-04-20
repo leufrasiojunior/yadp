@@ -18,10 +18,14 @@ import {
   DEFAULT_CLIENTS_SORT_DIRECTION,
   DEFAULT_CLIENTS_SORT_FIELD,
 } from "./clients.types";
-import type { GetClientsDto } from "./dto/get-clients.dto";
-import type { SaveClientsDto } from "./dto/save-clients.dto";
-import type { SyncClientsDto } from "./dto/sync-clients.dto";
-import type { UpdateClientDto } from "./dto/update-client.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { GetClientsDto } from "./dto/get-clients.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { SaveClientsDto } from "./dto/save-clients.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { SyncClientsDto } from "./dto/sync-clients.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { UpdateClientDto } from "./dto/update-client.dto";
 
 @ApiTags("clients")
 @ApiCookieAuth()

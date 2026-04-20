@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsNumber, IsString, MaxLength, Min } from "class-validator";
+import { IsArray, IsIn, IsNumber, IsString, MaxLength, Min } from "class-validator";
 
 import {
   DEFAULT_DOMAINS_PAGE_SIZE,
@@ -72,6 +72,7 @@ export class GetDomainsDto {
     enum: [...DOMAIN_SORT_FIELDS],
   })
   @Transform(({ value }) => normalizeSortField(value))
+  @IsIn(DOMAIN_SORT_FIELDS)
   sortBy: DomainSortField = DEFAULT_DOMAINS_SORT_FIELD;
 
   @ApiPropertyOptional({
@@ -80,6 +81,7 @@ export class GetDomainsDto {
     enum: [...DOMAIN_SORT_DIRECTIONS],
   })
   @Transform(({ value }) => normalizeSortDirection(value))
+  @IsIn(DOMAIN_SORT_DIRECTIONS)
   sortDirection: DomainSortDirection = DEFAULT_DOMAINS_SORT_DIRECTION;
 
   @ApiPropertyOptional({ example: "example.com" })

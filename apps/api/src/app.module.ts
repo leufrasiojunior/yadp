@@ -1,9 +1,12 @@
 import { Module } from "@nestjs/common";
+import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 
 import { AuditModule } from "./audit/audit.module";
 import { ClientsModule } from "./clients/clients.module";
 import { CryptoModule } from "./common/crypto/crypto.module";
+import { ApiExceptionFilter } from "./common/http/api-exception.filter";
+import { ApiLoggingInterceptor } from "./common/http/api-logging.interceptor";
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { AppEnvModule } from "./config/app-env.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
@@ -41,6 +44,16 @@ import { SyncModule } from "./sync/sync.module";
     SessionModule,
     SetupModule,
     SyncModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiLoggingInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ApiExceptionFilter,
+    },
   ],
 })
 export class AppModule {}

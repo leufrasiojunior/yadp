@@ -54,6 +54,7 @@ import type {
   PiholeVersionInfo,
 } from "./pihole.types";
 import { PIHOLE_QUERY_SUGGESTION_KEYS } from "./pihole.types";
+import { performance } from "node:perf_hooks";
 
 const PIHOLE_USER_AGENT = "YAPD";
 const DEFAULT_NETWORK_DEVICE_MAX_DEVICES = 999;
@@ -1038,7 +1039,7 @@ export class PiholeService {
   ): Promise<T> {
     const method = options?.method ?? "GET";
     const requestId = ++piholeRequestSequence;
-    const startedAt = Date.now();
+    const startedAt = performance.now();
     const normalizedBaseUrl = this.normalizeBaseUrl(connection.baseUrl);
     const displayBaseUrl = normalizedBaseUrl.endsWith("/") ? normalizedBaseUrl.slice(0, -1) : normalizedBaseUrl;
     const headers = new Headers({
@@ -1084,7 +1085,11 @@ export class PiholeService {
         headers,
         body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
         dispatcher: new Agent({
+          connectTimeout: this.requestTimeoutMs,
+          headersTimeout: this.requestTimeoutMs,
+          bodyTimeout: this.requestTimeoutMs,
           connect: {
+            timeout: this.requestTimeoutMs,
             rejectUnauthorized: !(connection.allowSelfSigned ?? false),
             ...(connection.certificatePem ? { ca: connection.certificatePem } : {}),
           },
@@ -1098,7 +1103,7 @@ export class PiholeService {
         error instanceof Error ? error.stack : undefined,
       );
       this.logger.warn(
-        `[req:${requestId}] Pi-hole transport failure after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} configuredBaseUrl=${connection.baseUrl} normalizedBaseUrl=${displayBaseUrl} kind=${transport.kind} raw=${JSON.stringify(transport.rawCause)}`,
+        `[req:${requestId}] Pi-hole transport failure after ${Math.round(performance.now() - startedAt)}ms method=${method} requestUrl=${url.toString()} configuredBaseUrl=${connection.baseUrl} normalizedBaseUrl=${displayBaseUrl} kind=${transport.kind} raw=${JSON.stringify(transport.rawCause)}`,
       );
 
       throw new PiholeRequestError(502, transport.message, transport.kind, {
@@ -1137,7 +1142,7 @@ export class PiholeService {
         `Pi-hole response error for ${method} ${url.toString()}: HTTP ${response.status} (${kind}) - ${message}`,
       );
       this.logger.warn(
-        `[req:${requestId}] Pi-hole response failure after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} status=${response.status} kind=${kind}`,
+        `[req:${requestId}] Pi-hole response failure after ${Math.round(performance.now() - startedAt)}ms method=${method} requestUrl=${url.toString()} status=${response.status} kind=${kind}`,
       );
 
       throw new PiholeRequestError(response.status, message, kind, payload);
@@ -1145,7 +1150,7 @@ export class PiholeService {
 
     this.logger.verbose(`Pi-hole request ${method} ${url.toString()} completed with HTTP ${response.status}.`);
     this.logger.verbose(
-      `[req:${requestId}] Pi-hole request success after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} status=${response.status}`,
+      `[req:${requestId}] Pi-hole request success after ${Math.round(performance.now() - startedAt)}ms method=${method} requestUrl=${url.toString()} status=${response.status}`,
     );
 
     return payload as T;

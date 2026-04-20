@@ -180,9 +180,6 @@ export function SetupLayoutStep({
                 <ToggleGroupItem value="dark" aria-label={labels.controls.dark}>
                   {labels.controls.dark}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="system" aria-label={labels.controls.system}>
-                  {labels.controls.system}
-                </ToggleGroupItem>
               </ToggleGroup>
             )}
           />

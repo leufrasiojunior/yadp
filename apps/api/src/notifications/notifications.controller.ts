@@ -3,11 +3,16 @@ import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 
 import { CsrfGuard } from "../session/csrf.guard";
 import { SessionGuard } from "../session/session.guard";
-import type { DeletePushSubscriptionDto } from "./dto/delete-push-subscription.dto";
-import type { GetNotificationsDto } from "./dto/get-notifications.dto";
-import type { GetNotificationsPreviewDto } from "./dto/get-notifications-preview.dto";
-import type { NotificationIdParamsDto } from "./dto/notification-id-params.dto";
-import type { UpsertPushSubscriptionDto } from "./dto/upsert-push-subscription.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { DeletePushSubscriptionDto } from "./dto/delete-push-subscription.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { GetNotificationsDto } from "./dto/get-notifications.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { GetNotificationsPreviewDto } from "./dto/get-notifications-preview.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { NotificationIdParamsDto } from "./dto/notification-id-params.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { UpsertPushSubscriptionDto } from "./dto/upsert-push-subscription.dto";
 import {
   NOTIFICATION_MUTATION_API_OK_RESPONSE,
   NOTIFICATION_READ_ALL_API_OK_RESPONSE,

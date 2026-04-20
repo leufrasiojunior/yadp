@@ -10,6 +10,7 @@
     "test:instances": "node --import tsx --test src/instances/instances.service.spec.ts",
     "test:notifications": "node --import tsx --test src/notifications/notifications.service.spec.ts",
     "test:queries": "node --import tsx --test src/queries/*.spec.ts",
+    "test:runtime-metadata": "node --test test/controller-runtime-metadata.test.mjs",
     "start": "sh ./scripts/start-with-migrations.sh",
     "start:server": "node dist/main.js",
     "generate:client": "npx tsx --tsconfig tsconfig.json src/scripts/generate-openapi.ts",

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsNumber, IsString, MaxLength, Min } from "class-validator";
+import { IsIn, IsNumber, IsString, MaxLength, Min } from "class-validator";
 
 import {
   DEFAULT_LISTS_PAGE_SIZE,
@@ -61,6 +61,7 @@ export class GetListsDto {
     enum: [...LIST_SORT_FIELDS],
   })
   @Transform(({ value }) => normalizeSortField(value))
+  @IsIn(LIST_SORT_FIELDS)
   sortBy: ListSortField = DEFAULT_LISTS_SORT_FIELD;
 
   @ApiPropertyOptional({
@@ -69,6 +70,7 @@ export class GetListsDto {
     enum: [...LIST_SORT_DIRECTIONS],
   })
   @Transform(({ value }) => normalizeSortDirection(value))
+  @IsIn(LIST_SORT_DIRECTIONS)
   sortDirection: ListSortDirection = DEFAULT_LISTS_SORT_DIRECTION;
 
   @ApiPropertyOptional({ example: "StevenBlack" })

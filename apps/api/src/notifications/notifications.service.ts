@@ -77,6 +77,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function clampPositiveInteger(value: unknown, minimum: number, maximum: number, fallback: number) {
+  const parsed = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.max(minimum, Math.min(maximum, Math.floor(parsed)));
+}
+
 function readString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -168,8 +178,13 @@ export class NotificationsService implements OnModuleInit {
   }
 
   async listNotifications(query: GetNotificationsDto): Promise<NotificationsListResponse> {
-    const pageSize = Math.max(1, Math.min(query.pageSize, NOTIFICATION_PAGE_SIZE_MAX));
-    const page = Math.max(1, query.page);
+    const pageSize = clampPositiveInteger(
+      query.pageSize,
+      1,
+      NOTIFICATION_PAGE_SIZE_MAX,
+      BACKEND_CONFIG.notifications.defaultPageSize,
+    );
+    const page = clampPositiveInteger(query.page, 1, Number.MAX_SAFE_INTEGER, 1);
     const where = {
       ...notificationVisibilityWhere(),
       ...notificationReadStateWhere(query.readState),
@@ -204,7 +219,7 @@ export class NotificationsService implements OnModuleInit {
   }
 
   async getPreview(query: GetNotificationsPreviewDto): Promise<NotificationsPreviewResponse> {
-    const limit = Math.max(1, Math.min(query.limit, 20));
+    const limit = clampPositiveInteger(query.limit, 1, 20, BACKEND_CONFIG.notifications.previewLimit);
     const where = {
       ...notificationVisibilityWhere(),
       isRead: false,

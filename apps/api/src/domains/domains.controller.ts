@@ -28,13 +28,20 @@ import {
   DOMAINS_MUTATION_API_OK_RESPONSE,
 } from "./domains.responses";
 import { DomainsService } from "./domains.service";
-import type { ApplyDomainOperationDto } from "./dto/apply-domain-operation.dto";
-import type { BatchDeleteDomainsDto } from "./dto/batch-delete-domains.dto";
-import type { DomainItemParamsDto } from "./dto/domain-item-params.dto";
-import type { DomainOperationParamsDto } from "./dto/domain-operation-params.dto";
-import type { GetDomainsDto } from "./dto/get-domains.dto";
-import type { SyncDomainsDto } from "./dto/sync-domains.dto";
-import type { UpdateDomainDto } from "./dto/update-domain.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { ApplyDomainOperationDto } from "./dto/apply-domain-operation.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { BatchDeleteDomainsDto } from "./dto/batch-delete-domains.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { DomainItemParamsDto } from "./dto/domain-item-params.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { DomainOperationParamsDto } from "./dto/domain-operation-params.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { GetDomainsDto } from "./dto/get-domains.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { SyncDomainsDto } from "./dto/sync-domains.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { UpdateDomainDto } from "./dto/update-domain.dto";
 
 type UploadedCsvFile = {
   buffer: Buffer;

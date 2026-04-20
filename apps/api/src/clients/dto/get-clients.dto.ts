@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsNumber, IsString, MaxLength, Min } from "class-validator";
+import { IsArray, IsIn, IsNumber, IsString, MaxLength, Min } from "class-validator";
 
 import { MAX_CLIENT_TAG_LENGTH, normalizeClientTagQueryValue } from "../client-tags";
 import {
@@ -62,6 +62,7 @@ export class GetClientsDto {
     enum: [...CLIENT_LIST_SORT_FIELDS],
   })
   @Transform(({ value }) => normalizeSortField(value))
+  @IsIn(CLIENT_LIST_SORT_FIELDS)
   sortBy: ClientListSortField = DEFAULT_CLIENTS_SORT_FIELD;
 
   @ApiPropertyOptional({
@@ -70,6 +71,7 @@ export class GetClientsDto {
     enum: [...CLIENT_LIST_SORT_DIRECTIONS],
   })
   @Transform(({ value }) => normalizeSortDirection(value))
+  @IsIn(CLIENT_LIST_SORT_DIRECTIONS)
   sortDirection: ClientListSortDirection = DEFAULT_CLIENTS_SORT_DIRECTION;
 
   @ApiPropertyOptional({ example: "82:6D:06:2E:9D:DC" })

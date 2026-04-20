@@ -71,7 +71,7 @@ type PreferencePersistenceConfig = {
 export const PREFERENCE_DEFAULTS: PreferenceValueMap = {
   language: "pt-BR",
   time_zone: "UTC",
-  theme_mode: "light",
+  theme_mode: "dark",
   theme_preset: "default",
   font: "inter",
   content_layout: "centered",
