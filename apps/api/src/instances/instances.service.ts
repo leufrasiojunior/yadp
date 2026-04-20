@@ -110,6 +110,69 @@ export class InstancesService {
     };
   }
 
+  async getInstanceInfo(instanceId: string, request: Request) {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
+
+    try {
+      const info = await this.instanceSessions.withActiveSession(
+        instanceId,
+        locale,
+        async ({ connection, session }) => {
+          const [version, host, system] = await Promise.all([
+            this.pihole.readVersionDetails(connection, session),
+            this.pihole.readHostInfo(connection, session),
+            this.pihole.readSystemInfo(connection, session),
+          ]);
+
+          return {
+            instanceId,
+            fetchedAt: new Date().toISOString(),
+            version: {
+              summary: version.summary,
+              core: version.core,
+              web: version.web,
+              ftl: version.ftl,
+              docker: version.docker,
+            },
+            host,
+            system,
+          };
+        },
+        { allowDisabled: true },
+      );
+
+      await this.audit.record({
+        action: "instances.info",
+        actorType: "session",
+        ipAddress,
+        targetType: "instance",
+        targetId: instanceId,
+        result: "SUCCESS",
+        details: {
+          fetchedAt: info.fetchedAt,
+          versionSummary: info.version.summary,
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      return info;
+    } catch (error) {
+      await this.audit.record({
+        action: "instances.info",
+        actorType: "session",
+        ipAddress,
+        targetType: "instance",
+        targetId: instanceId,
+        result: "FAILURE",
+        details: {
+          error: error instanceof Error ? error.message : "Unknown error",
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      this.mapPiholeError(error, locale);
+    }
+  }
+
   async discoverInstances(dto: DiscoverInstancesDto, request: Request) {
     const locale = getRequestLocale(request);
     const candidates = Array.from(new Set(dto.candidates?.length ? dto.candidates : DEFAULT_DISCOVERY_CANDIDATES));
