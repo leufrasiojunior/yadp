@@ -1,5 +1,4 @@
 
-admin/groups/domains permitir exportar em formato de lista txt. nao existe rota export nativa do pihole, devemos criar uma do yapd
 Top Blocked Domains by period(pagina especifica, se nao me engano ja existe rota que posso enviar timestamp)
 
 ver se vale a pena adicionar no YAPD uma busca no github para obter a versao mais recente. checagem a cada 2hs, para mandar uma notificacao push quando as instancias tiverem updates

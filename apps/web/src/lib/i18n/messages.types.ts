@@ -147,6 +147,9 @@ export type WebMessages = {
         submitLoading: string;
       };
       info: {
+        title: string;
+        description: (instanceName: string) => string;
+        descriptionFallback: string;
         expand: string;
         collapse: string;
         loading: string;
@@ -156,12 +159,17 @@ export type WebMessages = {
         buildDate: string;
         summary: string;
         unavailable: string;
+        versionTab: string;
+        hostTab: string;
+        systemTab: string;
         versionTitle: string;
         versionDescription: string;
         hostTitle: string;
         hostDescription: string;
         systemTitle: string;
         systemDescription: string;
+        memoryTitle: string;
+        ftlTitle: string;
         core: string;
         web: string;
         ftl: string;
@@ -227,6 +235,7 @@ export type WebMessages = {
         syncLocked: string;
         errorDetails: string;
         editIdle: string;
+        infoIdle: string;
         editLoading: string;
         testIdle: string;
         testLoading: string;
