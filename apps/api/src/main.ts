@@ -59,7 +59,7 @@ async function bootstrap() {
     }),
   );
 
-  if (env.values.SWAGGER_ENABLED && !env.isProduction) {
+  if (env.values.SWAGGER_ENABLED) {
     SwaggerModule.setup("api/docs", app, buildOpenApiDocument(app));
   }
 
