@@ -886,4 +886,124 @@ export type DomainsImportResponse = {
   }>;
 };
 
+export type ConfigTopicName =
+  | "dns"
+  | "dhcp"
+  | "ntp"
+  | "resolver"
+  | "database"
+  | "webserver"
+  | "files"
+  | "misc"
+  | "debug";
+
+export type ConfigSyncStatus = "synced" | "drifted" | "partial";
+
+export type ConfigFieldItem = {
+  path: string;
+  key: string;
+  groupPath: string | null;
+  description: string | null;
+  allowed: unknown;
+  type: string | null;
+  value: unknown;
+  defaultValue: unknown;
+  modified: boolean;
+  flags: {
+    restart_dnsmasq: boolean;
+    session_reset: boolean;
+    env_var: boolean;
+  };
+  isIgnored: boolean;
+  ignoreRuleId: string | null;
+  sync: {
+    status: ConfigSyncStatus;
+    isFullySynced: boolean;
+    sourceInstances: ConfigInstanceSummary[];
+    missingInstances: ConfigInstanceSummary[];
+  };
+};
+
+export type ConfigIgnoredField = {
+  id: string;
+  topic: ConfigTopicName;
+  fieldPath: string;
+};
+
+export type ConfigDriftItem = {
+  topic: ConfigTopicName;
+  topicTitle: string;
+  fieldPath: string;
+  fieldKey: string;
+  groupPath: string | null;
+};
+
+export type ConfigInstanceSummary = {
+  instanceId: string;
+  instanceName: string;
+  isBaseline: boolean;
+  syncEnabled: boolean;
+};
+
+export type ConfigInstanceFailure = ConfigInstanceSummary & {
+  kind: DashboardInstanceErrorKind;
+  message: string;
+};
+
+export type ConfigTopicData = {
+  name: ConfigTopicName;
+  title: string;
+  description: string | null;
+  value: unknown;
+  detailed: Record<string, unknown>;
+  fields: ConfigFieldItem[];
+  sync: {
+    status: ConfigSyncStatus;
+    isFullySynced: boolean;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+    sourceInstances: ConfigInstanceSummary[];
+    missingInstances: ConfigInstanceSummary[];
+  };
+};
+
+export type ConfigOverviewResponse = {
+  topics: ConfigTopicData[];
+  driftItems: ConfigDriftItem[];
+  ignoredFields: ConfigIgnoredField[];
+  source: {
+    baselineInstanceId: string;
+    baselineInstanceName: string;
+    defaultSourceInstanceId: string;
+    defaultSourceInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+  };
+  instances: ConfigInstanceSummary[];
+  unavailableInstances: ConfigInstanceFailure[];
+};
+
+export type ConfigTopicResponse = {
+  topic: ConfigTopicData;
+  sourceInstance: ConfigInstanceSummary;
+};
+
+export type ConfigUpdateResponse = ConfigTopicResponse;
+
+export type ConfigIgnoreRuleResponse = {
+  rule: ConfigIgnoredField;
+};
+
+export type ConfigMutationResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalInstances: number;
+    successfulCount: number;
+    failedCount: number;
+  };
+  successfulInstances: ConfigInstanceSummary[];
+  failedInstances: ConfigInstanceFailure[];
+};
+
 export type YapdSession = AppSession;

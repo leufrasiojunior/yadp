@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   AppConfig: 'AppConfig',
+  ConfigSyncIgnoreRule: 'ConfigSyncIgnoreRule',
   Instance: 'Instance',
   InstanceSecret: 'InstanceSecret',
   InstanceCertificateTrust: 'InstanceCertificateTrust',
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "pushSubscription"
+    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "pushSubscription"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -491,6 +492,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AppConfigCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AppConfigCountAggregateOutputType> | number
+        }
+      }
+    }
+    ConfigSyncIgnoreRule: {
+      payload: Prisma.$ConfigSyncIgnoreRulePayload<ExtArgs>
+      fields: Prisma.ConfigSyncIgnoreRuleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ConfigSyncIgnoreRuleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ConfigSyncIgnoreRuleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>
+        }
+        findFirst: {
+          args: Prisma.ConfigSyncIgnoreRuleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ConfigSyncIgnoreRuleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>
+        }
+        findMany: {
+          args: Prisma.ConfigSyncIgnoreRuleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>[]
+        }
+        create: {
+          args: Prisma.ConfigSyncIgnoreRuleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>
+        }
+        createMany: {
+          args: Prisma.ConfigSyncIgnoreRuleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ConfigSyncIgnoreRuleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>[]
+        }
+        delete: {
+          args: Prisma.ConfigSyncIgnoreRuleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>
+        }
+        update: {
+          args: Prisma.ConfigSyncIgnoreRuleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>
+        }
+        deleteMany: {
+          args: Prisma.ConfigSyncIgnoreRuleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ConfigSyncIgnoreRuleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ConfigSyncIgnoreRuleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>[]
+        }
+        upsert: {
+          args: Prisma.ConfigSyncIgnoreRuleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfigSyncIgnoreRulePayload>
+        }
+        aggregate: {
+          args: Prisma.ConfigSyncIgnoreRuleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConfigSyncIgnoreRule>
+        }
+        groupBy: {
+          args: Prisma.ConfigSyncIgnoreRuleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConfigSyncIgnoreRuleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ConfigSyncIgnoreRuleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConfigSyncIgnoreRuleCountAggregateOutputType> | number
         }
       }
     }
@@ -1732,6 +1807,17 @@ export const AppConfigScalarFieldEnum = {
 export type AppConfigScalarFieldEnum = (typeof AppConfigScalarFieldEnum)[keyof typeof AppConfigScalarFieldEnum]
 
 
+export const ConfigSyncIgnoreRuleScalarFieldEnum = {
+  id: 'id',
+  topic: 'topic',
+  fieldPath: 'fieldPath',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConfigSyncIgnoreRuleScalarFieldEnum = (typeof ConfigSyncIgnoreRuleScalarFieldEnum)[keyof typeof ConfigSyncIgnoreRuleScalarFieldEnum]
+
+
 export const InstanceScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2299,6 +2385,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   appConfig?: Prisma.AppConfigOmit
+  configSyncIgnoreRule?: Prisma.ConfigSyncIgnoreRuleOmit
   instance?: Prisma.InstanceOmit
   instanceSecret?: Prisma.InstanceSecretOmit
   instanceCertificateTrust?: Prisma.InstanceCertificateTrustOmit

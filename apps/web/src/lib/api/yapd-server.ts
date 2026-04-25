@@ -10,6 +10,7 @@ import type {
   ClientsListResponse,
   ClientsSortDirection,
   ClientsSortField,
+  ConfigOverviewResponse,
   DashboardOverviewResponse,
   DomainFilterValue,
   DomainsListResponse,
@@ -363,6 +364,25 @@ export async function getClients(query?: {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load clients.");
+  }
+
+  return data;
+}
+
+export async function getConfigOverview(): Promise<ConfigOverviewResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<ConfigOverviewResponse>("/config");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load config.");
   }
 
   return data;

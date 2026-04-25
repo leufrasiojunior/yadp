@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   AppConfig: 'AppConfig',
+  ConfigSyncIgnoreRule: 'ConfigSyncIgnoreRule',
   Instance: 'Instance',
   InstanceSecret: 'InstanceSecret',
   InstanceCertificateTrust: 'InstanceCertificateTrust',
@@ -99,6 +100,17 @@ export const AppConfigScalarFieldEnum = {
 } as const
 
 export type AppConfigScalarFieldEnum = (typeof AppConfigScalarFieldEnum)[keyof typeof AppConfigScalarFieldEnum]
+
+
+export const ConfigSyncIgnoreRuleScalarFieldEnum = {
+  id: 'id',
+  topic: 'topic',
+  fieldPath: 'fieldPath',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConfigSyncIgnoreRuleScalarFieldEnum = (typeof ConfigSyncIgnoreRuleScalarFieldEnum)[keyof typeof ConfigSyncIgnoreRuleScalarFieldEnum]
 
 
 export const InstanceScalarFieldEnum = {

@@ -23,6 +23,11 @@ export * from './enums.js';
  */
 export type AppConfig = Prisma.AppConfigModel
 /**
+ * Model ConfigSyncIgnoreRule
+ * 
+ */
+export type ConfigSyncIgnoreRule = Prisma.ConfigSyncIgnoreRuleModel
+/**
  * Model Instance
  * 
  */

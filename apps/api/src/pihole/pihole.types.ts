@@ -484,3 +484,57 @@ export type PiholeListMutationResult = {
   };
   took: number | null;
 };
+
+export const PIHOLE_CONFIG_TOPICS = [
+  "dns",
+  "dhcp",
+  "ntp",
+  "resolver",
+  "database",
+  "webserver",
+  "files",
+  "misc",
+  "debug",
+] as const;
+
+export type PiholeConfigTopicName = (typeof PIHOLE_CONFIG_TOPICS)[number];
+
+export type PiholeConfigOptionFlags = {
+  restart_dnsmasq: boolean;
+  session_reset: boolean;
+  env_var: boolean;
+};
+
+export type PiholeConfigOption = {
+  description: string | null;
+  allowed: unknown;
+  type: string | null;
+  value: unknown;
+  default: unknown;
+  modified: boolean;
+  flags: PiholeConfigOptionFlags;
+};
+
+export interface PiholeConfigDetailedTopic {
+  [key: string]: PiholeConfigDetailedNode;
+}
+
+export type PiholeConfigDetailedNode = PiholeConfigOption | PiholeConfigDetailedTopic;
+
+export type PiholeConfigTopicDescriptor = {
+  name: PiholeConfigTopicName;
+  title: string | null;
+  description: string | null;
+};
+
+export type PiholeConfigDetailedResult = {
+  topics: PiholeConfigTopicDescriptor[];
+  config: Partial<Record<PiholeConfigTopicName, PiholeConfigDetailedTopic>>;
+  took: number | null;
+};
+
+export type PiholeTeleporterExport = {
+  filename: string;
+  contentType: string;
+  data: Buffer;
+};

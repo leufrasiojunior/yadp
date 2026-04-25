@@ -7,6 +7,7 @@ import {
   List,
   type LucideIcon,
   MonitorSmartphone,
+  Settings2,
   Waypoints,
 } from "lucide-react";
 
@@ -93,6 +94,11 @@ export function getSidebarItems(
           title: messages.sidebar.items.instances,
           url: "/instances",
           icon: Binary,
+        },
+        {
+          title: messages.sidebar.items.config,
+          url: "/config",
+          icon: Settings2,
         },
       ],
     },
