@@ -121,6 +121,7 @@ export const enUSMessages: WebMessages = {
         syncEnabledSuccess: "Instance included in sync again.",
         syncDisabledSuccess: "Instance removed from global sync operations.",
         updateSuccess: "Instance updated successfully.",
+        promotePrimarySuccess: (instanceName) => `${instanceName} is now the primary instance.`,
       },
       create: {
         openModal: "Register instance",
@@ -245,6 +246,8 @@ export const enUSMessages: WebMessages = {
         editIdle: "Edit",
         infoIdle: "View information",
         editLoading: "Opening...",
+        makePrimaryIdle: "Make primary",
+        makePrimaryLoading: "Changing primary...",
         testIdle: "Test",
         testLoading: "Testing...",
         reauthenticateIdle: "Reauthenticate",
@@ -253,6 +256,15 @@ export const enUSMessages: WebMessages = {
         statusExpired: "Expired",
         statusMissing: "No SID",
         statusError: "Error",
+      },
+      promotePrimary: {
+        title: "Change primary instance",
+        description: (instanceName) => `${instanceName} will become the primary baseline used globally by YAPD.`,
+        warning:
+          "The previous primary will lose baseline status. Sync will be enabled automatically on the new primary if needed.",
+        cancel: "Cancel",
+        confirmIdle: "Make primary",
+        confirmLoading: "Changing...",
       },
       errorDetails: {
         title: "Instance error details",

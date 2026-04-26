@@ -11,6 +11,16 @@ const REQUEST = {
 } as Request;
 
 function createService(options?: {
+  prisma?: {
+    instance?: {
+      findUnique?: (...args: unknown[]) => Promise<unknown>;
+      findFirst?: (...args: unknown[]) => Promise<unknown>;
+      update?: (...args: unknown[]) => Promise<unknown>;
+      updateMany?: (...args: unknown[]) => Promise<unknown>;
+      count?: (...args: unknown[]) => Promise<unknown>;
+    };
+    $transaction?: <T>(callback: (tx: unknown) => Promise<T>) => Promise<T>;
+  };
   withActiveSession?: InstancesService["getInstanceInfo"] extends never
     ? never
     : (
@@ -90,13 +100,35 @@ function createService(options?: {
       })),
   };
 
+  const prisma =
+    options?.prisma ??
+    ({
+      instance: {
+        findUnique: async () => null,
+        findFirst: async () => null,
+        update: async () => null,
+        updateMany: async () => ({ count: 0 }),
+        count: async () => 0,
+      },
+      $transaction: async <T>(callback: (tx: unknown) => Promise<T>) => callback((options?.prisma as unknown) ?? {}),
+    } satisfies {
+      instance: {
+        findUnique: (...args: unknown[]) => Promise<unknown>;
+        findFirst: (...args: unknown[]) => Promise<unknown>;
+        update: (...args: unknown[]) => Promise<unknown>;
+        updateMany: (...args: unknown[]) => Promise<unknown>;
+        count: (...args: unknown[]) => Promise<unknown>;
+      };
+      $transaction: <T>(callback: (tx: unknown) => Promise<T>) => Promise<T>;
+    });
+
   const service = new InstancesService(
     audit as never,
     {} as never,
     instanceSessions as never,
     pihole as never,
     {} as never,
-    {} as never,
+    prisma as never,
   );
 
   return {
@@ -141,4 +173,92 @@ test("getInstanceInfo maps Pi-hole request failures consistently", async () => {
     name: "BadGatewayException",
   });
   assert.deepEqual(auditCalls, [{ action: "instances.info", result: "FAILURE" }]);
+});
+
+test("promotePrimaryInstance promotes a secondary instance and preserves the old sync flag", async () => {
+  const instances = [
+    { id: "baseline-1", name: "Baseline", isBaseline: true, syncEnabled: true },
+    { id: "secondary-1", name: "Secondary", isBaseline: false, syncEnabled: false },
+  ];
+
+  const prisma = {
+    instance: {
+      findUnique: async ({ where: { id } }: { where: { id: string } }) =>
+        instances.find((instance) => instance.id === id) ?? null,
+      findFirst: async () => instances.find((instance) => instance.isBaseline) ?? null,
+      updateMany: async ({
+        where,
+        data,
+      }: {
+        where: { isBaseline: boolean; NOT: { id: string } };
+        data: { isBaseline: boolean };
+      }) => {
+        let count = 0;
+        for (const instance of instances) {
+          if (instance.isBaseline === where.isBaseline && instance.id !== where.NOT.id) {
+            instance.isBaseline = data.isBaseline;
+            count += 1;
+          }
+        }
+        return { count };
+      },
+      update: async ({
+        where: { id },
+        data,
+      }: {
+        where: { id: string };
+        data: { isBaseline: boolean; syncEnabled: boolean };
+      }) => {
+        const instance = instances.find((entry) => entry.id === id);
+        assert.ok(instance);
+        instance.isBaseline = data.isBaseline;
+        instance.syncEnabled = data.syncEnabled;
+        return { ...instance };
+      },
+      count: async () => instances.filter((instance) => instance.isBaseline).length,
+    },
+    $transaction: async <T>(callback: (tx: typeof prisma) => Promise<T>) => callback(prisma),
+  };
+
+  const { service, auditCalls } = createService({ prisma });
+
+  const result = await service.promotePrimaryInstance("secondary-1", REQUEST);
+
+  assert.equal(result.previousBaselineId, "baseline-1");
+  assert.deepEqual(result.instance, {
+    id: "secondary-1",
+    name: "Secondary",
+    isBaseline: true,
+    syncEnabled: true,
+  });
+  assert.deepEqual(
+    instances.map((instance) => ({
+      id: instance.id,
+      isBaseline: instance.isBaseline,
+      syncEnabled: instance.syncEnabled,
+    })),
+    [
+      { id: "baseline-1", isBaseline: false, syncEnabled: true },
+      { id: "secondary-1", isBaseline: true, syncEnabled: true },
+    ],
+  );
+  assert.deepEqual(auditCalls, [{ action: "instances.primary.change", result: "SUCCESS" }]);
+});
+
+test("promotePrimaryInstance fails for an unknown instance", async () => {
+  const prisma = {
+    instance: {
+      findUnique: async () => null,
+      findFirst: async () => null,
+      updateMany: async () => ({ count: 0 }),
+      update: async () => null,
+      count: async () => 0,
+    },
+    $transaction: async <T>(callback: (tx: typeof prisma) => Promise<T>) => callback(prisma),
+  };
+
+  const { service, auditCalls } = createService({ prisma });
+
+  await assert.rejects(() => service.promotePrimaryInstance("missing", REQUEST), NotFoundException);
+  assert.deepEqual(auditCalls, []);
 });

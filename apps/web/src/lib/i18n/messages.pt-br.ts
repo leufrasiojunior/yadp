@@ -123,6 +123,7 @@ export const ptBRMessages: WebMessages = {
         syncEnabledSuccess: "Instância incluída novamente no sync.",
         syncDisabledSuccess: "Instância removida das operações globais de sync.",
         updateSuccess: "Instância atualizada com sucesso.",
+        promotePrimarySuccess: (instanceName) => `${instanceName} agora é a instância principal.`,
       },
       create: {
         openModal: "Cadastrar instância",
@@ -247,6 +248,8 @@ export const ptBRMessages: WebMessages = {
         editIdle: "Editar",
         infoIdle: "Ver informações",
         editLoading: "Abrindo...",
+        makePrimaryIdle: "Tornar principal",
+        makePrimaryLoading: "Alterando principal...",
         testIdle: "Testar",
         testLoading: "Testando...",
         reauthenticateIdle: "Reautenticar",
@@ -255,6 +258,16 @@ export const ptBRMessages: WebMessages = {
         statusExpired: "Expirada",
         statusMissing: "Sem SID",
         statusError: "Com erro",
+      },
+      promotePrimary: {
+        title: "Alterar instância principal",
+        description: (instanceName) =>
+          `${instanceName} passará a ser a baseline principal usada globalmente pelo YAPD.`,
+        warning:
+          "A antiga principal perderá o status de baseline. O sync da nova principal será ativado automaticamente se necessário.",
+        cancel: "Cancelar",
+        confirmIdle: "Tornar principal",
+        confirmLoading: "Alterando...",
       },
       errorDetails: {
         title: "Detalhes do erro da instância",

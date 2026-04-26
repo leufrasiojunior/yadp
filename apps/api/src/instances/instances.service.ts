@@ -655,6 +655,93 @@ export class InstancesService {
     };
   }
 
+  async promotePrimaryInstance(instanceId: string, request: Request) {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
+    const target = await this.prisma.instance.findUnique({
+      where: { id: instanceId },
+      select: {
+        id: true,
+        name: true,
+        isBaseline: true,
+        syncEnabled: true,
+      },
+    });
+
+    if (!target) {
+      throw new NotFoundException(translateApi(locale, "instances.notFound"));
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const previousBaseline = await tx.instance.findFirst({
+        where: { isBaseline: true },
+        select: {
+          id: true,
+          syncEnabled: true,
+        },
+      });
+
+      await tx.instance.updateMany({
+        where: {
+          isBaseline: true,
+          NOT: {
+            id: instanceId,
+          },
+        },
+        data: {
+          isBaseline: false,
+        },
+      });
+
+      const promotedInstance = await tx.instance.update({
+        where: { id: instanceId },
+        data: {
+          isBaseline: true,
+          syncEnabled: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          isBaseline: true,
+          syncEnabled: true,
+        },
+      });
+
+      const baselineCount = await tx.instance.count({
+        where: { isBaseline: true },
+      });
+
+      if (baselineCount !== 1) {
+        throw new ConflictException("Exactly one baseline instance must remain configured.");
+      }
+
+      return {
+        instance: promotedInstance,
+        previousBaselineId: previousBaseline?.id ?? null,
+        syncAutoEnabled: !target.syncEnabled,
+      };
+    });
+
+    await this.audit.record({
+      action: "instances.primary.change",
+      actorType: "session",
+      ipAddress,
+      targetType: "instance",
+      targetId: result.instance.id,
+      result: "SUCCESS",
+      details: {
+        previousBaselineId: result.previousBaselineId,
+        nextBaselineId: result.instance.id,
+        syncAutoEnabled: result.syncAutoEnabled,
+      } satisfies Prisma.InputJsonObject,
+    });
+
+    return {
+      instance: result.instance,
+      previousBaselineId: result.previousBaselineId,
+    };
+  }
+
   private mapPiholeError(error: unknown, locale: ReturnType<typeof getRequestLocale>): never {
     if (error instanceof PiholeRequestError && error.statusCode === 401) {
       throw new UnauthorizedException(translateApi(locale, "instances.invalidCredentials"));

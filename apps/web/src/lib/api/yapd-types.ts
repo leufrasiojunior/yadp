@@ -162,6 +162,16 @@ export type InstanceSyncToggleResponse = {
   };
 };
 
+export type InstancePrimaryMutationResponse = {
+  instance: {
+    id: string;
+    name: string;
+    isBaseline: boolean;
+    syncEnabled: boolean;
+  };
+  previousBaselineId: string | null;
+};
+
 export type DiscoverInstanceItem = {
   baseUrl: string;
   reachable: boolean;

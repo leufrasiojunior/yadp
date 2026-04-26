@@ -468,6 +468,22 @@ export interface paths {
     patch: operations["InstancesController_updateInstance"];
     trace?: never;
   };
+  "/instances/{id}/info": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["InstancesController_getInstanceInfo"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/instances/discover": {
     parameters: {
       query?: never;
@@ -530,6 +546,22 @@ export interface paths {
     options?: never;
     head?: never;
     patch: operations["InstancesController_updateInstanceSync"];
+    trace?: never;
+  };
+  "/instances/{id}/primary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["InstancesController_promotePrimaryInstance"];
     trace?: never;
   };
   "/lists": {
@@ -606,6 +638,118 @@ export interface paths {
     get: operations["NavigationController_getSummary"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/config": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PiholeConfigController_getOverview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/config/ignored-fields": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PiholeConfigController_createIgnoreRule"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/config/ignored-fields/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PiholeConfigController_deleteIgnoreRuleLegacy"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/config/ignored-fields/{topic}/{fieldPath}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["PiholeConfigController_deleteIgnoreRule"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/config/teleporter/export": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PiholeConfigController_exportTeleporter"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/config/{topic}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PiholeConfigController_getTopic"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["PiholeConfigController_updateTopic"];
+    trace?: never;
+  };
+  "/config/{topic}/sync": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PiholeConfigController_syncTopic"];
     delete?: never;
     options?: never;
     head?: never;
@@ -2510,6 +2654,131 @@ export interface operations {
       };
     };
   };
+  InstancesController_getInstanceInfo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            instanceId: string;
+            /** Format: date-time */
+            fetchedAt: string;
+            version: {
+              summary: string;
+              core: {
+                local: {
+                  version: string | null;
+                  branch: string | null;
+                  hash: string | null;
+                  date: string | null;
+                } | null;
+                remote: {
+                  version: string | null;
+                  branch: string | null;
+                  hash: string | null;
+                  date: string | null;
+                } | null;
+              } | null;
+              web: {
+                local: {
+                  version: string | null;
+                  branch: string | null;
+                  hash: string | null;
+                  date: string | null;
+                } | null;
+                remote: {
+                  version: string | null;
+                  branch: string | null;
+                  hash: string | null;
+                  date: string | null;
+                } | null;
+              } | null;
+              ftl: {
+                local: {
+                  version: string | null;
+                  branch: string | null;
+                  hash: string | null;
+                  date: string | null;
+                } | null;
+                remote: {
+                  version: string | null;
+                  branch: string | null;
+                  hash: string | null;
+                  date: string | null;
+                } | null;
+              } | null;
+              docker: {
+                local: {
+                  version: string | null;
+                  branch: string | null;
+                  hash: string | null;
+                  date: string | null;
+                } | null;
+                remote: {
+                  version: string | null;
+                  branch: string | null;
+                  hash: string | null;
+                  date: string | null;
+                } | null;
+              } | null;
+            };
+            host: {
+              model: string | null;
+              nodename: string | null;
+              machine: string | null;
+              sysname: string | null;
+              release: string | null;
+              version: string | null;
+              domainname: string | null;
+            };
+            system: {
+              uptime: number | null;
+              memory: {
+                ram: {
+                  total: number | null;
+                  free: number | null;
+                  used: number | null;
+                  available: number | null;
+                  percentUsed: number | null;
+                } | null;
+                swap: {
+                  total: number | null;
+                  free: number | null;
+                  used: number | null;
+                  available: number | null;
+                  percentUsed: number | null;
+                } | null;
+              };
+              procs: number | null;
+              cpu: {
+                nprocs: number | null;
+                percentCpu: number | null;
+                load: {
+                  raw: number[] | null;
+                  percent: number[] | null;
+                } | null;
+              } | null;
+              ftl: {
+                percentMem: number | null;
+                percentCpu: number | null;
+              } | null;
+            };
+          };
+        };
+      };
+    };
+  };
   InstancesController_discoverInstances: {
     parameters: {
       query?: never;
@@ -2637,6 +2906,35 @@ export interface operations {
               name: string;
               syncEnabled: boolean;
             };
+          };
+        };
+      };
+    };
+  };
+  InstancesController_promotePrimaryInstance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            instance: {
+              id: string;
+              name: string;
+              isBaseline: boolean;
+              syncEnabled: boolean;
+            };
+            previousBaselineId: string | null;
           };
         };
       };
@@ -2990,6 +3288,461 @@ export interface operations {
             domains: {
               total: number;
             };
+          };
+        };
+      };
+    };
+  };
+  PiholeConfigController_getOverview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            topics: {
+              /** @enum {string} */
+              name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+              title: string;
+              description: string | null;
+              value: unknown;
+              detailed: {
+                [key: string]: unknown;
+              };
+              fields: {
+                path: string;
+                key: string;
+                groupPath: string | null;
+                description: string | null;
+                allowed: unknown;
+                type: string | null;
+                value: unknown;
+                defaultValue: unknown;
+                modified: boolean;
+                flags: {
+                  restart_dnsmasq: boolean;
+                  session_reset: boolean;
+                  env_var: boolean;
+                };
+                isIgnored: boolean;
+                ignoreRuleId: string | null;
+                sync: {
+                  /** @enum {string} */
+                  status: "synced" | "drifted" | "partial";
+                  isFullySynced: boolean;
+                  sourceInstances: {
+                    instanceId: string;
+                    instanceName: string;
+                    isBaseline: boolean;
+                    syncEnabled: boolean;
+                  }[];
+                  missingInstances: {
+                    instanceId: string;
+                    instanceName: string;
+                    isBaseline: boolean;
+                    syncEnabled: boolean;
+                  }[];
+                };
+              }[];
+              sync: {
+                /** @enum {string} */
+                status: "synced" | "drifted" | "partial";
+                isFullySynced: boolean;
+                availableInstanceCount: number;
+                unavailableInstanceCount: number;
+                sourceInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                  isBaseline: boolean;
+                  syncEnabled: boolean;
+                }[];
+                missingInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                  isBaseline: boolean;
+                  syncEnabled: boolean;
+                }[];
+              };
+            }[];
+            driftItems: {
+              /** @enum {string} */
+              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+              topicTitle: string;
+              fieldPath: string;
+              fieldKey: string;
+              groupPath: string | null;
+            }[];
+            ignoredFields: {
+              id: string;
+              /** @enum {string} */
+              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+              fieldPath: string;
+            }[];
+            source: {
+              baselineInstanceId: string;
+              baselineInstanceName: string;
+              defaultSourceInstanceId: string;
+              defaultSourceInstanceName: string;
+              totalInstances: number;
+              availableInstanceCount: number;
+              unavailableInstanceCount: number;
+            };
+            instances: {
+              instanceId: string;
+              instanceName: string;
+              isBaseline: boolean;
+              syncEnabled: boolean;
+            }[];
+            unavailableInstances: {
+              instanceId: string;
+              instanceName: string;
+              isBaseline: boolean;
+              syncEnabled: boolean;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  PiholeConfigController_createIgnoreRule: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            rule: {
+              id: string;
+              /** @enum {string} */
+              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+              fieldPath: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  PiholeConfigController_deleteIgnoreRuleLegacy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            rule: {
+              id: string;
+              /** @enum {string} */
+              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+              fieldPath: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  PiholeConfigController_deleteIgnoreRule: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            rule: {
+              id: string;
+              /** @enum {string} */
+              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+              fieldPath: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  PiholeConfigController_exportTeleporter: {
+    parameters: {
+      query?: {
+        instanceId?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  PiholeConfigController_getTopic: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            topic: {
+              /** @enum {string} */
+              name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+              title: string;
+              description: string | null;
+              value: unknown;
+              detailed: {
+                [key: string]: unknown;
+              };
+              fields: {
+                path: string;
+                key: string;
+                groupPath: string | null;
+                description: string | null;
+                allowed: unknown;
+                type: string | null;
+                value: unknown;
+                defaultValue: unknown;
+                modified: boolean;
+                flags: {
+                  restart_dnsmasq: boolean;
+                  session_reset: boolean;
+                  env_var: boolean;
+                };
+                isIgnored: boolean;
+                ignoreRuleId: string | null;
+                sync: {
+                  /** @enum {string} */
+                  status: "synced" | "drifted" | "partial";
+                  isFullySynced: boolean;
+                  sourceInstances: {
+                    instanceId: string;
+                    instanceName: string;
+                    isBaseline: boolean;
+                    syncEnabled: boolean;
+                  }[];
+                  missingInstances: {
+                    instanceId: string;
+                    instanceName: string;
+                    isBaseline: boolean;
+                    syncEnabled: boolean;
+                  }[];
+                };
+              }[];
+              sync: {
+                /** @enum {string} */
+                status: "synced" | "drifted" | "partial";
+                isFullySynced: boolean;
+                availableInstanceCount: number;
+                unavailableInstanceCount: number;
+                sourceInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                  isBaseline: boolean;
+                  syncEnabled: boolean;
+                }[];
+                missingInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                  isBaseline: boolean;
+                  syncEnabled: boolean;
+                }[];
+              };
+            };
+            sourceInstance: {
+              instanceId: string;
+              instanceName: string;
+              isBaseline: boolean;
+              syncEnabled: boolean;
+            };
+          };
+        };
+      };
+    };
+  };
+  PiholeConfigController_updateTopic: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            topic: {
+              /** @enum {string} */
+              name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+              title: string;
+              description: string | null;
+              value: unknown;
+              detailed: {
+                [key: string]: unknown;
+              };
+              fields: {
+                path: string;
+                key: string;
+                groupPath: string | null;
+                description: string | null;
+                allowed: unknown;
+                type: string | null;
+                value: unknown;
+                defaultValue: unknown;
+                modified: boolean;
+                flags: {
+                  restart_dnsmasq: boolean;
+                  session_reset: boolean;
+                  env_var: boolean;
+                };
+                isIgnored: boolean;
+                ignoreRuleId: string | null;
+                sync: {
+                  /** @enum {string} */
+                  status: "synced" | "drifted" | "partial";
+                  isFullySynced: boolean;
+                  sourceInstances: {
+                    instanceId: string;
+                    instanceName: string;
+                    isBaseline: boolean;
+                    syncEnabled: boolean;
+                  }[];
+                  missingInstances: {
+                    instanceId: string;
+                    instanceName: string;
+                    isBaseline: boolean;
+                    syncEnabled: boolean;
+                  }[];
+                };
+              }[];
+              sync: {
+                /** @enum {string} */
+                status: "synced" | "drifted" | "partial";
+                isFullySynced: boolean;
+                availableInstanceCount: number;
+                unavailableInstanceCount: number;
+                sourceInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                  isBaseline: boolean;
+                  syncEnabled: boolean;
+                }[];
+                missingInstances: {
+                  instanceId: string;
+                  instanceName: string;
+                  isBaseline: boolean;
+                  syncEnabled: boolean;
+                }[];
+              };
+            };
+            sourceInstance: {
+              instanceId: string;
+              instanceName: string;
+              isBaseline: boolean;
+              syncEnabled: boolean;
+            };
+          };
+        };
+      };
+    };
+  };
+  PiholeConfigController_syncTopic: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "success" | "partial";
+            summary: {
+              totalInstances: number;
+              successfulCount: number;
+              failedCount: number;
+            };
+            successfulInstances: {
+              instanceId: string;
+              instanceName: string;
+              isBaseline: boolean;
+              syncEnabled: boolean;
+            }[];
+            failedInstances: {
+              instanceId: string;
+              instanceName: string;
+              isBaseline: boolean;
+              syncEnabled: boolean;
+              /** @enum {string} */
+              kind:
+                | "invalid_credentials"
+                | "tls_error"
+                | "timeout"
+                | "dns_error"
+                | "connection_refused"
+                | "pihole_response_error"
+                | "unknown";
+              message: string;
+            }[];
           };
         };
       };

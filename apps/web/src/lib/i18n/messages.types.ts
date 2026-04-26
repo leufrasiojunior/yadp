@@ -114,6 +114,7 @@ export type WebMessages = {
         syncEnabledSuccess: string;
         syncDisabledSuccess: string;
         updateSuccess: string;
+        promotePrimarySuccess: (instanceName: string) => string;
       };
       create: {
         openModal: string;
@@ -237,6 +238,8 @@ export type WebMessages = {
         editIdle: string;
         infoIdle: string;
         editLoading: string;
+        makePrimaryIdle: string;
+        makePrimaryLoading: string;
         testIdle: string;
         testLoading: string;
         reauthenticateIdle: string;
@@ -245,6 +248,14 @@ export type WebMessages = {
         statusExpired: string;
         statusMissing: string;
         statusError: string;
+      };
+      promotePrimary: {
+        title: string;
+        description: (instanceName: string) => string;
+        warning: string;
+        cancel: string;
+        confirmIdle: string;
+        confirmLoading: string;
       };
       errorDetails: {
         title: string;

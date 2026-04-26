@@ -299,6 +299,26 @@ export const INSTANCE_SYNC_MUTATION_API_OK_RESPONSE: ApiResponseNoStatusOptions 
   },
 };
 
+export const INSTANCE_PRIMARY_MUTATION_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      instance: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          isBaseline: { type: "boolean" },
+          syncEnabled: { type: "boolean" },
+        },
+        required: ["id", "name", "isBaseline", "syncEnabled"],
+      },
+      previousBaselineId: { type: "string", nullable: true },
+    },
+    required: ["instance", "previousBaselineId"],
+  },
+};
+
 export const INSTANCE_TEST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
   schema: {
     type: "object",
