@@ -38,12 +38,12 @@ export function DashboardScopeSelector({
     setClientCookie(DASHBOARD_SCOPE_COOKIE, nextValue);
 
     startTransition(() => {
-      if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/queries")) {
+      if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/queries") || pathname?.startsWith("/overview")) {
         router.refresh();
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/overview");
     });
   };
 

@@ -26,7 +26,11 @@ import type {
   PushSubscriptionResponse,
 } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
-import { getNotificationInstanceLabel, getNotificationTitle } from "@/lib/notifications/notifications";
+import {
+  getNotificationInstanceLabel,
+  getNotificationMessage,
+  getNotificationTitle,
+} from "@/lib/notifications/notifications";
 import { decodePushPublicKey, isCurrentPushSubscriptionServerKey } from "@/lib/notifications/push-subscription";
 import { cn } from "@/lib/utils";
 import { useNotificationsStore } from "@/stores/notifications/notifications-provider";
@@ -309,7 +313,7 @@ export function NotificationBell() {
                             {getNotificationInstanceLabel(item, messages)}
                           </span>
                         </div>
-                        <p className="line-clamp-2 text-sm">{item.message}</p>
+                        <p className="line-clamp-2 text-sm">{getNotificationMessage(item, messages, formatDateTime)}</p>
                       </div>
                       <span className="shrink-0 text-muted-foreground text-xs">{formatDateTime(item.occurredAt)}</span>
                     </div>

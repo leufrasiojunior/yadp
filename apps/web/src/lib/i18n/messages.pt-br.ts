@@ -606,7 +606,143 @@ export const ptBRMessages: WebMessages = {
       INSTANCE_SESSION_ERROR: "Falha de sessão",
       SYNC_FAILURE: "Falha de sincronismo",
       SYSTEM_FAILURE: "Falha de sistema",
+      OVERVIEW_IMPORT_SUCCESS: "Importação do overview concluída",
+      OVERVIEW_IMPORT_PARTIAL: "Importação parcial do overview",
+      OVERVIEW_IMPORT_FAILURE: "Falha na importação do overview",
+      OVERVIEW_DELETE_SUCCESS: "Exclusão do overview concluída",
+      OVERVIEW_DELETE_FAILURE: "Falha na exclusão do overview",
       unknown: (type) => type,
+    },
+  },
+  overview: {
+    eyebrow: "Histórico consolidado do banco local",
+    title: "Overview",
+    description:
+      "Consulte o histórico salvo no banco local, acompanhe a cobertura disponível e solicite coletas ou exclusões em segundo plano.",
+    tabs: {
+      request: "Período e cobertura",
+      ranking: "Ranking",
+      jobs: "Jobs",
+    },
+    filters: {
+      title: "Solicitação de período",
+      description:
+        "O `/overview` lê apenas o histórico local. Use o período atual para consultar, coletar ou apagar dados.",
+      from: "De",
+      until: "Até",
+      apply: "Aplicar filtros",
+      applying: "Aplicando...",
+      reload: "Recarregar",
+    },
+    actions: {
+      backfill: "Solicitar coleta",
+      backfillLoading: "Enfileirando...",
+      deletePeriod: "Apagar período",
+      deletePeriodLoading: "Enfileirando...",
+    },
+    partial: {
+      title: "Dados parciais",
+      description:
+        "Algumas instâncias não têm histórico disponível para esse período. Os rankings e gráficos abaixo usam apenas o que está salvo localmente.",
+      missingDataMessage: "Sem histórico salvo para o período selecionado.",
+      importFailureMessage: (message) => `Falha na coleta anterior: ${message}`,
+    },
+    summary: {
+      totalQueries: "Total no período",
+      blockedQueries: "Bloqueadas",
+      uniqueClients: "Clientes únicos",
+      percentageBlocked: "Taxa de bloqueio",
+    },
+    chart: {
+      titleByHour: "Volume por hora",
+      titleByDay: "Volume por dia",
+      description: "Leitura consolidada apenas do banco histórico local.",
+      noDataTitle: "Sem dados no período",
+      noDataDescription: "Solicite uma coleta histórica ou ajuste os filtros para um intervalo já salvo.",
+    },
+    coverage: {
+      title: "Cobertura disponível",
+      description: "Faixas salvas para o escopo selecionado.",
+      totalStoredQueries: "Queries salvas",
+      earliestStoredAt: "Primeiro registro",
+      latestStoredAt: "Último registro",
+      unavailable: "N/A",
+      emptyTitle: "Sem cobertura salva",
+      emptyDescription: "Nenhuma coleta concluída foi encontrada para o escopo atual.",
+      capturedQueries: (count) => (count === 1 ? "1 query capturada" : `${count} queries capturadas`),
+      period: (from, until) => `${from} até ${until}`,
+    },
+    ranking: {
+      title: "Rankings",
+      description: "Resumo dos dados salvos localmente para o período selecionado.",
+      domains: "Top domínios",
+      clients: "Top clientes",
+      upstreams: "Top upstreams",
+      statuses: "Top status",
+      value: "Valor",
+      queries: "Queries",
+      noData: "Nenhum dado salvo para o período atual.",
+    },
+    jobs: {
+      title: "Jobs",
+      description: "Atualizações e exclusões em segundo plano.",
+      refresh: "Atualizar jobs",
+      refreshing: "Atualizando...",
+      emptyTitle: "Nenhum job encontrado",
+      emptyDescription: "As próximas coletas e exclusões aparecerão aqui.",
+      status: "Status",
+      type: "Tipo",
+      period: "Período",
+      rows: "Linhas",
+      actions: "Ações",
+      openPeriod: "Abrir período",
+      retry: "Tentar novamente",
+      delete: "Apagar job",
+      runningHint: "Aguardando conclusão",
+      statusValues: {
+        PENDING: "Pendente",
+        RUNNING: "Executando",
+        SUCCESS: "Sucesso",
+        PARTIAL: "Parcial",
+        FAILURE: "Falha",
+      },
+      kindValues: {
+        AUTOMATIC_IMPORT: "Importação automática",
+        MANUAL_IMPORT: "Importação manual",
+        MANUAL_DELETE: "Exclusão manual",
+      },
+    },
+    notifications: {
+      triggerAutomatic: "automática",
+      triggerManual: "manual",
+      triggerUnknown: "executada",
+      importSuccessMessage: (trigger, from, until, queryCount) =>
+        `${trigger} entre ${from} e ${until} concluída com ${queryCount} queries importadas.`,
+      importPartialMessage: (trigger, from, until, failedCount) =>
+        `${trigger} entre ${from} e ${until} concluída parcialmente com falha em ${failedCount} instância(s).`,
+      importFailureMessage: (trigger, from, until, errorMessage) =>
+        errorMessage?.trim().length
+          ? `${trigger} entre ${from} e ${until} falhou: ${errorMessage}`
+          : `${trigger} entre ${from} e ${until} falhou.`,
+      deleteSuccessMessage: (from, until, deletedCount) =>
+        `Exclusão entre ${from} e ${until} concluída com ${deletedCount} registro(s) removidos.`,
+      deleteFailureMessage: (from, until, errorMessage) =>
+        errorMessage?.trim().length
+          ? `Exclusão entre ${from} e ${until} falhou: ${errorMessage}`
+          : `Exclusão entre ${from} e ${until} falhou.`,
+    },
+    toasts: {
+      invalidPeriod: "Informe um período válido antes de iniciar a operação.",
+      instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
+      jobsRefreshFailed: "Não foi possível atualizar os jobs do overview.",
+      backfillQueued: "Job de coleta enfileirado.",
+      deleteQueued: "Job de exclusão enfileirado.",
+      backfillFailed: "Não foi possível solicitar a coleta histórica.",
+      deleteFailed: "Não foi possível solicitar a exclusão do período.",
+      retryQueued: "Novo job enfileirado a partir da tentativa anterior.",
+      retryFailed: "Não foi possível reenfileirar esse job.",
+      jobDeleted: "Job removido da lista com sucesso.",
+      jobDeleteFailed: "Não foi possível apagar esse job.",
     },
   },
   queries: {

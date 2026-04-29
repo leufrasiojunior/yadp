@@ -17,6 +17,7 @@ import { InstancesModule } from "./instances/instances.module";
 import { ListsModule } from "./lists/lists.module";
 import { NavigationModule } from "./navigation/navigation.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { OverviewModule } from "./overview/overview.module";
 import { PiholeModule } from "./pihole/pihole.module";
 import { PiholeConfigModule } from "./pihole-config/pihole-config.module";
 import { QueriesModule } from "./queries/queries.module";
@@ -39,6 +40,7 @@ import { SyncModule } from "./sync/sync.module";
     ListsModule,
     NavigationModule,
     NotificationsModule,
+    OverviewModule,
     PiholeModule,
     PiholeConfigModule,
     PrismaModule,

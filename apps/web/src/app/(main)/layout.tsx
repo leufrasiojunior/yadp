@@ -112,7 +112,7 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
                         value={selectedDashboardScope}
                       />
                       <Button asChild variant="outline" size="sm">
-                        <Link prefetch={false} href="/dashboard">
+                        <Link prefetch={false} href="/overview">
                           <Activity />
                           {messages.layout.overviewButton}
                         </Link>

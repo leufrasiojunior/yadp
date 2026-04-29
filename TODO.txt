@@ -15,12 +15,6 @@ adicionar um passo opcional no setup, depois de configurar as instancias, ja per
 (perguntar 2x, pois pode ser uma acao destrutiva, ou seja, quando aceitar a primeira vez, perguntar de novo com titulo diferente. Usar a rota de export para exportar e depois importar em todas as instancias. Lembrar de apagar o ZIP gerado)
 
 
-Na tela de instancias, adicionar mais informacoes da instancia, e tornar possivel mudar o pihole primario. 
-Rota para pegar informacoes da instancia: 
-/info/system
-/info/host
-/info/version
-
 na tela de clientes, adicionar mais detalhes de um unico host -> admin/queries?client_ip=192.168.31.18
 Adicionar:
 Pesquisa de queries

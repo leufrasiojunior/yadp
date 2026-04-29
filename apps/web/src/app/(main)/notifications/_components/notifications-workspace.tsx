@@ -36,6 +36,7 @@ import type {
 import { useWebI18n } from "@/lib/i18n/client";
 import {
   getNotificationInstanceLabel,
+  getNotificationMessage,
   getNotificationTitle,
   getNotificationTypeIcon,
 } from "@/lib/notifications/notifications";
@@ -318,7 +319,9 @@ export function NotificationsWorkspace({ initialData }: Readonly<NotificationsWo
                         <span>{getNotificationInstanceLabel(item, messages)}</span>
                       </span>
                     </TableCell>
-                    <TableCell className="max-w-xl whitespace-normal break-words">{item.message}</TableCell>
+                    <TableCell className="max-w-xl whitespace-normal break-words">
+                      {getNotificationMessage(item, messages, formatDateTime)}
+                    </TableCell>
                     <TableCell className="whitespace-nowrap text-muted-foreground text-sm">
                       <span className="inline-flex items-center gap-2">
                         <Clock3 className="size-4" />

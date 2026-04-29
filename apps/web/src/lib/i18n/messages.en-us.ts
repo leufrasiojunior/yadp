@@ -602,7 +602,143 @@ export const enUSMessages: WebMessages = {
       INSTANCE_SESSION_ERROR: "Session failure",
       SYNC_FAILURE: "Sync failure",
       SYSTEM_FAILURE: "System failure",
+      OVERVIEW_IMPORT_SUCCESS: "Overview import completed",
+      OVERVIEW_IMPORT_PARTIAL: "Overview import partially completed",
+      OVERVIEW_IMPORT_FAILURE: "Overview import failed",
+      OVERVIEW_DELETE_SUCCESS: "Overview deletion completed",
+      OVERVIEW_DELETE_FAILURE: "Overview deletion failed",
       unknown: (type) => type,
+    },
+  },
+  overview: {
+    eyebrow: "Historical view from the local database",
+    title: "Overview",
+    description:
+      "Review historical data stored locally, track available coverage, and request background imports or deletions.",
+    tabs: {
+      request: "Period and coverage",
+      ranking: "Ranking",
+      jobs: "Jobs",
+    },
+    filters: {
+      title: "Period request",
+      description:
+        "The `/overview` page reads only from local history. Use the current period to query, import, or delete data.",
+      from: "From",
+      until: "Until",
+      apply: "Apply filters",
+      applying: "Applying...",
+      reload: "Reload",
+    },
+    actions: {
+      backfill: "Request import",
+      backfillLoading: "Queueing...",
+      deletePeriod: "Delete period",
+      deletePeriodLoading: "Queueing...",
+    },
+    partial: {
+      title: "Partial data",
+      description:
+        "Some instances do not have historical coverage for this period. The ranking and chart below use only the data stored locally.",
+      missingDataMessage: "No stored history for the selected period.",
+      importFailureMessage: (message) => `A previous import failed: ${message}`,
+    },
+    summary: {
+      totalQueries: "Total in period",
+      blockedQueries: "Blocked",
+      uniqueClients: "Unique clients",
+      percentageBlocked: "Block rate",
+    },
+    chart: {
+      titleByHour: "Volume by hour",
+      titleByDay: "Volume by day",
+      description: "Consolidated view based only on the local historical store.",
+      noDataTitle: "No data in this period",
+      noDataDescription: "Request a historical import or adjust the filters to a period that is already stored.",
+    },
+    coverage: {
+      title: "Available coverage",
+      description: "Stored windows for the selected scope.",
+      totalStoredQueries: "Stored queries",
+      earliestStoredAt: "Earliest record",
+      latestStoredAt: "Latest record",
+      unavailable: "N/A",
+      emptyTitle: "No stored coverage",
+      emptyDescription: "No completed import was found for the current scope.",
+      capturedQueries: (count) => (count === 1 ? "1 captured query" : `${count} captured queries`),
+      period: (from, until) => `${from} to ${until}`,
+    },
+    ranking: {
+      title: "Rankings",
+      description: "Summary of the data stored locally for the selected period.",
+      domains: "Top domains",
+      clients: "Top clients",
+      upstreams: "Top upstreams",
+      statuses: "Top statuses",
+      value: "Value",
+      queries: "Queries",
+      noData: "No stored data for the current period.",
+    },
+    jobs: {
+      title: "Jobs",
+      description: "Background imports and deletions.",
+      refresh: "Refresh jobs",
+      refreshing: "Refreshing...",
+      emptyTitle: "No jobs found",
+      emptyDescription: "Future imports and deletions will appear here.",
+      status: "Status",
+      type: "Type",
+      period: "Period",
+      rows: "Rows",
+      actions: "Actions",
+      openPeriod: "Open period",
+      retry: "Retry",
+      delete: "Delete job",
+      runningHint: "Waiting for completion",
+      statusValues: {
+        PENDING: "Pending",
+        RUNNING: "Running",
+        SUCCESS: "Success",
+        PARTIAL: "Partial",
+        FAILURE: "Failure",
+      },
+      kindValues: {
+        AUTOMATIC_IMPORT: "Automatic import",
+        MANUAL_IMPORT: "Manual import",
+        MANUAL_DELETE: "Manual deletion",
+      },
+    },
+    notifications: {
+      triggerAutomatic: "automatic import",
+      triggerManual: "manual request",
+      triggerUnknown: "request",
+      importSuccessMessage: (trigger, from, until, queryCount) =>
+        `${trigger} between ${from} and ${until} completed with ${queryCount} imported queries.`,
+      importPartialMessage: (trigger, from, until, failedCount) =>
+        `${trigger} between ${from} and ${until} partially completed with failures in ${failedCount} instance(s).`,
+      importFailureMessage: (trigger, from, until, errorMessage) =>
+        errorMessage?.trim().length
+          ? `${trigger} between ${from} and ${until} failed: ${errorMessage}`
+          : `${trigger} between ${from} and ${until} failed.`,
+      deleteSuccessMessage: (from, until, deletedCount) =>
+        `Deletion between ${from} and ${until} completed with ${deletedCount} removed record(s).`,
+      deleteFailureMessage: (from, until, errorMessage) =>
+        errorMessage?.trim().length
+          ? `Deletion between ${from} and ${until} failed: ${errorMessage}`
+          : `Deletion between ${from} and ${until} failed.`,
+    },
+    toasts: {
+      invalidPeriod: "Provide a valid period before starting the operation.",
+      instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
+      jobsRefreshFailed: "Could not refresh overview jobs.",
+      backfillQueued: "Import job queued.",
+      deleteQueued: "Deletion job queued.",
+      backfillFailed: "Could not request the historical import.",
+      deleteFailed: "Could not request the period deletion.",
+      retryQueued: "A new job was queued from the previous attempt.",
+      retryFailed: "Could not requeue this job.",
+      jobDeleted: "Job removed from the list.",
+      jobDeleteFailed: "Could not delete this job.",
     },
   },
   queries: {

@@ -644,6 +644,102 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/overview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["OverviewController_getOverview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/overview/jobs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["OverviewController_getJobs"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/overview/backfill": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["OverviewController_createBackfill"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/overview/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["OverviewController_createDelete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/overview/jobs/{id}/retry": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["OverviewController_retryJob"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/overview/jobs/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["OverviewController_deleteJob"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/config": {
     parameters: {
       query?: never;
@@ -942,12 +1038,20 @@ export interface operations {
                 | "INSTANCE_SESSION_ERROR"
                 | "SYNC_FAILURE"
                 | "SYSTEM_FAILURE"
+                | "OVERVIEW_IMPORT_SUCCESS"
+                | "OVERVIEW_IMPORT_PARTIAL"
+                | "OVERVIEW_IMPORT_FAILURE"
+                | "OVERVIEW_DELETE_SUCCESS"
+                | "OVERVIEW_DELETE_FAILURE"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
               title: string;
               instanceId: string | null;
               instanceName: string | null;
               message: string;
+              metadata: {
+                [key: string]: unknown;
+              } | null;
               /** @enum {string} */
               state: "ACTIVE" | "RESOLVED";
               isRead: boolean;
@@ -1008,12 +1112,20 @@ export interface operations {
                 | "INSTANCE_SESSION_ERROR"
                 | "SYNC_FAILURE"
                 | "SYSTEM_FAILURE"
+                | "OVERVIEW_IMPORT_SUCCESS"
+                | "OVERVIEW_IMPORT_PARTIAL"
+                | "OVERVIEW_IMPORT_FAILURE"
+                | "OVERVIEW_DELETE_SUCCESS"
+                | "OVERVIEW_DELETE_FAILURE"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
               title: string;
               instanceId: string | null;
               instanceName: string | null;
               message: string;
+              metadata: {
+                [key: string]: unknown;
+              } | null;
               /** @enum {string} */
               state: "ACTIVE" | "RESOLVED";
               isRead: boolean;
@@ -1069,12 +1181,20 @@ export interface operations {
                 | "INSTANCE_SESSION_ERROR"
                 | "SYNC_FAILURE"
                 | "SYSTEM_FAILURE"
+                | "OVERVIEW_IMPORT_SUCCESS"
+                | "OVERVIEW_IMPORT_PARTIAL"
+                | "OVERVIEW_IMPORT_FAILURE"
+                | "OVERVIEW_DELETE_SUCCESS"
+                | "OVERVIEW_DELETE_FAILURE"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
               title: string;
               instanceId: string | null;
               instanceName: string | null;
               message: string;
+              metadata: {
+                [key: string]: unknown;
+              } | null;
               /** @enum {string} */
               state: "ACTIVE" | "RESOLVED";
               isRead: boolean;
@@ -1147,12 +1267,20 @@ export interface operations {
                 | "INSTANCE_SESSION_ERROR"
                 | "SYNC_FAILURE"
                 | "SYSTEM_FAILURE"
+                | "OVERVIEW_IMPORT_SUCCESS"
+                | "OVERVIEW_IMPORT_PARTIAL"
+                | "OVERVIEW_IMPORT_FAILURE"
+                | "OVERVIEW_DELETE_SUCCESS"
+                | "OVERVIEW_DELETE_FAILURE"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
               title: string;
               instanceId: string | null;
               instanceName: string | null;
               message: string;
+              metadata: {
+                [key: string]: unknown;
+              } | null;
               /** @enum {string} */
               state: "ACTIVE" | "RESOLVED";
               isRead: boolean;
@@ -3290,6 +3418,114 @@ export interface operations {
             };
           };
         };
+      };
+    };
+  };
+  OverviewController_getOverview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Historical overview for stored queries. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  OverviewController_getJobs: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Recent overview history jobs. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  OverviewController_createBackfill: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Enqueued overview history job. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  OverviewController_createDelete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Enqueued overview history job. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  OverviewController_retryJob: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Enqueued overview history job. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  OverviewController_deleteJob: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Enqueued overview history job. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

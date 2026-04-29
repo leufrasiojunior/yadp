@@ -2,6 +2,7 @@ import {
   Activity,
   Bell,
   Binary,
+  FileText,
   Globe,
   LayoutDashboard,
   List,
@@ -52,6 +53,11 @@ export function getSidebarItems(
       label: messages.sidebar.groups.overview,
       items: [
         {
+          title: messages.layout.overviewButton,
+          url: "/overview",
+          icon: Activity,
+        },
+        {
           title: messages.sidebar.items.dashboard,
           url: "/dashboard",
           icon: LayoutDashboard,
@@ -59,7 +65,7 @@ export function getSidebarItems(
         {
           title: messages.sidebar.items.queries,
           url: "/queries",
-          icon: Activity,
+          icon: FileText,
         },
       ],
     },

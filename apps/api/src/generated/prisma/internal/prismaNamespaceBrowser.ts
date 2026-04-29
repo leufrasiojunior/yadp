@@ -68,6 +68,9 @@ export const ModelName = {
   ManagedDomain: 'ManagedDomain',
   RegexFilter: 'RegexFilter',
   Notification: 'Notification',
+  HistoricalQuery: 'HistoricalQuery',
+  OverviewHistoryJob: 'OverviewHistoryJob',
+  OverviewCoverageWindow: 'OverviewCoverageWindow',
   PushSubscription: 'PushSubscription'
 } as const
 
@@ -337,6 +340,79 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const HistoricalQueryScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  instanceId: 'instanceId',
+  instanceNameSnapshot: 'instanceNameSnapshot',
+  sourceId: 'sourceId',
+  occurredAt: 'occurredAt',
+  domain: 'domain',
+  clientIp: 'clientIp',
+  clientName: 'clientName',
+  clientAlias: 'clientAlias',
+  upstream: 'upstream',
+  queryType: 'queryType',
+  status: 'status',
+  dnssec: 'dnssec',
+  replyType: 'replyType',
+  replyTime: 'replyTime',
+  listId: 'listId',
+  edeCode: 'edeCode',
+  edeText: 'edeText',
+  cname: 'cname',
+  importedAt: 'importedAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type HistoricalQueryScalarFieldEnum = (typeof HistoricalQueryScalarFieldEnum)[keyof typeof HistoricalQueryScalarFieldEnum]
+
+
+export const OverviewHistoryJobScalarFieldEnum = {
+  id: 'id',
+  kind: 'kind',
+  scope: 'scope',
+  instanceId: 'instanceId',
+  instanceNameSnapshot: 'instanceNameSnapshot',
+  requestedFrom: 'requestedFrom',
+  requestedUntil: 'requestedUntil',
+  status: 'status',
+  trigger: 'trigger',
+  requestedBy: 'requestedBy',
+  summary: 'summary',
+  errorMessage: 'errorMessage',
+  queryCount: 'queryCount',
+  deletedCount: 'deletedCount',
+  coverageCount: 'coverageCount',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OverviewHistoryJobScalarFieldEnum = (typeof OverviewHistoryJobScalarFieldEnum)[keyof typeof OverviewHistoryJobScalarFieldEnum]
+
+
+export const OverviewCoverageWindowScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  instanceId: 'instanceId',
+  requestedFrom: 'requestedFrom',
+  requestedUntil: 'requestedUntil',
+  storedFrom: 'storedFrom',
+  storedUntil: 'storedUntil',
+  rowCount: 'rowCount',
+  status: 'status',
+  errorMessage: 'errorMessage',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OverviewCoverageWindowScalarFieldEnum = (typeof OverviewCoverageWindowScalarFieldEnum)[keyof typeof OverviewCoverageWindowScalarFieldEnum]
 
 
 export const PushSubscriptionScalarFieldEnum = {

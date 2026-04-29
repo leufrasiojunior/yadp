@@ -37,6 +37,11 @@
                               "INSTANCE_SESSION_ERROR",
                               "SYNC_FAILURE",
                               "SYSTEM_FAILURE",
+                              "OVERVIEW_IMPORT_SUCCESS",
+                              "OVERVIEW_IMPORT_PARTIAL",
+                              "OVERVIEW_IMPORT_FAILURE",
+                              "OVERVIEW_DELETE_SUCCESS",
+                              "OVERVIEW_DELETE_FAILURE",
                               "RATE_LIMIT",
                               "CONNECTION_ERROR"
                             ]
@@ -54,6 +59,11 @@
                           },
                           "message": {
                             "type": "string"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": true
                           },
                           "state": {
                             "type": "string",
@@ -100,6 +110,7 @@
                           "instanceId",
                           "instanceName",
                           "message",
+                          "metadata",
                           "state",
                           "isRead",
                           "readAt",
@@ -188,6 +199,11 @@
                               "INSTANCE_SESSION_ERROR",
                               "SYNC_FAILURE",
                               "SYSTEM_FAILURE",
+                              "OVERVIEW_IMPORT_SUCCESS",
+                              "OVERVIEW_IMPORT_PARTIAL",
+                              "OVERVIEW_IMPORT_FAILURE",
+                              "OVERVIEW_DELETE_SUCCESS",
+                              "OVERVIEW_DELETE_FAILURE",
                               "RATE_LIMIT",
                               "CONNECTION_ERROR"
                             ]
@@ -205,6 +221,11 @@
                           },
                           "message": {
                             "type": "string"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": true
                           },
                           "state": {
                             "type": "string",
@@ -251,6 +272,7 @@
                           "instanceId",
                           "instanceName",
                           "message",
+                          "metadata",
                           "state",
                           "isRead",
                           "readAt",
@@ -324,6 +346,11 @@
                             "INSTANCE_SESSION_ERROR",
                             "SYNC_FAILURE",
                             "SYSTEM_FAILURE",
+                            "OVERVIEW_IMPORT_SUCCESS",
+                            "OVERVIEW_IMPORT_PARTIAL",
+                            "OVERVIEW_IMPORT_FAILURE",
+                            "OVERVIEW_DELETE_SUCCESS",
+                            "OVERVIEW_DELETE_FAILURE",
                             "RATE_LIMIT",
                             "CONNECTION_ERROR"
                           ]
@@ -341,6 +368,11 @@
                         },
                         "message": {
                           "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "nullable": true,
+                          "additionalProperties": true
                         },
                         "state": {
                           "type": "string",
@@ -387,6 +419,7 @@
                         "instanceId",
                         "instanceName",
                         "message",
+                        "metadata",
                         "state",
                         "isRead",
                         "readAt",
@@ -477,6 +510,11 @@
                             "INSTANCE_SESSION_ERROR",
                             "SYNC_FAILURE",
                             "SYSTEM_FAILURE",
+                            "OVERVIEW_IMPORT_SUCCESS",
+                            "OVERVIEW_IMPORT_PARTIAL",
+                            "OVERVIEW_IMPORT_FAILURE",
+                            "OVERVIEW_DELETE_SUCCESS",
+                            "OVERVIEW_DELETE_FAILURE",
                             "RATE_LIMIT",
                             "CONNECTION_ERROR"
                           ]
@@ -494,6 +532,11 @@
                         },
                         "message": {
                           "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "nullable": true,
+                          "additionalProperties": true
                         },
                         "state": {
                           "type": "string",
@@ -540,6 +583,7 @@
                         "instanceId",
                         "instanceName",
                         "message",
+                        "metadata",
                         "state",
                         "isRead",
                         "readAt",
@@ -5328,6 +5372,108 @@
           }
         ],
         "tags": ["navigation"]
+      }
+    },
+    "/overview": {
+      "get": {
+        "operationId": "OverviewController_getOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Historical overview for stored queries."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
+    "/overview/jobs": {
+      "get": {
+        "operationId": "OverviewController_getJobs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Recent overview history jobs."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
+    "/overview/backfill": {
+      "post": {
+        "operationId": "OverviewController_createBackfill",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Enqueued overview history job."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
+    "/overview/delete": {
+      "post": {
+        "operationId": "OverviewController_createDelete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Enqueued overview history job."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
+    "/overview/jobs/{id}/retry": {
+      "post": {
+        "operationId": "OverviewController_retryJob",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Enqueued overview history job."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
+    "/overview/jobs/{id}": {
+      "delete": {
+        "operationId": "OverviewController_deleteJob",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Enqueued overview history job."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
       }
     },
     "/config": {

@@ -67,3 +67,23 @@ export const NotificationState = {
 } as const
 
 export type NotificationState = (typeof NotificationState)[keyof typeof NotificationState]
+
+
+export const OverviewHistoryJobKind = {
+  AUTOMATIC_IMPORT: 'AUTOMATIC_IMPORT',
+  MANUAL_IMPORT: 'MANUAL_IMPORT',
+  MANUAL_DELETE: 'MANUAL_DELETE'
+} as const
+
+export type OverviewHistoryJobKind = (typeof OverviewHistoryJobKind)[keyof typeof OverviewHistoryJobKind]
+
+
+export const OverviewHistoryJobStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  SUCCESS: 'SUCCESS',
+  PARTIAL: 'PARTIAL',
+  FAILURE: 'FAILURE'
+} as const
+
+export type OverviewHistoryJobStatus = (typeof OverviewHistoryJobStatus)[keyof typeof OverviewHistoryJobStatus]

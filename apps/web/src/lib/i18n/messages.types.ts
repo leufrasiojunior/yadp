@@ -552,7 +552,131 @@ export type WebMessages = {
       INSTANCE_SESSION_ERROR: string;
       SYNC_FAILURE: string;
       SYSTEM_FAILURE: string;
+      OVERVIEW_IMPORT_SUCCESS: string;
+      OVERVIEW_IMPORT_PARTIAL: string;
+      OVERVIEW_IMPORT_FAILURE: string;
+      OVERVIEW_DELETE_SUCCESS: string;
+      OVERVIEW_DELETE_FAILURE: string;
       unknown: (type: string) => string;
+    };
+  };
+  overview: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    tabs: {
+      request: string;
+      ranking: string;
+      jobs: string;
+    };
+    filters: {
+      title: string;
+      description: string;
+      from: string;
+      until: string;
+      apply: string;
+      applying: string;
+      reload: string;
+    };
+    actions: {
+      backfill: string;
+      backfillLoading: string;
+      deletePeriod: string;
+      deletePeriodLoading: string;
+    };
+    partial: {
+      title: string;
+      description: string;
+      missingDataMessage: string;
+      importFailureMessage: (message: string) => string;
+    };
+    summary: {
+      totalQueries: string;
+      blockedQueries: string;
+      uniqueClients: string;
+      percentageBlocked: string;
+    };
+    chart: {
+      titleByHour: string;
+      titleByDay: string;
+      description: string;
+      noDataTitle: string;
+      noDataDescription: string;
+    };
+    coverage: {
+      title: string;
+      description: string;
+      totalStoredQueries: string;
+      earliestStoredAt: string;
+      latestStoredAt: string;
+      unavailable: string;
+      emptyTitle: string;
+      emptyDescription: string;
+      capturedQueries: (count: number) => string;
+      period: (from: string, until: string) => string;
+    };
+    ranking: {
+      title: string;
+      description: string;
+      domains: string;
+      clients: string;
+      upstreams: string;
+      statuses: string;
+      value: string;
+      queries: string;
+      noData: string;
+    };
+    jobs: {
+      title: string;
+      description: string;
+      refresh: string;
+      refreshing: string;
+      emptyTitle: string;
+      emptyDescription: string;
+      status: string;
+      type: string;
+      period: string;
+      rows: string;
+      actions: string;
+      openPeriod: string;
+      retry: string;
+      delete: string;
+      runningHint: string;
+      statusValues: {
+        PENDING: string;
+        RUNNING: string;
+        SUCCESS: string;
+        PARTIAL: string;
+        FAILURE: string;
+      };
+      kindValues: {
+        AUTOMATIC_IMPORT: string;
+        MANUAL_IMPORT: string;
+        MANUAL_DELETE: string;
+      };
+    };
+    notifications: {
+      triggerAutomatic: string;
+      triggerManual: string;
+      triggerUnknown: string;
+      importSuccessMessage: (trigger: string, from: string, until: string, queryCount: number) => string;
+      importPartialMessage: (trigger: string, from: string, until: string, failedCount: number) => string;
+      importFailureMessage: (trigger: string, from: string, until: string, errorMessage?: string | null) => string;
+      deleteSuccessMessage: (from: string, until: string, deletedCount: number) => string;
+      deleteFailureMessage: (from: string, until: string, errorMessage?: string | null) => string;
+    };
+    toasts: {
+      invalidPeriod: string;
+      instanceFailure: (instanceName: string, message: string) => string;
+      jobsRefreshFailed: string;
+      backfillQueued: string;
+      deleteQueued: string;
+      backfillFailed: string;
+      deleteFailed: string;
+      retryQueued: string;
+      retryFailed: string;
+      jobDeleted: string;
+      jobDeleteFailed: string;
     };
   };
   queries: {

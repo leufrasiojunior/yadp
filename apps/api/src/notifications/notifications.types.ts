@@ -13,6 +13,11 @@ export const SYSTEM_NOTIFICATION_TYPES = [
   "INSTANCE_SESSION_ERROR",
   "SYNC_FAILURE",
   "SYSTEM_FAILURE",
+  "OVERVIEW_IMPORT_SUCCESS",
+  "OVERVIEW_IMPORT_PARTIAL",
+  "OVERVIEW_IMPORT_FAILURE",
+  "OVERVIEW_DELETE_SUCCESS",
+  "OVERVIEW_DELETE_FAILURE",
 ] as const;
 
 export type NotificationSource = (typeof NOTIFICATION_SOURCES)[number];
@@ -22,6 +27,7 @@ export type SystemNotificationType = (typeof SYSTEM_NOTIFICATION_TYPES)[number];
 export type SupportedPiholeNotificationType = (typeof BACKEND_CONFIG.notifications.piholeMessageTypes)[number];
 
 export type NotificationType = SystemNotificationType | SupportedPiholeNotificationType | string;
+export type NotificationMetadata = Record<string, unknown> | null;
 
 export type NotificationItem = {
   id: string;
@@ -31,6 +37,7 @@ export type NotificationItem = {
   instanceId: string | null;
   instanceName: string | null;
   message: string;
+  metadata: NotificationMetadata;
   state: NotificationState;
   isRead: boolean;
   readAt: string | null;

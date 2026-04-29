@@ -401,6 +401,9 @@ export const ModelName = {
   ManagedDomain: 'ManagedDomain',
   RegexFilter: 'RegexFilter',
   Notification: 'Notification',
+  HistoricalQuery: 'HistoricalQuery',
+  OverviewHistoryJob: 'OverviewHistoryJob',
+  OverviewCoverageWindow: 'OverviewCoverageWindow',
   PushSubscription: 'PushSubscription'
 } as const
 
@@ -417,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "pushSubscription"
+    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "historicalQuery" | "overviewHistoryJob" | "overviewCoverageWindow" | "pushSubscription"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1679,6 +1682,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    HistoricalQuery: {
+      payload: Prisma.$HistoricalQueryPayload<ExtArgs>
+      fields: Prisma.HistoricalQueryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HistoricalQueryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HistoricalQueryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>
+        }
+        findFirst: {
+          args: Prisma.HistoricalQueryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HistoricalQueryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>
+        }
+        findMany: {
+          args: Prisma.HistoricalQueryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>[]
+        }
+        create: {
+          args: Prisma.HistoricalQueryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>
+        }
+        createMany: {
+          args: Prisma.HistoricalQueryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HistoricalQueryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>[]
+        }
+        delete: {
+          args: Prisma.HistoricalQueryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>
+        }
+        update: {
+          args: Prisma.HistoricalQueryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>
+        }
+        deleteMany: {
+          args: Prisma.HistoricalQueryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HistoricalQueryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HistoricalQueryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>[]
+        }
+        upsert: {
+          args: Prisma.HistoricalQueryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HistoricalQueryPayload>
+        }
+        aggregate: {
+          args: Prisma.HistoricalQueryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHistoricalQuery>
+        }
+        groupBy: {
+          args: Prisma.HistoricalQueryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HistoricalQueryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HistoricalQueryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HistoricalQueryCountAggregateOutputType> | number
+        }
+      }
+    }
+    OverviewHistoryJob: {
+      payload: Prisma.$OverviewHistoryJobPayload<ExtArgs>
+      fields: Prisma.OverviewHistoryJobFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OverviewHistoryJobFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OverviewHistoryJobFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>
+        }
+        findFirst: {
+          args: Prisma.OverviewHistoryJobFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OverviewHistoryJobFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>
+        }
+        findMany: {
+          args: Prisma.OverviewHistoryJobFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>[]
+        }
+        create: {
+          args: Prisma.OverviewHistoryJobCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>
+        }
+        createMany: {
+          args: Prisma.OverviewHistoryJobCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OverviewHistoryJobCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>[]
+        }
+        delete: {
+          args: Prisma.OverviewHistoryJobDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>
+        }
+        update: {
+          args: Prisma.OverviewHistoryJobUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>
+        }
+        deleteMany: {
+          args: Prisma.OverviewHistoryJobDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OverviewHistoryJobUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OverviewHistoryJobUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>[]
+        }
+        upsert: {
+          args: Prisma.OverviewHistoryJobUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewHistoryJobPayload>
+        }
+        aggregate: {
+          args: Prisma.OverviewHistoryJobAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOverviewHistoryJob>
+        }
+        groupBy: {
+          args: Prisma.OverviewHistoryJobGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OverviewHistoryJobGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OverviewHistoryJobCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OverviewHistoryJobCountAggregateOutputType> | number
+        }
+      }
+    }
+    OverviewCoverageWindow: {
+      payload: Prisma.$OverviewCoverageWindowPayload<ExtArgs>
+      fields: Prisma.OverviewCoverageWindowFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OverviewCoverageWindowFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OverviewCoverageWindowFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>
+        }
+        findFirst: {
+          args: Prisma.OverviewCoverageWindowFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OverviewCoverageWindowFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>
+        }
+        findMany: {
+          args: Prisma.OverviewCoverageWindowFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>[]
+        }
+        create: {
+          args: Prisma.OverviewCoverageWindowCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>
+        }
+        createMany: {
+          args: Prisma.OverviewCoverageWindowCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OverviewCoverageWindowCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>[]
+        }
+        delete: {
+          args: Prisma.OverviewCoverageWindowDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>
+        }
+        update: {
+          args: Prisma.OverviewCoverageWindowUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>
+        }
+        deleteMany: {
+          args: Prisma.OverviewCoverageWindowDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OverviewCoverageWindowUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OverviewCoverageWindowUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>[]
+        }
+        upsert: {
+          args: Prisma.OverviewCoverageWindowUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewCoverageWindowPayload>
+        }
+        aggregate: {
+          args: Prisma.OverviewCoverageWindowAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOverviewCoverageWindow>
+        }
+        groupBy: {
+          args: Prisma.OverviewCoverageWindowGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OverviewCoverageWindowGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OverviewCoverageWindowCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OverviewCoverageWindowCountAggregateOutputType> | number
+        }
+      }
+    }
     PushSubscription: {
       payload: Prisma.$PushSubscriptionPayload<ExtArgs>
       fields: Prisma.PushSubscriptionFieldRefs
@@ -2044,6 +2269,79 @@ export const NotificationScalarFieldEnum = {
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
+export const HistoricalQueryScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  instanceId: 'instanceId',
+  instanceNameSnapshot: 'instanceNameSnapshot',
+  sourceId: 'sourceId',
+  occurredAt: 'occurredAt',
+  domain: 'domain',
+  clientIp: 'clientIp',
+  clientName: 'clientName',
+  clientAlias: 'clientAlias',
+  upstream: 'upstream',
+  queryType: 'queryType',
+  status: 'status',
+  dnssec: 'dnssec',
+  replyType: 'replyType',
+  replyTime: 'replyTime',
+  listId: 'listId',
+  edeCode: 'edeCode',
+  edeText: 'edeText',
+  cname: 'cname',
+  importedAt: 'importedAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type HistoricalQueryScalarFieldEnum = (typeof HistoricalQueryScalarFieldEnum)[keyof typeof HistoricalQueryScalarFieldEnum]
+
+
+export const OverviewHistoryJobScalarFieldEnum = {
+  id: 'id',
+  kind: 'kind',
+  scope: 'scope',
+  instanceId: 'instanceId',
+  instanceNameSnapshot: 'instanceNameSnapshot',
+  requestedFrom: 'requestedFrom',
+  requestedUntil: 'requestedUntil',
+  status: 'status',
+  trigger: 'trigger',
+  requestedBy: 'requestedBy',
+  summary: 'summary',
+  errorMessage: 'errorMessage',
+  queryCount: 'queryCount',
+  deletedCount: 'deletedCount',
+  coverageCount: 'coverageCount',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OverviewHistoryJobScalarFieldEnum = (typeof OverviewHistoryJobScalarFieldEnum)[keyof typeof OverviewHistoryJobScalarFieldEnum]
+
+
+export const OverviewCoverageWindowScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  instanceId: 'instanceId',
+  requestedFrom: 'requestedFrom',
+  requestedUntil: 'requestedUntil',
+  storedFrom: 'storedFrom',
+  storedUntil: 'storedUntil',
+  rowCount: 'rowCount',
+  status: 'status',
+  errorMessage: 'errorMessage',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OverviewCoverageWindowScalarFieldEnum = (typeof OverviewCoverageWindowScalarFieldEnum)[keyof typeof OverviewCoverageWindowScalarFieldEnum]
+
+
 export const PushSubscriptionScalarFieldEnum = {
   id: 'id',
   endpoint: 'endpoint',
@@ -2277,6 +2575,34 @@ export type ListEnumNotificationStateFieldRefInput<$PrismaModel> = FieldRefInput
 
 
 /**
+ * Reference to a field of type 'OverviewHistoryJobKind'
+ */
+export type EnumOverviewHistoryJobKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OverviewHistoryJobKind'>
+    
+
+
+/**
+ * Reference to a field of type 'OverviewHistoryJobKind[]'
+ */
+export type ListEnumOverviewHistoryJobKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OverviewHistoryJobKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OverviewHistoryJobStatus'
+ */
+export type EnumOverviewHistoryJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OverviewHistoryJobStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'OverviewHistoryJobStatus[]'
+ */
+export type ListEnumOverviewHistoryJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OverviewHistoryJobStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2401,6 +2727,9 @@ export type GlobalOmitConfig = {
   managedDomain?: Prisma.ManagedDomainOmit
   regexFilter?: Prisma.RegexFilterOmit
   notification?: Prisma.NotificationOmit
+  historicalQuery?: Prisma.HistoricalQueryOmit
+  overviewHistoryJob?: Prisma.OverviewHistoryJobOmit
+  overviewCoverageWindow?: Prisma.OverviewCoverageWindowOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
 }
 

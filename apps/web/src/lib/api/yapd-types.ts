@@ -277,6 +277,7 @@ export type NavigationSummaryResponse = {
 export type NotificationSource = "PIHOLE" | "SYSTEM";
 export type NotificationState = "ACTIVE" | "RESOLVED";
 export type NotificationReadState = "unread" | "read";
+export type NotificationMetadata = Record<string, unknown> | null;
 
 export type NotificationItem = {
   id: string;
@@ -298,6 +299,7 @@ export type NotificationItem = {
   instanceId: string | null;
   instanceName: string | null;
   message: string;
+  metadata: NotificationMetadata;
   state: NotificationState;
   isRead: boolean;
   readAt: string | null;
@@ -494,6 +496,125 @@ export type DashboardOverviewResponse = {
       message: string;
     }>;
   };
+};
+
+export type OverviewResponse = {
+  scope: {
+    mode: "all" | "instance";
+    instanceId: string | null;
+    instanceName: string | null;
+  };
+  filters: {
+    from: string;
+    until: string;
+    groupBy: "hour" | "day";
+  };
+  summary: {
+    totalQueries: number;
+    blockedQueries: number;
+    cachedQueries: number;
+    forwardedQueries: number;
+    uniqueDomains: number;
+    uniqueClients: number;
+    percentageBlocked: number;
+  };
+  charts: {
+    queries: {
+      groupBy: "hour" | "day";
+      points: Array<{
+        timestamp: string;
+        totalQueries: number;
+        blockedQueries: number;
+        cachedQueries: number;
+        forwardedQueries: number;
+        percentageBlocked: number;
+      }>;
+    };
+  };
+  rankings: {
+    domains: Array<{
+      value: string;
+      count: number;
+    }>;
+    clients: Array<{
+      value: string;
+      count: number;
+    }>;
+    upstreams: Array<{
+      value: string;
+      count: number;
+    }>;
+    statuses: Array<{
+      value: string;
+      count: number;
+    }>;
+  };
+  coverage: {
+    hasAnyData: boolean;
+    requestedFrom: string;
+    requestedUntil: string;
+    totalStoredQueries: number;
+    earliestStoredAt: string | null;
+    latestStoredAt: string | null;
+    windows: Array<{
+      id: string;
+      jobId: string | null;
+      instanceId: string;
+      instanceName: string;
+      requestedFrom: string;
+      requestedUntil: string;
+      storedFrom: string | null;
+      storedUntil: string | null;
+      rowCount: number;
+      status: "PENDING" | "RUNNING" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      errorMessage: string | null;
+      expiresAt: string;
+    }>;
+  };
+  sources: {
+    totalInstances: number;
+    availableInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    failedInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+      kind: "missing_data" | "import_failure";
+      message: string;
+    }>;
+  };
+};
+
+export type OverviewJobsResponse = {
+  jobs: Array<{
+    id: string;
+    kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+    scope: "all" | "instance";
+    instanceId: string | null;
+    instanceName: string | null;
+    requestedFrom: string;
+    requestedUntil: string;
+    status: "PENDING" | "RUNNING" | "SUCCESS" | "PARTIAL" | "FAILURE";
+    trigger: string | null;
+    requestedBy: string | null;
+    queryCount: number;
+    deletedCount: number;
+    coverageCount: number;
+    startedAt: string | null;
+    finishedAt: string | null;
+    createdAt: string;
+    errorMessage: string | null;
+    summary: unknown;
+  }>;
+};
+
+export type OverviewMutationResponse = {
+  job: OverviewJobsResponse["jobs"][number];
+};
+
+export type OverviewJobDeleteResponse = {
+  job: OverviewJobsResponse["jobs"][number];
 };
 
 export type QueriesResponse = {

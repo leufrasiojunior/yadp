@@ -103,6 +103,21 @@ export type RegexFilter = Prisma.RegexFilterModel
  */
 export type Notification = Prisma.NotificationModel
 /**
+ * Model HistoricalQuery
+ * 
+ */
+export type HistoricalQuery = Prisma.HistoricalQueryModel
+/**
+ * Model OverviewHistoryJob
+ * 
+ */
+export type OverviewHistoryJob = Prisma.OverviewHistoryJobModel
+/**
+ * Model OverviewCoverageWindow
+ * 
+ */
+export type OverviewCoverageWindow = Prisma.OverviewCoverageWindowModel
+/**
  * Model PushSubscription
  * 
  */

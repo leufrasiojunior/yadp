@@ -220,6 +220,9 @@ export type InstanceWhereInput = {
   syncAttempts?: Prisma.SyncAttemptListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   groupMemberships?: Prisma.ClientGroupMembershipListRelationFilter
+  historicalQueries?: Prisma.HistoricalQueryListRelationFilter
+  overviewCoverage?: Prisma.OverviewCoverageWindowListRelationFilter
+  overviewJobs?: Prisma.OverviewHistoryJobListRelationFilter
 }
 
 export type InstanceOrderByWithRelationInput = {
@@ -238,6 +241,9 @@ export type InstanceOrderByWithRelationInput = {
   syncAttempts?: Prisma.SyncAttemptOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   groupMemberships?: Prisma.ClientGroupMembershipOrderByRelationAggregateInput
+  historicalQueries?: Prisma.HistoricalQueryOrderByRelationAggregateInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowOrderByRelationAggregateInput
+  overviewJobs?: Prisma.OverviewHistoryJobOrderByRelationAggregateInput
 }
 
 export type InstanceWhereUniqueInput = Prisma.AtLeast<{
@@ -259,6 +265,9 @@ export type InstanceWhereUniqueInput = Prisma.AtLeast<{
   syncAttempts?: Prisma.SyncAttemptListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   groupMemberships?: Prisma.ClientGroupMembershipListRelationFilter
+  historicalQueries?: Prisma.HistoricalQueryListRelationFilter
+  overviewCoverage?: Prisma.OverviewCoverageWindowListRelationFilter
+  overviewJobs?: Prisma.OverviewHistoryJobListRelationFilter
 }, "id">
 
 export type InstanceOrderByWithAggregationInput = {
@@ -307,6 +316,9 @@ export type InstanceCreateInput = {
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateInput = {
@@ -325,6 +337,9 @@ export type InstanceUncheckedCreateInput = {
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUpdateInput = {
@@ -343,6 +358,9 @@ export type InstanceUpdateInput = {
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateInput = {
@@ -361,6 +379,9 @@ export type InstanceUncheckedUpdateInput = {
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateManyInput = {
@@ -539,6 +560,50 @@ export type InstanceUpdateOneWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutNotificationsInput, Prisma.InstanceUpdateWithoutNotificationsInput>, Prisma.InstanceUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type InstanceCreateNestedOneWithoutHistoricalQueriesInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutHistoricalQueriesInput, Prisma.InstanceUncheckedCreateWithoutHistoricalQueriesInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutHistoricalQueriesInput
+  connect?: Prisma.InstanceWhereUniqueInput
+}
+
+export type InstanceUpdateOneRequiredWithoutHistoricalQueriesNestedInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutHistoricalQueriesInput, Prisma.InstanceUncheckedCreateWithoutHistoricalQueriesInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutHistoricalQueriesInput
+  upsert?: Prisma.InstanceUpsertWithoutHistoricalQueriesInput
+  connect?: Prisma.InstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutHistoricalQueriesInput, Prisma.InstanceUpdateWithoutHistoricalQueriesInput>, Prisma.InstanceUncheckedUpdateWithoutHistoricalQueriesInput>
+}
+
+export type InstanceCreateNestedOneWithoutOverviewJobsInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewJobsInput, Prisma.InstanceUncheckedCreateWithoutOverviewJobsInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutOverviewJobsInput
+  connect?: Prisma.InstanceWhereUniqueInput
+}
+
+export type InstanceUpdateOneWithoutOverviewJobsNestedInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewJobsInput, Prisma.InstanceUncheckedCreateWithoutOverviewJobsInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutOverviewJobsInput
+  upsert?: Prisma.InstanceUpsertWithoutOverviewJobsInput
+  disconnect?: Prisma.InstanceWhereInput | boolean
+  delete?: Prisma.InstanceWhereInput | boolean
+  connect?: Prisma.InstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutOverviewJobsInput, Prisma.InstanceUpdateWithoutOverviewJobsInput>, Prisma.InstanceUncheckedUpdateWithoutOverviewJobsInput>
+}
+
+export type InstanceCreateNestedOneWithoutOverviewCoverageInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewCoverageInput, Prisma.InstanceUncheckedCreateWithoutOverviewCoverageInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutOverviewCoverageInput
+  connect?: Prisma.InstanceWhereUniqueInput
+}
+
+export type InstanceUpdateOneRequiredWithoutOverviewCoverageNestedInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewCoverageInput, Prisma.InstanceUncheckedCreateWithoutOverviewCoverageInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutOverviewCoverageInput
+  upsert?: Prisma.InstanceUpsertWithoutOverviewCoverageInput
+  connect?: Prisma.InstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutOverviewCoverageInput, Prisma.InstanceUpdateWithoutOverviewCoverageInput>, Prisma.InstanceUncheckedUpdateWithoutOverviewCoverageInput>
+}
+
 export type InstanceCreateWithoutSecretInput = {
   id?: string
   name: string
@@ -554,6 +619,9 @@ export type InstanceCreateWithoutSecretInput = {
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSecretInput = {
@@ -571,6 +639,9 @@ export type InstanceUncheckedCreateWithoutSecretInput = {
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSecretInput = {
@@ -604,6 +675,9 @@ export type InstanceUpdateWithoutSecretInput = {
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSecretInput = {
@@ -621,6 +695,9 @@ export type InstanceUncheckedUpdateWithoutSecretInput = {
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutCertificateTrustInput = {
@@ -638,6 +715,9 @@ export type InstanceCreateWithoutCertificateTrustInput = {
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
@@ -655,6 +735,9 @@ export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutCertificateTrustInput = {
@@ -688,6 +771,9 @@ export type InstanceUpdateWithoutCertificateTrustInput = {
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
@@ -705,6 +791,9 @@ export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutSessionInput = {
@@ -722,6 +811,9 @@ export type InstanceCreateWithoutSessionInput = {
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSessionInput = {
@@ -739,6 +831,9 @@ export type InstanceUncheckedCreateWithoutSessionInput = {
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSessionInput = {
@@ -772,6 +867,9 @@ export type InstanceUpdateWithoutSessionInput = {
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSessionInput = {
@@ -789,6 +887,9 @@ export type InstanceUncheckedUpdateWithoutSessionInput = {
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutGroupMembershipsInput = {
@@ -806,6 +907,9 @@ export type InstanceCreateWithoutGroupMembershipsInput = {
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutGroupMembershipsInput = {
@@ -823,6 +927,9 @@ export type InstanceUncheckedCreateWithoutGroupMembershipsInput = {
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutGroupMembershipsInput = {
@@ -856,6 +963,9 @@ export type InstanceUpdateWithoutGroupMembershipsInput = {
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutGroupMembershipsInput = {
@@ -873,6 +983,9 @@ export type InstanceUncheckedUpdateWithoutGroupMembershipsInput = {
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutSyncAttemptsInput = {
@@ -890,6 +1003,9 @@ export type InstanceCreateWithoutSyncAttemptsInput = {
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSyncAttemptsInput = {
@@ -907,6 +1023,9 @@ export type InstanceUncheckedCreateWithoutSyncAttemptsInput = {
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSyncAttemptsInput = {
@@ -940,6 +1059,9 @@ export type InstanceUpdateWithoutSyncAttemptsInput = {
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSyncAttemptsInput = {
@@ -957,6 +1079,9 @@ export type InstanceUncheckedUpdateWithoutSyncAttemptsInput = {
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutNotificationsInput = {
@@ -974,6 +1099,9 @@ export type InstanceCreateWithoutNotificationsInput = {
   session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutNotificationsInput = {
@@ -991,6 +1119,9 @@ export type InstanceUncheckedCreateWithoutNotificationsInput = {
   session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
   syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutNotificationsInput = {
@@ -1024,6 +1155,9 @@ export type InstanceUpdateWithoutNotificationsInput = {
   session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutNotificationsInput = {
@@ -1041,6 +1175,297 @@ export type InstanceUncheckedUpdateWithoutNotificationsInput = {
   session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
   syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceCreateWithoutHistoricalQueriesInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceUncheckedCreateWithoutHistoricalQueriesInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceCreateOrConnectWithoutHistoricalQueriesInput = {
+  where: Prisma.InstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutHistoricalQueriesInput, Prisma.InstanceUncheckedCreateWithoutHistoricalQueriesInput>
+}
+
+export type InstanceUpsertWithoutHistoricalQueriesInput = {
+  update: Prisma.XOR<Prisma.InstanceUpdateWithoutHistoricalQueriesInput, Prisma.InstanceUncheckedUpdateWithoutHistoricalQueriesInput>
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutHistoricalQueriesInput, Prisma.InstanceUncheckedCreateWithoutHistoricalQueriesInput>
+  where?: Prisma.InstanceWhereInput
+}
+
+export type InstanceUpdateToOneWithWhereWithoutHistoricalQueriesInput = {
+  where?: Prisma.InstanceWhereInput
+  data: Prisma.XOR<Prisma.InstanceUpdateWithoutHistoricalQueriesInput, Prisma.InstanceUncheckedUpdateWithoutHistoricalQueriesInput>
+}
+
+export type InstanceUpdateWithoutHistoricalQueriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceUncheckedUpdateWithoutHistoricalQueriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceCreateWithoutOverviewJobsInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceUncheckedCreateWithoutOverviewJobsInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceCreateOrConnectWithoutOverviewJobsInput = {
+  where: Prisma.InstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewJobsInput, Prisma.InstanceUncheckedCreateWithoutOverviewJobsInput>
+}
+
+export type InstanceUpsertWithoutOverviewJobsInput = {
+  update: Prisma.XOR<Prisma.InstanceUpdateWithoutOverviewJobsInput, Prisma.InstanceUncheckedUpdateWithoutOverviewJobsInput>
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewJobsInput, Prisma.InstanceUncheckedCreateWithoutOverviewJobsInput>
+  where?: Prisma.InstanceWhereInput
+}
+
+export type InstanceUpdateToOneWithWhereWithoutOverviewJobsInput = {
+  where?: Prisma.InstanceWhereInput
+  data: Prisma.XOR<Prisma.InstanceUpdateWithoutOverviewJobsInput, Prisma.InstanceUncheckedUpdateWithoutOverviewJobsInput>
+}
+
+export type InstanceUpdateWithoutOverviewJobsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceUncheckedUpdateWithoutOverviewJobsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceCreateWithoutOverviewCoverageInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceUncheckedCreateWithoutOverviewCoverageInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceCreateOrConnectWithoutOverviewCoverageInput = {
+  where: Prisma.InstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewCoverageInput, Prisma.InstanceUncheckedCreateWithoutOverviewCoverageInput>
+}
+
+export type InstanceUpsertWithoutOverviewCoverageInput = {
+  update: Prisma.XOR<Prisma.InstanceUpdateWithoutOverviewCoverageInput, Prisma.InstanceUncheckedUpdateWithoutOverviewCoverageInput>
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewCoverageInput, Prisma.InstanceUncheckedCreateWithoutOverviewCoverageInput>
+  where?: Prisma.InstanceWhereInput
+}
+
+export type InstanceUpdateToOneWithWhereWithoutOverviewCoverageInput = {
+  where?: Prisma.InstanceWhereInput
+  data: Prisma.XOR<Prisma.InstanceUpdateWithoutOverviewCoverageInput, Prisma.InstanceUncheckedUpdateWithoutOverviewCoverageInput>
+}
+
+export type InstanceUpdateWithoutOverviewCoverageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceUncheckedUpdateWithoutOverviewCoverageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 
@@ -1052,12 +1477,18 @@ export type InstanceCountOutputType = {
   syncAttempts: number
   notifications: number
   groupMemberships: number
+  historicalQueries: number
+  overviewCoverage: number
+  overviewJobs: number
 }
 
 export type InstanceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   syncAttempts?: boolean | InstanceCountOutputTypeCountSyncAttemptsArgs
   notifications?: boolean | InstanceCountOutputTypeCountNotificationsArgs
   groupMemberships?: boolean | InstanceCountOutputTypeCountGroupMembershipsArgs
+  historicalQueries?: boolean | InstanceCountOutputTypeCountHistoricalQueriesArgs
+  overviewCoverage?: boolean | InstanceCountOutputTypeCountOverviewCoverageArgs
+  overviewJobs?: boolean | InstanceCountOutputTypeCountOverviewJobsArgs
 }
 
 /**
@@ -1091,6 +1522,27 @@ export type InstanceCountOutputTypeCountGroupMembershipsArgs<ExtArgs extends run
   where?: Prisma.ClientGroupMembershipWhereInput
 }
 
+/**
+ * InstanceCountOutputType without action
+ */
+export type InstanceCountOutputTypeCountHistoricalQueriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.HistoricalQueryWhereInput
+}
+
+/**
+ * InstanceCountOutputType without action
+ */
+export type InstanceCountOutputTypeCountOverviewCoverageArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OverviewCoverageWindowWhereInput
+}
+
+/**
+ * InstanceCountOutputType without action
+ */
+export type InstanceCountOutputTypeCountOverviewJobsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OverviewHistoryJobWhereInput
+}
+
 
 export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1108,6 +1560,9 @@ export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   syncAttempts?: boolean | Prisma.Instance$syncAttemptsArgs<ExtArgs>
   notifications?: boolean | Prisma.Instance$notificationsArgs<ExtArgs>
   groupMemberships?: boolean | Prisma.Instance$groupMembershipsArgs<ExtArgs>
+  historicalQueries?: boolean | Prisma.Instance$historicalQueriesArgs<ExtArgs>
+  overviewCoverage?: boolean | Prisma.Instance$overviewCoverageArgs<ExtArgs>
+  overviewJobs?: boolean | Prisma.Instance$overviewJobsArgs<ExtArgs>
   _count?: boolean | Prisma.InstanceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instance"]>
 
@@ -1155,6 +1610,9 @@ export type InstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   syncAttempts?: boolean | Prisma.Instance$syncAttemptsArgs<ExtArgs>
   notifications?: boolean | Prisma.Instance$notificationsArgs<ExtArgs>
   groupMemberships?: boolean | Prisma.Instance$groupMembershipsArgs<ExtArgs>
+  historicalQueries?: boolean | Prisma.Instance$historicalQueriesArgs<ExtArgs>
+  overviewCoverage?: boolean | Prisma.Instance$overviewCoverageArgs<ExtArgs>
+  overviewJobs?: boolean | Prisma.Instance$overviewJobsArgs<ExtArgs>
   _count?: boolean | Prisma.InstanceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InstanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1169,6 +1627,9 @@ export type $InstancePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     syncAttempts: Prisma.$SyncAttemptPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     groupMemberships: Prisma.$ClientGroupMembershipPayload<ExtArgs>[]
+    historicalQueries: Prisma.$HistoricalQueryPayload<ExtArgs>[]
+    overviewCoverage: Prisma.$OverviewCoverageWindowPayload<ExtArgs>[]
+    overviewJobs: Prisma.$OverviewHistoryJobPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1580,6 +2041,9 @@ export interface Prisma__InstanceClient<T, Null = never, ExtArgs extends runtime
   syncAttempts<T extends Prisma.Instance$syncAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$syncAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SyncAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Instance$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   groupMemberships<T extends Prisma.Instance$groupMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$groupMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientGroupMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  historicalQueries<T extends Prisma.Instance$historicalQueriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$historicalQueriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HistoricalQueryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  overviewCoverage<T extends Prisma.Instance$overviewCoverageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$overviewCoverageArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OverviewCoverageWindowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  overviewJobs<T extends Prisma.Instance$overviewJobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$overviewJobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OverviewHistoryJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2137,6 +2601,78 @@ export type Instance$groupMembershipsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.ClientGroupMembershipScalarFieldEnum | Prisma.ClientGroupMembershipScalarFieldEnum[]
+}
+
+/**
+ * Instance.historicalQueries
+ */
+export type Instance$historicalQueriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the HistoricalQuery
+   */
+  select?: Prisma.HistoricalQuerySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the HistoricalQuery
+   */
+  omit?: Prisma.HistoricalQueryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.HistoricalQueryInclude<ExtArgs> | null
+  where?: Prisma.HistoricalQueryWhereInput
+  orderBy?: Prisma.HistoricalQueryOrderByWithRelationInput | Prisma.HistoricalQueryOrderByWithRelationInput[]
+  cursor?: Prisma.HistoricalQueryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.HistoricalQueryScalarFieldEnum | Prisma.HistoricalQueryScalarFieldEnum[]
+}
+
+/**
+ * Instance.overviewCoverage
+ */
+export type Instance$overviewCoverageArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OverviewCoverageWindow
+   */
+  select?: Prisma.OverviewCoverageWindowSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OverviewCoverageWindow
+   */
+  omit?: Prisma.OverviewCoverageWindowOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OverviewCoverageWindowInclude<ExtArgs> | null
+  where?: Prisma.OverviewCoverageWindowWhereInput
+  orderBy?: Prisma.OverviewCoverageWindowOrderByWithRelationInput | Prisma.OverviewCoverageWindowOrderByWithRelationInput[]
+  cursor?: Prisma.OverviewCoverageWindowWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OverviewCoverageWindowScalarFieldEnum | Prisma.OverviewCoverageWindowScalarFieldEnum[]
+}
+
+/**
+ * Instance.overviewJobs
+ */
+export type Instance$overviewJobsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OverviewHistoryJob
+   */
+  select?: Prisma.OverviewHistoryJobSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OverviewHistoryJob
+   */
+  omit?: Prisma.OverviewHistoryJobOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OverviewHistoryJobInclude<ExtArgs> | null
+  where?: Prisma.OverviewHistoryJobWhereInput
+  orderBy?: Prisma.OverviewHistoryJobOrderByWithRelationInput | Prisma.OverviewHistoryJobOrderByWithRelationInput[]
+  cursor?: Prisma.OverviewHistoryJobWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OverviewHistoryJobScalarFieldEnum | Prisma.OverviewHistoryJobScalarFieldEnum[]
 }
 
 /**

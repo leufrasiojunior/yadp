@@ -906,6 +906,7 @@ export class NotificationsService implements OnModuleInit {
       instanceId: record.instanceId ?? null,
       instanceName: record.instanceNameSnapshot ?? null,
       message: record.message,
+      metadata: isRecord(record.metadata) ? record.metadata : null,
       state: record.state,
       isRead: record.isRead,
       readAt: record.readAt?.toISOString() ?? null,

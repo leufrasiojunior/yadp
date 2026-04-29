@@ -47,6 +47,20 @@ enum NotificationState {
   RESOLVED
 }
 
+enum OverviewHistoryJobKind {
+  AUTOMATIC_IMPORT
+  MANUAL_IMPORT
+  MANUAL_DELETE
+}
+
+enum OverviewHistoryJobStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILURE
+}
+
 model AppConfig {
   id                         String       @id @default("singleton")
   loginMode                  AppLoginMode @default(PIHOLE_MASTER)
@@ -85,6 +99,9 @@ model Instance {
   syncAttempts     SyncAttempt[]
   notifications    Notification[]
   groupMemberships ClientGroupMembership[]
+  historicalQueries HistoricalQuery[]
+  overviewCoverage  OverviewCoverageWindow[]
+  overviewJobs      OverviewHistoryJob[]
 }
 
 model InstanceSecret {
@@ -282,6 +299,95 @@ model Notification {
   @@index([sourceFingerprint])
   @@index([hiddenAt, resolvedAt, occurredAt])
   @@index([createdAt])
+}
+
+model HistoricalQuery {
+  id                  String              @id @default(cuid())
+  jobId               String?
+  instanceId          String
+  instanceNameSnapshot String
+  sourceId            Int
+  occurredAt          DateTime
+  domain              String?
+  clientIp            String?
+  clientName          String?
+  clientAlias         String?
+  upstream            String?
+  queryType           String?
+  status              String?
+  dnssec              String?
+  replyType           String?
+  replyTime           Int?
+  listId              Int?
+  edeCode             Int?
+  edeText             String?
+  cname               String?
+  importedAt          DateTime            @default(now())
+  expiresAt           DateTime
+  job                 OverviewHistoryJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  instance            Instance            @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@unique([instanceId, sourceId, occurredAt])
+  @@index([occurredAt])
+  @@index([instanceId, occurredAt])
+  @@index([domain])
+  @@index([clientIp])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([jobId])
+}
+
+model OverviewHistoryJob {
+  id                  String                   @id @default(cuid())
+  kind                OverviewHistoryJobKind
+  scope               String
+  instanceId          String?
+  instanceNameSnapshot String?
+  requestedFrom       DateTime
+  requestedUntil      DateTime
+  status              OverviewHistoryJobStatus @default(PENDING)
+  trigger             String?
+  requestedBy         String?
+  summary             Json?
+  errorMessage        String?
+  queryCount          Int                      @default(0)
+  deletedCount        Int                      @default(0)
+  coverageCount       Int                      @default(0)
+  startedAt           DateTime?
+  finishedAt          DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  importedQueries     HistoricalQuery[]
+  coverageWindows     OverviewCoverageWindow[]
+  instance            Instance?                @relation(fields: [instanceId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([kind, createdAt])
+  @@index([requestedFrom, requestedUntil])
+  @@index([instanceId, createdAt])
+}
+
+model OverviewCoverageWindow {
+  id                  String                   @id @default(cuid())
+  jobId               String?
+  instanceId          String
+  requestedFrom       DateTime
+  requestedUntil      DateTime
+  storedFrom          DateTime?
+  storedUntil         DateTime?
+  rowCount            Int                      @default(0)
+  status              OverviewHistoryJobStatus
+  errorMessage        String?
+  expiresAt           DateTime
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  job                 OverviewHistoryJob?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  instance            Instance                 @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@index([instanceId, requestedFrom, requestedUntil])
+  @@index([jobId])
+  @@index([expiresAt])
 }
 
 model PushSubscription {

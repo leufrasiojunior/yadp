@@ -48,6 +48,10 @@ const { GetNotificationsDto } = require("../dist/notifications/dto/get-notificat
 const { GetNotificationsPreviewDto } = require("../dist/notifications/dto/get-notifications-preview.dto.js");
 const { NotificationIdParamsDto } = require("../dist/notifications/dto/notification-id-params.dto.js");
 const { UpsertPushSubscriptionDto } = require("../dist/notifications/dto/upsert-push-subscription.dto.js");
+const { OverviewController } = require("../dist/overview/overview.controller.js");
+const { CreateOverviewHistoryJobDto } = require("../dist/overview/dto/create-overview-history-job.dto.js");
+const { GetOverviewDto } = require("../dist/overview/dto/get-overview.dto.js");
+const { GetOverviewJobsDto } = require("../dist/overview/dto/get-overview-jobs.dto.js");
 const { QueriesController } = require("../dist/queries/queries.controller.js");
 const { GetQueriesDto } = require("../dist/queries/dto/get-queries.dto.js");
 const { GetQuerySuggestionsDto } = require("../dist/queries/dto/get-query-suggestions.dto.js");
@@ -165,6 +169,20 @@ const EXPECTATIONS = [
     method: "deletePushSubscription",
     parameterIndex: 0,
     expectedType: DeletePushSubscriptionDto,
+  },
+  { controller: OverviewController, method: "getOverview", parameterIndex: 0, expectedType: GetOverviewDto },
+  { controller: OverviewController, method: "getJobs", parameterIndex: 0, expectedType: GetOverviewJobsDto },
+  {
+    controller: OverviewController,
+    method: "createBackfill",
+    parameterIndex: 0,
+    expectedType: CreateOverviewHistoryJobDto,
+  },
+  {
+    controller: OverviewController,
+    method: "createDelete",
+    parameterIndex: 0,
+    expectedType: CreateOverviewHistoryJobDto,
   },
   { controller: QueriesController, method: "getQueries", parameterIndex: 0, expectedType: GetQueriesDto },
   {
