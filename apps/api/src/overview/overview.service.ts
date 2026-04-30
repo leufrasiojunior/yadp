@@ -18,12 +18,18 @@ import type { GetOverviewDto } from "./dto/get-overview.dto";
 import type { GetOverviewJobsDto } from "./dto/get-overview-jobs.dto";
 import type {
   OverviewChartPoint,
+  OverviewCoverageRenewResponse,
   OverviewCoverageWindowItem,
   OverviewFailureKind,
   OverviewInstanceFailure,
   OverviewInstanceSource,
   OverviewJobDeleteResponse,
+  OverviewJobDetailsResponse,
+  OverviewJobEvent,
+  OverviewJobFailureReason,
   OverviewJobKind,
+  OverviewJobProgress,
+  OverviewJobStatus,
   OverviewJobsResponse,
   OverviewMutationResponse,
   OverviewResponse,
@@ -37,17 +43,13 @@ type HistoryRange = {
   until: Date;
 };
 
-type CrawlResult = {
-  queries: PiholeQueryListResult["queries"];
-  totalFetched: number;
-  totalInserted: number;
-  storedFrom: Date | null;
-  storedUntil: Date | null;
-};
-
 type CoverageFailure = {
   instance: PiholeManagedInstanceSummary;
   message: string;
+};
+
+type CoverageRenewTarget = {
+  historicalQueryWhere: Prisma.HistoricalQueryWhereInput;
 };
 
 type RankingRow = {
@@ -85,12 +87,64 @@ type SummaryRow = {
   uniqueClients: bigint | number;
 };
 
+type JobRuntimeCheckpoint = {
+  instanceId: string | null;
+  instanceName: string | null;
+  page: number | null;
+  start: number | null;
+  totalPages: number | null;
+  expectedRecords: number | null;
+  consecutiveFailures: number;
+  lastSuccessfulPage: number;
+  updatedAt: string | null;
+};
+
+type JobRuntimeInstanceProgress = {
+  instanceId: string;
+  instanceName: string;
+  status: OverviewJobStatus;
+  expectedRecords: number | null;
+  fetchedRecords: number;
+  insertedRecords: number;
+  totalPages: number | null;
+  completedPages: number;
+  currentPage: number | null;
+  currentStart: number;
+  storedFrom: string | null;
+  storedUntil: string | null;
+  consecutiveFailures: number;
+  lastErrorMessage: string | null;
+  lastFailureReason: OverviewJobFailureReason | null;
+  lastSuccessfulAt: string | null;
+  updatedAt: string | null;
+};
+
+type JobRuntimeEvent = OverviewJobEvent;
+
+type JobRuntimeSummary = {
+  version: 1;
+  attempts: number;
+  totalExpectedRecords: number;
+  totalFetchedRecords: number;
+  totalInsertedRecords: number;
+  totalPages: number;
+  completedPages: number;
+  checkpoint: JobRuntimeCheckpoint | null;
+  lastFailureMessage: string | null;
+  lastFailureReason: OverviewJobFailureReason | null;
+  instanceProgress: JobRuntimeInstanceProgress[];
+  timeline: JobRuntimeEvent[];
+};
+
 const HISTORY_RETENTION_DAYS = 30;
 const DEFAULT_RANKING_LIMIT = 10;
 const DEFAULT_CHUNK_SIZE = 500;
 const DEFAULT_HISTORY_LOOKBACK_DAYS = 7;
 const DEFAULT_JOBS_LIMIT = 20;
 const DEFAULT_COVERAGE_LIMIT = 100;
+const MAX_CONSECUTIVE_FAILURES = 3;
+const RETRY_DELAY_MS = 60_000;
+const COVERAGE_EXPIRING_SOON_DAYS = 5;
 
 function toNumber(value: bigint | number | null | undefined) {
   if (typeof value === "bigint") {
@@ -144,12 +198,74 @@ function buildHistoryExpiry(reference: Date) {
   return new Date(reference.getTime() + HISTORY_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 }
 
+function daysUntil(value: Date, reference: Date) {
+  return Math.ceil((value.getTime() - reference.getTime()) / (24 * 60 * 60 * 1000));
+}
+
 function stringifyFailure(error: unknown) {
   if (error instanceof Error) {
     return error.message;
   }
 
   return "Unknown error";
+}
+
+function classifyFailureReason(message: string): OverviewJobFailureReason {
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("timeout") || normalized.includes("timed out") || normalized.includes("etimedout")) {
+    return "timeout";
+  }
+
+  if (
+    normalized.includes("session") ||
+    normalized.includes("csrf") ||
+    normalized.includes("unauthorized") ||
+    normalized.includes("forbidden") ||
+    normalized.includes("401")
+  ) {
+    return "session";
+  }
+
+  if (
+    normalized.includes("recordsfiltered") ||
+    normalized.includes("count mismatch") ||
+    normalized.includes("diverg")
+  ) {
+    return "count_mismatch";
+  }
+
+  if (
+    normalized.includes("econnrefused") ||
+    normalized.includes("enotfound") ||
+    normalized.includes("502") ||
+    normalized.includes("503") ||
+    normalized.includes("504") ||
+    normalized.includes("unavailable") ||
+    normalized.includes("network") ||
+    normalized.includes("connection")
+  ) {
+    return "server_unavailable";
+  }
+
+  return "unexpected";
+}
+
+function buildEmptyRuntimeSummary(): JobRuntimeSummary {
+  return {
+    version: 1,
+    attempts: 0,
+    totalExpectedRecords: 0,
+    totalFetchedRecords: 0,
+    totalInsertedRecords: 0,
+    totalPages: 0,
+    completedPages: 0,
+    checkpoint: null,
+    lastFailureMessage: null,
+    lastFailureReason: null,
+    instanceProgress: [],
+    timeline: [],
+  };
 }
 
 @Injectable()
@@ -184,17 +300,27 @@ export class OverviewService implements OnModuleInit {
     );
     const chartGroupBy = "hour" as const;
 
-    const [summaryRows, chartRows, domainRows, clientRows, upstreamRows, statusRows, coverageStats, coverageWindows] =
-      await Promise.all([
-        this.loadSummary(filters),
-        this.loadChartRows(filters, chartGroupBy),
-        this.loadRanking(filters, "domain"),
-        this.loadRanking(filters, "clientIp"),
-        this.loadRanking(filters, "upstream"),
-        this.loadRanking(filters, "status"),
-        this.loadCoverageStats(scope.instances, range),
-        this.loadCoverageWindows(scope.instances, range),
-      ]);
+    const [
+      summaryRows,
+      chartRows,
+      domainRows,
+      clientRows,
+      upstreamRows,
+      statusRows,
+      coverageStats,
+      matchingCoverageWindows,
+      savedCoverageWindows,
+    ] = await Promise.all([
+      this.loadSummary(filters),
+      this.loadChartRows(filters, chartGroupBy),
+      this.loadRanking(filters, "domain"),
+      this.loadRanking(filters, "clientIp"),
+      this.loadRanking(filters, "upstream"),
+      this.loadRanking(filters, "status"),
+      this.loadCoverageStats(scope.instances, range),
+      this.loadCoverageWindows(scope.instances, range),
+      this.loadSavedCoverageWindows(scope.instances),
+    ]);
 
     const summary = summaryRows ?? {
       totalQueries: 0,
@@ -208,9 +334,13 @@ export class OverviewService implements OnModuleInit {
     const blockedQueries = toNumber(summary.blockedQueries);
     const cachedQueries = toNumber(summary.cachedQueries);
     const forwardedQueries = toNumber(summary.forwardedQueries);
+    const now = new Date();
+    const mappedMatchingCoverageWindows = matchingCoverageWindows.map((item) => this.mapCoverageWindow(item, now));
+    const mappedSavedCoverageWindows = savedCoverageWindows.map((item) => this.mapCoverageWindow(item, now));
+    const expiringCoverageWindows = mappedSavedCoverageWindows.filter((item) => item.isExpiringSoon);
 
     const coverageByInstance = new Map(coverageStats.map((item) => [item.instanceId, item]));
-    const coverageStateByInstance = this.buildCoverageStateByInstance(scope.instances, coverageWindows);
+    const coverageStateByInstance = this.buildCoverageStateByInstance(scope.instances, matchingCoverageWindows);
     const failedInstances = this.loadFailedInstances(scope.instances, coverageByInstance, coverageStateByInstance);
     const availableInstances = scope.instances
       .filter(
@@ -262,7 +392,11 @@ export class OverviewService implements OnModuleInit {
         totalStoredQueries,
         earliestStoredAt: toIso(earliestStoredAt),
         latestStoredAt: toIso(latestStoredAt),
-        windows: coverageWindows.map((item) => this.mapCoverageWindow(item)),
+        savedWindowCount: mappedSavedCoverageWindows.length,
+        expiringSoonCount: expiringCoverageWindows.length,
+        windows: mappedMatchingCoverageWindows,
+        savedWindows: mappedSavedCoverageWindows,
+        expiringWindows: expiringCoverageWindows,
       },
       sources: {
         totalInstances: scope.instances.length,
@@ -283,6 +417,96 @@ export class OverviewService implements OnModuleInit {
     };
   }
 
+  async getJobDetails(jobId: string): Promise<OverviewJobDetailsResponse> {
+    const job = await this.prisma.overviewHistoryJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!job) {
+      throw new BadRequestException("Overview job not found.");
+    }
+
+    const mapped = this.mapJob(job);
+    const runtime = this.readRuntimeSummary(job.summary);
+
+    return {
+      job: {
+        ...mapped,
+        diagnostics: this.buildJobDiagnostics(runtime),
+        timeline: runtime.timeline,
+      },
+    };
+  }
+
+  async renewCoverage(coverageWindowId: string, request: Request): Promise<OverviewCoverageRenewResponse> {
+    const existing = await this.prisma.overviewCoverageWindow.findUnique({
+      where: { id: coverageWindowId },
+      include: {
+        instance: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!existing) {
+      throw new BadRequestException("Overview coverage window not found.");
+    }
+
+    if (existing.rowCount <= 0 || (existing.status !== "SUCCESS" && existing.status !== "PARTIAL")) {
+      throw new BadRequestException("Only successful or partial coverage windows with stored rows can be renewed.");
+    }
+
+    const renewTarget = await this.resolveCoverageRenewTarget(existing);
+
+    const renewedAt = new Date();
+    const nextExpiry = buildHistoryExpiry(renewedAt);
+    const [renewedQueries, renewedWindow] = await this.prisma.$transaction(async (tx) => {
+      const queriesResult = await tx.historicalQuery.updateMany({
+        where: renewTarget.historicalQueryWhere,
+        data: {
+          expiresAt: nextExpiry,
+        },
+      });
+
+      const coverageWindow = await tx.overviewCoverageWindow.update({
+        where: {
+          id: existing.id,
+        },
+        data: {
+          expiresAt: nextExpiry,
+        },
+        include: {
+          instance: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (existing.jobId) {
+        await tx.overviewHistoryJob.update({
+          where: { id: existing.jobId },
+          data: {
+            expiresAt: nextExpiry,
+          },
+        });
+      }
+
+      return [queriesResult.count, coverageWindow] as const;
+    });
+
+    await this.recordCoverageRenewalNotification(existing, renewedQueries, nextExpiry, renewedAt, request);
+
+    return {
+      coverageWindow: this.mapCoverageWindow(renewedWindow, renewedAt),
+      renewedQueryCount: renewedQueries,
+      renewedAt: renewedAt.toISOString(),
+    };
+  }
+
   async retryJob(jobId: string, request: Request): Promise<OverviewMutationResponse> {
     const locale = getRequestLocale(request);
     const existing = await this.prisma.overviewHistoryJob.findUnique({
@@ -293,23 +517,24 @@ export class OverviewService implements OnModuleInit {
       throw new BadRequestException("Overview job not found.");
     }
 
-    if (existing.status !== "FAILURE" && existing.status !== "PARTIAL") {
-      throw new BadRequestException("Only failed or partial jobs can be retried.");
+    if (!["FAILURE", "PARTIAL", "PAUSED"].includes(existing.status)) {
+      throw new BadRequestException("Only failed, partial, or paused jobs can be retried.");
     }
 
     if (existing.scope === "instance") {
       await this.resolveScope(existing.scope, existing.instanceId ?? undefined, locale);
     }
 
-    const retried = await this.createJob({
-      kind: existing.kind,
-      scope: existing.scope,
-      instanceId: existing.instanceId,
-      instanceNameSnapshot: existing.instanceNameSnapshot,
-      requestedFrom: existing.requestedFrom,
-      requestedUntil: existing.requestedUntil,
-      trigger: "user",
-      requestedBy: request.ip ?? null,
+    const retried = await this.prisma.overviewHistoryJob.update({
+      where: { id: jobId },
+      data: {
+        status: "PENDING",
+        trigger: "user",
+        requestedBy: request.ip ?? null,
+        startedAt: null,
+        finishedAt: null,
+        errorMessage: null,
+      },
     });
 
     this.scheduleJob(retried.id);
@@ -329,8 +554,17 @@ export class OverviewService implements OnModuleInit {
       throw new BadRequestException("Only successful jobs can be deleted.");
     }
 
-    const deleted = await this.prisma.overviewHistoryJob.delete({
-      where: { id: jobId },
+    const deleted = await this.prisma.$transaction(async (tx) => {
+      await tx.historicalQuery.deleteMany({
+        where: { jobId },
+      });
+      await tx.overviewCoverageWindow.deleteMany({
+        where: { jobId },
+      });
+
+      return tx.overviewHistoryJob.delete({
+        where: { id: jobId },
+      });
     });
 
     return { job: this.mapJob(deleted) };
@@ -451,117 +685,439 @@ export class OverviewService implements OnModuleInit {
   }
 
   private async runImportJob(job: OverviewJobRecord) {
-    await this.prisma.overviewHistoryJob.update({
-      where: { id: job.id },
-      data: {
-        status: "RUNNING",
-        startedAt: new Date(),
-        finishedAt: null,
-        errorMessage: null,
-      },
+    const instances = await this.resolveInstancesForJob(job);
+    let runtime = this.prepareRuntimeForExecution(this.readRuntimeSummary(job.summary), instances);
+
+    runtime.attempts += 1;
+    runtime = this.pushEvent(runtime, {
+      level: "info",
+      type: "job_started",
+      message: `Job started with ${instances.length} target instance(s).`,
+      instanceId: null,
+      instanceName: null,
+      page: null,
+      start: null,
+      failureReason: null,
+    });
+    runtime = this.pushEvent(runtime, {
+      level: "info",
+      type: "instances_discovered",
+      message: `Target instances: ${instances.map((instance) => instance.name).join(", ") || "none"}.`,
+      instanceId: null,
+      instanceName: null,
+      page: null,
+      start: null,
+      failureReason: null,
+    });
+
+    await this.persistJobRuntime(job.id, runtime, {
+      status: "RUNNING",
+      startedAt: job.startedAt ?? new Date(),
+      finishedAt: null,
+      errorMessage: null,
+      expiresAt: null,
     });
 
     const range = {
       from: job.requestedFrom,
       until: job.requestedUntil,
     };
-    const instances = await this.resolveInstancesForJob(job);
     const expiresAt = buildHistoryExpiry(new Date());
-    const settled = await Promise.all(
-      instances.map(async (instance) => {
-        try {
-          const result = await this.crawlAndPersistInstance(instance, range, job.id, expiresAt);
-          return {
-            status: "fulfilled" as const,
-            instance,
-            result,
-          };
-        } catch (error) {
-          return {
-            status: "rejected" as const,
-            instance,
-            message: stringifyFailure(error),
-          };
-        }
-      }),
-    );
 
-    let insertedCount = 0;
-    let fetchedCount = 0;
-    const failures: CoverageFailure[] = [];
-    const coverageCreates: Prisma.OverviewCoverageWindowCreateManyInput[] = [];
+    for (const instance of instances) {
+      const progress = this.getOrCreateInstanceProgress(runtime, instance);
 
-    for (const item of settled) {
-      if (item.status === "fulfilled") {
-        insertedCount += item.result.totalInserted;
-        fetchedCount += item.result.totalFetched;
-        coverageCreates.push({
-          jobId: job.id,
-          instanceId: item.instance.id,
-          requestedFrom: range.from,
-          requestedUntil: range.until,
-          storedFrom: item.result.storedFrom,
-          storedUntil: item.result.storedUntil,
-          rowCount: item.result.totalFetched,
-          status: "SUCCESS",
-          errorMessage: null,
-          expiresAt,
-        });
-      } else {
-        failures.push({
-          instance: item.instance,
-          message: item.message,
-        });
-        coverageCreates.push({
-          jobId: job.id,
-          instanceId: item.instance.id,
-          requestedFrom: range.from,
-          requestedUntil: range.until,
-          storedFrom: null,
-          storedUntil: null,
-          rowCount: 0,
-          status: "FAILURE",
-          errorMessage: item.message,
-          expiresAt,
-        });
+      if (progress.status === "SUCCESS") {
+        continue;
+      }
+
+      const outcome = await this.processImportInstance(job, instance, range, expiresAt, runtime);
+      runtime = outcome.runtime;
+
+      if (outcome.paused) {
+        return;
       }
     }
 
-    if (coverageCreates.length > 0) {
-      await this.prisma.overviewCoverageWindow.createMany({
-        data: coverageCreates,
-      });
-    }
-
-    const finalStatus =
-      failures.length === 0 ? "SUCCESS" : failures.length === instances.length ? "FAILURE" : "PARTIAL";
-    const summary = {
-      totalInstances: instances.length,
-      successfulInstances: instances.length - failures.length,
-      failedInstances: failures.map((item) => ({
-        instanceId: item.instance.id,
-        instanceName: item.instance.name,
-        message: item.message,
-      })),
-      fetchedQueries: fetchedCount,
-      insertedQueries: insertedCount,
-    } satisfies Prisma.InputJsonObject;
-
-    const updated = await this.prisma.overviewHistoryJob.update({
-      where: { id: job.id },
-      data: {
-        status: finalStatus,
-        queryCount: insertedCount,
-        coverageCount: coverageCreates.length,
-        summary,
-        errorMessage:
-          failures.length > 0 ? failures.map((item) => `${item.instance.name}: ${item.message}`).join(" | ") : null,
-        finishedAt: new Date(),
-        expiresAt,
-      },
+    runtime = this.recalculateRuntime(runtime);
+    runtime.checkpoint = null;
+    runtime = this.pushEvent(runtime, {
+      level: "info",
+      type: "job_completed",
+      message: `Job completed with ${runtime.totalInsertedRecords} stored query row(s).`,
+      instanceId: null,
+      instanceName: null,
+      page: null,
+      start: null,
+      failureReason: null,
     });
 
-    await this.recordImportNotification(updated, failures);
+    const updated = await this.persistJobRuntime(job.id, runtime, {
+      status: "SUCCESS",
+      queryCount: runtime.totalInsertedRecords,
+      coverageCount: runtime.instanceProgress.length,
+      errorMessage: null,
+      finishedAt: new Date(),
+      expiresAt,
+    });
+
+    await this.recordImportNotification(updated, []);
+  }
+
+  private async processImportInstance(
+    job: OverviewJobRecord,
+    instance: PiholeManagedInstanceSummary,
+    range: HistoryRange,
+    expiresAt: Date,
+    initialRuntime: JobRuntimeSummary,
+  ) {
+    let runtime = initialRuntime;
+    let progress = this.getOrCreateInstanceProgress(runtime, instance);
+    const seenBatchSignatures = new Set<string>();
+
+    progress.status = "RUNNING";
+    progress.updatedAt = new Date().toISOString();
+    runtime.checkpoint = this.buildCheckpoint(progress, instance);
+    runtime = this.recalculateRuntime(runtime);
+    await this.persistJobRuntime(job.id, runtime, {
+      status: "RUNNING",
+      queryCount: runtime.totalInsertedRecords,
+      coverageCount: runtime.instanceProgress.length,
+    });
+    await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "RUNNING");
+
+    while (true) {
+      progress = this.getOrCreateInstanceProgress(runtime, instance);
+      const currentPage = Math.floor(progress.currentStart / DEFAULT_CHUNK_SIZE) + 1;
+
+      runtime.checkpoint = this.buildCheckpoint(progress, instance);
+      runtime = this.pushEvent(runtime, {
+        level: "info",
+        type: "page_started",
+        message: `Fetching page ${currentPage} for ${instance.name} (start=${progress.currentStart}).`,
+        instanceId: instance.id,
+        instanceName: instance.name,
+        page: currentPage,
+        start: progress.currentStart,
+        failureReason: null,
+      });
+      await this.persistJobRuntime(job.id, runtime, {
+        status: "RUNNING",
+        queryCount: runtime.totalInsertedRecords,
+        coverageCount: runtime.instanceProgress.length,
+      });
+
+      let batch: PiholeQueryListResult;
+
+      try {
+        batch = await this.loadQueriesForInstance(instance, DEFAULT_API_LOCALE, {
+          from: Math.floor(range.from.getTime() / 1000),
+          until: Math.floor(range.until.getTime() / 1000),
+          length: DEFAULT_CHUNK_SIZE,
+          start: progress.currentStart,
+          disk: true,
+        });
+      } catch (error) {
+        const message = stringifyFailure(error);
+        const failureReason = classifyFailureReason(message);
+
+        progress.consecutiveFailures += 1;
+        progress.lastErrorMessage = message;
+        progress.lastFailureReason = failureReason;
+        progress.updatedAt = new Date().toISOString();
+        runtime.lastFailureMessage = message;
+        runtime.lastFailureReason = failureReason;
+        runtime.checkpoint = this.buildCheckpoint(progress, instance);
+        runtime = this.pushEvent(runtime, {
+          level: "error",
+          type: "page_failed",
+          message: `${instance.name} failed on page ${currentPage}: ${message}`,
+          instanceId: instance.id,
+          instanceName: instance.name,
+          page: currentPage,
+          start: progress.currentStart,
+          failureReason,
+        });
+
+        await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "RUNNING");
+
+        if (progress.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+          progress.status = "PAUSED";
+          runtime.checkpoint = this.buildCheckpoint(progress, instance);
+          runtime = this.recalculateRuntime(runtime);
+          runtime = this.pushEvent(runtime, {
+            level: "warn",
+            type: "job_paused",
+            message: `${instance.name} paused after ${progress.consecutiveFailures} consecutive failures on page ${currentPage}.`,
+            instanceId: instance.id,
+            instanceName: instance.name,
+            page: currentPage,
+            start: progress.currentStart,
+            failureReason,
+          });
+
+          const errorMessage = `${instance.name}: ${message}`;
+          const updated = await this.persistJobRuntime(job.id, runtime, {
+            status: "PAUSED",
+            queryCount: runtime.totalInsertedRecords,
+            coverageCount: runtime.instanceProgress.length,
+            errorMessage,
+            finishedAt: new Date(),
+            expiresAt,
+          });
+          await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "PAUSED");
+          await this.recordImportNotification(updated, [
+            {
+              instance,
+              message,
+            },
+          ]);
+
+          return {
+            runtime,
+            paused: true,
+          };
+        }
+
+        runtime = this.pushEvent(runtime, {
+          level: "warn",
+          type: "retry_scheduled",
+          message: `Retry scheduled in 1 minute for ${instance.name} page ${currentPage}.`,
+          instanceId: instance.id,
+          instanceName: instance.name,
+          page: currentPage,
+          start: progress.currentStart,
+          failureReason,
+        });
+        runtime = this.recalculateRuntime(runtime);
+        await this.persistJobRuntime(job.id, runtime, {
+          status: "RUNNING",
+          queryCount: runtime.totalInsertedRecords,
+          coverageCount: runtime.instanceProgress.length,
+          errorMessage: message,
+        });
+        await this.delay(RETRY_DELAY_MS);
+        continue;
+      }
+
+      if (progress.expectedRecords === null) {
+        progress.expectedRecords = batch.recordsFiltered;
+        progress.totalPages = batch.recordsFiltered > 0 ? Math.ceil(batch.recordsFiltered / DEFAULT_CHUNK_SIZE) : 0;
+        progress.updatedAt = new Date().toISOString();
+        runtime = this.pushEvent(runtime, {
+          level: "info",
+          type: "instance_totals_discovered",
+          message: `${instance.name} reports ${batch.recordsFiltered} record(s) across ${progress.totalPages} page(s).`,
+          instanceId: instance.id,
+          instanceName: instance.name,
+          page: currentPage,
+          start: progress.currentStart,
+          failureReason: null,
+        });
+      }
+
+      const batchSignature = batch.queries
+        .map((entry) => `${entry.id}:${entry.time}:${entry.client?.ip ?? ""}:${entry.domain ?? ""}`)
+        .join("|");
+
+      if (batchSignature.length > 0 && seenBatchSignatures.has(batchSignature)) {
+        const message = `Repeated batch detected for ${instance.name} at start=${progress.currentStart}.`;
+        progress.consecutiveFailures = MAX_CONSECUTIVE_FAILURES;
+        progress.lastErrorMessage = message;
+        progress.lastFailureReason = "unexpected";
+        progress.status = "PAUSED";
+        progress.updatedAt = new Date().toISOString();
+        runtime.lastFailureMessage = message;
+        runtime.lastFailureReason = "unexpected";
+        runtime.checkpoint = this.buildCheckpoint(progress, instance);
+        runtime = this.pushEvent(runtime, {
+          level: "error",
+          type: "job_paused",
+          message,
+          instanceId: instance.id,
+          instanceName: instance.name,
+          page: currentPage,
+          start: progress.currentStart,
+          failureReason: "unexpected",
+        });
+        runtime = this.recalculateRuntime(runtime);
+        const updated = await this.persistJobRuntime(job.id, runtime, {
+          status: "PAUSED",
+          queryCount: runtime.totalInsertedRecords,
+          coverageCount: runtime.instanceProgress.length,
+          errorMessage: message,
+          finishedAt: new Date(),
+          expiresAt,
+        });
+        await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "PAUSED");
+        await this.recordImportNotification(updated, [{ instance, message }]);
+
+        return {
+          runtime,
+          paused: true,
+        };
+      }
+
+      if (batchSignature.length > 0) {
+        seenBatchSignatures.add(batchSignature);
+      }
+
+      let inserted = 0;
+
+      if (batch.queries.length > 0) {
+        const result = await this.prisma.historicalQuery.createMany({
+          data: batch.queries.map((entry) => ({
+            jobId: job.id,
+            instanceId: instance.id,
+            instanceNameSnapshot: instance.name,
+            sourceId: entry.id,
+            occurredAt: new Date(entry.time * 1000),
+            domain: entry.domain,
+            clientIp: entry.client?.ip ?? null,
+            clientName: entry.client?.name ?? null,
+            clientAlias: null,
+            upstream: entry.upstream,
+            queryType: entry.type,
+            status: entry.status,
+            dnssec: entry.dnssec,
+            replyType: entry.reply?.type ?? null,
+            replyTime: entry.reply?.time ?? null,
+            listId: entry.listId,
+            edeCode: entry.ede?.code ?? null,
+            edeText: entry.ede?.text ?? null,
+            cname: entry.cname,
+            expiresAt,
+          })),
+          skipDuplicates: true,
+        });
+        inserted = result.count;
+      }
+
+      const timestamps = batch.queries.map((item) => item.time * 1000);
+      const storedFrom = timestamps.length > 0 ? new Date(Math.min(...timestamps)).toISOString() : null;
+      const storedUntil = timestamps.length > 0 ? new Date(Math.max(...timestamps)).toISOString() : null;
+
+      if (storedFrom && (!progress.storedFrom || storedFrom < progress.storedFrom)) {
+        progress.storedFrom = storedFrom;
+      }
+
+      if (storedUntil && (!progress.storedUntil || storedUntil > progress.storedUntil)) {
+        progress.storedUntil = storedUntil;
+      }
+
+      progress.fetchedRecords += batch.queries.length;
+      progress.insertedRecords += inserted;
+      progress.completedPages += batch.queries.length > 0 || progress.expectedRecords === 0 ? 1 : 0;
+      progress.currentPage = currentPage;
+      progress.currentStart += batch.queries.length;
+      progress.consecutiveFailures = 0;
+      progress.lastErrorMessage = null;
+      progress.lastFailureReason = null;
+      progress.lastSuccessfulAt = new Date().toISOString();
+      progress.updatedAt = new Date().toISOString();
+
+      runtime.lastFailureMessage = null;
+      runtime.lastFailureReason = null;
+      runtime = this.recalculateRuntime(runtime);
+      runtime.checkpoint =
+        progress.expectedRecords !== null && progress.currentStart >= progress.expectedRecords
+          ? null
+          : this.buildCheckpoint(progress, instance);
+      runtime = this.pushEvent(runtime, {
+        level: "info",
+        type: "page_saved",
+        message: `${instance.name} saved page ${currentPage} with ${batch.queries.length} fetched row(s) and ${inserted} inserted row(s).`,
+        instanceId: instance.id,
+        instanceName: instance.name,
+        page: currentPage,
+        start: progress.currentStart - batch.queries.length,
+        failureReason: null,
+      });
+
+      await this.persistJobRuntime(job.id, runtime, {
+        status: "RUNNING",
+        queryCount: runtime.totalInsertedRecords,
+        coverageCount: runtime.instanceProgress.length,
+        errorMessage: null,
+      });
+      await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "RUNNING");
+
+      if (
+        progress.expectedRecords === 0 ||
+        progress.currentStart >= progress.expectedRecords ||
+        batch.queries.length === 0
+      ) {
+        break;
+      }
+    }
+
+    progress = this.getOrCreateInstanceProgress(runtime, instance);
+
+    if (progress.expectedRecords !== progress.fetchedRecords) {
+      const message = `${instance.name}: imported ${progress.fetchedRecords} row(s), expected ${progress.expectedRecords ?? 0} from recordsFiltered.`;
+      progress.status = "PAUSED";
+      progress.lastErrorMessage = message;
+      progress.lastFailureReason = "count_mismatch";
+      progress.updatedAt = new Date().toISOString();
+      runtime.lastFailureMessage = message;
+      runtime.lastFailureReason = "count_mismatch";
+      runtime.checkpoint = this.buildCheckpoint(progress, instance);
+      runtime = this.recalculateRuntime(runtime);
+      runtime = this.pushEvent(runtime, {
+        level: "error",
+        type: "count_mismatch",
+        message,
+        instanceId: instance.id,
+        instanceName: instance.name,
+        page: progress.currentPage,
+        start: progress.currentStart,
+        failureReason: "count_mismatch",
+      });
+
+      const updated = await this.persistJobRuntime(job.id, runtime, {
+        status: "PAUSED",
+        queryCount: runtime.totalInsertedRecords,
+        coverageCount: runtime.instanceProgress.length,
+        errorMessage: message,
+        finishedAt: new Date(),
+        expiresAt,
+      });
+      await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "PAUSED");
+      await this.recordImportNotification(updated, [{ instance, message }]);
+
+      return {
+        runtime,
+        paused: true,
+      };
+    }
+
+    progress.status = "SUCCESS";
+    progress.currentPage = null;
+    progress.updatedAt = new Date().toISOString();
+    runtime.checkpoint = null;
+    runtime = this.recalculateRuntime(runtime);
+    runtime = this.pushEvent(runtime, {
+      level: "info",
+      type: "instance_completed",
+      message: `${instance.name} completed with ${progress.fetchedRecords} fetched row(s).`,
+      instanceId: instance.id,
+      instanceName: instance.name,
+      page: null,
+      start: null,
+      failureReason: null,
+    });
+    await this.persistJobRuntime(job.id, runtime, {
+      status: "RUNNING",
+      queryCount: runtime.totalInsertedRecords,
+      coverageCount: runtime.instanceProgress.length,
+      errorMessage: null,
+    });
+    await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "SUCCESS");
+
+    return {
+      runtime,
+      paused: false,
+    };
   }
 
   private async runDeleteJob(job: OverviewJobRecord) {
@@ -609,10 +1165,35 @@ export class OverviewService implements OnModuleInit {
     });
 
     const summary = {
+      version: 1,
+      attempts: 1,
+      totalExpectedRecords: 0,
+      totalFetchedRecords: 0,
+      totalInsertedRecords: 0,
+      totalPages: 0,
+      completedPages: 0,
+      checkpoint: null,
+      lastFailureMessage: null,
+      lastFailureReason: null,
+      instanceProgress: [],
+      timeline: [
+        {
+          at: new Date().toISOString(),
+          level: "info",
+          type: "job_completed",
+          message: `Deleted ${result.historicalQueryDelete.count} historical row(s).`,
+          instanceId: null,
+          instanceName: null,
+          page: null,
+          start: null,
+          failureReason: null,
+        },
+      ],
       totalInstances: instances.length,
       deletedQueries: result.historicalQueryDelete.count,
       deletedCoverageWindows: result.coverageDelete.count,
     } satisfies Prisma.InputJsonObject;
+
     const updated = await this.prisma.overviewHistoryJob.update({
       where: { id: job.id },
       data: {
@@ -626,98 +1207,6 @@ export class OverviewService implements OnModuleInit {
     });
 
     await this.recordDeleteNotification(updated);
-  }
-
-  private async crawlAndPersistInstance(
-    instance: PiholeManagedInstanceSummary,
-    range: HistoryRange,
-    jobId: string,
-    expiresAt: Date,
-  ): Promise<CrawlResult> {
-    const batchSize = DEFAULT_CHUNK_SIZE;
-    const seenBatchSignatures = new Set<string>();
-    const allQueries: PiholeQueryListResult["queries"] = [];
-    let start = 0;
-
-    while (true) {
-      const batch = await this.loadQueriesForInstance(instance, DEFAULT_API_LOCALE, {
-        from: Math.floor(range.from.getTime() / 1000),
-        until: Math.floor(range.until.getTime() / 1000),
-        length: batchSize,
-        start,
-        disk: true,
-      });
-
-      if (batch.queries.length === 0) {
-        break;
-      }
-
-      const batchSignature = batch.queries
-        .map((entry) => `${entry.id}:${entry.time}:${entry.client?.ip ?? ""}:${entry.domain ?? ""}`)
-        .join("|");
-
-      if (seenBatchSignatures.has(batchSignature)) {
-        this.logger.warn(`Stopping repeated overview batch for "${instance.name}" (${instance.id}).`);
-        break;
-      }
-
-      seenBatchSignatures.add(batchSignature);
-      allQueries.push(...batch.queries);
-
-      const nextStart = start + batch.queries.length;
-
-      if (batch.queries.length < batchSize) {
-        break;
-      }
-
-      start = nextStart;
-
-      if (start >= batch.recordsFiltered) {
-        break;
-      }
-    }
-
-    let inserted = 0;
-
-    for (let index = 0; index < allQueries.length; index += DEFAULT_CHUNK_SIZE) {
-      const chunk = allQueries.slice(index, index + DEFAULT_CHUNK_SIZE);
-      const result = await this.prisma.historicalQuery.createMany({
-        data: chunk.map((entry) => ({
-          jobId,
-          instanceId: instance.id,
-          instanceNameSnapshot: instance.name,
-          sourceId: entry.id,
-          occurredAt: new Date(entry.time * 1000),
-          domain: entry.domain,
-          clientIp: entry.client?.ip ?? null,
-          clientName: entry.client?.name ?? null,
-          clientAlias: null,
-          upstream: entry.upstream,
-          queryType: entry.type,
-          status: entry.status,
-          dnssec: entry.dnssec,
-          replyType: entry.reply?.type ?? null,
-          replyTime: entry.reply?.time ?? null,
-          listId: entry.listId,
-          edeCode: entry.ede?.code ?? null,
-          edeText: entry.ede?.text ?? null,
-          cname: entry.cname,
-          expiresAt,
-        })),
-        skipDuplicates: true,
-      });
-      inserted += result.count;
-    }
-
-    const timestamps = allQueries.map((item) => item.time);
-
-    return {
-      queries: allQueries,
-      totalFetched: allQueries.length,
-      totalInserted: inserted,
-      storedFrom: timestamps.length > 0 ? new Date(Math.min(...timestamps) * 1000) : null,
-      storedUntil: timestamps.length > 0 ? new Date(Math.max(...timestamps) * 1000) : null,
-    };
   }
 
   private async loadQueriesForInstance(
@@ -753,7 +1242,7 @@ export class OverviewService implements OnModuleInit {
             lt: now,
           },
           status: {
-            in: ["SUCCESS", "PARTIAL", "FAILURE"],
+            in: ["SUCCESS", "PARTIAL", "FAILURE", "PAUSED"],
           },
         },
       }),
@@ -765,19 +1254,40 @@ export class OverviewService implements OnModuleInit {
   }
 
   private async markInterruptedJobsAsFailed() {
-    await this.prisma.overviewHistoryJob.updateMany({
+    const interruptedJobs = await this.prisma.overviewHistoryJob.findMany({
       where: {
         status: {
           in: ["PENDING", "RUNNING"],
         },
       },
-      data: {
-        status: "FAILURE",
-        errorMessage: "Interrupted by application restart.",
-        finishedAt: new Date(),
-        expiresAt: buildHistoryExpiry(new Date()),
-      },
     });
+
+    for (const job of interruptedJobs) {
+      let runtime = this.readRuntimeSummary(job.summary);
+      runtime.lastFailureMessage = "Interrupted by application restart.";
+      runtime.lastFailureReason = "unexpected";
+      runtime = this.pushEvent(runtime, {
+        level: "error",
+        type: "job_interrupted",
+        message: "Job interrupted by application restart.",
+        instanceId: null,
+        instanceName: null,
+        page: runtime.checkpoint?.page ?? null,
+        start: runtime.checkpoint?.start ?? null,
+        failureReason: "unexpected",
+      });
+
+      await this.prisma.overviewHistoryJob.update({
+        where: { id: job.id },
+        data: {
+          status: "FAILURE",
+          errorMessage: "Interrupted by application restart.",
+          summary: this.serializeRuntimeSummary(runtime),
+          finishedAt: new Date(),
+          expiresAt: buildHistoryExpiry(new Date()),
+        },
+      });
+    }
   }
 
   private async loadSummary(whereClause: Prisma.Sql) {
@@ -796,7 +1306,7 @@ export class OverviewService implements OnModuleInit {
     return row ?? null;
   }
 
-  private async loadChartRows(whereClause: Prisma.Sql, groupBy: OverviewGroupBy) {
+  private async loadChartRows(whereClause: Prisma.Sql, groupBy: "hour" | "day") {
     const truncation = groupBy === "day" ? Prisma.raw("'day'") : Prisma.raw("'hour'");
 
     return this.prisma.$queryRaw<ChartRow[]>(Prisma.sql`
@@ -892,6 +1402,29 @@ export class OverviewService implements OnModuleInit {
     });
   }
 
+  private async loadSavedCoverageWindows(instances: PiholeManagedInstanceSummary[]) {
+    if (instances.length === 0) {
+      return [];
+    }
+
+    return this.prisma.overviewCoverageWindow.findMany({
+      where: {
+        instanceId: {
+          in: instances.map((item) => item.id),
+        },
+      },
+      include: {
+        instance: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: [{ expiresAt: "asc" }, { requestedFrom: "desc" }, { createdAt: "desc" }],
+      take: DEFAULT_COVERAGE_LIMIT,
+    });
+  }
+
   private buildCoverageStateByInstance(
     instances: PiholeManagedInstanceSummary[],
     coverageWindows: CoverageWindowRecord[],
@@ -917,7 +1450,7 @@ export class OverviewService implements OnModuleInit {
         current.hasSuccess = true;
       }
 
-      if (window.status === "FAILURE") {
+      if (window.status === "FAILURE" || window.status === "PAUSED") {
         current.hasFailure = true;
         if (!current.latestFailureMessage && window.errorMessage) {
           current.latestFailureMessage = window.errorMessage;
@@ -1043,6 +1576,8 @@ export class OverviewService implements OnModuleInit {
   }
 
   private mapJob(job: OverviewJobRecord) {
+    const runtime = this.readRuntimeSummary(job.summary);
+
     return {
       id: job.id,
       kind: job.kind,
@@ -1061,11 +1596,48 @@ export class OverviewService implements OnModuleInit {
       finishedAt: toIso(job.finishedAt),
       createdAt: job.createdAt.toISOString(),
       errorMessage: job.errorMessage ?? null,
-      summary: job.summary,
+      failureReason: runtime.lastFailureReason,
+      progress: this.toJobProgress(runtime),
     };
   }
 
-  private mapCoverageWindow(item: CoverageWindowRecord & { instance: { name: string } }): OverviewCoverageWindowItem {
+  private async resolveCoverageRenewTarget(
+    coverageWindow: CoverageWindowRecord & { instance: { name: string } },
+  ): Promise<CoverageRenewTarget> {
+    if (coverageWindow.jobId) {
+      return {
+        historicalQueryWhere: {
+          jobId: coverageWindow.jobId,
+          instanceId: coverageWindow.instanceId,
+        },
+      };
+    }
+
+    const overlappingCoverageCount = await this.prisma.overviewCoverageWindow.count({
+      where: {
+        instanceId: coverageWindow.instanceId,
+        requestedFrom: coverageWindow.requestedFrom,
+        requestedUntil: coverageWindow.requestedUntil,
+      },
+    });
+
+    if (overlappingCoverageCount > 1) {
+      throw new BadRequestException(
+        "Detached coverage window is ambiguous and cannot be renewed safely. Re-import this period instead.",
+      );
+    }
+
+    throw new BadRequestException(
+      "Detached coverage window cannot be renewed safely because it is no longer linked to its source job.",
+    );
+  }
+
+  private mapCoverageWindow(
+    item: CoverageWindowRecord & { instance: { name: string } },
+    reference = new Date(),
+  ): OverviewCoverageWindowItem {
+    const expiresInDays = daysUntil(item.expiresAt, reference);
+
     return {
       id: item.id,
       jobId: item.jobId,
@@ -1079,6 +1651,8 @@ export class OverviewService implements OnModuleInit {
       status: item.status,
       errorMessage: item.errorMessage ?? null,
       expiresAt: item.expiresAt.toISOString(),
+      isExpiringSoon: expiresInDays >= 0 && expiresInDays <= COVERAGE_EXPIRING_SOON_DAYS,
+      expiresInDays,
     };
   }
 
@@ -1120,6 +1694,304 @@ export class OverviewService implements OnModuleInit {
     };
   }
 
+  private readRuntimeSummary(value: Prisma.JsonValue | null): JobRuntimeSummary {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return buildEmptyRuntimeSummary();
+    }
+
+    const summary = value as Partial<JobRuntimeSummary>;
+    const runtime = buildEmptyRuntimeSummary();
+
+    runtime.attempts = typeof summary.attempts === "number" ? summary.attempts : 0;
+    runtime.totalExpectedRecords = typeof summary.totalExpectedRecords === "number" ? summary.totalExpectedRecords : 0;
+    runtime.totalFetchedRecords = typeof summary.totalFetchedRecords === "number" ? summary.totalFetchedRecords : 0;
+    runtime.totalInsertedRecords = typeof summary.totalInsertedRecords === "number" ? summary.totalInsertedRecords : 0;
+    runtime.totalPages = typeof summary.totalPages === "number" ? summary.totalPages : 0;
+    runtime.completedPages = typeof summary.completedPages === "number" ? summary.completedPages : 0;
+    runtime.lastFailureMessage = typeof summary.lastFailureMessage === "string" ? summary.lastFailureMessage : null;
+    runtime.lastFailureReason = summary.lastFailureReason ?? null;
+    runtime.checkpoint =
+      summary.checkpoint && typeof summary.checkpoint === "object"
+        ? {
+            instanceId: summary.checkpoint.instanceId ?? null,
+            instanceName: summary.checkpoint.instanceName ?? null,
+            page: typeof summary.checkpoint.page === "number" ? summary.checkpoint.page : null,
+            start: typeof summary.checkpoint.start === "number" ? summary.checkpoint.start : null,
+            totalPages: typeof summary.checkpoint.totalPages === "number" ? summary.checkpoint.totalPages : null,
+            expectedRecords:
+              typeof summary.checkpoint.expectedRecords === "number" ? summary.checkpoint.expectedRecords : null,
+            consecutiveFailures:
+              typeof summary.checkpoint.consecutiveFailures === "number" ? summary.checkpoint.consecutiveFailures : 0,
+            lastSuccessfulPage:
+              typeof summary.checkpoint.lastSuccessfulPage === "number" ? summary.checkpoint.lastSuccessfulPage : 0,
+            updatedAt: typeof summary.checkpoint.updatedAt === "string" ? summary.checkpoint.updatedAt : null,
+          }
+        : null;
+    runtime.instanceProgress = Array.isArray(summary.instanceProgress)
+      ? summary.instanceProgress.map((item) => ({
+          instanceId: item.instanceId,
+          instanceName: item.instanceName,
+          status: item.status ?? "PENDING",
+          expectedRecords: typeof item.expectedRecords === "number" ? item.expectedRecords : null,
+          fetchedRecords: typeof item.fetchedRecords === "number" ? item.fetchedRecords : 0,
+          insertedRecords: typeof item.insertedRecords === "number" ? item.insertedRecords : 0,
+          totalPages: typeof item.totalPages === "number" ? item.totalPages : null,
+          completedPages: typeof item.completedPages === "number" ? item.completedPages : 0,
+          currentPage: typeof item.currentPage === "number" ? item.currentPage : null,
+          currentStart: typeof item.currentStart === "number" ? item.currentStart : 0,
+          storedFrom: typeof item.storedFrom === "string" ? item.storedFrom : null,
+          storedUntil: typeof item.storedUntil === "string" ? item.storedUntil : null,
+          consecutiveFailures: typeof item.consecutiveFailures === "number" ? item.consecutiveFailures : 0,
+          lastErrorMessage: typeof item.lastErrorMessage === "string" ? item.lastErrorMessage : null,
+          lastFailureReason: item.lastFailureReason ?? null,
+          lastSuccessfulAt: typeof item.lastSuccessfulAt === "string" ? item.lastSuccessfulAt : null,
+          updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : null,
+        }))
+      : [];
+    runtime.timeline = Array.isArray(summary.timeline)
+      ? summary.timeline.map((item) => ({
+          at: item.at,
+          level: item.level,
+          type: item.type,
+          message: item.message,
+          instanceId: item.instanceId ?? null,
+          instanceName: item.instanceName ?? null,
+          page: typeof item.page === "number" ? item.page : null,
+          start: typeof item.start === "number" ? item.start : null,
+          failureReason: item.failureReason ?? null,
+        }))
+      : [];
+
+    return this.recalculateRuntime(runtime);
+  }
+
+  private prepareRuntimeForExecution(summary: JobRuntimeSummary, instances: PiholeManagedInstanceSummary[]) {
+    const runtime = structuredClone(summary);
+
+    for (const instance of instances) {
+      const existing = runtime.instanceProgress.find((item) => item.instanceId === instance.id);
+
+      if (!existing) {
+        runtime.instanceProgress.push({
+          instanceId: instance.id,
+          instanceName: instance.name,
+          status: "PENDING",
+          expectedRecords: null,
+          fetchedRecords: 0,
+          insertedRecords: 0,
+          totalPages: null,
+          completedPages: 0,
+          currentPage: null,
+          currentStart: 0,
+          storedFrom: null,
+          storedUntil: null,
+          consecutiveFailures: 0,
+          lastErrorMessage: null,
+          lastFailureReason: null,
+          lastSuccessfulAt: null,
+          updatedAt: null,
+        });
+        continue;
+      }
+
+      existing.instanceName = instance.name;
+
+      if (existing.status === "FAILURE" || existing.status === "PAUSED" || existing.status === "PARTIAL") {
+        existing.status = "PENDING";
+      }
+    }
+
+    return this.recalculateRuntime(runtime);
+  }
+
+  private getOrCreateInstanceProgress(runtime: JobRuntimeSummary, instance: PiholeManagedInstanceSummary) {
+    let progress = runtime.instanceProgress.find((item) => item.instanceId === instance.id);
+
+    if (!progress) {
+      progress = {
+        instanceId: instance.id,
+        instanceName: instance.name,
+        status: "PENDING",
+        expectedRecords: null,
+        fetchedRecords: 0,
+        insertedRecords: 0,
+        totalPages: null,
+        completedPages: 0,
+        currentPage: null,
+        currentStart: 0,
+        storedFrom: null,
+        storedUntil: null,
+        consecutiveFailures: 0,
+        lastErrorMessage: null,
+        lastFailureReason: null,
+        lastSuccessfulAt: null,
+        updatedAt: null,
+      };
+      runtime.instanceProgress.push(progress);
+    }
+
+    return progress;
+  }
+
+  private buildCheckpoint(
+    progress: JobRuntimeInstanceProgress,
+    instance: PiholeManagedInstanceSummary,
+  ): JobRuntimeCheckpoint {
+    return {
+      instanceId: instance.id,
+      instanceName: instance.name,
+      page: Math.floor(progress.currentStart / DEFAULT_CHUNK_SIZE) + 1,
+      start: progress.currentStart,
+      totalPages: progress.totalPages,
+      expectedRecords: progress.expectedRecords,
+      consecutiveFailures: progress.consecutiveFailures,
+      lastSuccessfulPage: progress.completedPages,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  private pushEvent(runtime: JobRuntimeSummary, event: Omit<JobRuntimeEvent, "at"> & { at?: string }) {
+    runtime.timeline.push({
+      at: event.at ?? new Date().toISOString(),
+      level: event.level,
+      type: event.type,
+      message: event.message,
+      instanceId: event.instanceId,
+      instanceName: event.instanceName,
+      page: event.page,
+      start: event.start,
+      failureReason: event.failureReason,
+    });
+    return runtime;
+  }
+
+  private recalculateRuntime(runtime: JobRuntimeSummary) {
+    runtime.totalExpectedRecords = runtime.instanceProgress.reduce(
+      (total, item) => total + (item.expectedRecords ?? 0),
+      0,
+    );
+    runtime.totalFetchedRecords = runtime.instanceProgress.reduce((total, item) => total + item.fetchedRecords, 0);
+    runtime.totalInsertedRecords = runtime.instanceProgress.reduce((total, item) => total + item.insertedRecords, 0);
+    runtime.totalPages = runtime.instanceProgress.reduce((total, item) => total + (item.totalPages ?? 0), 0);
+    runtime.completedPages = runtime.instanceProgress.reduce((total, item) => total + item.completedPages, 0);
+
+    return runtime;
+  }
+
+  private serializeRuntimeSummary(runtime: JobRuntimeSummary): Prisma.InputJsonObject {
+    return {
+      version: 1,
+      attempts: runtime.attempts,
+      totalExpectedRecords: runtime.totalExpectedRecords,
+      totalFetchedRecords: runtime.totalFetchedRecords,
+      totalInsertedRecords: runtime.totalInsertedRecords,
+      totalPages: runtime.totalPages,
+      completedPages: runtime.completedPages,
+      checkpoint: runtime.checkpoint,
+      lastFailureMessage: runtime.lastFailureMessage,
+      lastFailureReason: runtime.lastFailureReason,
+      instanceProgress: runtime.instanceProgress,
+      timeline: runtime.timeline,
+    };
+  }
+
+  private toJobProgress(runtime: JobRuntimeSummary): OverviewJobProgress {
+    return {
+      attempts: runtime.attempts,
+      totalExpectedRecords: runtime.totalExpectedRecords,
+      totalFetchedRecords: runtime.totalFetchedRecords,
+      totalInsertedRecords: runtime.totalInsertedRecords,
+      totalPages: runtime.totalPages,
+      completedPages: runtime.completedPages,
+      checkpoint: runtime.checkpoint,
+      lastFailureMessage: runtime.lastFailureMessage,
+      lastFailureReason: runtime.lastFailureReason,
+      instanceProgress: runtime.instanceProgress,
+    };
+  }
+
+  private buildJobDiagnostics(runtime: JobRuntimeSummary) {
+    const successfulProgress = [...runtime.instanceProgress]
+      .filter((item) => item.lastSuccessfulAt)
+      .sort((left, right) => {
+        const leftValue = left.lastSuccessfulAt ? new Date(left.lastSuccessfulAt).getTime() : 0;
+        const rightValue = right.lastSuccessfulAt ? new Date(right.lastSuccessfulAt).getTime() : 0;
+        return rightValue - leftValue;
+      })[0];
+    const latestRetryEvent = [...runtime.timeline].reverse().find((event) => event.type === "retry_scheduled") ?? null;
+    const stalledInstance = runtime.checkpoint?.instanceName ?? null;
+    const stalledPage = runtime.checkpoint?.page ?? null;
+    const stalledStart = runtime.checkpoint?.start ?? null;
+
+    return {
+      lastSuccessfulInstanceName: successfulProgress?.instanceName ?? null,
+      lastSuccessfulPage: successfulProgress?.completedPages ?? null,
+      lastSuccessfulAt: successfulProgress?.lastSuccessfulAt ?? null,
+      stalledInstanceName: stalledInstance,
+      stalledPage,
+      stalledStart,
+      nextRetryAt: latestRetryEvent?.at ?? null,
+    };
+  }
+
+  private async persistJobRuntime(
+    jobId: string,
+    runtime: JobRuntimeSummary,
+    data: Partial<Prisma.OverviewHistoryJobUpdateInput> = {},
+  ) {
+    return this.prisma.overviewHistoryJob.update({
+      where: { id: jobId },
+      data: {
+        summary: this.serializeRuntimeSummary(runtime),
+        ...data,
+      },
+    });
+  }
+
+  private async upsertCoverageWindow(
+    jobId: string,
+    instance: PiholeManagedInstanceSummary,
+    range: HistoryRange,
+    expiresAt: Date,
+    progress: JobRuntimeInstanceProgress,
+    status: OverviewJobStatus,
+  ) {
+    const existing = await this.prisma.overviewCoverageWindow.findFirst({
+      where: {
+        jobId,
+        instanceId: instance.id,
+      },
+      orderBy: [{ createdAt: "asc" }],
+    });
+
+    const payload = {
+      requestedFrom: range.from,
+      requestedUntil: range.until,
+      storedFrom: progress.storedFrom ? new Date(progress.storedFrom) : null,
+      storedUntil: progress.storedUntil ? new Date(progress.storedUntil) : null,
+      rowCount: progress.fetchedRecords,
+      status,
+      errorMessage: progress.lastErrorMessage,
+      expiresAt,
+    };
+
+    if (existing) {
+      await this.prisma.overviewCoverageWindow.update({
+        where: { id: existing.id },
+        data: payload,
+      });
+      return;
+    }
+
+    await this.prisma.overviewCoverageWindow.create({
+      data: {
+        jobId,
+        instanceId: instance.id,
+        ...payload,
+      },
+    });
+  }
+
   private async recordImportNotification(job: OverviewJobRecord, failures: CoverageFailure[]) {
     const type =
       job.status === "SUCCESS"
@@ -1131,9 +2003,13 @@ export class OverviewService implements OnModuleInit {
     const message =
       job.status === "SUCCESS"
         ? "Overview import completed successfully."
-        : job.status === "PARTIAL"
-          ? "Overview import completed with partial failures."
-          : "Overview import failed.";
+        : job.status === "PAUSED"
+          ? "Overview import paused after repeated failures."
+          : job.status === "PARTIAL"
+            ? "Overview import completed with partial failures."
+            : "Overview import failed.";
+
+    const runtime = this.readRuntimeSummary(job.summary);
 
     await this.notifications.recordSystemEvent({
       type,
@@ -1152,6 +2028,8 @@ export class OverviewService implements OnModuleInit {
         queryCount: job.queryCount,
         failedCount: failures.length,
         errorMessage: job.errorMessage ?? null,
+        lastFailureReason: runtime.lastFailureReason,
+        checkpoint: runtime.checkpoint,
         failures: failures.map((item) => ({
           instanceId: item.instance.id,
           instanceName: item.instance.name,
@@ -1180,13 +2058,60 @@ export class OverviewService implements OnModuleInit {
     });
   }
 
+  private async recordCoverageRenewalNotification(
+    coverageWindow: CoverageWindowRecord & { instance: { name: string } },
+    renewedQueryCount: number,
+    expiresAt: Date,
+    renewedAt: Date,
+    request: Request,
+  ) {
+    await this.notifications.recordSystemEvent({
+      type: "OVERVIEW_COVERAGE_RENEWED",
+      fingerprint: `overview-coverage:${coverageWindow.id}`,
+      message: "Overview coverage renewed for 30 more days.",
+      instanceId: coverageWindow.instanceId,
+      instanceName: coverageWindow.instance.name,
+      metadata: {
+        url: "/overview?tab=request",
+        action: "coverage_renew",
+        coverageWindowId: coverageWindow.id,
+        jobId: coverageWindow.jobId,
+        requestedFrom: coverageWindow.requestedFrom.toISOString(),
+        requestedUntil: coverageWindow.requestedUntil.toISOString(),
+        renewedAt: renewedAt.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        renewedQueryCount,
+        requestedBy: request.ip ?? null,
+      } satisfies Prisma.InputJsonObject,
+    });
+  }
+
   private async markJobFailed(job: OverviewJobRecord, error: unknown) {
     const message = stringifyFailure(error);
+    const failureReason = classifyFailureReason(message);
+    const existing = await this.prisma.overviewHistoryJob.findUnique({
+      where: { id: job.id },
+    });
+    let runtime = this.readRuntimeSummary(existing?.summary ?? job.summary);
+    runtime.lastFailureMessage = message;
+    runtime.lastFailureReason = failureReason;
+    runtime = this.pushEvent(runtime, {
+      level: "error",
+      type: "job_failed",
+      message,
+      instanceId: runtime.checkpoint?.instanceId ?? null,
+      instanceName: runtime.checkpoint?.instanceName ?? null,
+      page: runtime.checkpoint?.page ?? null,
+      start: runtime.checkpoint?.start ?? null,
+      failureReason,
+    });
+
     const updated = await this.prisma.overviewHistoryJob.update({
       where: { id: job.id },
       data: {
         status: "FAILURE",
         errorMessage: message,
+        summary: this.serializeRuntimeSummary(runtime),
         finishedAt: new Date(),
         expiresAt: buildHistoryExpiry(new Date()),
       },
@@ -1207,7 +2132,15 @@ export class OverviewService implements OnModuleInit {
         requestedUntil: job.requestedUntil.toISOString(),
         status: updated.status,
         errorMessage: message,
+        failureReason,
+        checkpoint: runtime.checkpoint,
       } satisfies Prisma.InputJsonObject,
+    });
+  }
+
+  private delay(ms: number) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
     });
   }
 }

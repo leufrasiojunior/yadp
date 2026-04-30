@@ -20,10 +20,11 @@ type OverviewNotificationType =
   | "OVERVIEW_IMPORT_PARTIAL"
   | "OVERVIEW_IMPORT_FAILURE"
   | "OVERVIEW_DELETE_SUCCESS"
-  | "OVERVIEW_DELETE_FAILURE";
+  | "OVERVIEW_DELETE_FAILURE"
+  | "OVERVIEW_COVERAGE_RENEWED";
 
 type OverviewNotificationMetadata = {
-  action?: "import" | "delete";
+  action?: "import" | "delete" | "coverage_renew";
   trigger?: "automatic" | "manual" | string;
   requestedFrom?: string;
   requestedUntil?: string;
@@ -31,6 +32,7 @@ type OverviewNotificationMetadata = {
   deletedCount?: number;
   failedCount?: number;
   errorMessage?: string | null;
+  expiresAt?: string;
 };
 
 function isOverviewNotificationType(type: NotificationItem["type"]): type is OverviewNotificationType {
@@ -39,7 +41,8 @@ function isOverviewNotificationType(type: NotificationItem["type"]): type is Ove
     type === "OVERVIEW_IMPORT_PARTIAL" ||
     type === "OVERVIEW_IMPORT_FAILURE" ||
     type === "OVERVIEW_DELETE_SUCCESS" ||
-    type === "OVERVIEW_DELETE_FAILURE"
+    type === "OVERVIEW_DELETE_FAILURE" ||
+    type === "OVERVIEW_COVERAGE_RENEWED"
   );
 }
 
@@ -61,7 +64,12 @@ function parseOverviewNotificationMetadata(item: NotificationItem): OverviewNoti
   }
 
   return {
-    action: readString(item.metadata.action) === "delete" ? "delete" : "import",
+    action:
+      readString(item.metadata.action) === "delete"
+        ? "delete"
+        : readString(item.metadata.action) === "coverage_renew"
+          ? "coverage_renew"
+          : "import",
     trigger: readString(item.metadata.trigger) || undefined,
     requestedFrom: readString(item.metadata.requestedFrom) || undefined,
     requestedUntil: readString(item.metadata.requestedUntil) || undefined,
@@ -69,6 +77,7 @@ function parseOverviewNotificationMetadata(item: NotificationItem): OverviewNoti
     deletedCount: readNumber(item.metadata.deletedCount) ?? undefined,
     failedCount: readNumber(item.metadata.failedCount) ?? undefined,
     errorMessage: readString(item.metadata.errorMessage) || null,
+    expiresAt: readString(item.metadata.expiresAt) || undefined,
   };
 }
 
@@ -184,6 +193,12 @@ export function getNotificationMessage(
       );
     case "OVERVIEW_DELETE_FAILURE":
       return messages.overview.notifications.deleteFailureMessage(requestedFrom, requestedUntil, metadata.errorMessage);
+    case "OVERVIEW_COVERAGE_RENEWED":
+      return messages.overview.notifications.coverageRenewedMessage(
+        requestedFrom,
+        requestedUntil,
+        metadata.expiresAt ? formatDateTime(metadata.expiresAt) : item.message,
+      );
     default:
       return item.message;
   }

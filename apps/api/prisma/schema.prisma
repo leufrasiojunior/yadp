@@ -56,6 +56,7 @@ enum OverviewHistoryJobKind {
 enum OverviewHistoryJobStatus {
   PENDING
   RUNNING
+  PAUSED
   SUCCESS
   PARTIAL
   FAILURE

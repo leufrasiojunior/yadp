@@ -9,6 +9,7 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "test:instances": "node --import tsx --test src/instances/instances.service.spec.ts",
     "test:notifications": "node --import tsx --test src/notifications/notifications.service.spec.ts",
+    "test:overview": "TSX_TSCONFIG_PATH=tsconfig.json node --import tsx --test src/overview/overview.service.spec.ts",
     "test:queries": "node --import tsx --test src/queries/*.spec.ts",
     "test:runtime-metadata": "node --test test/controller-runtime-metadata.test.mjs",
     "start": "sh ./scripts/start-with-migrations.sh",

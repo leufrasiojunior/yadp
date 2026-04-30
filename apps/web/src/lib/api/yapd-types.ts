@@ -556,6 +556,8 @@ export type OverviewResponse = {
     totalStoredQueries: number;
     earliestStoredAt: string | null;
     latestStoredAt: string | null;
+    savedWindowCount: number;
+    expiringSoonCount: number;
     windows: Array<{
       id: string;
       jobId: string | null;
@@ -566,9 +568,43 @@ export type OverviewResponse = {
       storedFrom: string | null;
       storedUntil: string | null;
       rowCount: number;
-      status: "PENDING" | "RUNNING" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
       errorMessage: string | null;
       expiresAt: string;
+      isExpiringSoon: boolean;
+      expiresInDays: number;
+    }>;
+    savedWindows: Array<{
+      id: string;
+      jobId: string | null;
+      instanceId: string;
+      instanceName: string;
+      requestedFrom: string;
+      requestedUntil: string;
+      storedFrom: string | null;
+      storedUntil: string | null;
+      rowCount: number;
+      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      errorMessage: string | null;
+      expiresAt: string;
+      isExpiringSoon: boolean;
+      expiresInDays: number;
+    }>;
+    expiringWindows: Array<{
+      id: string;
+      jobId: string | null;
+      instanceId: string;
+      instanceName: string;
+      requestedFrom: string;
+      requestedUntil: string;
+      storedFrom: string | null;
+      storedUntil: string | null;
+      rowCount: number;
+      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      errorMessage: string | null;
+      expiresAt: string;
+      isExpiringSoon: boolean;
+      expiresInDays: number;
     }>;
   };
   sources: {
@@ -586,6 +622,49 @@ export type OverviewResponse = {
   };
 };
 
+export type OverviewJobFailureReason = "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected";
+
+export type OverviewJobProgress = {
+  attempts: number;
+  totalExpectedRecords: number;
+  totalFetchedRecords: number;
+  totalInsertedRecords: number;
+  totalPages: number;
+  completedPages: number;
+  checkpoint: {
+    instanceId: string | null;
+    instanceName: string | null;
+    page: number | null;
+    start: number | null;
+    totalPages: number | null;
+    expectedRecords: number | null;
+    consecutiveFailures: number;
+    lastSuccessfulPage: number;
+    updatedAt: string | null;
+  } | null;
+  lastFailureMessage: string | null;
+  lastFailureReason: OverviewJobFailureReason | null;
+  instanceProgress: Array<{
+    instanceId: string;
+    instanceName: string;
+    status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+    expectedRecords: number | null;
+    fetchedRecords: number;
+    insertedRecords: number;
+    totalPages: number | null;
+    completedPages: number;
+    currentPage: number | null;
+    currentStart: number;
+    storedFrom: string | null;
+    storedUntil: string | null;
+    consecutiveFailures: number;
+    lastErrorMessage: string | null;
+    lastFailureReason: OverviewJobFailureReason | null;
+    lastSuccessfulAt: string | null;
+    updatedAt: string | null;
+  }>;
+};
+
 export type OverviewJobsResponse = {
   jobs: Array<{
     id: string;
@@ -595,7 +674,7 @@ export type OverviewJobsResponse = {
     instanceName: string | null;
     requestedFrom: string;
     requestedUntil: string;
-    status: "PENDING" | "RUNNING" | "SUCCESS" | "PARTIAL" | "FAILURE";
+    status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
     trigger: string | null;
     requestedBy: string | null;
     queryCount: number;
@@ -605,8 +684,34 @@ export type OverviewJobsResponse = {
     finishedAt: string | null;
     createdAt: string;
     errorMessage: string | null;
-    summary: unknown;
+    failureReason: OverviewJobFailureReason | null;
+    progress: OverviewJobProgress;
   }>;
+};
+
+export type OverviewJobDetailsResponse = {
+  job: OverviewJobsResponse["jobs"][number] & {
+    diagnostics: {
+      lastSuccessfulInstanceName: string | null;
+      lastSuccessfulPage: number | null;
+      lastSuccessfulAt: string | null;
+      stalledInstanceName: string | null;
+      stalledPage: number | null;
+      stalledStart: number | null;
+      nextRetryAt: string | null;
+    };
+    timeline: Array<{
+      at: string;
+      level: "info" | "warn" | "error";
+      type: string;
+      message: string;
+      instanceId: string | null;
+      instanceName: string | null;
+      page: number | null;
+      start: number | null;
+      failureReason: OverviewJobFailureReason | null;
+    }>;
+  };
 };
 
 export type OverviewMutationResponse = {
@@ -615,6 +720,12 @@ export type OverviewMutationResponse = {
 
 export type OverviewJobDeleteResponse = {
   job: OverviewJobsResponse["jobs"][number];
+};
+
+export type OverviewCoverageRenewResponse = {
+  coverageWindow: OverviewResponse["coverage"]["savedWindows"][number];
+  renewedQueryCount: number;
+  renewedAt: string;
 };
 
 export type QueriesResponse = {

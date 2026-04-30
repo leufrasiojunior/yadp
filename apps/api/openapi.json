@@ -5408,6 +5408,23 @@
         "tags": ["overview"]
       }
     },
+    "/overview/jobs/{id}/details": {
+      "get": {
+        "operationId": "OverviewController_getJobDetails",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Detailed overview history job progress and timeline."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
     "/overview/backfill": {
       "post": {
         "operationId": "OverviewController_createBackfill",

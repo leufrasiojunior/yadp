@@ -676,6 +676,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/overview/jobs/{id}/details": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["OverviewController_getJobDetails"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/overview/backfill": {
     parameters: {
       query?: never;
@@ -3449,6 +3465,24 @@ export interface operations {
     requestBody?: never;
     responses: {
       /** @description Recent overview history jobs. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  OverviewController_getJobDetails: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Detailed overview history job progress and timeline. */
       200: {
         headers: {
           [name: string]: unknown;

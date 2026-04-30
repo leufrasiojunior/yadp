@@ -81,6 +81,7 @@ export type OverviewHistoryJobKind = (typeof OverviewHistoryJobKind)[keyof typeo
 export const OverviewHistoryJobStatus = {
   PENDING: 'PENDING',
   RUNNING: 'RUNNING',
+  PAUSED: 'PAUSED',
   SUCCESS: 'SUCCESS',
   PARTIAL: 'PARTIAL',
   FAILURE: 'FAILURE'

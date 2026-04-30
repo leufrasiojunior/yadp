@@ -1,0 +1,2311 @@
+{
+  "queries": [
+    {
+      "id": 24159050,
+      "time": 1777168799.4717042,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.5762786865234375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159049,
+      "time": 1777168799.4705777,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.7431716918945312e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159048,
+      "time": 1777168799.4685647,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.00543212890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159047,
+      "time": 1777168799.4673948,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.814697265625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159046,
+      "time": 1777168799.4648087,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.8862228393554688e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159045,
+      "time": 1777168799.4635961,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.5537948608398438e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159044,
+      "time": 1777168799.4611149,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 5.2690505981445312e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159043,
+      "time": 1777168799.4595549,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 9.5129013061523438e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159042,
+      "time": 1777168798.1582196,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.5524368286132812e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159041,
+      "time": 1777168798.1570871,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.1961669921875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159040,
+      "time": 1777168798.1545606,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.1961669921875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159039,
+      "time": 1777168798.1533661,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.4584274291992188e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159038,
+      "time": 1777168798.1503141,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.9815902709960938e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159037,
+      "time": 1777168798.148895,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 0.00017762184143066406
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159036,
+      "time": 1777168798.1461413,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.2200088500976562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159035,
+      "time": 1777168798.144922,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 7.915496826171875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159034,
+      "time": 1777168797.7066252,
+      "type": "A",
+      "status": "CACHE_STALE",
+      "dnssec": "UNKNOWN",
+      "domain": "www.google.com",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 0.00011420249938964844
+      },
+      "client": {
+        "ip": "192.168.31.8",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159033,
+      "time": 1777168796.83798,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.8623809814453125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159032,
+      "time": 1777168796.83682,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 5.2213668823242188e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159031,
+      "time": 1777168796.8342876,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.62396240234375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159030,
+      "time": 1777168796.833163,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.0292739868164062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159029,
+      "time": 1777168796.830472,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.6716461181640625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159028,
+      "time": 1777168796.82934,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.2676925659179688e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159027,
+      "time": 1777168796.8266506,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.8862228393554688e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159026,
+      "time": 1777168796.8254049,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 8.2254409790039062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159025,
+      "time": 1777168795.7884269,
+      "type": "A",
+      "status": "CACHE_STALE",
+      "dnssec": "UNKNOWN",
+      "domain": "p2p-gru1.discovery.steamserver.net",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 8.5592269897460938e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159024,
+      "time": 1777168795.5146959,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.62396240234375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159023,
+      "time": 1777168795.5135593,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.482269287109375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159022,
+      "time": 1777168795.51111,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.7670135498046875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159021,
+      "time": 1777168795.5099628,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.2200088500976562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159020,
+      "time": 1777168795.5069926,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.814697265625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159019,
+      "time": 1777168795.50584,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.3392181396484375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159018,
+      "time": 1777168795.5031426,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.0531158447265625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159017,
+      "time": 1777168795.5018759,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 8.4400177001953125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159016,
+      "time": 1777168794.1687124,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 2.8371810913085938e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159015,
+      "time": 1777168794.1678209,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.0517578125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159014,
+      "time": 1777168794.1657231,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 2.86102294921875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159013,
+      "time": 1777168794.1647375,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.5061111450195312e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159012,
+      "time": 1777168794.1622605,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.814697265625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159011,
+      "time": 1777168794.1611023,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 5.1259994506835938e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159010,
+      "time": 1777168794.1582782,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.9829483032226562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159009,
+      "time": 1777168794.1567986,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 9.60826873779297e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159008,
+      "time": 1777168792.831943,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.5524368286132812e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159007,
+      "time": 1777168792.8308268,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.6001205444335938e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159006,
+      "time": 1777168792.8289313,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.6716461181640625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159005,
+      "time": 1777168792.8277607,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.719329833984375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159004,
+      "time": 1777168792.8254719,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.7670135498046875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159003,
+      "time": 1777168792.8243344,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.4584274291992188e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159002,
+      "time": 1777168792.8221,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.8385391235351562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159001,
+      "time": 1777168792.8208523,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 8.51154327392578e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24159000,
+      "time": 1777168791.4985156,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.6478042602539062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158999,
+      "time": 1777168791.4973917,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.00543212890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158998,
+      "time": 1777168791.4953933,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.6478042602539062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158997,
+      "time": 1777168791.4942651,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.1484832763671875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158996,
+      "time": 1777168791.4915378,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.6954879760742188e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158995,
+      "time": 1777168791.4904094,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.1484832763671875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158994,
+      "time": 1777168791.4877231,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.9339065551757812e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158993,
+      "time": 1777168791.486479,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 8.296966552734375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158992,
+      "time": 1777168790.1679211,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.4809112548828125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158991,
+      "time": 1777168790.1668026,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.7670135498046875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158990,
+      "time": 1777168790.1645055,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.0292739868164062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158989,
+      "time": 1777168790.1633265,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.6014785766601562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158988,
+      "time": 1777168790.1609337,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 3.910064697265625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158987,
+      "time": 1777168790.1597445,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.1484832763671875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158986,
+      "time": 1777168790.1569612,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 4.1484832763671875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158985,
+      "time": 1777168790.1558013,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 7.6055526733398438e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158984,
+      "time": 1777168788.8350327,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.2636184692382812e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158983,
+      "time": 1777168788.834656,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.3589859008789062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158982,
+      "time": 1777168788.8335679,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.239776611328125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158981,
+      "time": 1777168788.8331833,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.5974044799804688e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158980,
+      "time": 1777168788.8317006,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.3589859008789062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158979,
+      "time": 1777168788.8313076,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 2.002716064453125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158978,
+      "time": 1777168788.829854,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 2.3126602172851562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158977,
+      "time": 1777168788.8292949,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 6.008148193359375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158976,
+      "time": 1777168787.5064771,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.239776611328125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158975,
+      "time": 1777168787.5060987,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.3589859008789062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158974,
+      "time": 1777168787.5051045,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.2874603271484375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158973,
+      "time": 1777168787.5047214,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.621246337890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158972,
+      "time": 1777168787.5032148,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.2874603271484375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158971,
+      "time": 1777168787.5028331,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.5020370483398438e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158970,
+      "time": 1777168787.5014765,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.52587890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158969,
+      "time": 1777168787.501,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 5.054473876953125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158968,
+      "time": 1777168786.6584527,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "registry.npmjs.org",
+      "upstream": null,
+      "reply": {
+        "type": "IP",
+        "time": 6.1511993408203125e-5
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158967,
+      "time": 1777168786.2187462,
+      "type": "A",
+      "status": "CACHE_STALE",
+      "dnssec": "UNKNOWN",
+      "domain": "mobile.events.data.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00013780593872070312
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158966,
+      "time": 1777168786.2080016,
+      "type": "HTTPS",
+      "status": "CACHE_STALE",
+      "dnssec": "UNKNOWN",
+      "domain": "mobile.events.data.microsoft.com",
+      "upstream": null,
+      "reply": {
+        "type": "CNAME",
+        "time": 0.00019955635070800781
+      },
+      "client": {
+        "ip": "192.168.31.18",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158965,
+      "time": 1777168786.1864212,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.3113021850585938e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158964,
+      "time": 1777168786.1860347,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.4781951904296875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158963,
+      "time": 1777168786.18501,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.33514404296875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158962,
+      "time": 1777168786.1846228,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.52587890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158961,
+      "time": 1777168786.1830409,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.3828277587890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158960,
+      "time": 1777168786.18265,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.621246337890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158959,
+      "time": 1777168786.1810408,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.6450881958007812e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158958,
+      "time": 1777168786.1805553,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 5.0067901611328125e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158957,
+      "time": 1777168784.861656,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.4066696166992188e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158956,
+      "time": 1777168784.8612707,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.4781951904296875e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158955,
+      "time": 1777168784.8601794,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.52587890625e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158954,
+      "time": 1777168784.8597729,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.5497207641601562e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158953,
+      "time": 1777168784.8583431,
+      "type": "AAAA",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.430511474609375e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158952,
+      "time": 1777168784.857954,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 1.5974044799804688e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    },
+    {
+      "id": 24158951,
+      "time": 1777168784.8564496,
+      "type": "A",
+      "status": "CACHE",
+      "dnssec": "UNKNOWN",
+      "domain": "db",
+      "upstream": null,
+      "reply": {
+        "type": "NXDOMAIN",
+        "time": 2.1219253540039062e-5
+      },
+      "client": {
+        "ip": "192.168.31.17",
+        "name": null
+      },
+      "list_id": null,
+      "ede": {
+        "code": -1,
+        "text": null
+      },
+      "cname": null
+    }
+  ],
+  "cursor": 25397682,
+  "recordsTotal": 25397374,
+  "recordsFiltered": 278959,
+  "draw": 0,
+  "earliest_timestamp": 1777255200,
+  "earliest_timestamp_disk": 1771772711.8708653,
+  "took": 3.3584067821502686
+}
