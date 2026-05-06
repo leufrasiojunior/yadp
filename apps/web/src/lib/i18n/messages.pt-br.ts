@@ -354,6 +354,14 @@ export const ptBRMessages: WebMessages = {
     overviewButton: "Visão geral",
     queriesButton: "Queries",
     instancesButton: "Instâncias",
+    beta: {
+      label: "BETA",
+      openLabel: "Abrir aviso da versão BETA",
+      title: "YAPD em desenvolvimento",
+      description: "O YAPD - Yet Another PiHole Dashboard está em fase de desenvolvimento.",
+      disclaimer: "Não sou responsável por problemas que possam ser causados em suas instâncias PiHole de produção.",
+      close: "Entendi",
+    },
   },
   sidebar: {
     groups: {

@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { useShallow } from "zustand/react/shallow";
 
+import { BetaDisclaimerDialog } from "@/app/(main)/_components/beta-disclaimer-dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -72,6 +73,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={{ name: session.baseline.name, email: session.baseline.baseUrl, avatar: "" }} />
+        <BetaDisclaimerDialog placement="sidebar" />
       </SidebarFooter>
     </Sidebar>
   );

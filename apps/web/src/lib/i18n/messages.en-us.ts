@@ -351,6 +351,14 @@ export const enUSMessages: WebMessages = {
     overviewButton: "Overview",
     queriesButton: "Queries",
     instancesButton: "Instances",
+    beta: {
+      label: "BETA",
+      openLabel: "Open the BETA notice",
+      title: "YAPD is in development",
+      description: "YAPD - Yet Another PiHole Dashboard is currently in development.",
+      disclaimer: "I am not responsible for problems that may be caused in your production PiHole instances.",
+      close: "Got it",
+    },
   },
   sidebar: {
     groups: {
