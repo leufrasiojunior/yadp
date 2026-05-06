@@ -1,10 +1,14 @@
-![Logotipo do YAPD](../media/logo.png)
+<p align="center">
+  <img src="../media/logo_bg_transparent.png" alt="Logotipo do YAPD" width="220" />
+</p>
 
 # YAPD
 
 **Yet Another Pi-hole Dashboard** é uma central auto-hospedada para quem usa mais de uma instância do Pi-hole e quer uma forma mais clara e segura de acompanhar a rede.
 
 O YAPD foi pensado para reunir ambientes Pi-hole v6+ em um único lugar: painéis, saúde das instâncias, consultas DNS, gerenciamento de configuração, sincronização, detecção de divergências, histórico de auditoria e futuros controles parentais. Em vez de abrir cada Pi-hole separadamente, o YAPD busca ser a superfície operacional confiável para todo o seu ambiente de filtragem DNS.
+
+Se você usa Pi-hole em casa, em um homelab ou em uma pequena rede, o YAPD é o tipo de ferramenta que vale testar cedo, quebrar com honestidade e ajudar a melhorar. Relatos de bug, feedback de usabilidade, ideias de funcionalidades e observações de deploy real vão ajudar a moldar o projeto.
 
 ## Por Que O YAPD Existe
 
@@ -28,6 +32,21 @@ O YAPD parte de uma ideia simples: **o dashboard deve conhecer o estado desejado
 - **Operações com auditoria**: registre ações críticas, mudanças de configuração, tentativas de sync e eventos sensíveis.
 - **Direção security-first**: projetado para LAN/VPN, segredos criptografados, sessões seguras, trust explícito para certificados self-signed e sem credencial padrão fixa.
 - **Internacionalização**: o projeto é pensado para usuários em português do Brasil e inglês.
+
+## O Que Você Pode Fazer Com O YAPD
+
+O YAPD está sendo construído como um dashboard operacional para a administração diária do Pi-hole:
+
+- **Ver o ambiente DNS de uma vez**: abra um único dashboard para entender tráfego, atividade de bloqueio, status das instâncias e eventos operacionais recentes.
+- **Explorar o histórico de consultas**: use as telas Overview e Consultas para inspecionar domínios, clientes, requisições bloqueadas e padrões de atividade sem alternar entre instâncias Pi-hole.
+- **Gerenciar objetos do Pi-hole de forma centralizada**: revise e organize domínios, grupos, listas de bloqueio e áreas de configuração em uma interface unificada.
+- **Comparar instâncias antes de aplicar mudanças**: identifique divergências de configuração e entenda qual instância está fora de sincronia antes de executar uma alteração sensível.
+- **Preparar fluxos de sincronização mais seguros**: use um estado desejado central, pré-checagens, retries e reconciliação explícita em vez de edições manuais uma a uma.
+- **Acompanhar o que mudou**: mantenha ações críticas visíveis por registros orientados a auditoria, notificações e histórico futuro de jobs.
+- **Evoluir para controles parentais**: o roadmap v1 inclui associação de clientes a perfis, janelas de bloqueio agendadas e uma visão parental dedicada.
+- **Operar com confiança em redes privadas**: o YAPD é pensado para deploys LAN/VPN, mantendo limites de segurança dentro da própria aplicação.
+
+O projeto ainda está evoluindo. Se uma tela parecer confusa, se um fluxo estiver faltando ou se o seu setup Pi-hole revelar um caso inesperado, abra uma issue e descreva o que aconteceu. As melhores melhorias virão de usuários reais operando redes reais.
 
 ## Prints
 
@@ -78,6 +97,10 @@ O YAPD é um monorepo TypeScript com uma aplicação web, uma API e um cliente d
 
 O frontend não deve ser o lugar das regras sensíveis. O backend concentra autenticação, integração com Pi-hole, sincronização, detecção de drift, auditoria, notificações e ações críticas.
 
+## Créditos
+
+A UI do dashboard do YAPD começou a partir do excelente projeto [next-shadcn-admin-dashboard](https://github.com/arhamkhnz/next-shadcn-admin-dashboard), de Arham Khan. O YAPD adapta essa base visual para um produto focado em Pi-hole, com backend, modelo de domínio, fluxos e direção de segurança próprios.
+
 ## Segurança E Deploy
 
 O YAPD foi projetado primeiro para redes privadas confiáveis, como ambientes **LAN ou VPN**. Um proxy reverso pode ser usado, mas não deve substituir os controles da própria aplicação.
@@ -118,6 +141,12 @@ npm run db:migrate:dev -- --name your_change_name
 ```
 
 Evite `prisma db push` para mudanças de schema da aplicação. As migrações são a fonte da verdade para evoluções seguras em desenvolvimento e produção.
+
+## Bugs Conhecidos E Ajuda Necessária
+
+O YAPD ainda é jovem, e setups de rede reais são a melhor forma de encontrar pontos frágeis. Se você encontrar um destes problemas, abra uma issue com logs, versão do Pi-hole, versão ou commit do YAPD, forma de deploy e o que fez o sistema se recuperar.
+
+- **Alcance intermitente de instâncias Pi-hole**: o YAPD pode às vezes perder conexão com uma instância Pi-hole, não conseguir localizá-la ou mostrar rapidamente um aviso de inalcançável. Em alguns casos a instância se recupera logo depois sem reinício manual. Ajuda é bem-vinda aqui: uma boa correção deve explicar a causa raiz, como a solução diferencia falhas temporárias de rede ou health-check de uma indisponibilidade real, e como a UI deve informar a recuperação sem esconder um problema verdadeiro.
 
 ## Status Do Projeto
 
