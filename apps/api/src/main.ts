@@ -10,10 +10,12 @@ import type { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 
 import { AppModule } from "./app.module";
+import { REQUEST_ID_HEADER, setRequestId } from "./common/http/request-context";
 import { getRequestLocale } from "./common/i18n/locale";
 import { normalizeAppLogLevel, resolveNestLoggerLevels } from "./common/logging/log-levels";
 import { AppEnvService } from "./config/app-env";
 import { buildOpenApiDocument } from "./openapi";
+import { randomUUID } from "node:crypto";
 
 async function bootstrap() {
   const configuredLogLevel = normalizeAppLogLevel(process.env.LOG_LEVEL);
@@ -34,6 +36,14 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(helmet());
   app.use((request: Request, response: Response, next: NextFunction) => {
+    const incomingRequestId = request.header(REQUEST_ID_HEADER)?.trim();
+    const requestId = incomingRequestId && incomingRequestId.length > 0 ? incomingRequestId : randomUUID();
+
+    setRequestId(request, requestId);
+    response.setHeader(REQUEST_ID_HEADER, requestId);
+    next();
+  });
+  app.use((request: Request, response: Response, next: NextFunction) => {
     response.setHeader("content-language", getRequestLocale(request));
     next();
   });
@@ -49,7 +59,7 @@ async function bootstrap() {
     }),
   );
 
-  if (env.values.SWAGGER_ENABLED && !env.isProduction) {
+  if (env.values.SWAGGER_ENABLED) {
     SwaggerModule.setup("api/docs", app, buildOpenApiDocument(app));
   }
 

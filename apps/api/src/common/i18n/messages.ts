@@ -15,6 +15,10 @@ type ApiMessageKey =
   | "dashboard.noInstances"
   | "domains.instanceIdRequired"
   | "domains.operationRejected"
+  | "lists.defaultComment"
+  | "notifications.notFound"
+  | "notifications.pushUnavailable"
+  | "notifications.pushEndpointRequired"
   | "groups.alreadyExists"
   | "groups.baselineSkippedAfterFailure"
   | "groups.defaultImmutable"
@@ -85,6 +89,10 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.noInstances": "Nenhuma instância Pi-hole está cadastrada no YAPD.",
     "domains.instanceIdRequired": "Selecione uma instância válida para aplicar esta ação de domínio.",
     "domains.operationRejected": ({ baseUrl }) => `O Pi-hole em ${baseUrl} recusou a alteração de domínio.`,
+    "lists.defaultComment": "Adicionado via YAPD",
+    "notifications.notFound": "Notificação não encontrada.",
+    "notifications.pushUnavailable": "As notificações push não estão disponíveis nesta instalação.",
+    "notifications.pushEndpointRequired": "O endpoint da assinatura push é obrigatório.",
     "groups.alreadyExists": ({ name }) => `O grupo "${name}" já existe em pelo menos uma instância.`,
     "groups.baselineSkippedAfterFailure":
       "A baseline não foi alterada porque uma ou mais instâncias secundárias falharam durante a sincronização.",
@@ -171,6 +179,10 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "dashboard.noInstances": "No Pi-hole instance is registered in YAPD.",
     "domains.instanceIdRequired": "Select a valid instance to apply this domain action.",
     "domains.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the domain change.`,
+    "lists.defaultComment": "Added from YAPD",
+    "notifications.notFound": "Notification not found.",
+    "notifications.pushUnavailable": "Push notifications are not available in this installation.",
+    "notifications.pushEndpointRequired": "The push subscription endpoint is required.",
     "groups.alreadyExists": ({ name }) => `The group "${name}" already exists on at least one instance.`,
     "groups.baselineSkippedAfterFailure":
       "The baseline was left unchanged because one or more secondary instances failed during synchronization.",

@@ -205,6 +205,7 @@ export class SyncService {
           readyCount: readyInstances.length,
           noopCount: noopInstances.length,
           failedCount: failedInstances.length,
+          failedInstances: failedInstances as unknown as Prisma.InputJsonValue,
         } satisfies Prisma.InputJsonObject,
       });
 
@@ -304,6 +305,7 @@ export class SyncService {
         details: {
           desiredConfig: this.toDesiredConfigJson(desiredConfig),
           summary,
+          failedInstances: results.filter((result) => result.status === "FAILURE") as unknown as Prisma.InputJsonValue,
         } satisfies Prisma.InputJsonObject,
       });
 

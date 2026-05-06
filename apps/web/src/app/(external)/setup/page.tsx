@@ -45,15 +45,7 @@ export default async function SetupPage() {
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return (
-        <ApiUnavailableScreen
-          apiBaseUrl={error.baseUrl}
-          description={copy.page.unavailableDescription}
-          locale={locale}
-          retryHref="/setup"
-          title={copy.page.unavailableTitle}
-        />
-      );
+      return <ApiUnavailableScreen locale={locale} retryHref="/setup" />;
     }
 
     if (isYapdApiResponseError(error)) {
@@ -64,7 +56,6 @@ export default async function SetupPage() {
           message={error.message}
           retryHref="/setup"
           status={error.status}
-          title={copy.page.unavailableTitle}
         />
       );
     }

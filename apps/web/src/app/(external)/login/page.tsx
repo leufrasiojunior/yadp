@@ -81,15 +81,7 @@ export default async function LoginPage() {
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return (
-        <ApiUnavailableScreen
-          apiBaseUrl={error.baseUrl}
-          description={copy.unavailableDescription}
-          locale={locale}
-          retryHref="/login"
-          title={copy.unavailableTitle}
-        />
-      );
+      return <ApiUnavailableScreen locale={locale} retryHref="/login" />;
     }
 
     if (isYapdApiResponseError(error)) {
@@ -100,7 +92,6 @@ export default async function LoginPage() {
           message={error.message}
           retryHref="/login"
           status={error.status}
-          title={copy.unavailableTitle}
         />
       );
     }

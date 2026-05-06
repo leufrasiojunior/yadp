@@ -10,9 +10,24 @@ import type {
   ClientsListResponse,
   ClientsSortDirection,
   ClientsSortField,
+  ConfigOverviewResponse,
   DashboardOverviewResponse,
+  DomainFilterValue,
+  DomainsListResponse,
+  DomainsSortDirection,
+  DomainsSortField,
   GroupsListResponse,
   InstanceListResponse,
+  ListsListResponse,
+  ListsSortDirection,
+  ListsSortField,
+  NavigationSummaryResponse,
+  NotificationReadState,
+  NotificationsListResponse,
+  NotificationsPreviewResponse,
+  OverviewJobsResponse,
+  OverviewResponse,
+  PushPublicKeyResponse,
   QueriesResponse,
   SetupStatus,
 } from "./yapd-types";
@@ -153,6 +168,172 @@ export async function getGroups(): Promise<GroupsListResponse> {
   return data;
 }
 
+export async function getNavigationSummary(): Promise<NavigationSummaryResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<NavigationSummaryResponse>("/navigation/summary");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load navigation summary.");
+  }
+
+  return data;
+}
+
+export async function getNotifications(query?: {
+  page?: number;
+  pageSize?: number;
+  readState?: NotificationReadState;
+}): Promise<NotificationsListResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<NotificationsListResponse>("/notifications", {
+    params: {
+      query: {
+        ...(query?.page !== undefined ? { page: query.page } : {}),
+        ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+        ...(query?.readState !== undefined ? { readState: query.readState } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load notifications.");
+  }
+
+  return data;
+}
+
+export async function getNotificationsPreview(query?: { limit?: number }): Promise<NotificationsPreviewResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<NotificationsPreviewResponse>("/notifications/preview", {
+    params: {
+      query: {
+        ...(query?.limit !== undefined ? { limit: query.limit } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load notification preview.");
+  }
+
+  return data;
+}
+
+export async function getPushPublicKey(): Promise<PushPublicKeyResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<PushPublicKeyResponse>("/notifications/push/public-key");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load the push public key.");
+  }
+
+  return data;
+}
+
+export async function getDomains(query?: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: DomainsSortField;
+  sortDirection?: DomainsSortDirection;
+  filters?: DomainFilterValue[];
+}): Promise<DomainsListResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<DomainsListResponse>("/domains", {
+    params: {
+      query: {
+        ...(query?.page !== undefined ? { page: query.page } : {}),
+        ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+        ...(query?.search !== undefined ? { search: query.search } : {}),
+        ...(query?.sortBy !== undefined ? { sortBy: query.sortBy } : {}),
+        ...(query?.sortDirection !== undefined ? { sortDirection: query.sortDirection } : {}),
+        ...(query?.filters !== undefined ? { filters: query.filters } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load domains.");
+  }
+
+  return data;
+}
+
+export async function getLists(query?: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: ListsSortField;
+  sortDirection?: ListsSortDirection;
+}): Promise<ListsListResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<ListsListResponse>("/lists", {
+    params: {
+      query: {
+        ...(query?.page !== undefined ? { page: query.page } : {}),
+        ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+        ...(query?.search !== undefined ? { search: query.search } : {}),
+        ...(query?.sortBy !== undefined ? { sortBy: query.sortBy } : {}),
+        ...(query?.sortDirection !== undefined ? { sortDirection: query.sortDirection } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load lists.");
+  }
+
+  return data;
+}
+
 export async function getClients(query?: {
   page?: number;
   pageSize?: number;
@@ -190,6 +371,25 @@ export async function getClients(query?: {
   return data;
 }
 
+export async function getConfigOverview(): Promise<ConfigOverviewResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<ConfigOverviewResponse>("/config");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load config.");
+  }
+
+  return data;
+}
+
 export async function getDashboardOverview(query: {
   scope: "all" | "instance";
   instanceId?: string;
@@ -219,6 +419,80 @@ export async function getDashboardOverview(query: {
   return data;
 }
 
+export async function getOverview(query: {
+  scope: "all" | "instance";
+  instanceId?: string;
+  from?: number;
+  until?: number;
+  groupBy?: "hour" | "day";
+  domain?: string;
+  client_ip?: string;
+  upstream?: string;
+  type?: string;
+  status?: string;
+  reply?: string;
+  dnssec?: string;
+}): Promise<OverviewResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<OverviewResponse>("/overview", {
+    params: {
+      query: {
+        scope: query.scope,
+        ...(query.instanceId ? { instanceId: query.instanceId } : {}),
+        ...(query.from !== undefined ? { from: query.from } : {}),
+        ...(query.until !== undefined ? { until: query.until } : {}),
+        ...(query.groupBy ? { groupBy: query.groupBy } : {}),
+        ...(query.domain ? { domain: query.domain } : {}),
+        ...(query.client_ip ? { client_ip: query.client_ip } : {}),
+        ...(query.upstream ? { upstream: query.upstream } : {}),
+        ...(query.type ? { type: query.type } : {}),
+        ...(query.status ? { status: query.status } : {}),
+        ...(query.reply ? { reply: query.reply } : {}),
+        ...(query.dnssec ? { dnssec: query.dnssec } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load overview.");
+  }
+
+  return data;
+}
+
+export async function getOverviewJobs(query?: { limit?: number }): Promise<OverviewJobsResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<OverviewJobsResponse>("/overview/jobs", {
+    params: {
+      query: {
+        ...(query?.limit !== undefined ? { limit: query.limit } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load overview jobs.");
+  }
+
+  return data;
+}
+
 export async function getQueries(query: {
   scope: "all" | "instance";
   instanceId?: string;
@@ -229,6 +503,7 @@ export async function getQueries(query: {
   cursor?: number;
   domain?: string;
   client_ip?: string;
+  groupIds?: number[];
   upstream?: string;
   type?: string;
   status?: string;
@@ -249,6 +524,7 @@ export async function getQueries(query: {
         ...(query.cursor !== undefined ? { cursor: query.cursor } : {}),
         ...(query.domain ? { domain: query.domain } : {}),
         ...(query.client_ip ? { client_ip: query.client_ip } : {}),
+        ...(query.groupIds && query.groupIds.length > 0 ? { groupIds: query.groupIds } : {}),
         ...(query.upstream ? { upstream: query.upstream } : {}),
         ...(query.type ? { type: query.type } : {}),
         ...(query.status ? { status: query.status } : {}),

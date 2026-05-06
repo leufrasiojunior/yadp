@@ -12,6 +12,7 @@ export type QueryFilters = {
   start: number;
   domain: string;
   clientIp: string;
+  groupIds: number[];
   upstream: string;
   type: string;
   status: string;
@@ -28,6 +29,7 @@ export function createDefaultQueryFilters(): QueryFilters {
     start: 0,
     domain: "",
     clientIp: "",
+    groupIds: [],
     upstream: "",
     type: "",
     status: "",

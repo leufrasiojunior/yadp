@@ -11,6 +11,16 @@ export const FRONTEND_CONFIG = {
   clients: {
     searchDebounceMs: 400,
   },
+  lists: {
+    searchDebounceMs: 400,
+    deleteConfirmCookieKey: "yapd-lists-skip-delete-confirm",
+    deleteConfirmCookieDays: 180,
+  },
+  domains: {
+    searchDebounceMs: 400,
+    deleteConfirmCookieKey: "yapd-domains-skip-delete-confirm",
+    deleteConfirmCookieDays: 180,
+  },
   instances: {
     discoveryCandidateLimit: 20,
   },
@@ -27,5 +37,11 @@ export const FRONTEND_CONFIG = {
       statusRefreshIntervalMs: 20_000,
       countdownTickIntervalMs: 1_000,
     },
+  },
+  notifications: {
+    previewLimit: 5,
+    defaultPageSize: 10,
+    pageSizeOptions: [10, 25, 50, 100] as const,
+    previewRefreshIntervalMs: 30_000,
   },
 } as const;

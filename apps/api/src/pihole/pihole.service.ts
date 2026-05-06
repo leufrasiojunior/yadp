@@ -15,8 +15,16 @@ import type {
   PiholeClientMutationResult,
   PiholeClientSuggestionsResult,
   PiholeClientUpdateRequest,
+  PiholeConfigDetailedResult,
+  PiholeConfigDetailedTopic,
+  PiholeConfigOption,
+  PiholeConfigOptionFlags,
+  PiholeConfigTopicDescriptor,
+  PiholeConfigTopicName,
   PiholeConnection,
   PiholeDiscoveryResult,
+  PiholeDomainListResult,
+  PiholeDomainMutationResult,
   PiholeDomainOperationRequest,
   PiholeDomainOperationResult,
   PiholeGroupCreateRequest,
@@ -24,9 +32,18 @@ import type {
   PiholeGroupMutationResult,
   PiholeGroupUpdateRequest,
   PiholeHistoryPoint,
+  PiholeHostInfo,
+  PiholeInfoMessage,
+  PiholeInfoMessagesResult,
+  PiholeListCreateRequest,
+  PiholeListListResult,
+  PiholeListMutationResult,
+  PiholeListType,
+  PiholeListUpdateRequest,
   PiholeManagedClientEntry,
   PiholeManagedDomainEntry,
   PiholeManagedGroupEntry,
+  PiholeManagedListEntry,
   PiholeMetricsSummary,
   PiholeNetworkDevice,
   PiholeNetworkDeviceAddress,
@@ -38,9 +55,13 @@ import type {
   PiholeQuerySuggestionsResult,
   PiholeRequestErrorKind,
   PiholeSession,
+  PiholeSystemInfo,
+  PiholeTeleporterExport,
+  PiholeVersionDetails,
   PiholeVersionInfo,
 } from "./pihole.types";
-import { PIHOLE_QUERY_SUGGESTION_KEYS } from "./pihole.types";
+import { PIHOLE_CONFIG_TOPICS, PIHOLE_QUERY_SUGGESTION_KEYS } from "./pihole.types";
+import { performance } from "node:perf_hooks";
 
 const PIHOLE_USER_AGENT = "YAPD";
 const DEFAULT_NETWORK_DEVICE_MAX_DEVICES = 999;
@@ -84,7 +105,7 @@ type ClientSeriesAccumulator = {
   points: Map<number, number>;
 };
 
-type NormalizedLookup = Map<string, unknown>;
+export type NormalizedLookup = Map<string, unknown>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -117,7 +138,23 @@ function readBoolean(value: unknown): boolean | null {
     return value;
   }
 
+  if (typeof value === "string") {
+    return value === "true" || value === "1";
+  }
+
+  if (typeof value === "number") {
+    return value === 1;
+  }
+
   return null;
+}
+
+function readNumberArray(value: unknown): number[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((item) => readNumber(item)).filter((item): item is number => item !== null);
 }
 
 function readFirstNumber(record: Record<string, unknown>, keys: string[]): number | null {
@@ -188,7 +225,27 @@ function normalizeLookupKey(value: string) {
   return value.replaceAll(/[^a-z0-9]+/gi, "").toLowerCase();
 }
 
-function createLookup(record: Record<string, unknown>): NormalizedLookup {
+function isPiholeConfigFlags(value: unknown): value is PiholeConfigOptionFlags {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.restart_dnsmasq === "boolean" &&
+    typeof value.session_reset === "boolean" &&
+    typeof value.env_var === "boolean"
+  );
+}
+
+function isPiholeConfigOption(value: unknown): value is PiholeConfigOption {
+  if (!isRecord(value) || !("flags" in value)) {
+    return false;
+  }
+
+  return isPiholeConfigFlags(value.flags);
+}
+
+export function createLookup(record: Record<string, unknown>): NormalizedLookup {
   const lookup: NormalizedLookup = new Map();
 
   for (const [key, value] of Object.entries(record)) {
@@ -198,7 +255,7 @@ function createLookup(record: Record<string, unknown>): NormalizedLookup {
   return lookup;
 }
 
-function readLookupValue(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupValue(lookup: NormalizedLookup, aliases: string[]) {
   for (const alias of aliases) {
     const value = lookup.get(normalizeLookupKey(alias));
 
@@ -210,15 +267,23 @@ function readLookupValue(lookup: NormalizedLookup, aliases: string[]) {
   return undefined;
 }
 
-function readLookupString(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupString(lookup: NormalizedLookup, aliases: string[]) {
   return readString(readLookupValue(lookup, aliases));
 }
 
-function readLookupNumber(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupNumber(lookup: NormalizedLookup, aliases: string[]) {
   return readNumber(readLookupValue(lookup, aliases));
 }
 
-function readLookupRecord(lookup: NormalizedLookup, aliases: string[]) {
+export function readLookupNumberArray(lookup: NormalizedLookup, aliases: string[]) {
+  return readNumberArray(readLookupValue(lookup, aliases));
+}
+
+export function readLookupBoolean(lookup: NormalizedLookup, aliases: string[]) {
+  return readBoolean(readLookupValue(lookup, aliases));
+}
+
+export function readLookupRecord(lookup: NormalizedLookup, aliases: string[]) {
   const value = readLookupValue(lookup, aliases);
   return isRecord(value) ? value : null;
 }
@@ -339,15 +404,122 @@ export class PiholeService {
     connection: PiholeConnection,
     session?: Pick<PiholeSession, "sid" | "csrf">,
   ): Promise<PiholeVersionInfo> {
+    const version = await this.readVersionDetails(connection, session);
+
+    return {
+      summary: version.summary,
+      raw: version.raw,
+    };
+  }
+
+  async readVersionDetails(
+    connection: PiholeConnection,
+    session?: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeVersionDetails> {
     const payload = await this.request<unknown>(connection, "/info/version", {
       sid: session?.sid,
       csrf: session?.csrf,
     });
 
-    return {
-      summary: this.extractVersionSummary(payload, connection.locale),
-      raw: payload,
-    };
+    return this.normalizeVersionDetails(payload, connection.locale);
+  }
+
+  async readHostInfo(
+    connection: PiholeConnection,
+    session?: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeHostInfo> {
+    const payload = await this.request<unknown>(connection, "/info/host", {
+      sid: session?.sid,
+      csrf: session?.csrf,
+    });
+
+    return this.normalizeHostInfo(payload);
+  }
+
+  async readSystemInfo(
+    connection: PiholeConnection,
+    session?: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeSystemInfo> {
+    const payload = await this.request<unknown>(connection, "/info/system", {
+      sid: session?.sid,
+      csrf: session?.csrf,
+    });
+
+    return this.normalizeSystemInfo(payload);
+  }
+
+  async getConfig(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    options?: { topic?: PiholeConfigTopicName; detailed?: boolean },
+  ): Promise<PiholeConfigDetailedResult> {
+    const path = options?.topic ? `/config/${options.topic}` : "/config";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+      query: options?.detailed ? { detailed: true } : undefined,
+    });
+
+    return this.normalizeConfigDetailed(payload, connection, path);
+  }
+
+  async patchConfig(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    config: Record<string, unknown>,
+  ): Promise<PiholeConfigDetailedResult> {
+    const payload = await this.request<unknown>(connection, "/config", {
+      method: "PATCH",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        config,
+      },
+    });
+
+    return this.normalizeConfigDetailed(payload, connection, "/config");
+  }
+
+  async addConfigArrayItem(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    element: string,
+    value: string,
+  ) {
+    const path = `/config/${this.encodeConfigPath(element)}/${encodeURIComponent(value)}`;
+
+    await this.request<void>(connection, path, {
+      method: "PUT",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+  }
+
+  async deleteConfigArrayItem(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    element: string,
+    value: string,
+  ) {
+    const path = `/config/${this.encodeConfigPath(element)}/${encodeURIComponent(value)}`;
+
+    await this.request<void>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+  }
+
+  async exportTeleporter(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeTeleporterExport> {
+    return this.requestBinary(connection, "/teleporter", {
+      sid: session.sid,
+      csrf: session.csrf,
+      accept: "application/zip",
+      defaultFilename: "pihole-teleporter.zip",
+    });
   }
 
   async discoverClients(
@@ -501,6 +673,33 @@ export class PiholeService {
     return this.normalizeQuerySuggestions(payload, connection, "/queries/suggestions");
   }
 
+  async listInfoMessages(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeInfoMessagesResult> {
+    const path = "/info/messages";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeInfoMessages(payload, connection, path);
+  }
+
+  async deleteInfoMessage(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    messageId: string,
+  ) {
+    const path = `/info/messages/${encodeURIComponent(messageId)}`;
+
+    await this.request<void>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+  }
+
   async applyDomainOperation(
     connection: PiholeConnection,
     session: Pick<PiholeSession, "sid" | "csrf">,
@@ -522,6 +721,81 @@ export class PiholeService {
     return this.normalizeDomainOperation(payload, connection, path);
   }
 
+  async listDomains(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+  ): Promise<PiholeDomainListResult> {
+    const path = "/domains";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    return this.normalizeDomainList(payload, connection, path);
+  }
+
+  async updateDomain(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    domain: string,
+    type: string,
+    kind: string,
+    update: { comment?: string | null; groups: number[]; enabled: boolean },
+  ): Promise<PiholeDomainMutationResult> {
+    const path = `/domains/${type}/${kind}/${encodeURIComponent(domain)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "PUT",
+      sid: session.sid,
+      csrf: session.csrf,
+      body: {
+        comment: update.comment ?? "",
+        groups: update.groups,
+        enabled: update.enabled,
+      },
+    });
+
+    if (payload === undefined) {
+      return {
+        domains: [],
+        processed: {
+          errors: [],
+          success: [{ item: domain }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeDomainOperation(payload, connection, path);
+  }
+
+  async deleteDomain(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    domain: string,
+    type: string,
+    kind: string,
+  ): Promise<PiholeDomainMutationResult> {
+    const path = `/domains/${type}/${kind}/${encodeURIComponent(domain)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+
+    if (payload === undefined) {
+      return {
+        domains: [],
+        processed: {
+          errors: [],
+          success: [{ item: domain }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeDomainOperation(payload, connection, path);
+  }
+
   async listGroups(
     connection: PiholeConnection,
     session: Pick<PiholeSession, "sid" | "csrf">,
@@ -534,6 +808,124 @@ export class PiholeService {
     });
 
     return this.normalizeGroupList(payload, connection, path);
+  }
+
+  async listLists(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    address?: string,
+    type?: PiholeListType,
+  ): Promise<PiholeListListResult> {
+    const path = address ? `/lists/${encodeURIComponent(address)}` : "/lists";
+    const payload = await this.request<unknown>(connection, path, {
+      sid: session.sid,
+      csrf: session.csrf,
+      query: type ? { type } : undefined,
+    });
+
+    return this.normalizeListList(payload, connection, path);
+  }
+
+  async createLists(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    request: PiholeListCreateRequest,
+  ): Promise<PiholeListMutationResult> {
+    const path = "/lists";
+    const payload = await this.request<unknown>(connection, path, {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+      query: {
+        type: request.type,
+      },
+      body: {
+        address: request.address,
+        comment: request.comment ?? "",
+        type: request.type,
+        groups: request.groups,
+        enabled: request.enabled ?? true,
+      },
+    });
+
+    if (payload === undefined) {
+      return {
+        lists: [],
+        processed: {
+          errors: [],
+          success: [{ item: request.address }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeListMutation(payload, connection, path);
+  }
+
+  async updateList(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    address: string,
+    request: PiholeListUpdateRequest,
+  ): Promise<PiholeListMutationResult> {
+    const path = `/lists/${encodeURIComponent(address)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "PUT",
+      sid: session.sid,
+      csrf: session.csrf,
+      query: {
+        type: request.type,
+      },
+      body: {
+        comment: request.comment ?? "",
+        type: request.type,
+        groups: request.groups,
+        enabled: request.enabled,
+      },
+    });
+
+    if (payload === undefined) {
+      return {
+        lists: [],
+        processed: {
+          errors: [],
+          success: [{ item: address }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeListMutation(payload, connection, path);
+  }
+
+  async deleteList(
+    connection: PiholeConnection,
+    session: Pick<PiholeSession, "sid" | "csrf">,
+    address: string,
+    type: PiholeListType,
+  ): Promise<PiholeListMutationResult> {
+    const path = `/lists/${encodeURIComponent(address)}`;
+    const payload = await this.request<unknown>(connection, path, {
+      method: "DELETE",
+      sid: session.sid,
+      csrf: session.csrf,
+      query: {
+        type,
+      },
+    });
+
+    if (payload === undefined) {
+      return {
+        lists: [],
+        processed: {
+          errors: [],
+          success: [{ item: address }],
+        },
+        took: 0,
+      };
+    }
+
+    return this.normalizeListMutation(payload, connection, path);
   }
 
   async createGroups(
@@ -735,6 +1127,13 @@ export class PiholeService {
     throw new Error("Canonical config sync is not implemented in slice 1");
   }
 
+  private encodeConfigPath(path: string) {
+    return path
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/");
+  }
+
   private async request<T>(
     connection: PiholeConnection,
     path: string,
@@ -748,7 +1147,7 @@ export class PiholeService {
   ): Promise<T> {
     const method = options?.method ?? "GET";
     const requestId = ++piholeRequestSequence;
-    const startedAt = Date.now();
+    const startedAt = performance.now();
     const normalizedBaseUrl = this.normalizeBaseUrl(connection.baseUrl);
     const displayBaseUrl = normalizedBaseUrl.endsWith("/") ? normalizedBaseUrl.slice(0, -1) : normalizedBaseUrl;
     const headers = new Headers({
@@ -794,7 +1193,11 @@ export class PiholeService {
         headers,
         body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
         dispatcher: new Agent({
+          connectTimeout: this.requestTimeoutMs,
+          headersTimeout: this.requestTimeoutMs,
+          bodyTimeout: this.requestTimeoutMs,
           connect: {
+            timeout: this.requestTimeoutMs,
             rejectUnauthorized: !(connection.allowSelfSigned ?? false),
             ...(connection.certificatePem ? { ca: connection.certificatePem } : {}),
           },
@@ -808,7 +1211,7 @@ export class PiholeService {
         error instanceof Error ? error.stack : undefined,
       );
       this.logger.warn(
-        `[req:${requestId}] Pi-hole transport failure after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} configuredBaseUrl=${connection.baseUrl} normalizedBaseUrl=${displayBaseUrl} kind=${transport.kind} raw=${JSON.stringify(transport.rawCause)}`,
+        `[req:${requestId}] Pi-hole transport failure after ${Math.round(performance.now() - startedAt)}ms method=${method} requestUrl=${url.toString()} configuredBaseUrl=${connection.baseUrl} normalizedBaseUrl=${displayBaseUrl} kind=${transport.kind} raw=${JSON.stringify(transport.rawCause)}`,
       );
 
       throw new PiholeRequestError(502, transport.message, transport.kind, {
@@ -847,7 +1250,7 @@ export class PiholeService {
         `Pi-hole response error for ${method} ${url.toString()}: HTTP ${response.status} (${kind}) - ${message}`,
       );
       this.logger.warn(
-        `[req:${requestId}] Pi-hole response failure after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} status=${response.status} kind=${kind}`,
+        `[req:${requestId}] Pi-hole response failure after ${Math.round(performance.now() - startedAt)}ms method=${method} requestUrl=${url.toString()} status=${response.status} kind=${kind}`,
       );
 
       throw new PiholeRequestError(response.status, message, kind, payload);
@@ -855,10 +1258,113 @@ export class PiholeService {
 
     this.logger.verbose(`Pi-hole request ${method} ${url.toString()} completed with HTTP ${response.status}.`);
     this.logger.verbose(
-      `[req:${requestId}] Pi-hole request success after ${Date.now() - startedAt}ms method=${method} requestUrl=${url.toString()} status=${response.status}`,
+      `[req:${requestId}] Pi-hole request success after ${Math.round(performance.now() - startedAt)}ms method=${method} requestUrl=${url.toString()} status=${response.status}`,
     );
 
     return payload as T;
+  }
+
+  private async requestBinary(
+    connection: PiholeConnection,
+    path: string,
+    options?: {
+      method?: string;
+      body?: unknown;
+      query?: Record<string, QueryParamValue | null | undefined>;
+      sid?: string;
+      csrf?: string;
+      accept?: string;
+      defaultFilename?: string;
+    },
+  ): Promise<PiholeTeleporterExport> {
+    const method = options?.method ?? "GET";
+    const normalizedBaseUrl = this.normalizeBaseUrl(connection.baseUrl);
+    const displayBaseUrl = normalizedBaseUrl.endsWith("/") ? normalizedBaseUrl.slice(0, -1) : normalizedBaseUrl;
+    const headers = new Headers({
+      Accept: options?.accept ?? "application/octet-stream",
+      "User-Agent": PIHOLE_USER_AGENT,
+    });
+
+    if (options?.body !== undefined) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    if (options?.sid) {
+      headers.set("X-FTL-SID", options.sid);
+    }
+
+    if (options?.csrf) {
+      headers.set("X-FTL-CSRF", options.csrf);
+    }
+
+    const url = new URL(`/api${path}`, normalizedBaseUrl);
+
+    if (options?.query) {
+      for (const [key, value] of Object.entries(options.query)) {
+        if (value === null || value === undefined) {
+          continue;
+        }
+
+        url.searchParams.set(key, String(value));
+      }
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.requestTimeoutMs);
+    let response: Awaited<ReturnType<typeof fetch>>;
+
+    try {
+      response = await fetch(url, {
+        method,
+        headers,
+        body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
+        dispatcher: new Agent({
+          connectTimeout: this.requestTimeoutMs,
+          headersTimeout: this.requestTimeoutMs,
+          bodyTimeout: this.requestTimeoutMs,
+          connect: {
+            timeout: this.requestTimeoutMs,
+            rejectUnauthorized: !(connection.allowSelfSigned ?? false),
+            ...(connection.certificatePem ? { ca: connection.certificatePem } : {}),
+          },
+        }),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      const transport = this.describeTransportError(displayBaseUrl, error, connection.locale);
+
+      throw new PiholeRequestError(502, transport.message, transport.kind, {
+        cause: this.serializeTransportError(error),
+        requestUrl: url.toString(),
+        configuredBaseUrl: connection.baseUrl,
+        normalizedBaseUrl: displayBaseUrl,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response.ok) {
+      const contentType = response.headers.get("content-type") ?? "";
+      const payload = contentType.includes("application/json")
+        ? ((await response.json()) as unknown)
+        : await response.text();
+      const errorPayload = isRecord(payload) ? (payload as PiholeErrorPayload) : undefined;
+      throw new PiholeRequestError(
+        response.status,
+        errorPayload?.error?.message ?? response.statusText,
+        "pihole_response_error",
+        payload,
+      );
+    }
+
+    const contentDisposition = response.headers.get("content-disposition");
+    const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/i);
+
+    return {
+      filename: filenameMatch?.[1] ?? options?.defaultFilename ?? "download.bin",
+      contentType: response.headers.get("content-type") ?? "application/octet-stream",
+      data: Buffer.from(await response.arrayBuffer()),
+    };
   }
 
   private describeTransportError(
@@ -967,6 +1473,99 @@ export class PiholeService {
     const normalizedMessage = reason.message.toLowerCase();
 
     return normalizedMessage.includes("certificate") || normalizedMessage.includes("tls");
+  }
+
+  private normalizeConfigDetailed(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeConfigDetailedResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const topics: PiholeConfigTopicDescriptor[] = [];
+
+    if (Array.isArray(payload.topics)) {
+      for (const item of payload.topics) {
+        if (!isRecord(item)) {
+          continue;
+        }
+
+        const name = readString(item.name);
+
+        if (!name || !PIHOLE_CONFIG_TOPICS.includes(name as PiholeConfigTopicName)) {
+          continue;
+        }
+
+        topics.push({
+          name: name as PiholeConfigTopicName,
+          title: readString(item.title),
+          description: readString(item.description),
+        });
+      }
+    }
+
+    const configRoot = isRecord(payload.config) ? payload.config : null;
+
+    if (!configRoot) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const config: Partial<Record<PiholeConfigTopicName, PiholeConfigDetailedTopic>> = {};
+
+    for (const topic of PIHOLE_CONFIG_TOPICS) {
+      const rawTopic = configRoot[topic];
+
+      if (!isRecord(rawTopic)) {
+        continue;
+      }
+
+      config[topic] = this.normalizeConfigDetailedTopic(rawTopic);
+
+      if (!topics.some((item) => item.name === topic)) {
+        topics.push({
+          name: topic,
+          title: topic.toUpperCase(),
+          description: null,
+        });
+      }
+    }
+
+    return {
+      topics,
+      config,
+      took: readNumber(payload.took),
+    };
+  }
+
+  private normalizeConfigDetailedTopic(payload: Record<string, unknown>): PiholeConfigDetailedTopic {
+    const result: PiholeConfigDetailedTopic = {};
+
+    for (const [key, value] of Object.entries(payload)) {
+      if (isPiholeConfigOption(value)) {
+        result[key] = {
+          description: readString(value.description),
+          allowed: value.allowed,
+          type: readString(value.type),
+          value: value.value,
+          default: value.default,
+          modified: Boolean(value.modified),
+          flags: {
+            restart_dnsmasq: Boolean(value.flags.restart_dnsmasq),
+            session_reset: Boolean(value.flags.session_reset),
+            env_var: Boolean(value.flags.env_var),
+          },
+        };
+        continue;
+      }
+
+      if (isRecord(value)) {
+        result[key] = this.normalizeConfigDetailedTopic(value);
+      }
+    }
+
+    return result;
   }
 
   private normalizeStatsSummary(payload: unknown, connection: PiholeConnection): PiholeMetricsSummary {
@@ -1161,6 +1760,54 @@ export class PiholeService {
     };
   }
 
+  private normalizeInfoMessages(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeInfoMessagesResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawMessages = readLookupValue(payloadLookup, ["messages", "items", "results"]);
+
+    if (!Array.isArray(rawMessages)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const messages = rawMessages
+      .filter((item): item is Record<string, unknown> => isRecord(item))
+      .map((item) => this.normalizeInfoMessage(item))
+      .filter((item): item is PiholeInfoMessage => item !== null)
+      .sort((left, right) => right.timestamp - left.timestamp || right.id - left.id);
+
+    return {
+      messages,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeInfoMessage(payload: Record<string, unknown>): PiholeInfoMessage | null {
+    const lookup = createLookup(payload);
+    const id = readLookupNumber(lookup, ["id"]);
+    const timestamp = readLookupNumber(lookup, ["timestamp", "time"]);
+    const type = readLookupString(lookup, ["type"]);
+    const plain = readLookupString(lookup, ["plain", "message", "text"]);
+
+    if (id === null || timestamp === null || !type || !plain) {
+      return null;
+    }
+
+    return {
+      id,
+      timestamp,
+      type,
+      plain,
+      html: readLookupString(lookup, ["html", "markup"]),
+    };
+  }
+
   private normalizeDomainOperation(
     payload: unknown,
     connection: PiholeConnection,
@@ -1207,6 +1854,26 @@ export class PiholeService {
       id: readLookupNumber(lookup, ["id"]),
       dateAdded: readLookupNumber(lookup, ["date_added", "dateAdded", "created_at", "createdAt"]),
       dateModified: readLookupNumber(lookup, ["date_modified", "dateModified", "updated_at", "updatedAt"]),
+    };
+  }
+
+  private normalizeDomainList(payload: unknown, connection: PiholeConnection, path: string): PiholeDomainListResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawDomains = readLookupValue(payloadLookup, ["domains", "domain", "items", "results"]);
+
+    if (!Array.isArray(rawDomains)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      domains: rawDomains
+        .filter((item): item is Record<string, unknown> => isRecord(item))
+        .map((item) => this.normalizeManagedDomain(item)),
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
     };
   }
 
@@ -1274,6 +1941,84 @@ export class PiholeService {
       processed,
       took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
     };
+  }
+
+  private normalizeListList(payload: unknown, connection: PiholeConnection, path: string): PiholeListListResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawLists = readLookupValue(payloadLookup, ["lists", "list", "items", "results"]);
+
+    if (!Array.isArray(rawLists)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      lists: rawLists
+        .filter((item): item is Record<string, unknown> => isRecord(item))
+        .map((item) => this.normalizeManagedList(item)),
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeListMutation(
+    payload: unknown,
+    connection: PiholeConnection,
+    path: string,
+  ): PiholeListMutationResult {
+    if (!isRecord(payload)) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    const payloadLookup = createLookup(payload);
+    const rawLists = readLookupValue(payloadLookup, ["lists", "list", "items", "results"]);
+    const rawProcessed = readLookupRecord(payloadLookup, ["processed", "result", "summary"]);
+    const lists = Array.isArray(rawLists)
+      ? rawLists
+          .filter((item): item is Record<string, unknown> => isRecord(item))
+          .map((item) => this.normalizeManagedList(item))
+      : [];
+    const processed = this.normalizeGroupOperationProcessed(rawProcessed);
+
+    if (lists.length === 0 && processed.errors.length === 0 && processed.success.length === 0) {
+      throw this.createInvalidResponseError(connection, path, payload);
+    }
+
+    return {
+      lists,
+      processed,
+      took: readLookupNumber(payloadLookup, ["took", "duration", "elapsed"]),
+    };
+  }
+
+  private normalizeManagedList(lookupSource: Record<string, unknown>): PiholeManagedListEntry {
+    const lookup = createLookup(lookupSource);
+
+    return {
+      address: readLookupString(lookup, ["address", "url"]),
+      comment: readLookupString(lookup, ["comment"]),
+      groups: readLookupNumberArray(lookup, ["groups"]),
+      enabled: readLookupBoolean(lookup, ["enabled"]),
+      id: readLookupNumber(lookup, ["id"]),
+      dateAdded: readLookupNumber(lookup, ["date_added", "dateAdded", "created_at", "createdAt"]),
+      dateModified: readLookupNumber(lookup, ["date_modified", "dateModified", "updated_at", "updatedAt"]),
+      type: this.readListType(readLookupString(lookup, ["type"])),
+      dateUpdated: readLookupNumber(lookup, ["date_updated", "dateUpdated"]),
+      number: readLookupNumber(lookup, ["number"]),
+      invalidDomains: readLookupNumber(lookup, ["invalid_domains", "invalidDomains"]),
+      abpEntries: readLookupNumber(lookup, ["abp_entries", "abpEntries"]),
+      status: readLookupNumber(lookup, ["status"]),
+    };
+  }
+
+  private readListType(value: string | null): PiholeListType | null {
+    if (value === "allow" || value === "block") {
+      return value;
+    }
+
+    return null;
   }
 
   private normalizeManagedGroup(payload: Record<string, unknown>): PiholeManagedGroupEntry {
@@ -1778,6 +2523,123 @@ export class PiholeService {
     }
 
     return translateApi(locale, "pihole.reachable");
+  }
+
+  private normalizeVersionDetails(payload: unknown, locale = DEFAULT_API_LOCALE): PiholeVersionDetails {
+    const versionRecord =
+      isRecord(payload) && isRecord(payload.version) ? payload.version : isRecord(payload) ? payload : {};
+
+    return {
+      summary: this.extractVersionSummary(payload, locale),
+      raw: payload,
+      core: this.normalizeVersionComponentInfo(versionRecord.core),
+      web: this.normalizeVersionComponentInfo(versionRecord.web),
+      ftl: this.normalizeVersionComponentInfo(versionRecord.ftl),
+      docker: this.normalizeVersionComponentInfo(versionRecord.docker),
+    };
+  }
+
+  private normalizeVersionComponentInfo(value: unknown) {
+    if (!isRecord(value)) {
+      return null;
+    }
+
+    const local =
+      isRecord(value.local) || this.hasVersionComponentFields(value)
+        ? this.normalizeVersionComponentRelease(value.local ?? value)
+        : null;
+    const remote = isRecord(value.remote) ? this.normalizeVersionComponentRelease(value.remote) : null;
+
+    if (!("local" in value) && !("remote" in value) && !this.hasVersionComponentFields(value)) {
+      return null;
+    }
+
+    return {
+      local,
+      remote,
+    };
+  }
+
+  private normalizeVersionComponentRelease(value: unknown) {
+    if (!isRecord(value)) {
+      return null;
+    }
+
+    return {
+      version: readString(value.version),
+      branch: readString(value.branch),
+      hash: readString(value.hash),
+      date: readString(value.date),
+    };
+  }
+
+  private hasVersionComponentFields(value: Record<string, unknown>) {
+    return "version" in value || "branch" in value || "hash" in value || "date" in value;
+  }
+
+  private normalizeHostInfo(payload: unknown): PiholeHostInfo {
+    const hostRecord = isRecord(payload) && isRecord(payload.host) ? payload.host : isRecord(payload) ? payload : {};
+    const unameRecord = isRecord(hostRecord.uname) ? hostRecord.uname : {};
+
+    return {
+      model: readString(hostRecord.model),
+      nodename: readString(unameRecord.nodename),
+      machine: readString(unameRecord.machine),
+      sysname: readString(unameRecord.sysname),
+      release: readString(unameRecord.release),
+      version: readString(unameRecord.version),
+      domainname: readString(unameRecord.domainname),
+    };
+  }
+
+  private normalizeSystemInfo(payload: unknown): PiholeSystemInfo {
+    const systemRecord =
+      isRecord(payload) && isRecord(payload.system) ? payload.system : isRecord(payload) ? payload : {};
+    const memoryRecord = isRecord(systemRecord.memory) ? systemRecord.memory : {};
+    const cpuRecord = isRecord(systemRecord.cpu) ? systemRecord.cpu : {};
+    const cpuLoadRecord = isRecord(cpuRecord.load) ? cpuRecord.load : {};
+    const ftlRecord = isRecord(systemRecord.ftl) ? systemRecord.ftl : {};
+
+    return {
+      uptime: readNumber(systemRecord.uptime),
+      memory: {
+        ram: this.normalizeMemoryInfo(memoryRecord.ram),
+        swap: this.normalizeMemoryInfo(memoryRecord.swap),
+      },
+      procs: readNumber(systemRecord.procs),
+      cpu: isRecord(systemRecord.cpu)
+        ? {
+            nprocs: readNumber(cpuRecord.nprocs),
+            percentCpu: readNumber(cpuRecord["%cpu"]),
+            load: isRecord(cpuRecord.load)
+              ? {
+                  raw: readNumericArray(cpuLoadRecord.raw),
+                  percent: readNumericArray(cpuLoadRecord.percent),
+                }
+              : null,
+          }
+        : null,
+      ftl: isRecord(systemRecord.ftl)
+        ? {
+            percentMem: readNumber(ftlRecord["%mem"]),
+            percentCpu: readNumber(ftlRecord["%cpu"]),
+          }
+        : null,
+    };
+  }
+
+  private normalizeMemoryInfo(value: unknown) {
+    if (!isRecord(value)) {
+      return null;
+    }
+
+    return {
+      total: readNumber(value.total),
+      free: readNumber(value.free),
+      used: readNumber(value.used),
+      available: readNumber(value.available),
+      percentUsed: readNumber(value["%used"]),
+    };
   }
 
   private normalizeBaseUrl(baseUrl: string) {

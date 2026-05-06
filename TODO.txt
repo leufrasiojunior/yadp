@@ -1,15 +1,9 @@
-Filtrar por Grupo nas páginas do log
 
-em configuracoes, salvar no BD de acordo com o MAC (ver alguma rota que retorna o MAC) um nome para o dispositivo, e se possivel mostrar isso onde for necessario (ripo a pagina de queries)
-admin/groups/domains permitir exportar em formato de lista txt
-Top Blocked Domains by period(pagina especifica)
+Top Blocked Domains by period(pagina especifica, se nao me engano ja existe rota que posso enviar timestamp)
 
+ver se vale a pena adicionar no YAPD uma busca no github para obter a versao mais recente. checagem a cada 2hs, para mandar uma notificacao push quando as instancias tiverem updates
 
-Regex para mais tipos de bloqueio: 
-(^|\.)bets(\.[a-z]{2,})+$ ::::: Bloquear um nome exato com qualquer TLD
-
-(^|\.)facebook\.com$ ::::: Bloquear um nome exato com TLD específico
-
+salvar tambem as configuracoes selecionadas no BD, mas manter o cookie como primario. Cookie manda.
 
 -----
 
@@ -17,15 +11,9 @@ mandar o codex
 remover o aviso do checkbox de atualizando, e deixar um simples spiner ao lado.(como somente indicativo que esta atualizando)
 Botao de atualizar a tabela
 
-
-Adicionar bandeiras no seletor de idiomas
-Tambem adicionar um alternador do tema claro/escuro no top bar
-
-adicionar um passo opcional no setup, depois de configurar as instancias, ja perguntar se quer sincronizar
+adicionar um passo opcional no setup, depois de configurar as instancias, ja perguntar se quer sincronizar(usar o teleport para todas as instancias, e ir 1 por vez nessa parte, com o componente progress, se uma instancia falhar,  perguntar se quer tentar de novo, se falhar 3x seguidas perguntar se quer fazer isso depois, ou cancelar. Salvar os estados das instancias para tentar recuperar tambem usando a mesma rota.)
 (perguntar 2x, pois pode ser uma acao destrutiva, ou seja, quando aceitar a primeira vez, perguntar de novo com titulo diferente. Usar a rota de export para exportar e depois importar em todas as instancias. Lembrar de apagar o ZIP gerado)
 
-
-Na tela de instancias, adicionar mais informacoes da instancia, e tornar possivel mudar o pihole primario
 
 na tela de clientes, adicionar mais detalhes de um unico host -> admin/queries?client_ip=192.168.31.18
 Adicionar:
@@ -36,4 +24,21 @@ Top bloqueados
 
 --
 
-Na tela de clientes talves adicionar tags de identificacao para os clientes(iot, crianca, pcs.......)
+
+Modelos de lista:
+https://github.com/zangadoprojets/pi-hole-blocklist
+https://github.com/hagezi/dns-blocklists
+
+
+quando o cookie expirar, ja redirecionar direto para /login
+
+
+ajustar os graficos para mostrar de hora em hora, nao a cada hora e minuto 5.
+
+tornar o container acessivel via https com certificado auto-assinado, alem de permitir http.
+
+
+adicionar uma pagina para verificar tudo e mostrar um resumo do que nao esta sincronizado, e dar a opcao de sincronizar
+adicionar os bodys nas rotas post/put/delete
+
+por ultimo, criar uma forma de o usuario mesmo criar o proprio tema de forma facil, com mocks das paginas e exemplos em tempo real.

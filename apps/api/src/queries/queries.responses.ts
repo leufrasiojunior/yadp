@@ -49,8 +49,9 @@ const queryLogSchema = {
       properties: {
         ip: { type: "string", nullable: true },
         name: { type: "string", nullable: true },
+        alias: { type: "string", nullable: true },
       },
-      required: ["ip", "name"],
+      required: ["ip", "name", "alias"],
     },
     listId: { type: "number", nullable: true },
     ede: {
@@ -148,9 +149,55 @@ export const QUERY_SUGGESTIONS_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
         properties: suggestionsProperties,
         required: [...PIHOLE_QUERY_SUGGESTION_KEYS],
       },
+      groupOptions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+            name: { type: "string" },
+          },
+          required: ["id", "name"],
+        },
+      },
       took: { type: "number" },
       sources: sourcesSchema,
     },
-    required: ["suggestions", "took", "sources"],
+    required: ["suggestions", "groupOptions", "took", "sources"],
+  },
+};
+
+export const QUERY_GROUP_MEMBERSHIP_REFRESH_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      updatedAt: { type: "string", format: "date-time", nullable: true },
+      summary: {
+        type: "object",
+        properties: {
+          totalInstances: { type: "number" },
+          refreshedInstances: { type: "number" },
+          failedInstances: { type: "number" },
+          groupsCached: { type: "number" },
+          membershipsCached: { type: "number" },
+          instancesNeedingReview: { type: "number" },
+        },
+        required: [
+          "totalInstances",
+          "refreshedInstances",
+          "failedInstances",
+          "groupsCached",
+          "membershipsCached",
+          "instancesNeedingReview",
+        ],
+      },
+      requiresGroupReview: { type: "boolean" },
+      reviewPath: { type: "string", enum: ["/groups"] },
+      failedInstances: {
+        type: "array",
+        items: failedInstanceSchema,
+      },
+    },
+    required: ["updatedAt", "summary", "requiresGroupReview", "reviewPath", "failedInstances"],
   },
 };

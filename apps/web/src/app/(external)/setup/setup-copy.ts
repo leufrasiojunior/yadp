@@ -9,8 +9,6 @@ export type SetupCopy = {
     interactiveLogin: string;
     formTitle: string;
     formDescription: string;
-    unavailableTitle: string;
-    unavailableDescription: string;
   };
   wizard: {
     stepLabel: (current: number, total: number) => string;
@@ -105,9 +103,6 @@ const setupCopy: Record<AppLocale, SetupCopy> = {
         "Você decide se o painel usará a senha do Pi-hole master ou uma senha própria do YAPD para autenticação humana.",
       formTitle: "Assistente de setup",
       formDescription: "Preencha os 4 passos abaixo. Nada é persistido até a conclusão final do wizard.",
-      unavailableTitle: "Não foi possível abrir o setup",
-      unavailableDescription:
-        "O setup depende do backend para validar instâncias, salvar a baseline, definir o modo de login e concluir a configuração inicial.",
     },
     wizard: {
       stepLabel: (current, total) => `Passo ${current} de ${total}`,
@@ -211,9 +206,6 @@ const setupCopy: Record<AppLocale, SetupCopy> = {
         "You decide whether the panel uses the master Pi-hole password or a dedicated YAPD password for human authentication.",
       formTitle: "Setup wizard",
       formDescription: "Fill in the 4 steps below. Nothing is persisted until the final wizard completion.",
-      unavailableTitle: "Could not open setup",
-      unavailableDescription:
-        "Setup depends on the backend to validate instances, save the baseline, define the login mode, and finish the initial configuration.",
     },
     wizard: {
       stepLabel: (current, total) => `Step ${current} of ${total}`,

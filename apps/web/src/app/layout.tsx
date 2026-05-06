@@ -38,6 +38,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html
+      className={theme_mode === "dark" ? "dark" : undefined}
       lang={language}
       data-language={language}
       data-theme-mode={theme_mode}
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       data-sidebar-collapsible={sidebar_collapsible}
       data-font={font}
       data-timezone={time_zone}
+      style={{ colorScheme: theme_mode === "dark" ? "dark" : "light" }}
       suppressHydrationWarning
     >
       <head />

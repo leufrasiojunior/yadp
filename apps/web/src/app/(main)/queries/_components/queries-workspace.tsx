@@ -6,8 +6,13 @@ import { toast } from "sonner";
 
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
-import type { DomainOperationResponse, QueriesResponse, QuerySuggestionsResponse } from "@/lib/api/yapd-types";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
+import type {
+  DomainOperationResponse,
+  QueriesResponse,
+  QueryGroupMembershipRefreshResponse,
+  QuerySuggestionsResponse,
+} from "@/lib/api/yapd-types";
 import type { DashboardScope } from "@/lib/dashboard/dashboard-scope";
 import { useWebI18n } from "@/lib/i18n/client";
 import {
@@ -33,6 +38,7 @@ const EMPTY_SUGGESTIONS: QuerySuggestionsResponse["suggestions"] = {
   reply: [],
   dnssec: [],
 };
+const QUERY_GROUP_REVIEW_FINGERPRINT_STORAGE_KEY = "yapd.queries.groupReviewFingerprint";
 
 type DomainActionType = DomainOperationResponse["request"]["type"];
 type DomainActionKind = DomainOperationResponse["request"]["kind"];
@@ -80,7 +86,7 @@ export function QueriesWorkspace({
 }>) {
   const defaultFilters = createDefaultQueryFilters();
   const { csrfToken } = useAppSession();
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const { messages, timeZone } = useWebI18n();
   const currentDataRef = useRef(normalizeQueriesResponse(initialData, defaultFilters));
   const refreshInFlightRef = useRef(false);
@@ -98,6 +104,7 @@ export function QueriesWorkspace({
   const [draftFilters, setDraftFilters] = useState<QueryFilters>(defaultFilters);
   const [activeFilters, setActiveFilters] = useState<QueryFilters>(defaultFilters);
   const [suggestions, setSuggestions] = useState<QuerySuggestionsResponse["suggestions"]>(EMPTY_SUGGESTIONS);
+  const [groupOptions, setGroupOptions] = useState<QuerySuggestionsResponse["groupOptions"]>([]);
   const [isReloading, setIsReloading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(true);
@@ -107,6 +114,41 @@ export function QueriesWorkspace({
   const [tableDomainFilter, setTableDomainFilter] = useState("");
   const [tableClientFilter, setTableClientFilter] = useState("");
   const [newRowKeys, setNewRowKeys] = useState<string[]>([]);
+  const [, setSuggestionsReloadToken] = useState(0);
+  const suggestionQuery = useMemo(() => {
+    const fromTimestamp = datetimeLocalToUnixSeconds(draftFilters.from, timeZone);
+    const untilTimestamp = datetimeLocalToUnixSeconds(draftFilters.until, timeZone);
+
+    return {
+      scope: scope.kind === "all" ? "all" : "instance",
+      ...(scope.kind === "instance" ? { instanceId: scope.instanceId } : {}),
+      ...(fromTimestamp !== undefined ? { from: fromTimestamp } : {}),
+      ...(untilTimestamp !== undefined ? { until: untilTimestamp } : {}),
+      ...(draftFilters.groupIds.length > 0 ? { groupIds: draftFilters.groupIds } : {}),
+      ...(trimOrEmpty(draftFilters.domain) ? { domain: trimOrEmpty(draftFilters.domain) } : {}),
+      ...(trimOrEmpty(draftFilters.clientIp) ? { client_ip: trimOrEmpty(draftFilters.clientIp) } : {}),
+      ...(trimOrEmpty(draftFilters.upstream) ? { upstream: trimOrEmpty(draftFilters.upstream) } : {}),
+      ...(trimOrEmpty(draftFilters.type) ? { type: trimOrEmpty(draftFilters.type) } : {}),
+      ...(trimOrEmpty(draftFilters.status) ? { status: trimOrEmpty(draftFilters.status) } : {}),
+      ...(trimOrEmpty(draftFilters.reply) ? { reply: trimOrEmpty(draftFilters.reply) } : {}),
+      ...(trimOrEmpty(draftFilters.dnssec) ? { dnssec: trimOrEmpty(draftFilters.dnssec) } : {}),
+      ...(draftFilters.disk ? { disk: true } : {}),
+    };
+  }, [
+    draftFilters.clientIp,
+    draftFilters.disk,
+    draftFilters.dnssec,
+    draftFilters.domain,
+    draftFilters.from,
+    draftFilters.groupIds,
+    draftFilters.reply,
+    draftFilters.status,
+    draftFilters.type,
+    draftFilters.until,
+    draftFilters.upstream,
+    scope,
+    timeZone,
+  ]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -197,19 +239,75 @@ export function QueriesWorkspace({
   useEffect(() => {
     let active = true;
 
+    async function refreshGroupMemberships() {
+      const { data, response } = await client.POST<QueryGroupMembershipRefreshResponse>(
+        "/queries/group-memberships/refresh",
+        {
+          headers: {
+            "x-yapd-csrf": csrfToken,
+          },
+        },
+      );
+
+      if (!active || !mountedRef.current || !response.ok || !data) {
+        return;
+      }
+
+      if (!data.requiresGroupReview) {
+        window.sessionStorage.removeItem(QUERY_GROUP_REVIEW_FINGERPRINT_STORAGE_KEY);
+      } else {
+        const fingerprint = [
+          `${data.summary.instancesNeedingReview}`,
+          `${data.summary.failedInstances}`,
+          ...data.failedInstances.map((failure) => `${failure.instanceId}:${failure.kind}:${failure.message}`).sort(),
+        ].join("|");
+        const storedFingerprint = window.sessionStorage.getItem(QUERY_GROUP_REVIEW_FINGERPRINT_STORAGE_KEY);
+
+        if (storedFingerprint !== fingerprint) {
+          window.sessionStorage.setItem(QUERY_GROUP_REVIEW_FINGERPRINT_STORAGE_KEY, fingerprint);
+          toast.warning(
+            messages.queries.toasts.groupReviewWarning(
+              data.summary.instancesNeedingReview,
+              data.summary.failedInstances,
+            ),
+            {
+              id: "queries-group-review-warning",
+              action: {
+                label: messages.queries.toasts.reviewGroupsAction,
+                onClick: () => {
+                  window.location.assign(data.reviewPath);
+                },
+              },
+            },
+          );
+        }
+      }
+
+      setSuggestionsReloadToken((current) => current + 1);
+      void refreshQueriesRef.current?.(activeFiltersRef.current, {
+        preserveTable: true,
+        silent: true,
+      });
+    }
+
+    void refreshGroupMemberships();
+
+    return () => {
+      active = false;
+    };
+  }, [client, csrfToken, messages.queries.toasts.groupReviewWarning, messages.queries.toasts.reviewGroupsAction]);
+
+  useEffect(() => {
+    let active = true;
+    const timeoutId = window.setTimeout(() => {
+      void loadSuggestions();
+    }, 250);
+
     async function loadSuggestions() {
       setIsSuggestionsLoading(true);
       const { data, response } = await client.GET<QuerySuggestionsResponse>("/queries/suggestions", {
         params: {
-          query:
-            scope.kind === "all"
-              ? {
-                  scope: "all",
-                }
-              : {
-                  scope: "instance",
-                  instanceId: scope.instanceId,
-                },
+          query: suggestionQuery,
         },
       });
 
@@ -219,6 +317,7 @@ export function QueriesWorkspace({
 
       if (response.ok && data) {
         setSuggestions(data.suggestions);
+        setGroupOptions(data.groupOptions);
       } else {
         setSuggestions(EMPTY_SUGGESTIONS);
       }
@@ -226,12 +325,11 @@ export function QueriesWorkspace({
       setIsSuggestionsLoading(false);
     }
 
-    void loadSuggestions();
-
     return () => {
       active = false;
+      window.clearTimeout(timeoutId);
     };
-  }, [client, scope]);
+  }, [client, suggestionQuery]);
 
   async function refreshQueries(
     filters: QueryFilters,
@@ -271,6 +369,7 @@ export function QueriesWorkspace({
             start: Math.max(0, filters.start),
             ...(trimOrEmpty(filters.domain) ? { domain: trimOrEmpty(filters.domain) } : {}),
             ...(trimOrEmpty(filters.clientIp) ? { client_ip: trimOrEmpty(filters.clientIp) } : {}),
+            ...(filters.groupIds.length > 0 ? { groupIds: filters.groupIds } : {}),
             ...(trimOrEmpty(filters.upstream) ? { upstream: trimOrEmpty(filters.upstream) } : {}),
             ...(trimOrEmpty(filters.type) ? { type: trimOrEmpty(filters.type) } : {}),
             ...(trimOrEmpty(filters.status) ? { status: trimOrEmpty(filters.status) } : {}),
@@ -555,6 +654,7 @@ export function QueriesWorkspace({
         applyFilters={applyFilters}
         clearFilters={clearFilters}
         draftFilters={draftFilters}
+        groupOptions={groupOptions}
         isFiltersOpen={isFiltersOpen}
         isReloading={isReloading}
         isSuggestionsLoading={isSuggestionsLoading}

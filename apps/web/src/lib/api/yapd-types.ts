@@ -84,6 +84,67 @@ export type InstanceDetailResponse = {
   };
 };
 
+export type InstanceVersionComponentRelease = {
+  version: string | null;
+  branch: string | null;
+  hash: string | null;
+  date: string | null;
+};
+
+export type InstanceVersionComponentInfo = {
+  local: InstanceVersionComponentRelease | null;
+  remote: InstanceVersionComponentRelease | null;
+} | null;
+
+export type InstanceMemoryInfo = {
+  total: number | null;
+  free: number | null;
+  used: number | null;
+  available: number | null;
+  percentUsed: number | null;
+} | null;
+
+export type InstanceInfoResponse = {
+  instanceId: string;
+  fetchedAt: string;
+  version: {
+    summary: string;
+    core: InstanceVersionComponentInfo;
+    web: InstanceVersionComponentInfo;
+    ftl: InstanceVersionComponentInfo;
+    docker: InstanceVersionComponentInfo;
+  };
+  host: {
+    model: string | null;
+    nodename: string | null;
+    machine: string | null;
+    sysname: string | null;
+    release: string | null;
+    version: string | null;
+    domainname: string | null;
+  };
+  system: {
+    uptime: number | null;
+    memory: {
+      ram: InstanceMemoryInfo;
+      swap: InstanceMemoryInfo;
+    };
+    procs: number | null;
+    cpu: {
+      nprocs: number | null;
+      percentCpu: number | null;
+      load: {
+        raw: number[] | null;
+        percent: number[] | null;
+      } | null;
+    } | null;
+    ftl: {
+      percentMem: number | null;
+      percentCpu: number | null;
+    } | null;
+  };
+};
+
 export type InstanceMutationResponse = {
   instance: {
     id: string;
@@ -99,6 +160,16 @@ export type InstanceSyncToggleResponse = {
     name: string;
     syncEnabled: boolean;
   };
+};
+
+export type InstancePrimaryMutationResponse = {
+  instance: {
+    id: string;
+    name: string;
+    isBaseline: boolean;
+    syncEnabled: boolean;
+  };
+  previousBaselineId: string | null;
 };
 
 export type DiscoverInstanceItem = {
@@ -154,6 +225,9 @@ export type GroupItem = {
 
 export type GroupsListResponse = {
   items: GroupItem[];
+  summary: {
+    totalItems: number;
+  };
   source: {
     baselineInstanceId: string;
     baselineInstanceName: string;
@@ -186,6 +260,104 @@ export type GroupsMutationResponse = {
     kind: DashboardInstanceErrorKind;
     message: string;
   }>;
+};
+
+export type NavigationSummaryResponse = {
+  groups: {
+    total: number;
+  };
+  lists: {
+    total: number;
+  };
+  domains: {
+    total: number;
+  };
+};
+
+export type NotificationSource = "PIHOLE" | "SYSTEM";
+export type NotificationState = "ACTIVE" | "RESOLVED";
+export type NotificationReadState = "unread" | "read";
+export type NotificationMetadata = Record<string, unknown> | null;
+
+export type NotificationItem = {
+  id: string;
+  source: NotificationSource;
+  type:
+    | "RATE_LIMIT"
+    | "CONNECTION_ERROR"
+    | "CLIENTS_FAILURE"
+    | "DOMAINS_FAILURE"
+    | "GROUPS_FAILURE"
+    | "INSTANCES_FAILURE"
+    | "LISTS_FAILURE"
+    | "NOTIFICATION_SYNC_ERROR"
+    | "INSTANCE_SESSION_ERROR"
+    | "SYNC_FAILURE"
+    | "SYSTEM_FAILURE"
+    | string;
+  title: string;
+  instanceId: string | null;
+  instanceName: string | null;
+  message: string;
+  metadata: NotificationMetadata;
+  state: NotificationState;
+  isRead: boolean;
+  readAt: string | null;
+  hiddenAt: string | null;
+  resolvedAt: string | null;
+  occurredAt: string;
+  lastSeenAt: string;
+  occurrenceCount: number;
+  canDeleteRemotely: boolean;
+};
+
+export type NotificationsListResponse = {
+  items: NotificationItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  unreadCount: number;
+  readState: NotificationReadState;
+};
+
+export type NotificationsPreviewResponse = {
+  items: NotificationItem[];
+  unreadCount: number;
+  push: {
+    available: boolean;
+  };
+};
+
+export type NotificationMutationResponse = {
+  notification: NotificationItem;
+};
+
+export type NotificationReadAllResponse = {
+  updatedCount: number;
+};
+
+export type PushPublicKeyResponse = {
+  available: boolean;
+  publicKey: string | null;
+  source: "env" | "database" | null;
+};
+
+export type PushSubscriptionBody = {
+  endpoint: string;
+  keys: {
+    auth: string;
+    p256dh: string;
+  };
+  userAgent?: string;
+};
+
+export type PushSubscriptionResponse = {
+  ok: true;
+  available: boolean;
+  endpoint: string;
 };
 
 export type ClientsSortField = "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
@@ -326,6 +498,236 @@ export type DashboardOverviewResponse = {
   };
 };
 
+export type OverviewResponse = {
+  scope: {
+    mode: "all" | "instance";
+    instanceId: string | null;
+    instanceName: string | null;
+  };
+  filters: {
+    from: string;
+    until: string;
+    groupBy: "hour" | "day";
+  };
+  summary: {
+    totalQueries: number;
+    blockedQueries: number;
+    cachedQueries: number;
+    forwardedQueries: number;
+    uniqueDomains: number;
+    uniqueClients: number;
+    percentageBlocked: number;
+  };
+  charts: {
+    queries: {
+      groupBy: "hour" | "day";
+      points: Array<{
+        timestamp: string;
+        totalQueries: number;
+        blockedQueries: number;
+        cachedQueries: number;
+        forwardedQueries: number;
+        percentageBlocked: number;
+      }>;
+    };
+  };
+  rankings: {
+    domains: Array<{
+      value: string;
+      count: number;
+    }>;
+    clients: Array<{
+      value: string;
+      count: number;
+    }>;
+    upstreams: Array<{
+      value: string;
+      count: number;
+    }>;
+    statuses: Array<{
+      value: string;
+      count: number;
+    }>;
+  };
+  coverage: {
+    hasAnyData: boolean;
+    requestedFrom: string;
+    requestedUntil: string;
+    totalStoredQueries: number;
+    earliestStoredAt: string | null;
+    latestStoredAt: string | null;
+    savedWindowCount: number;
+    expiringSoonCount: number;
+    windows: Array<{
+      id: string;
+      jobId: string | null;
+      instanceId: string;
+      instanceName: string;
+      requestedFrom: string;
+      requestedUntil: string;
+      storedFrom: string | null;
+      storedUntil: string | null;
+      rowCount: number;
+      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      errorMessage: string | null;
+      expiresAt: string;
+      isExpiringSoon: boolean;
+      expiresInDays: number;
+    }>;
+    savedWindows: Array<{
+      id: string;
+      jobId: string | null;
+      instanceId: string;
+      instanceName: string;
+      requestedFrom: string;
+      requestedUntil: string;
+      storedFrom: string | null;
+      storedUntil: string | null;
+      rowCount: number;
+      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      errorMessage: string | null;
+      expiresAt: string;
+      isExpiringSoon: boolean;
+      expiresInDays: number;
+    }>;
+    expiringWindows: Array<{
+      id: string;
+      jobId: string | null;
+      instanceId: string;
+      instanceName: string;
+      requestedFrom: string;
+      requestedUntil: string;
+      storedFrom: string | null;
+      storedUntil: string | null;
+      rowCount: number;
+      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      errorMessage: string | null;
+      expiresAt: string;
+      isExpiringSoon: boolean;
+      expiresInDays: number;
+    }>;
+  };
+  sources: {
+    totalInstances: number;
+    availableInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    failedInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+      kind: "missing_data" | "import_failure";
+      message: string;
+    }>;
+  };
+};
+
+export type OverviewJobFailureReason = "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected";
+
+export type OverviewJobProgress = {
+  attempts: number;
+  totalExpectedRecords: number;
+  totalFetchedRecords: number;
+  totalInsertedRecords: number;
+  totalPages: number;
+  completedPages: number;
+  checkpoint: {
+    instanceId: string | null;
+    instanceName: string | null;
+    page: number | null;
+    start: number | null;
+    totalPages: number | null;
+    expectedRecords: number | null;
+    consecutiveFailures: number;
+    lastSuccessfulPage: number;
+    updatedAt: string | null;
+  } | null;
+  lastFailureMessage: string | null;
+  lastFailureReason: OverviewJobFailureReason | null;
+  instanceProgress: Array<{
+    instanceId: string;
+    instanceName: string;
+    status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+    expectedRecords: number | null;
+    fetchedRecords: number;
+    insertedRecords: number;
+    totalPages: number | null;
+    completedPages: number;
+    currentPage: number | null;
+    currentStart: number;
+    storedFrom: string | null;
+    storedUntil: string | null;
+    consecutiveFailures: number;
+    lastErrorMessage: string | null;
+    lastFailureReason: OverviewJobFailureReason | null;
+    lastSuccessfulAt: string | null;
+    updatedAt: string | null;
+  }>;
+};
+
+export type OverviewJobsResponse = {
+  jobs: Array<{
+    id: string;
+    kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+    scope: "all" | "instance";
+    instanceId: string | null;
+    instanceName: string | null;
+    requestedFrom: string;
+    requestedUntil: string;
+    status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+    trigger: string | null;
+    requestedBy: string | null;
+    queryCount: number;
+    deletedCount: number;
+    coverageCount: number;
+    startedAt: string | null;
+    finishedAt: string | null;
+    createdAt: string;
+    errorMessage: string | null;
+    failureReason: OverviewJobFailureReason | null;
+    progress: OverviewJobProgress;
+  }>;
+};
+
+export type OverviewJobDetailsResponse = {
+  job: OverviewJobsResponse["jobs"][number] & {
+    diagnostics: {
+      lastSuccessfulInstanceName: string | null;
+      lastSuccessfulPage: number | null;
+      lastSuccessfulAt: string | null;
+      stalledInstanceName: string | null;
+      stalledPage: number | null;
+      stalledStart: number | null;
+      nextRetryAt: string | null;
+    };
+    timeline: Array<{
+      at: string;
+      level: "info" | "warn" | "error";
+      type: string;
+      message: string;
+      instanceId: string | null;
+      instanceName: string | null;
+      page: number | null;
+      start: number | null;
+      failureReason: OverviewJobFailureReason | null;
+    }>;
+  };
+};
+
+export type OverviewMutationResponse = {
+  job: OverviewJobsResponse["jobs"][number];
+};
+
+export type OverviewJobDeleteResponse = {
+  job: OverviewJobsResponse["jobs"][number];
+};
+
+export type OverviewCoverageRenewResponse = {
+  coverageWindow: OverviewResponse["coverage"]["savedWindows"][number];
+  renewedQueryCount: number;
+  renewedAt: string;
+};
+
 export type QueriesResponse = {
   queries: Array<{
     instanceId: string;
@@ -344,6 +746,7 @@ export type QueriesResponse = {
     client: {
       ip: string | null;
       name: string | null;
+      alias: string | null;
     } | null;
     listId: number | null;
     ede: {
@@ -373,6 +776,26 @@ export type QueriesResponse = {
   };
 };
 
+export type QueryGroupMembershipRefreshResponse = {
+  updatedAt: string | null;
+  summary: {
+    totalInstances: number;
+    refreshedInstances: number;
+    failedInstances: number;
+    groupsCached: number;
+    membershipsCached: number;
+    instancesNeedingReview: number;
+  };
+  requiresGroupReview: boolean;
+  reviewPath: "/groups";
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
 export type QuerySuggestionsResponse = {
   suggestions: {
     domain: string[];
@@ -384,6 +807,10 @@ export type QuerySuggestionsResponse = {
     reply: string[];
     dnssec: string[];
   };
+  groupOptions: Array<{
+    id: number;
+    name: string;
+  }>;
   took: number;
   sources: {
     totalInstances: number;
@@ -409,6 +836,7 @@ export type DomainOperationResponse = {
     comment: string;
     scope: "all" | "instance";
     instanceId: string | null;
+    patternMode: DomainPatternMode | null;
   };
   summary: {
     totalInstances: number;
@@ -517,6 +945,307 @@ export type SyncBlockingApplyResponse = {
     blocking: "enabled" | "disabled" | null;
     timerSeconds: number | null;
   }>;
+};
+
+export type ListItem = {
+  address: string;
+  comment: string | null;
+  enabled: boolean;
+  groups: number[];
+  id: number;
+  dateAdded: number | null;
+  dateModified: number | null;
+  type: "allow" | "block";
+  dateUpdated: number | null;
+  number: number | null;
+  invalidDomains: number | null;
+  abpEntries: number | null;
+  status: number | null;
+  origin: {
+    instanceId: string;
+    instanceName: string;
+  };
+  sync: {
+    isFullySynced: boolean;
+    sourceInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    missingInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+  };
+};
+
+export type ListsSortField = "address" | "type" | "enabled" | "comment" | "group";
+
+export type ListsSortDirection = "asc" | "desc";
+
+export type ListsListResponse = {
+  items: ListItem[];
+  summary: {
+    totalItems: number;
+  };
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  source: {
+    baselineInstanceId: string;
+    baselineInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+  };
+  unavailableInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
+export type ListsMutationResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalInstances: number;
+    successfulCount: number;
+    failedCount: number;
+  };
+  successfulInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+  }>;
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
+export type DomainFilterValue = "exact-allow" | "regex-allow" | "exact-deny" | "regex-deny";
+
+export type DomainPatternMode = "exact" | "regex_specific" | "regex_any";
+
+export type DomainsSortField = "domain" | "type" | "kind" | "enabled" | "comment" | "group";
+
+export type DomainsSortDirection = "asc" | "desc";
+
+export type DomainItem = {
+  domain: string;
+  unicode: string | null;
+  type: "allow" | "deny";
+  kind: "exact" | "regex";
+  comment: string | null;
+  enabled: boolean;
+  groups: number[];
+  id: number;
+  dateAdded: number | null;
+  dateModified: number | null;
+  origin: {
+    instanceId: string;
+    instanceName: string;
+  };
+  sync: {
+    isFullySynced: boolean;
+    sourceInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+    missingInstances: Array<{
+      instanceId: string;
+      instanceName: string;
+    }>;
+  };
+};
+
+export type DomainsListResponse = {
+  items: DomainItem[];
+  summary: {
+    totalItems: number;
+    allowTotal: number;
+    denyTotal: number;
+    allowExact: number;
+    allowRegex: number;
+    denyExact: number;
+    denyRegex: number;
+  };
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  source: {
+    baselineInstanceId: string;
+    baselineInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+  };
+  unavailableInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
+export type DomainsMutationResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalInstances: number;
+    successfulCount: number;
+    failedCount: number;
+  };
+  successfulInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+  }>;
+  failedInstances: Array<{
+    instanceId: string;
+    instanceName: string;
+    kind: DashboardInstanceErrorKind;
+    message: string;
+  }>;
+};
+
+export type DomainsImportResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalRows: number;
+    createdCount: number;
+    updatedCount: number;
+    invalidCount: number;
+  };
+  errors: Array<{
+    line: number;
+    message: string;
+  }>;
+};
+
+export type ConfigTopicName =
+  | "dns"
+  | "dhcp"
+  | "ntp"
+  | "resolver"
+  | "database"
+  | "webserver"
+  | "files"
+  | "misc"
+  | "debug";
+
+export type ConfigSyncStatus = "synced" | "drifted" | "partial";
+
+export type ConfigFieldItem = {
+  path: string;
+  key: string;
+  groupPath: string | null;
+  description: string | null;
+  allowed: unknown;
+  type: string | null;
+  value: unknown;
+  defaultValue: unknown;
+  modified: boolean;
+  flags: {
+    restart_dnsmasq: boolean;
+    session_reset: boolean;
+    env_var: boolean;
+  };
+  isIgnored: boolean;
+  ignoreRuleId: string | null;
+  sync: {
+    status: ConfigSyncStatus;
+    isFullySynced: boolean;
+    sourceInstances: ConfigInstanceSummary[];
+    missingInstances: ConfigInstanceSummary[];
+  };
+};
+
+export type ConfigIgnoredField = {
+  id: string;
+  topic: ConfigTopicName;
+  fieldPath: string;
+};
+
+export type ConfigDriftItem = {
+  topic: ConfigTopicName;
+  topicTitle: string;
+  fieldPath: string;
+  fieldKey: string;
+  groupPath: string | null;
+};
+
+export type ConfigInstanceSummary = {
+  instanceId: string;
+  instanceName: string;
+  isBaseline: boolean;
+  syncEnabled: boolean;
+};
+
+export type ConfigInstanceFailure = ConfigInstanceSummary & {
+  kind: DashboardInstanceErrorKind;
+  message: string;
+};
+
+export type ConfigTopicData = {
+  name: ConfigTopicName;
+  title: string;
+  description: string | null;
+  value: unknown;
+  detailed: Record<string, unknown>;
+  fields: ConfigFieldItem[];
+  sync: {
+    status: ConfigSyncStatus;
+    isFullySynced: boolean;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+    sourceInstances: ConfigInstanceSummary[];
+    missingInstances: ConfigInstanceSummary[];
+  };
+};
+
+export type ConfigOverviewResponse = {
+  topics: ConfigTopicData[];
+  driftItems: ConfigDriftItem[];
+  ignoredFields: ConfigIgnoredField[];
+  source: {
+    baselineInstanceId: string;
+    baselineInstanceName: string;
+    defaultSourceInstanceId: string;
+    defaultSourceInstanceName: string;
+    totalInstances: number;
+    availableInstanceCount: number;
+    unavailableInstanceCount: number;
+  };
+  instances: ConfigInstanceSummary[];
+  unavailableInstances: ConfigInstanceFailure[];
+};
+
+export type ConfigTopicResponse = {
+  topic: ConfigTopicData;
+  sourceInstance: ConfigInstanceSummary;
+};
+
+export type ConfigUpdateResponse = ConfigTopicResponse;
+
+export type ConfigIgnoreRuleResponse = {
+  rule: ConfigIgnoredField;
+};
+
+export type ConfigMutationResponse = {
+  status: "success" | "partial";
+  summary: {
+    totalInstances: number;
+    successfulCount: number;
+    failedCount: number;
+  };
+  successfulInstances: ConfigInstanceSummary[];
+  failedInstances: ConfigInstanceFailure[];
 };
 
 export type YapdSession = AppSession;

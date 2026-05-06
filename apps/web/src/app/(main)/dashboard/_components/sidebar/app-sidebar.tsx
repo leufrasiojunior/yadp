@@ -16,6 +16,8 @@ import {
 import { APP_CONFIG } from "@/config/app-config";
 import { useWebI18n } from "@/lib/i18n/client";
 import { getSidebarItems } from "@/navigation/sidebar/sidebar-items";
+import { useNavigationSummaryStore } from "@/stores/navigation-summary/navigation-summary-provider";
+import { useNotificationsStore } from "@/stores/notifications/notifications-provider";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 import { NavMain } from "./nav-main";
@@ -33,6 +35,8 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 
 export function AppSidebar({ session, ...props }: AppSidebarProps) {
   const { messages } = useWebI18n();
+  const navigationSummary = useNavigationSummaryStore((state) => state.summary);
+  const notificationsPreview = useNotificationsStore((state) => state.preview);
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
     useShallow((s) => ({
       sidebarVariant: s.sidebarVariant,
@@ -61,7 +65,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={getSidebarItems(messages)} />
+        <NavMain items={getSidebarItems(messages, navigationSummary, notificationsPreview?.unreadCount)} />
         <SidebarSyncBlocking />
         {/* <NavDocuments items={data.documents} /> */}
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}

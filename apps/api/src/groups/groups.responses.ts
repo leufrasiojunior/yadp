@@ -68,6 +68,13 @@ export const GROUPS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
         type: "array",
         items: groupItemSchema,
       },
+      summary: {
+        type: "object",
+        properties: {
+          totalItems: { type: "number" },
+        },
+        required: ["totalItems"],
+      },
       source: {
         type: "object",
         properties: {
@@ -90,7 +97,7 @@ export const GROUPS_LIST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
         items: failedInstanceSchema,
       },
     },
-    required: ["items", "source", "unavailableInstances"],
+    required: ["items", "summary", "source", "unavailableInstances"],
   },
 };
 

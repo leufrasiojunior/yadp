@@ -29,6 +29,7 @@ import type {
 import type { GetClientsDto } from "./dto/get-clients.dto";
 import type { SaveClientsDto } from "./dto/save-clients.dto";
 import type { SyncClientsDto } from "./dto/sync-clients.dto";
+import type { UpdateClientDto } from "./dto/update-client.dto";
 
 type ManagedInstanceRecord = PiholeManagedInstanceSummary & {
   isBaseline: boolean;
@@ -412,6 +413,7 @@ export class ClientsService {
           targetInstanceIds: targetInstances.map((instance) => instance.id),
           status: response.status,
           summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
           comment: comment ?? null,
           alias: alias ?? null,
           tags: tags ?? [],
@@ -433,6 +435,72 @@ export class ClientsService {
           comment: comment ?? null,
           alias: alias ?? null,
           tags: tags ?? [],
+          error: error instanceof Error ? error.message : "Unknown error",
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      throw error;
+    }
+  }
+
+  async updateClient(rawClient: string, dto: UpdateClientDto, request: Request): Promise<ClientsMutationResponse> {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
+    const client = this.normalizeRequestedClients([rawClient], locale)[0] ?? "";
+    const requestedGroupIds = dto.groups;
+
+    try {
+      const instances = await this.loadManagedInstances(locale);
+      const baselineGroups =
+        requestedGroupIds === undefined
+          ? null
+          : requestedGroupIds.length > 0
+            ? await this.readBaselineGroups(instances, requestedGroupIds, locale)
+            : [];
+      const successfulInstances: ClientsMutationInstanceSource[] = [];
+      const failedInstances: ClientsMutationInstanceFailure[] = [];
+
+      for (const instance of instances) {
+        try {
+          await this.applyClientsToInstance(instance, [client], baselineGroups, undefined, locale);
+          successfulInstances.push(this.toSourceSummary(instance));
+        } catch (error) {
+          failedInstances.push(this.mapInstanceFailure(instance, error, locale));
+        }
+      }
+
+      const response = this.buildMutationResponse(instances.length, successfulInstances, failedInstances);
+
+      await this.audit.record({
+        action: "clients.update",
+        actorType: "session",
+        ipAddress,
+        targetType: "client",
+        targetId: client,
+        result: response.failedInstances.length > 0 ? "FAILURE" : "SUCCESS",
+        details: {
+          client,
+          groups: requestedGroupIds ?? null,
+          groupNames: baselineGroups?.map((group) => group.name) ?? [],
+          targetInstanceIds: instances.map((instance) => instance.id),
+          status: response.status,
+          summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      return response;
+    } catch (error) {
+      await this.audit.record({
+        action: "clients.update",
+        actorType: "session",
+        ipAddress,
+        targetType: "client",
+        targetId: client ?? null,
+        result: "FAILURE",
+        details: {
+          client,
+          groups: requestedGroupIds ?? null,
           error: error instanceof Error ? error.message : "Unknown error",
         } satisfies Prisma.InputJsonObject,
       });
@@ -481,6 +549,7 @@ export class ClientsService {
           targetInstanceIds: targetInstances.map((instance) => instance.id),
           status: response.status,
           summary: response.summary,
+          failedInstances: response.failedInstances as unknown as Prisma.InputJsonValue,
         } satisfies Prisma.InputJsonObject,
       });
 

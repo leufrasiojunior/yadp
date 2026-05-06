@@ -21,6 +21,9 @@ const envSchema = z.object({
   PIHOLE_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
   PIHOLE_GLOBAL_MAX_CONCURRENCY: z.coerce.number().int().positive().default(4),
   PIHOLE_PER_INSTANCE_MAX_CONCURRENCY: z.coerce.number().int().positive().default(1),
+  WEB_PUSH_VAPID_SUBJECT: z.string().min(1).default("mailto:admin@yapd.local"),
+  WEB_PUSH_VAPID_PUBLIC_KEY: z.string().trim().optional(),
+  WEB_PUSH_VAPID_PRIVATE_KEY: z.string().trim().optional(),
   COOKIE_SECURE: z
     .enum(["true", "false"])
     .default("false")

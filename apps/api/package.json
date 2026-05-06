@@ -7,6 +7,11 @@
     "dev": "node --watch --import tsx src/main.ts",
     "debug": "node --inspect=9229 --watch --import tsx src/main.ts",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "test:instances": "node --import tsx --test src/instances/instances.service.spec.ts",
+    "test:notifications": "node --import tsx --test src/notifications/notifications.service.spec.ts",
+    "test:overview": "TSX_TSCONFIG_PATH=tsconfig.json node --import tsx --test src/overview/overview.service.spec.ts",
+    "test:queries": "node --import tsx --test src/queries/*.spec.ts",
+    "test:runtime-metadata": "node --test test/controller-runtime-metadata.test.mjs",
     "start": "sh ./scripts/start-with-migrations.sh",
     "start:server": "node dist/main.js",
     "generate:client": "npx tsx --tsconfig tsconfig.json src/scripts/generate-openapi.ts",
@@ -20,6 +25,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.8",
     "@nestjs/platform-express": "^11.1.8",
+    "@nestjs/schedule": "^6.0.1",
     "@nestjs/swagger": "^11.2.1",
     "@nestjs/throttler": "^6.4.0",
     "@prisma/adapter-pg": "^7.5.0",
@@ -35,11 +41,13 @@
     "rxjs": "^7.8.2",
     "swagger-ui-express": "^5.0.1",
     "undici": "^7.12.0",
+    "web-push": "^3.6.7",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",
     "@types/pg": "^8.15.6",
+    "@types/web-push": "^3.6.4",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16"
   }

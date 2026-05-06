@@ -24,9 +24,7 @@ export default async function InstancesPage() {
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return (
-        <ApiUnavailableScreen apiBaseUrl={error.baseUrl} fullscreen={false} locale={locale} retryHref="/instances" />
-      );
+      return <ApiUnavailableScreen fullscreen={false} locale={locale} retryHref="/instances" />;
     }
 
     if (isYapdApiResponseError(error)) {

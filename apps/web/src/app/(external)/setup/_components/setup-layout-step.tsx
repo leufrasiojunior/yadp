@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { LanguagePicker } from "@/components/yapd/language-picker";
 import { TimeZoneInput } from "@/components/yapd/time-zone-input";
 import { type FontKey, fontOptions } from "@/lib/fonts/registry";
-import { type AppLocale, LOCALE_OPTIONS } from "@/lib/i18n/config";
+import type { AppLocale } from "@/lib/i18n/config";
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from "@/lib/preferences/theme";
@@ -72,20 +73,13 @@ export function SetupLayoutStep({
             control={form.control}
             name="applicationLanguage"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={(value) => field.onChange(value as AppLocale)}>
-                <SelectTrigger size="sm" className="w-full text-xs">
-                  <SelectValue placeholder={labels.common.languagePlaceholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {LOCALE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} className="text-xs" value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              <LanguagePicker
+                value={field.value}
+                size="sm"
+                showIcon={false}
+                triggerClassName="text-xs"
+                onValueChange={(value) => field.onChange(value as AppLocale)}
+              />
             )}
           />
         </div>
@@ -185,9 +179,6 @@ export function SetupLayoutStep({
                 </ToggleGroupItem>
                 <ToggleGroupItem value="dark" aria-label={labels.controls.dark}>
                   {labels.controls.dark}
-                </ToggleGroupItem>
-                <ToggleGroupItem value="system" aria-label={labels.controls.system}>
-                  {labels.controls.system}
                 </ToggleGroupItem>
               </ToggleGroup>
             )}

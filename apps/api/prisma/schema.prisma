@@ -42,13 +42,46 @@ enum SyncAttemptStatus {
   SKIPPED
 }
 
+enum NotificationState {
+  ACTIVE
+  RESOLVED
+}
+
+enum OverviewHistoryJobKind {
+  AUTOMATIC_IMPORT
+  MANUAL_IMPORT
+  MANUAL_DELETE
+}
+
+enum OverviewHistoryJobStatus {
+  PENDING
+  RUNNING
+  PAUSED
+  SUCCESS
+  PARTIAL
+  FAILURE
+}
+
 model AppConfig {
-  id           String       @id @default("singleton")
-  loginMode    AppLoginMode @default(PIHOLE_MASTER)
-  passwordHash String?
-  timeZone     String       @default("UTC")
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id                         String       @id @default("singleton")
+  loginMode                  AppLoginMode @default(PIHOLE_MASTER)
+  passwordHash               String?
+  timeZone                   String       @default("UTC")
+  webPushVapidPublicKey      String?
+  webPushVapidPrivateKeyEncrypted String?
+  webPushVapidSubject        String?
+  createdAt                  DateTime     @default(now())
+  updatedAt                  DateTime     @updatedAt
+}
+
+model ConfigSyncIgnoreRule {
+  id        String   @id @default(cuid())
+  topic     String
+  fieldPath String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([topic, fieldPath])
 }
 
 model Instance {
@@ -65,6 +98,11 @@ model Instance {
   certificateTrust InstanceCertificateTrust?
   session          InstanceSession?
   syncAttempts     SyncAttempt[]
+  notifications    Notification[]
+  groupMemberships ClientGroupMembership[]
+  historicalQueries HistoricalQuery[]
+  overviewCoverage  OverviewCoverageWindow[]
+  overviewJobs      OverviewHistoryJob[]
 }
 
 model InstanceSecret {
@@ -119,14 +157,43 @@ model AuditLog {
 }
 
 model ClientDevice {
-  id        String   @id @default(cuid())
-  hwaddr    String   @unique
-  alias     String?
-  macVendor String?
-  ips       String[] @default([])
-  tags      String[] @default([])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String                  @id @default(cuid())
+  hwaddr           String                  @unique
+  alias            String?
+  macVendor        String?
+  ips              String[]                @default([])
+  tags             String[]                @default([])
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  groupMemberships ClientGroupMembership[]
+}
+
+model ClientGroup {
+  id          Int                     @id
+  name        String                  @unique
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  memberships ClientGroupMembership[]
+}
+
+model ClientGroupMembership {
+  groupId        Int
+  instanceId     String
+  clientKey      String
+  clientDeviceId String?
+  rawClientValue String?
+  rawClientName  String?
+  resolvedIps    String[]   @default([])
+  lastSyncedAt   DateTime
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  group          ClientGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  instance       Instance    @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  clientDevice   ClientDevice? @relation(fields: [clientDeviceId], references: [id], onDelete: SetNull)
+
+  @@id([groupId, instanceId, clientKey])
+  @@index([instanceId, groupId])
+  @@index([clientDeviceId])
 }
 
 model SyncOperationPreset {
@@ -167,4 +234,175 @@ model SyncAttempt {
   instance       Instance          @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 
   @@unique([syncJobId, instanceId, attemptNumber])
+}
+
+model ManagedList {
+  id        String   @id @default(cuid())
+  address   String
+  comment   String?
+  type      String   @default("block")
+  groups    Int[]    @default([0])
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([address, type])
+}
+
+model ManagedDomain {
+  id        String   @id @default(cuid())
+  domain    String
+  type      String   // allow | deny
+  kind      String   // exact | regex
+  comment   String?
+  groups    Int[]    @default([0])
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([domain, type, kind])
+}
+
+model RegexFilter {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  pattern   String   @unique
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id                   String            @id @default(cuid())
+  source               String
+  type                 String
+  title                String?
+  instanceId           String?
+  instanceNameSnapshot String?
+  message              String
+  metadata             Json?
+  state                NotificationState @default(ACTIVE)
+  isRead               Boolean           @default(false)
+  readAt               DateTime?
+  hiddenAt             DateTime?
+  resolvedAt           DateTime?
+  firstSeenAt          DateTime          @default(now())
+  lastSeenAt           DateTime          @default(now())
+  occurredAt           DateTime          @default(now())
+  occurrenceCount      Int               @default(1)
+  sourceFingerprint    String
+  sourceExternalId     String?
+  deleteRequestedAt    DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  instance             Instance?         @relation(fields: [instanceId], references: [id], onDelete: SetNull)
+
+  @@index([sourceFingerprint])
+  @@index([hiddenAt, resolvedAt, occurredAt])
+  @@index([createdAt])
+}
+
+model HistoricalQuery {
+  id                  String              @id @default(cuid())
+  jobId               String?
+  instanceId          String
+  instanceNameSnapshot String
+  sourceId            Int
+  occurredAt          DateTime
+  domain              String?
+  clientIp            String?
+  clientName          String?
+  clientAlias         String?
+  upstream            String?
+  queryType           String?
+  status              String?
+  dnssec              String?
+  replyType           String?
+  replyTime           Int?
+  listId              Int?
+  edeCode             Int?
+  edeText             String?
+  cname               String?
+  importedAt          DateTime            @default(now())
+  expiresAt           DateTime
+  job                 OverviewHistoryJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  instance            Instance            @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@unique([instanceId, sourceId, occurredAt])
+  @@index([occurredAt])
+  @@index([instanceId, occurredAt])
+  @@index([domain])
+  @@index([clientIp])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([jobId])
+}
+
+model OverviewHistoryJob {
+  id                  String                   @id @default(cuid())
+  kind                OverviewHistoryJobKind
+  scope               String
+  instanceId          String?
+  instanceNameSnapshot String?
+  requestedFrom       DateTime
+  requestedUntil      DateTime
+  status              OverviewHistoryJobStatus @default(PENDING)
+  trigger             String?
+  requestedBy         String?
+  summary             Json?
+  errorMessage        String?
+  queryCount          Int                      @default(0)
+  deletedCount        Int                      @default(0)
+  coverageCount       Int                      @default(0)
+  startedAt           DateTime?
+  finishedAt          DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  importedQueries     HistoricalQuery[]
+  coverageWindows     OverviewCoverageWindow[]
+  instance            Instance?                @relation(fields: [instanceId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([kind, createdAt])
+  @@index([requestedFrom, requestedUntil])
+  @@index([instanceId, createdAt])
+}
+
+model OverviewCoverageWindow {
+  id                  String                   @id @default(cuid())
+  jobId               String?
+  instanceId          String
+  requestedFrom       DateTime
+  requestedUntil      DateTime
+  storedFrom          DateTime?
+  storedUntil         DateTime?
+  rowCount            Int                      @default(0)
+  status              OverviewHistoryJobStatus
+  errorMessage        String?
+  expiresAt           DateTime
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  job                 OverviewHistoryJob?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  instance            Instance                 @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@index([instanceId, requestedFrom, requestedUntil])
+  @@index([jobId])
+  @@index([expiresAt])
+}
+
+model PushSubscription {
+  id            String   @id @default(cuid())
+  endpoint      String   @unique
+  p256dh        String
+  auth          String
+  userAgent     String?
+  lastSuccessAt DateTime?
+  lastFailureAt DateTime?
+  failureCount  Int      @default(0)
+  disabledAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([disabledAt])
 }

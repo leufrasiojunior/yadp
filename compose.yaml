@@ -42,8 +42,13 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/yapd?schema=public
       SESSION_SECRET: replace-this-session-secret
       APP_ENCRYPTION_KEY: replace-this-encryption-key
+      WEB_PUSH_VAPID_SUBJECT: mailto:admin@yapd.local
+      # Optional managed override. When omitted, YAPD generates a VAPID key pair once
+      # and stores it encrypted in AppConfig using APP_ENCRYPTION_KEY.
+      # WEB_PUSH_VAPID_PUBLIC_KEY: ""
+      # WEB_PUSH_VAPID_PRIVATE_KEY: ""
       COOKIE_SECURE: "false"
-      SWAGGER_ENABLED: "false"
+      SWAGGER_ENABLED: "true"
       YAPD_DB_MIGRATION_MAX_ATTEMPTS: "30"
       YAPD_DB_MIGRATION_RETRY_DELAY_SECONDS: "2"
       YAPD_API_READY_MAX_ATTEMPTS: "30"
@@ -53,7 +58,7 @@ services:
       - "3001:3001"
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000 >/dev/null 2>&1 && wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
+        ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/healthz >/dev/null 2>&1 && wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

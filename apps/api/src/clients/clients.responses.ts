@@ -216,6 +216,21 @@ export const SAVE_CLIENTS_API_BODY: ApiBodyOptions = {
   },
 };
 
+export const UPDATE_CLIENT_API_BODY: ApiBodyOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      groups: {
+        type: "array",
+        items: {
+          type: "number",
+        },
+        example: [0],
+      },
+    },
+  },
+};
+
 export const SYNC_CLIENTS_API_BODY: ApiBodyOptions = {
   required: false,
   schema: {

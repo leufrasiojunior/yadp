@@ -2,6 +2,12 @@ export const APP_LOCALES = ["pt-BR", "en-US"] as const;
 export const DEFAULT_TIME_ZONE = "UTC";
 
 export type AppLocale = (typeof APP_LOCALES)[number];
+export type AppLocaleOption = {
+  value: AppLocale;
+  label: string;
+  shortLabel: string;
+  countryCode: string;
+};
 
 export const DEFAULT_LOCALE: AppLocale = "pt-BR";
 export const LOCALE_COOKIE_KEY = "language";
@@ -11,20 +17,18 @@ const SUPPORTED_TIME_ZONES =
 
 export const TIME_ZONE_OPTIONS = Array.from(new Set([DEFAULT_TIME_ZONE, ...SUPPORTED_TIME_ZONES]));
 
-export const LOCALE_OPTIONS: ReadonlyArray<{
-  value: AppLocale;
-  label: string;
-  shortLabel: string;
-}> = [
+export const LOCALE_OPTIONS: ReadonlyArray<AppLocaleOption> = [
   {
     value: "pt-BR",
     label: "Português (Brasil)",
     shortLabel: "PT-BR",
+    countryCode: "BR",
   },
   {
     value: "en-US",
     label: "English (US)",
     shortLabel: "EN-US",
+    countryCode: "US",
   },
 ];
 
@@ -52,6 +56,30 @@ export function normalizeAppLocale(value: string | null | undefined, fallback: A
   }
 
   return fallback;
+}
+
+export function getLocaleOption(
+  value: string | null | undefined,
+  fallback: AppLocale = DEFAULT_LOCALE,
+): AppLocaleOption {
+  const normalized = normalizeAppLocale(value, fallback);
+  const firstOption = LOCALE_OPTIONS[0];
+
+  if (!firstOption) {
+    throw new Error("No locale options configured.");
+  }
+
+  return LOCALE_OPTIONS.find((option) => option.value === normalized) ?? firstOption;
+}
+
+export function getLocaleFlagSrc(countryCode: string) {
+  const normalized = countryCode.trim().slice(0, 2).toUpperCase();
+
+  if (!/^[A-Z]{2}$/.test(normalized)) {
+    return "/flags/fallback.svg";
+  }
+
+  return `/flags/${normalized.toLowerCase()}.svg`;
 }
 
 export function applyLocaleToDocument(locale: AppLocale) {

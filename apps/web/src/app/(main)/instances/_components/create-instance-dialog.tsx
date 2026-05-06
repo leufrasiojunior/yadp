@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type { DiscoverInstanceItem, DiscoverInstancesResponse, InstanceMutationResponse } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
 import { splitManagedInstanceBaseUrl } from "@/lib/instances/managed-instance-base-url";
@@ -53,7 +53,7 @@ const DEFAULT_DISCOVERY_FORM_VALUES: DiscoveryFormValues = {
 export function CreateInstanceDialog({ onCreated }: Readonly<CreateInstanceDialogProps>) {
   const { messages } = useWebI18n();
   const { csrfToken } = useAppSession();
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const createInstanceSchema = useMemo(() => buildInstanceFormSchema(messages, { requirePassword: true }), [messages]);
   const discoverySchema = useMemo(() => buildDiscoverySchema(messages), [messages]);
   const [isOpen, setIsOpen] = useState(false);

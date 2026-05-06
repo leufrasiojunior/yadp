@@ -110,6 +110,69 @@ export class InstancesService {
     };
   }
 
+  async getInstanceInfo(instanceId: string, request: Request) {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
+
+    try {
+      const info = await this.instanceSessions.withActiveSession(
+        instanceId,
+        locale,
+        async ({ connection, session }) => {
+          const [version, host, system] = await Promise.all([
+            this.pihole.readVersionDetails(connection, session),
+            this.pihole.readHostInfo(connection, session),
+            this.pihole.readSystemInfo(connection, session),
+          ]);
+
+          return {
+            instanceId,
+            fetchedAt: new Date().toISOString(),
+            version: {
+              summary: version.summary,
+              core: version.core,
+              web: version.web,
+              ftl: version.ftl,
+              docker: version.docker,
+            },
+            host,
+            system,
+          };
+        },
+        { allowDisabled: true },
+      );
+
+      await this.audit.record({
+        action: "instances.info",
+        actorType: "session",
+        ipAddress,
+        targetType: "instance",
+        targetId: instanceId,
+        result: "SUCCESS",
+        details: {
+          fetchedAt: info.fetchedAt,
+          versionSummary: info.version.summary,
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      return info;
+    } catch (error) {
+      await this.audit.record({
+        action: "instances.info",
+        actorType: "session",
+        ipAddress,
+        targetType: "instance",
+        targetId: instanceId,
+        result: "FAILURE",
+        details: {
+          error: error instanceof Error ? error.message : "Unknown error",
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      this.mapPiholeError(error, locale);
+    }
+  }
+
   async discoverInstances(dto: DiscoverInstancesDto, request: Request) {
     const locale = getRequestLocale(request);
     const candidates = Array.from(new Set(dto.candidates?.length ? dto.candidates : DEFAULT_DISCOVERY_CANDIDATES));
@@ -589,6 +652,93 @@ export class InstancesService {
 
     return {
       instance: updated,
+    };
+  }
+
+  async promotePrimaryInstance(instanceId: string, request: Request) {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
+    const target = await this.prisma.instance.findUnique({
+      where: { id: instanceId },
+      select: {
+        id: true,
+        name: true,
+        isBaseline: true,
+        syncEnabled: true,
+      },
+    });
+
+    if (!target) {
+      throw new NotFoundException(translateApi(locale, "instances.notFound"));
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const previousBaseline = await tx.instance.findFirst({
+        where: { isBaseline: true },
+        select: {
+          id: true,
+          syncEnabled: true,
+        },
+      });
+
+      await tx.instance.updateMany({
+        where: {
+          isBaseline: true,
+          NOT: {
+            id: instanceId,
+          },
+        },
+        data: {
+          isBaseline: false,
+        },
+      });
+
+      const promotedInstance = await tx.instance.update({
+        where: { id: instanceId },
+        data: {
+          isBaseline: true,
+          syncEnabled: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          isBaseline: true,
+          syncEnabled: true,
+        },
+      });
+
+      const baselineCount = await tx.instance.count({
+        where: { isBaseline: true },
+      });
+
+      if (baselineCount !== 1) {
+        throw new ConflictException("Exactly one baseline instance must remain configured.");
+      }
+
+      return {
+        instance: promotedInstance,
+        previousBaselineId: previousBaseline?.id ?? null,
+        syncAutoEnabled: !target.syncEnabled,
+      };
+    });
+
+    await this.audit.record({
+      action: "instances.primary.change",
+      actorType: "session",
+      ipAddress,
+      targetType: "instance",
+      targetId: result.instance.id,
+      result: "SUCCESS",
+      details: {
+        previousBaselineId: result.previousBaselineId,
+        nextBaselineId: result.instance.id,
+        syncAutoEnabled: result.syncAutoEnabled,
+      } satisfies Prisma.InputJsonObject,
+    });
+
+    return {
+      instance: result.instance,
+      previousBaselineId: result.previousBaselineId,
     };
   }
 

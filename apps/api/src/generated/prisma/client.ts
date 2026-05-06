@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type AppConfig = Prisma.AppConfigModel
 /**
+ * Model ConfigSyncIgnoreRule
+ * 
+ */
+export type ConfigSyncIgnoreRule = Prisma.ConfigSyncIgnoreRuleModel
+/**
  * Model Instance
  * 
  */
@@ -75,6 +80,16 @@ export type AuditLog = Prisma.AuditLogModel
  */
 export type ClientDevice = Prisma.ClientDeviceModel
 /**
+ * Model ClientGroup
+ * 
+ */
+export type ClientGroup = Prisma.ClientGroupModel
+/**
+ * Model ClientGroupMembership
+ * 
+ */
+export type ClientGroupMembership = Prisma.ClientGroupMembershipModel
+/**
  * Model SyncOperationPreset
  * 
  */
@@ -89,3 +104,43 @@ export type SyncJob = Prisma.SyncJobModel
  * 
  */
 export type SyncAttempt = Prisma.SyncAttemptModel
+/**
+ * Model ManagedList
+ * 
+ */
+export type ManagedList = Prisma.ManagedListModel
+/**
+ * Model ManagedDomain
+ * 
+ */
+export type ManagedDomain = Prisma.ManagedDomainModel
+/**
+ * Model RegexFilter
+ * 
+ */
+export type RegexFilter = Prisma.RegexFilterModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model HistoricalQuery
+ * 
+ */
+export type HistoricalQuery = Prisma.HistoricalQueryModel
+/**
+ * Model OverviewHistoryJob
+ * 
+ */
+export type OverviewHistoryJob = Prisma.OverviewHistoryJobModel
+/**
+ * Model OverviewCoverageWindow
+ * 
+ */
+export type OverviewCoverageWindow = Prisma.OverviewCoverageWindowModel
+/**
+ * Model PushSubscription
+ * 
+ */
+export type PushSubscription = Prisma.PushSubscriptionModel

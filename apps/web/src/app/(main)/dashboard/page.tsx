@@ -41,9 +41,7 @@ export default async function DashboardPage() {
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return (
-        <ApiUnavailableScreen apiBaseUrl={error.baseUrl} fullscreen={false} locale={locale} retryHref="/dashboard" />
-      );
+      return <ApiUnavailableScreen fullscreen={false} locale={locale} retryHref="/dashboard" />;
     }
 
     if (isYapdApiResponseError(error)) {

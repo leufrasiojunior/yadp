@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Binary, FileText, LayoutDashboard, Search, ShieldCheck, Waypoints } from "lucide-react";
+import { Activity, Binary, FileText, LayoutDashboard, Search, ShieldCheck, Waypoints } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,12 @@ export function SearchDialog() {
   const [open, setOpen] = React.useState(false);
   const searchItems = React.useMemo(
     () => [
+      {
+        group: messages.sidebar.search.group,
+        icon: Activity,
+        label: messages.layout.overviewButton,
+        href: "/overview",
+      },
       {
         group: messages.sidebar.search.group,
         icon: LayoutDashboard,

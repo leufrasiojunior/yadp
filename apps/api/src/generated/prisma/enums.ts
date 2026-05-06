@@ -59,3 +59,32 @@ export const SyncAttemptStatus = {
 } as const
 
 export type SyncAttemptStatus = (typeof SyncAttemptStatus)[keyof typeof SyncAttemptStatus]
+
+
+export const NotificationState = {
+  ACTIVE: 'ACTIVE',
+  RESOLVED: 'RESOLVED'
+} as const
+
+export type NotificationState = (typeof NotificationState)[keyof typeof NotificationState]
+
+
+export const OverviewHistoryJobKind = {
+  AUTOMATIC_IMPORT: 'AUTOMATIC_IMPORT',
+  MANUAL_IMPORT: 'MANUAL_IMPORT',
+  MANUAL_DELETE: 'MANUAL_DELETE'
+} as const
+
+export type OverviewHistoryJobKind = (typeof OverviewHistoryJobKind)[keyof typeof OverviewHistoryJobKind]
+
+
+export const OverviewHistoryJobStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  PAUSED: 'PAUSED',
+  SUCCESS: 'SUCCESS',
+  PARTIAL: 'PARTIAL',
+  FAILURE: 'FAILURE'
+} as const
+
+export type OverviewHistoryJobStatus = (typeof OverviewHistoryJobStatus)[keyof typeof OverviewHistoryJobStatus]

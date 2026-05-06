@@ -52,15 +52,26 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   AppConfig: 'AppConfig',
+  ConfigSyncIgnoreRule: 'ConfigSyncIgnoreRule',
   Instance: 'Instance',
   InstanceSecret: 'InstanceSecret',
   InstanceCertificateTrust: 'InstanceCertificateTrust',
   InstanceSession: 'InstanceSession',
   AuditLog: 'AuditLog',
   ClientDevice: 'ClientDevice',
+  ClientGroup: 'ClientGroup',
+  ClientGroupMembership: 'ClientGroupMembership',
   SyncOperationPreset: 'SyncOperationPreset',
   SyncJob: 'SyncJob',
-  SyncAttempt: 'SyncAttempt'
+  SyncAttempt: 'SyncAttempt',
+  ManagedList: 'ManagedList',
+  ManagedDomain: 'ManagedDomain',
+  RegexFilter: 'RegexFilter',
+  Notification: 'Notification',
+  HistoricalQuery: 'HistoricalQuery',
+  OverviewHistoryJob: 'OverviewHistoryJob',
+  OverviewCoverageWindow: 'OverviewCoverageWindow',
+  PushSubscription: 'PushSubscription'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -84,11 +95,25 @@ export const AppConfigScalarFieldEnum = {
   loginMode: 'loginMode',
   passwordHash: 'passwordHash',
   timeZone: 'timeZone',
+  webPushVapidPublicKey: 'webPushVapidPublicKey',
+  webPushVapidPrivateKeyEncrypted: 'webPushVapidPrivateKeyEncrypted',
+  webPushVapidSubject: 'webPushVapidSubject',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type AppConfigScalarFieldEnum = (typeof AppConfigScalarFieldEnum)[keyof typeof AppConfigScalarFieldEnum]
+
+
+export const ConfigSyncIgnoreRuleScalarFieldEnum = {
+  id: 'id',
+  topic: 'topic',
+  fieldPath: 'fieldPath',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConfigSyncIgnoreRuleScalarFieldEnum = (typeof ConfigSyncIgnoreRuleScalarFieldEnum)[keyof typeof ConfigSyncIgnoreRuleScalarFieldEnum]
 
 
 export const InstanceScalarFieldEnum = {
@@ -180,6 +205,32 @@ export const ClientDeviceScalarFieldEnum = {
 export type ClientDeviceScalarFieldEnum = (typeof ClientDeviceScalarFieldEnum)[keyof typeof ClientDeviceScalarFieldEnum]
 
 
+export const ClientGroupScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClientGroupScalarFieldEnum = (typeof ClientGroupScalarFieldEnum)[keyof typeof ClientGroupScalarFieldEnum]
+
+
+export const ClientGroupMembershipScalarFieldEnum = {
+  groupId: 'groupId',
+  instanceId: 'instanceId',
+  clientKey: 'clientKey',
+  clientDeviceId: 'clientDeviceId',
+  rawClientValue: 'rawClientValue',
+  rawClientName: 'rawClientName',
+  resolvedIps: 'resolvedIps',
+  lastSyncedAt: 'lastSyncedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClientGroupMembershipScalarFieldEnum = (typeof ClientGroupMembershipScalarFieldEnum)[keyof typeof ClientGroupMembershipScalarFieldEnum]
+
+
 export const SyncOperationPresetScalarFieldEnum = {
   id: 'id',
   operationKey: 'operationKey',
@@ -220,6 +271,165 @@ export const SyncAttemptScalarFieldEnum = {
 } as const
 
 export type SyncAttemptScalarFieldEnum = (typeof SyncAttemptScalarFieldEnum)[keyof typeof SyncAttemptScalarFieldEnum]
+
+
+export const ManagedListScalarFieldEnum = {
+  id: 'id',
+  address: 'address',
+  comment: 'comment',
+  type: 'type',
+  groups: 'groups',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ManagedListScalarFieldEnum = (typeof ManagedListScalarFieldEnum)[keyof typeof ManagedListScalarFieldEnum]
+
+
+export const ManagedDomainScalarFieldEnum = {
+  id: 'id',
+  domain: 'domain',
+  type: 'type',
+  kind: 'kind',
+  comment: 'comment',
+  groups: 'groups',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ManagedDomainScalarFieldEnum = (typeof ManagedDomainScalarFieldEnum)[keyof typeof ManagedDomainScalarFieldEnum]
+
+
+export const RegexFilterScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  pattern: 'pattern',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RegexFilterScalarFieldEnum = (typeof RegexFilterScalarFieldEnum)[keyof typeof RegexFilterScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  source: 'source',
+  type: 'type',
+  title: 'title',
+  instanceId: 'instanceId',
+  instanceNameSnapshot: 'instanceNameSnapshot',
+  message: 'message',
+  metadata: 'metadata',
+  state: 'state',
+  isRead: 'isRead',
+  readAt: 'readAt',
+  hiddenAt: 'hiddenAt',
+  resolvedAt: 'resolvedAt',
+  firstSeenAt: 'firstSeenAt',
+  lastSeenAt: 'lastSeenAt',
+  occurredAt: 'occurredAt',
+  occurrenceCount: 'occurrenceCount',
+  sourceFingerprint: 'sourceFingerprint',
+  sourceExternalId: 'sourceExternalId',
+  deleteRequestedAt: 'deleteRequestedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const HistoricalQueryScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  instanceId: 'instanceId',
+  instanceNameSnapshot: 'instanceNameSnapshot',
+  sourceId: 'sourceId',
+  occurredAt: 'occurredAt',
+  domain: 'domain',
+  clientIp: 'clientIp',
+  clientName: 'clientName',
+  clientAlias: 'clientAlias',
+  upstream: 'upstream',
+  queryType: 'queryType',
+  status: 'status',
+  dnssec: 'dnssec',
+  replyType: 'replyType',
+  replyTime: 'replyTime',
+  listId: 'listId',
+  edeCode: 'edeCode',
+  edeText: 'edeText',
+  cname: 'cname',
+  importedAt: 'importedAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type HistoricalQueryScalarFieldEnum = (typeof HistoricalQueryScalarFieldEnum)[keyof typeof HistoricalQueryScalarFieldEnum]
+
+
+export const OverviewHistoryJobScalarFieldEnum = {
+  id: 'id',
+  kind: 'kind',
+  scope: 'scope',
+  instanceId: 'instanceId',
+  instanceNameSnapshot: 'instanceNameSnapshot',
+  requestedFrom: 'requestedFrom',
+  requestedUntil: 'requestedUntil',
+  status: 'status',
+  trigger: 'trigger',
+  requestedBy: 'requestedBy',
+  summary: 'summary',
+  errorMessage: 'errorMessage',
+  queryCount: 'queryCount',
+  deletedCount: 'deletedCount',
+  coverageCount: 'coverageCount',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OverviewHistoryJobScalarFieldEnum = (typeof OverviewHistoryJobScalarFieldEnum)[keyof typeof OverviewHistoryJobScalarFieldEnum]
+
+
+export const OverviewCoverageWindowScalarFieldEnum = {
+  id: 'id',
+  jobId: 'jobId',
+  instanceId: 'instanceId',
+  requestedFrom: 'requestedFrom',
+  requestedUntil: 'requestedUntil',
+  storedFrom: 'storedFrom',
+  storedUntil: 'storedUntil',
+  rowCount: 'rowCount',
+  status: 'status',
+  errorMessage: 'errorMessage',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OverviewCoverageWindowScalarFieldEnum = (typeof OverviewCoverageWindowScalarFieldEnum)[keyof typeof OverviewCoverageWindowScalarFieldEnum]
+
+
+export const PushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  userAgent: 'userAgent',
+  lastSuccessAt: 'lastSuccessAt',
+  lastFailureAt: 'lastFailureAt',
+  failureCount: 'failureCount',
+  disabledAt: 'disabledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
 
 
 export const SortOrder = {

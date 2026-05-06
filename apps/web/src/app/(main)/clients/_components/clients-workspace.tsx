@@ -68,7 +68,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { FRONTEND_CONFIG } from "@/config/frontend-config";
 import { getApiErrorMessage } from "@/lib/api/error-message";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   ClientInstanceDetail,
   ClientListItem,
@@ -326,7 +326,7 @@ function ClientTagsEditor({
 }
 
 export function ClientsWorkspace({ initialData, initialExcludedTags, initialGroups }: Readonly<ClientsWorkspaceProps>) {
-  const client = useMemo(() => getBrowserApiClient(), []);
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const { csrfToken } = useAppSession();
   const { locale, messages, formatFullDateTime } = useWebI18n();
   const [data, setData] = useState(initialData);
@@ -877,7 +877,7 @@ export function ClientsWorkspace({ initialData, initialExcludedTags, initialGrou
               </PopoverTrigger>
               <PopoverContent
                 align="end"
-                className="w-80 space-y-4 rounded-xl border border-border/60 bg-background/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/90"
+                className="w-80 space-y-4 rounded-xl border border-border/60 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/90"
               >
                 <div className="space-y-1">
                   <h3 className="font-medium">{messages.clients.table.hideTags}</h3>

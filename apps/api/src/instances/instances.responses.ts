@@ -61,6 +61,41 @@ const instanceMutationSchema = {
   required: ["id", "name", "baseUrl", "version"],
 };
 
+const instanceVersionComponentReleaseSchema = {
+  type: "object",
+  nullable: true,
+  properties: {
+    version: { type: "string", nullable: true },
+    branch: { type: "string", nullable: true },
+    hash: { type: "string", nullable: true },
+    date: { type: "string", nullable: true },
+  },
+  required: ["version", "branch", "hash", "date"],
+};
+
+const instanceVersionComponentInfoSchema = {
+  type: "object",
+  nullable: true,
+  properties: {
+    local: instanceVersionComponentReleaseSchema,
+    remote: instanceVersionComponentReleaseSchema,
+  },
+  required: ["local", "remote"],
+};
+
+const instanceMemoryInfoSchema = {
+  type: "object",
+  nullable: true,
+  properties: {
+    total: { type: "number", nullable: true },
+    free: { type: "number", nullable: true },
+    used: { type: "number", nullable: true },
+    available: { type: "number", nullable: true },
+    percentUsed: { type: "number", nullable: true },
+  },
+  required: ["total", "free", "used", "available", "percentUsed"],
+};
+
 const instanceWriteProperties = {
   name: {
     type: "string",
@@ -136,6 +171,84 @@ export const INSTANCE_DETAIL_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
   },
 };
 
+export const INSTANCE_INFO_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      instanceId: { type: "string" },
+      fetchedAt: { type: "string", format: "date-time" },
+      version: {
+        type: "object",
+        properties: {
+          summary: { type: "string" },
+          core: instanceVersionComponentInfoSchema,
+          web: instanceVersionComponentInfoSchema,
+          ftl: instanceVersionComponentInfoSchema,
+          docker: instanceVersionComponentInfoSchema,
+        },
+        required: ["summary", "core", "web", "ftl", "docker"],
+      },
+      host: {
+        type: "object",
+        properties: {
+          model: { type: "string", nullable: true },
+          nodename: { type: "string", nullable: true },
+          machine: { type: "string", nullable: true },
+          sysname: { type: "string", nullable: true },
+          release: { type: "string", nullable: true },
+          version: { type: "string", nullable: true },
+          domainname: { type: "string", nullable: true },
+        },
+        required: ["model", "nodename", "machine", "sysname", "release", "version", "domainname"],
+      },
+      system: {
+        type: "object",
+        properties: {
+          uptime: { type: "number", nullable: true },
+          memory: {
+            type: "object",
+            properties: {
+              ram: instanceMemoryInfoSchema,
+              swap: instanceMemoryInfoSchema,
+            },
+            required: ["ram", "swap"],
+          },
+          procs: { type: "number", nullable: true },
+          cpu: {
+            type: "object",
+            nullable: true,
+            properties: {
+              nprocs: { type: "number", nullable: true },
+              percentCpu: { type: "number", nullable: true },
+              load: {
+                type: "object",
+                nullable: true,
+                properties: {
+                  raw: { type: "array", items: { type: "number" }, nullable: true },
+                  percent: { type: "array", items: { type: "number" }, nullable: true },
+                },
+                required: ["raw", "percent"],
+              },
+            },
+            required: ["nprocs", "percentCpu", "load"],
+          },
+          ftl: {
+            type: "object",
+            nullable: true,
+            properties: {
+              percentMem: { type: "number", nullable: true },
+              percentCpu: { type: "number", nullable: true },
+            },
+            required: ["percentMem", "percentCpu"],
+          },
+        },
+        required: ["uptime", "memory", "procs", "cpu", "ftl"],
+      },
+    },
+    required: ["instanceId", "fetchedAt", "version", "host", "system"],
+  },
+};
+
 export const INSTANCES_DISCOVER_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
   schema: {
     type: "object",
@@ -183,6 +296,26 @@ export const INSTANCE_SYNC_MUTATION_API_OK_RESPONSE: ApiResponseNoStatusOptions 
       },
     },
     required: ["instance"],
+  },
+};
+
+export const INSTANCE_PRIMARY_MUTATION_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      instance: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          isBaseline: { type: "boolean" },
+          syncEnabled: { type: "boolean" },
+        },
+        required: ["id", "name", "isBaseline", "syncEnabled"],
+      },
+      previousBaselineId: { type: "string", nullable: true },
+    },
+    required: ["instance", "previousBaselineId"],
   },
 };
 

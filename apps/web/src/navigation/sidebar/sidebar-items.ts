@@ -1,48 +1,62 @@
 import {
   Activity,
+  Bell,
   Binary,
   FileText,
+  Globe,
   LayoutDashboard,
+  List,
   type LucideIcon,
   MonitorSmartphone,
-  ShieldCheck,
-  Users,
+  Settings2,
   Waypoints,
 } from "lucide-react";
 
+import type { NavigationSummaryResponse } from "@/lib/api/yapd-types";
 import type { WebMessages } from "@/lib/i18n/messages";
 
-export interface NavSubItem {
+export type SidebarItem = {
   title: string;
   url: string;
   icon?: LucideIcon;
+  count?: number;
+  isActive?: boolean;
   comingSoon?: boolean;
   newTab?: boolean;
-  isNew?: boolean;
-}
+  subItems?: {
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+    comingSoon?: boolean;
+    newTab?: boolean;
+  }[];
+};
 
-export interface NavMainItem {
-  title: string;
-  url: string;
-  icon?: LucideIcon;
-  subItems?: NavSubItem[];
-  comingSoon?: boolean;
-  newTab?: boolean;
-  isNew?: boolean;
-}
-
-export interface NavGroup {
+export type SidebarGroup = {
   id: number;
   label?: string;
-  items: NavMainItem[];
-}
+  items: SidebarItem[];
+};
 
-export function getSidebarItems(messages: WebMessages): NavGroup[] {
+export type NavMainItem = SidebarItem;
+
+export type NavGroup = SidebarGroup;
+
+export function getSidebarItems(
+  messages: WebMessages,
+  summary?: NavigationSummaryResponse | null,
+  notificationsUnreadCount?: number,
+): NavGroup[] {
   return [
     {
       id: 1,
       label: messages.sidebar.groups.overview,
       items: [
+        {
+          title: messages.layout.overviewButton,
+          url: "/overview",
+          icon: Activity,
+        },
         {
           title: messages.sidebar.items.dashboard,
           url: "/dashboard",
@@ -53,21 +67,6 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
           url: "/queries",
           icon: FileText,
         },
-        {
-          title: messages.sidebar.items.groups,
-          url: "/groups",
-          icon: Users,
-        },
-        {
-          title: messages.sidebar.items.clients,
-          url: "/clients",
-          icon: MonitorSmartphone,
-        },
-        {
-          title: messages.sidebar.items.instances,
-          url: "/instances",
-          icon: Binary,
-        },
       ],
     },
     {
@@ -75,16 +74,37 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
       label: messages.sidebar.groups.operations,
       items: [
         {
-          title: messages.sidebar.items.baselineLogin,
-          url: "/login",
-          icon: ShieldCheck,
-          newTab: true,
+          title: messages.sidebar.items.groups,
+          url: "/groups",
+          icon: Waypoints,
+          count: summary?.groups.total,
         },
         {
-          title: messages.sidebar.items.setupBaseline,
-          url: "/setup",
-          icon: Waypoints,
-          newTab: true,
+          title: messages.sidebar.items.clients,
+          url: "/clients",
+          icon: MonitorSmartphone,
+        },
+        {
+          title: messages.sidebar.items.domains,
+          url: "/domains",
+          icon: Globe,
+          count: summary?.domains.total,
+        },
+        {
+          title: messages.sidebar.items.lists,
+          url: "/lists",
+          icon: List,
+          count: summary?.lists.total,
+        },
+        {
+          title: messages.sidebar.items.instances,
+          url: "/instances",
+          icon: Binary,
+        },
+        {
+          title: messages.sidebar.items.config,
+          url: "/config",
+          icon: Settings2,
         },
       ],
     },
@@ -93,20 +113,10 @@ export function getSidebarItems(messages: WebMessages): NavGroup[] {
       label: messages.sidebar.groups.status,
       items: [
         {
-          title: messages.sidebar.items.apiHealth,
-          url: "/dashboard",
-          icon: Activity,
-        },
-      ],
-    },
-    {
-      id: 4,
-      label: messages.sidebar.groups.status,
-      items: [
-        {
-          title: "teste",
-          url: "/Teste",
-          icon: Activity,
+          title: messages.sidebar.items.notifications,
+          url: "/notifications",
+          icon: Bell,
+          count: notificationsUnreadCount,
         },
       ],
     },

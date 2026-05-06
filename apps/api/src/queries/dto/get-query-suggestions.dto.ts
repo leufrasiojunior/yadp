@@ -1,8 +1,49 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsIn, IsOptional, IsString, MaxLength } from "class-validator";
+import { IsArray, IsBoolean, IsIn, IsNumber, IsOptional, IsString, MaxLength, Min } from "class-validator";
 
 import { QUERIES_SCOPE_VALUES, type QueriesScopeMode } from "../queries.types";
+
+function parseOptionalNumber(value: unknown) {
+  const parsed = typeof value === "string" && value.trim().length === 0 ? Number.NaN : Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseOptionalBoolean(value: unknown) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "true") {
+    return true;
+  }
+
+  if (normalized === "false") {
+    return false;
+  }
+
+  return undefined;
+}
+
+function parseOptionalNumberArray(value: unknown) {
+  const values = Array.isArray(value) ? value : value === undefined || value === null ? [] : [value];
+
+  return [
+    ...new Set(
+      values
+        .flatMap((entry) => `${entry}`.split(","))
+        .map((entry) => Number(entry.trim()))
+        .filter((entry) => Number.isFinite(entry))
+        .map((entry) => Math.max(0, Math.floor(entry))),
+    ),
+  ];
+}
 
 export class GetQuerySuggestionsDto {
   @ApiPropertyOptional({ enum: QUERIES_SCOPE_VALUES, default: "all" })
@@ -15,4 +56,74 @@ export class GetQuerySuggestionsDto {
   @IsString()
   @MaxLength(191)
   instanceId?: string;
+
+  @ApiPropertyOptional({ example: 1774911000 })
+  @Transform(({ value }) => parseOptionalNumber(value))
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  from?: number;
+
+  @ApiPropertyOptional({ example: 1774912000 })
+  @Transform(({ value }) => parseOptionalNumber(value))
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  until?: number;
+
+  @ApiPropertyOptional({ type: [Number], name: "groupIds" })
+  @Transform(({ value }) => parseOptionalNumberArray(value))
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @Min(0, { each: true })
+  groupIds?: number[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  domain?: string;
+
+  @ApiPropertyOptional({ name: "client_ip" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  client_ip?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(512)
+  upstream?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  type?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  status?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  reply?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  dnssec?: string;
+
+  @ApiPropertyOptional({ default: false })
+  @Transform(({ value }) => parseOptionalBoolean(value))
+  @IsOptional()
+  @IsBoolean()
+  disk?: boolean;
 }

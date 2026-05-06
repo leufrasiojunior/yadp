@@ -18,7 +18,9 @@ import {
   CREATE_INSTANCE_API_BODY,
   DISCOVER_INSTANCES_API_BODY,
   INSTANCE_DETAIL_API_OK_RESPONSE,
+  INSTANCE_INFO_API_OK_RESPONSE,
   INSTANCE_MUTATION_API_OK_RESPONSE,
+  INSTANCE_PRIMARY_MUTATION_API_OK_RESPONSE,
   INSTANCE_REAUTHENTICATE_API_OK_RESPONSE,
   INSTANCE_SYNC_MUTATION_API_OK_RESPONSE,
   INSTANCE_TEST_API_OK_RESPONSE,
@@ -59,6 +61,13 @@ export class InstancesController {
   @ApiOkResponse(INSTANCE_DETAIL_API_OK_RESPONSE)
   getInstance(@Param() params: InstanceIdParamsDto, @Req() request: Request) {
     return this.instancesService.getInstance(params.id, request);
+  }
+
+  @Get(":id/info")
+  @ApiParam(InstancesController.INSTANCE_ID_PARAM)
+  @ApiOkResponse(INSTANCE_INFO_API_OK_RESPONSE)
+  getInstanceInfo(@Param() params: InstanceIdParamsDto, @Req() request: Request) {
+    return this.instancesService.getInstanceInfo(params.id, request);
   }
 
   @Post("discover")
@@ -113,5 +122,13 @@ export class InstancesController {
     @Req() request: Request,
   ) {
     return this.instancesService.updateInstanceSync(params.id, body, request);
+  }
+
+  @Patch(":id/primary")
+  @UseGuards(CsrfGuard)
+  @ApiParam(InstancesController.INSTANCE_ID_PARAM)
+  @ApiOkResponse(INSTANCE_PRIMARY_MUTATION_API_OK_RESPONSE)
+  promotePrimaryInstance(@Param() params: InstanceIdParamsDto, @Req() request: Request) {
+    return this.instancesService.promotePrimaryInstance(params.id, request);
   }
 }

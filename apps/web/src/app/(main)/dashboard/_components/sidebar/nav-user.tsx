@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { getBrowserApiClient } from "@/lib/api/yapd-client";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import { useWebI18n } from "@/lib/i18n/client";
 import { getInitials } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export function NavUser({
   const { messages } = useWebI18n();
 
   const handleLogout = async () => {
-    const client = getBrowserApiClient();
+    const client = getAuthenticatedBrowserApiClient();
     const { response } = await client.DELETE("/session");
 
     if (!response.ok) {

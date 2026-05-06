@@ -5,6 +5,7 @@ import { AppEnvService } from "../config/app-env";
 import type { PiholeConnection } from "./pihole.types";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createHash } from "node:crypto";
+import { performance } from "node:perf_hooks";
 
 type PiholeWorkJob = {
   id: number;
@@ -77,7 +78,7 @@ export class PiholeWorkCoordinatorService {
         id: jobId,
         operation: options.operation,
         keys: normalizedKeys,
-        enqueuedAt: Date.now(),
+        enqueuedAt: performance.now(),
         execute: () => options.execute(),
         resolve: (value) => resolve(value as T),
         reject,
@@ -130,7 +131,7 @@ export class PiholeWorkCoordinatorService {
       this.activeKeyCounts.set(key, (this.activeKeyCounts.get(key) ?? 0) + 1);
     }
 
-    const waitMs = Date.now() - job.enqueuedAt;
+    const waitMs = Math.round(performance.now() - job.enqueuedAt);
 
     this.logger.debug(
       `[work:${job.id}] start operation=${job.operation} keys=${job.keys.join(",")} waitMs=${waitMs} runSlots=${this.runningCount} queuedCount=${this.queue.length}`,
@@ -140,18 +141,18 @@ export class PiholeWorkCoordinatorService {
   }
 
   private async executeJob(job: PiholeWorkJob, waitMs: number) {
-    const startedAt = Date.now();
+    const startedAt = performance.now();
 
     try {
       const result = await this.contextStorage.run({ keys: new Set(job.keys) }, () => job.execute());
       job.resolve(result);
       this.logger.debug(
-        `[work:${job.id}] success operation=${job.operation} keys=${job.keys.join(",")} waitMs=${waitMs} runMs=${Date.now() - startedAt} globalRunning=${this.runningCount} queuedCount=${this.queue.length}`,
+        `[work:${job.id}] success operation=${job.operation} keys=${job.keys.join(",")} waitMs=${waitMs} runMs=${Math.round(performance.now() - startedAt)} globalRunning=${this.runningCount} queuedCount=${this.queue.length}`,
       );
     } catch (error) {
       job.reject(error);
       this.logger.warn(
-        `[work:${job.id}] failure operation=${job.operation} keys=${job.keys.join(",")} waitMs=${waitMs} runMs=${Date.now() - startedAt} globalRunning=${this.runningCount} queuedCount=${this.queue.length}`,
+        `[work:${job.id}] failure operation=${job.operation} keys=${job.keys.join(",")} waitMs=${waitMs} runMs=${Math.round(performance.now() - startedAt)} globalRunning=${this.runningCount} queuedCount=${this.queue.length}`,
         error instanceof Error ? error.stack : undefined,
       );
     } finally {

@@ -18,12 +18,12 @@ export default async function GroupsPage() {
           <p className="mt-2 text-muted-foreground">{messages.groups.description}</p>
         </div>
 
-        <GroupsWorkspace initialItems={groups.items} initialSource={groups.source} />
+        <GroupsWorkspace initialData={groups} />
       </div>
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
-      return <ApiUnavailableScreen apiBaseUrl={error.baseUrl} fullscreen={false} locale={locale} retryHref="/groups" />;
+      return <ApiUnavailableScreen fullscreen={false} locale={locale} retryHref="/groups" />;
     }
 
     if (isYapdApiResponseError(error)) {

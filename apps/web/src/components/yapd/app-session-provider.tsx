@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
+
+import { redirectToLogin } from "@/lib/api/yapd-client";
 
 export type AppSession = {
   authenticated: true;
@@ -43,6 +45,29 @@ export function AppSessionProvider({
   children: React.ReactNode;
   session: AppSession;
 }>) {
+  useEffect(() => {
+    const expiresAt = new Date(session.expiresAt).getTime();
+
+    if (!Number.isFinite(expiresAt)) {
+      return;
+    }
+
+    const remainingMs = expiresAt - Date.now();
+
+    if (remainingMs <= 0) {
+      redirectToLogin();
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      redirectToLogin();
+    }, remainingMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [session.expiresAt]);
+
   return <AppSessionContext.Provider value={session}>{children}</AppSessionContext.Provider>;
 }
 

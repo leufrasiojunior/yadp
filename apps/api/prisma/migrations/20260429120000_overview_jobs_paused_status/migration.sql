@@ -1,0 +1,1 @@
+ALTER TYPE "OverviewHistoryJobStatus" ADD VALUE IF NOT EXISTS 'PAUSED';

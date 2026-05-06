@@ -39,6 +39,70 @@ export type PiholeVersionInfo = {
   raw: unknown;
 };
 
+export type PiholeVersionComponentRelease = {
+  version: string | null;
+  branch: string | null;
+  hash: string | null;
+  date: string | null;
+};
+
+export type PiholeVersionComponentInfo = {
+  local: PiholeVersionComponentRelease | null;
+  remote: PiholeVersionComponentRelease | null;
+};
+
+export type PiholeVersionDetails = PiholeVersionInfo & {
+  core: PiholeVersionComponentInfo | null;
+  web: PiholeVersionComponentInfo | null;
+  ftl: PiholeVersionComponentInfo | null;
+  docker: PiholeVersionComponentInfo | null;
+};
+
+export type PiholeHostInfo = {
+  model: string | null;
+  nodename: string | null;
+  machine: string | null;
+  sysname: string | null;
+  release: string | null;
+  version: string | null;
+  domainname: string | null;
+};
+
+export type PiholeMemoryInfo = {
+  total: number | null;
+  free: number | null;
+  used: number | null;
+  available: number | null;
+  percentUsed: number | null;
+};
+
+export type PiholeSystemCpuLoad = {
+  raw: number[] | null;
+  percent: number[] | null;
+};
+
+export type PiholeSystemCpuInfo = {
+  nprocs: number | null;
+  percentCpu: number | null;
+  load: PiholeSystemCpuLoad | null;
+};
+
+export type PiholeSystemFtlInfo = {
+  percentMem: number | null;
+  percentCpu: number | null;
+};
+
+export type PiholeSystemInfo = {
+  uptime: number | null;
+  memory: {
+    ram: PiholeMemoryInfo | null;
+    swap: PiholeMemoryInfo | null;
+  };
+  procs: number | null;
+  cpu: PiholeSystemCpuInfo | null;
+  ftl: PiholeSystemFtlInfo | null;
+};
+
 export type PiholeDiscoveryResult = {
   baseUrl: string;
   authRequired: boolean;
@@ -192,6 +256,19 @@ export type PiholeQuerySuggestionsResult = {
   took: number | null;
 };
 
+export type PiholeInfoMessage = {
+  id: number;
+  timestamp: number;
+  type: string;
+  plain: string;
+  html: string | null;
+};
+
+export type PiholeInfoMessagesResult = {
+  messages: PiholeInfoMessage[];
+  took: number | null;
+};
+
 export const PIHOLE_DOMAIN_OPERATION_TYPES = ["allow", "deny"] as const;
 export const PIHOLE_DOMAIN_OPERATION_KINDS = ["exact", "regex"] as const;
 
@@ -237,6 +314,13 @@ export type PiholeDomainOperationResult = {
   };
   took: number | null;
 };
+
+export type PiholeDomainListResult = {
+  domains: PiholeManagedDomainEntry[];
+  took: number | null;
+};
+
+export type PiholeDomainMutationResult = PiholeDomainOperationResult;
 
 export type PiholeGroupCreateRequest = {
   names: string[];
@@ -352,4 +436,105 @@ export type PiholeNetworkDevice = {
 export type PiholeNetworkDevicesResult = {
   devices: PiholeNetworkDevice[];
   took: number | null;
+};
+
+export type PiholeListType = "allow" | "block";
+
+export type PiholeListCreateRequest = {
+  address: string;
+  type: PiholeListType;
+  comment?: string | null;
+  groups: number[];
+  enabled?: boolean;
+};
+
+export type PiholeListUpdateRequest = {
+  comment?: string | null;
+  type: PiholeListType;
+  groups: number[];
+  enabled: boolean;
+};
+
+export type PiholeManagedListEntry = {
+  address: string | null;
+  comment: string | null;
+  groups: number[];
+  enabled: boolean | null;
+  id: number | null;
+  dateAdded: number | null;
+  dateModified: number | null;
+  type: PiholeListType | null;
+  dateUpdated: number | null;
+  number: number | null;
+  invalidDomains: number | null;
+  abpEntries: number | null;
+  status: number | null;
+};
+
+export type PiholeListListResult = {
+  lists: PiholeManagedListEntry[];
+  took: number | null;
+};
+
+export type PiholeListMutationResult = {
+  lists: PiholeManagedListEntry[];
+  processed: {
+    errors: PiholeGroupOperationProcessedError[];
+    success: PiholeGroupOperationProcessedSuccess[];
+  };
+  took: number | null;
+};
+
+export const PIHOLE_CONFIG_TOPICS = [
+  "dns",
+  "dhcp",
+  "ntp",
+  "resolver",
+  "database",
+  "webserver",
+  "files",
+  "misc",
+  "debug",
+] as const;
+
+export type PiholeConfigTopicName = (typeof PIHOLE_CONFIG_TOPICS)[number];
+
+export type PiholeConfigOptionFlags = {
+  restart_dnsmasq: boolean;
+  session_reset: boolean;
+  env_var: boolean;
+};
+
+export type PiholeConfigOption = {
+  description: string | null;
+  allowed: unknown;
+  type: string | null;
+  value: unknown;
+  default: unknown;
+  modified: boolean;
+  flags: PiholeConfigOptionFlags;
+};
+
+export interface PiholeConfigDetailedTopic {
+  [key: string]: PiholeConfigDetailedNode;
+}
+
+export type PiholeConfigDetailedNode = PiholeConfigOption | PiholeConfigDetailedTopic;
+
+export type PiholeConfigTopicDescriptor = {
+  name: PiholeConfigTopicName;
+  title: string | null;
+  description: string | null;
+};
+
+export type PiholeConfigDetailedResult = {
+  topics: PiholeConfigTopicDescriptor[];
+  config: Partial<Record<PiholeConfigTopicName, PiholeConfigDetailedTopic>>;
+  took: number | null;
+};
+
+export type PiholeTeleporterExport = {
+  filename: string;
+  contentType: string;
+  data: Buffer;
 };

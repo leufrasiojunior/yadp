@@ -25,7 +25,6 @@
 # misc
 .DS_Store
 *.pem
-*.sh
 
 # debug
 npm-debug.log*
@@ -45,3 +44,9 @@ next-env.d.ts
 
 #Miscelanious
 .codex
+
+
+GEMINI.md
+.codex
+AGENTS.md
+copilot-instructions.md

@@ -28,6 +28,22 @@ export const THEME_PRESET_OPTIONS = [
     },
   },
   {
+    label: "Cafeine",
+    value: "cafeine",
+    primary: {
+      light: "oklch(0.4341 0.0392 41.9938)",
+      dark: "oklch(0.9247 0.0524 66.1732)",
+    },
+  },
+  {
+    label: "Cyberpunk",
+    value: "cyberpunk",
+    primary: {
+      light: "oklch(0.6726 0.2904 341.4084)",
+      dark: "oklch(0.6726 0.2904 341.4084)",
+    },
+  },
+  {
     label: "Soft Pop",
     value: "soft-pop",
     primary: {

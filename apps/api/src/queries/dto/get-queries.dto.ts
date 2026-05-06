@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, MaxLength, Min } from "class-validator";
+import { IsArray, IsBoolean, IsIn, IsNumber, IsOptional, IsString, MaxLength, Min } from "class-validator";
 
 import {
   DEFAULT_QUERIES_LENGTH,
@@ -45,6 +45,20 @@ function parseOptionalBoolean(value: unknown) {
   }
 
   return undefined;
+}
+
+function parseOptionalNumberArray(value: unknown) {
+  const values = Array.isArray(value) ? value : value === undefined || value === null ? [] : [value];
+
+  return [
+    ...new Set(
+      values
+        .flatMap((entry) => `${entry}`.split(","))
+        .map((entry) => Number(entry.trim()))
+        .filter((entry) => Number.isFinite(entry))
+        .map((entry) => Math.max(0, Math.floor(entry))),
+    ),
+  ];
 }
 
 export class GetQueriesDto {
@@ -105,6 +119,14 @@ export class GetQueriesDto {
   @IsString()
   @MaxLength(512)
   client_ip?: string;
+
+  @ApiPropertyOptional({ type: [Number], name: "groupIds" })
+  @Transform(({ value }) => parseOptionalNumberArray(value))
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @Min(0, { each: true })
+  groupIds?: number[];
 
   @ApiPropertyOptional()
   @IsOptional()
