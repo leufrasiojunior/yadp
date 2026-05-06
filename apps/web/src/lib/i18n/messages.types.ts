@@ -557,7 +557,17 @@ export type WebMessages = {
       OVERVIEW_IMPORT_FAILURE: string;
       OVERVIEW_DELETE_SUCCESS: string;
       OVERVIEW_DELETE_FAILURE: string;
+      OVERVIEW_COVERAGE_RENEWED: string;
       unknown: (type: string) => string;
+    };
+    failureTitles: {
+      invalid_credentials: string;
+      tls_error: string;
+      timeout: string;
+      dns_error: string;
+      connection_refused: string;
+      pihole_response_error: string;
+      unknown: string;
     };
   };
   overview: {
@@ -615,6 +625,8 @@ export type WebMessages = {
       unavailable: string;
       emptyTitle: string;
       emptyDescription: string;
+      completedEmptyTitle: string;
+      completedEmptyDescription: string;
       capturedQueries: (count: number) => string;
       period: (from: string, until: string) => string;
       expiresAt: (value: string) => string;
@@ -623,6 +635,9 @@ export type WebMessages = {
       expiringSoonTitle: string;
       expiringSoonDescription: (count: string) => string;
       expiringSoonBadge: string;
+      paginationPrevious: string;
+      paginationNext: string;
+      paginationStatus: (page: string, totalPages: string) => string;
     };
     ranking: {
       title: string;
@@ -637,11 +652,57 @@ export type WebMessages = {
       emptyImportedDescription: string;
       selectLabel: string;
       selectPlaceholder: string;
+      domainFilter: string;
+      domainPlaceholder: string;
+      clientFilter: string;
+      allClients: string;
+      groupBy: string;
+      groupByValues: {
+        hour: string;
+        day: string;
+      };
+      applyFilters: string;
+      clearFilters: string;
       nativeWindowNoticeTitle: string;
       nativeWindowNoticeDescription: string;
+      statusDistributionTitle: string;
+      statusDistributionDescription: string;
+      kpis: {
+        peakQueries: string;
+        peakBlocked: string;
+        topDomain: string;
+        topClient: string;
+        topUpstream: string;
+        topStatus: string;
+        noValue: string;
+      };
+      analytics: {
+        contextTitle: string;
+        filteredContextTitle: string;
+        contextDescription: (from: string, until: string) => string;
+        clientContext: (clientIp: string) => string;
+        domainContext: (domain: string) => string;
+        groupContext: (group: string) => string;
+        allowedQueries: string;
+        blockedQueries: string;
+        topDomainsShareTitle: string;
+        topDomainsShareDescription: string;
+        topClientsShareTitle: string;
+        topClientsShareDescription: string;
+        hourlyAccessTitle: string;
+        hourlyAccessDescription: string;
+        hourlyAccessUnavailable: string;
+        hourlyAccessPeak: (hour: string, count: string) => string;
+        domainColumn: string;
+        totalColumn: string;
+        percentageColumn: string;
+        other: string;
+      };
       domains: string;
       clients: string;
       upstreams: string;
+      showUpstreams: string;
+      hideUpstreams: string;
       statuses: string;
       value: string;
       queries: string;
@@ -654,6 +715,14 @@ export type WebMessages = {
       refreshing: string;
       emptyTitle: string;
       emptyDescription: string;
+      filteredEmptyTitle: string;
+      filteredEmptyDescription: string;
+      statusFilterTitle: string;
+      statusFilterValues: {
+        SUCCESS: string;
+        PARTIAL: string;
+        FAILURE: string;
+      };
       status: string;
       type: string;
       period: string;
@@ -670,6 +739,8 @@ export type WebMessages = {
       detailsTitle: string;
       detailsDescription: (from: string, until: string) => string;
       detailsLoading: string;
+      detailsLive: string;
+      detailsUpdatedAt: (value: string) => string;
       detailsTabSummary: string;
       detailsTabInstances: string;
       detailsTabTimeline: string;

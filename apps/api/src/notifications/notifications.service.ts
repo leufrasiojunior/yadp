@@ -57,10 +57,9 @@ type SystemNotificationInput = {
   incrementOccurrence?: boolean;
 };
 
-type NotificationFailure = {
-  kind: PiholeRequestErrorKind;
-  title?: string;
-  message: string;
+type TransportFailureDetails = {
+  code?: string;
+  message?: string;
 };
 
 type VapidConfig = {
@@ -72,6 +71,34 @@ type VapidConfig = {
 
 const PIHOLE_TYPE_SET = new Set(BACKEND_CONFIG.notifications.piholeMessageTypes);
 const NOTIFICATION_PAGE_SIZE_MAX = 100;
+const DEFAULT_NOTIFICATION_TITLES: Partial<Record<string, string>> = {
+  RATE_LIMIT: "Rate limit",
+  CONNECTION_ERROR: "Erro de conexão",
+  CLIENTS_FAILURE: "Falha em clientes",
+  DOMAINS_FAILURE: "Falha em domínios",
+  GROUPS_FAILURE: "Falha em grupos",
+  INSTANCES_FAILURE: "Falha em instâncias",
+  LISTS_FAILURE: "Falha em listas",
+  NOTIFICATION_SYNC_ERROR: "Falha no coletor",
+  INSTANCE_SESSION_ERROR: "Falha de sessão",
+  SYNC_FAILURE: "Falha de sincronismo",
+  SYSTEM_FAILURE: "Falha de sistema",
+  OVERVIEW_IMPORT_SUCCESS: "Importação do overview concluída",
+  OVERVIEW_IMPORT_PARTIAL: "Importação parcial do overview",
+  OVERVIEW_IMPORT_FAILURE: "Falha na importação do overview",
+  OVERVIEW_DELETE_SUCCESS: "Exclusão do overview concluída",
+  OVERVIEW_DELETE_FAILURE: "Falha na exclusão do overview",
+  OVERVIEW_COVERAGE_RENEWED: "Cobertura do overview renovada",
+};
+const FAILURE_TITLES: Record<PiholeRequestErrorKind, string> = {
+  invalid_credentials: "Credenciais inválidas",
+  tls_error: "Erro TLS",
+  timeout: "Timeout de conexão",
+  dns_error: "Erro de DNS",
+  connection_refused: "Conexão recusada",
+  pihole_response_error: "Erro retornado pelo Pi-hole",
+  unknown: "Falha ao alcançar a instância",
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -98,6 +125,75 @@ function sanitizeTransportCauseMessage(value: string) {
     .replace(/:\s*:/g, ": ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function normalizeComparableText(value: string) {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function isTlsTransportCode(value: string) {
+  const normalized = value.toUpperCase();
+  return normalized.includes("SSL") || normalized.includes("TLS") || normalized.includes("CERT");
+}
+
+function appendTechnicalDetail(message: string, detail: string) {
+  const cleanMessage = readString(message);
+  const cleanDetail = readString(detail);
+
+  if (cleanDetail.length === 0) {
+    return cleanMessage;
+  }
+
+  if (cleanMessage.length === 0) {
+    return `Detalhe técnico: ${cleanDetail}.`;
+  }
+
+  if (normalizeComparableText(cleanMessage).includes(normalizeComparableText(cleanDetail))) {
+    return cleanMessage;
+  }
+
+  const separator = /[.!?]$/.test(cleanMessage) ? " " : ". ";
+  return `${cleanMessage}${separator}Detalhe técnico: ${cleanDetail}.`;
+}
+
+function formatTechnicalDetail(details: TransportFailureDetails | null) {
+  if (!details) {
+    return "";
+  }
+
+  const code = readString(details.code);
+  const message = readString(details.message);
+
+  if (code.length === 0) {
+    return message;
+  }
+
+  if (message.length === 0 || normalizeComparableText(message) === normalizeComparableText(code)) {
+    return code;
+  }
+
+  return `${code} - ${message}`;
+}
+
+function parseFailureKind(value: unknown): PiholeRequestErrorKind | null {
+  switch (readString(value)) {
+    case "invalid_credentials":
+      return "invalid_credentials";
+    case "tls_error":
+      return "tls_error";
+    case "timeout":
+      return "timeout";
+    case "dns_error":
+      return "dns_error";
+    case "connection_refused":
+      return "connection_refused";
+    case "pihole_response_error":
+      return "pihole_response_error";
+    case "unknown":
+      return "unknown";
+    default:
+      return null;
+  }
 }
 
 function readFailedInstanceEntries(value: unknown) {
@@ -740,7 +836,7 @@ export class NotificationsService implements OnModuleInit {
       await this.prisma.notification.update({
         where: { id: existing.id },
         data: {
-          title: message.type,
+          title: null,
           message: message.plain,
           instanceNameSnapshot: instance.name,
           lastSeenAt: now,
@@ -757,7 +853,7 @@ export class NotificationsService implements OnModuleInit {
       data: {
         source: "PIHOLE",
         type: message.type,
-        title: message.type,
+        title: null,
         instanceId: instance.id,
         instanceNameSnapshot: instance.name,
         message: message.plain,
@@ -902,7 +998,7 @@ export class NotificationsService implements OnModuleInit {
       id: record.id,
       source: record.source as NotificationSource,
       type: record.type,
-      title: this.resolveNotificationTitle(record),
+      title: this.resolveExplicitNotificationTitle(record),
       instanceId: record.instanceId ?? null,
       instanceName: record.instanceNameSnapshot ?? null,
       message: record.message,
@@ -961,28 +1057,30 @@ export class NotificationsService implements OnModuleInit {
 
   private mapNotificationFailure(instance: PiholeManagedInstanceSummary, error: unknown) {
     if (error instanceof PiholeRequestError) {
-      const transportFailure = this.extractTransportFailure(error);
+      const transportFailure = this.extractTransportFailureDetails(error);
       return {
         kind: error.kind,
-        title: transportFailure?.title,
-        message: transportFailure?.message ?? error.message,
+        title: this.resolveFailureTitle(error.kind, transportFailure),
+        message: this.resolveFailureMessage(error.message, transportFailure),
       };
     }
 
     if (error instanceof Error) {
       return {
         kind: "unknown" as PiholeRequestErrorKind,
+        title: FAILURE_TITLES.unknown,
         message: error.message,
       };
     }
 
     return {
       kind: "unknown" as PiholeRequestErrorKind,
+      title: FAILURE_TITLES.unknown,
       message: translateApi(DEFAULT_API_LOCALE, "pihole.unreachable", { baseUrl: instance.baseUrl }),
     };
   }
 
-  private extractTransportFailure(error: PiholeRequestError): Pick<NotificationFailure, "title" | "message"> | null {
+  private extractTransportFailureDetails(error: PiholeRequestError): TransportFailureDetails | null {
     const payload = isRecord(error.payload) ? error.payload : null;
     const cause = payload && isRecord(payload.cause) ? payload.cause : null;
 
@@ -990,23 +1088,54 @@ export class NotificationsService implements OnModuleInit {
       return null;
     }
 
-    const title = readString(cause.code) || readString(cause.causeCode);
+    const code = readString(cause.code) || readString(cause.causeCode);
     const rawMessage = readString(cause.causeMessage);
-    const message = rawMessage.length > 0 ? sanitizeTransportCauseMessage(rawMessage) : readString(error.message);
+    const message = rawMessage.length > 0 ? sanitizeTransportCauseMessage(rawMessage) : "";
 
-    if (title.length === 0 && message.length === 0) {
+    if (code.length === 0 && message.length === 0) {
       return null;
     }
 
     return {
-      ...(title.length > 0 ? { title } : {}),
-      message: message.length > 0 ? message : error.message,
+      ...(code.length > 0 ? { code } : {}),
+      ...(message.length > 0 ? { message } : {}),
     };
   }
 
-  private resolveNotificationTitle(record: Pick<NotificationRecord, "title" | "type">) {
+  private resolveFailureTitle(kind: PiholeRequestErrorKind, details: TransportFailureDetails | null) {
+    const code = readString(details?.code);
+
+    if (code.length > 0 && isTlsTransportCode(code)) {
+      return FAILURE_TITLES.tls_error;
+    }
+
+    return FAILURE_TITLES[kind] ?? FAILURE_TITLES.unknown;
+  }
+
+  private resolveFailureMessage(message: string, details: TransportFailureDetails | null) {
+    const detail = formatTechnicalDetail(details);
+    return appendTechnicalDetail(message, detail);
+  }
+
+  private resolveExplicitNotificationTitle(record: Pick<NotificationRecord, "title">) {
+    return readString(record.title);
+  }
+
+  private resolveNotificationTitle(record: Pick<NotificationRecord, "title" | "type" | "metadata">) {
     const explicitTitle = readString(record.title);
-    return explicitTitle.length > 0 ? explicitTitle : record.type;
+
+    if (explicitTitle.length > 0) {
+      return explicitTitle;
+    }
+
+    const metadata = isRecord(record.metadata) ? record.metadata : null;
+    const kind = parseFailureKind(metadata?.kind);
+
+    if (kind) {
+      return FAILURE_TITLES[kind];
+    }
+
+    return DEFAULT_NOTIFICATION_TITLES[record.type] ?? record.type;
   }
 
   private getInstancePollFingerprint(instanceId: string) {

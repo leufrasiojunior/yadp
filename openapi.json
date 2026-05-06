@@ -42,6 +42,7 @@
                               "OVERVIEW_IMPORT_FAILURE",
                               "OVERVIEW_DELETE_SUCCESS",
                               "OVERVIEW_DELETE_FAILURE",
+                              "OVERVIEW_COVERAGE_RENEWED",
                               "RATE_LIMIT",
                               "CONNECTION_ERROR"
                             ]
@@ -204,6 +205,7 @@
                               "OVERVIEW_IMPORT_FAILURE",
                               "OVERVIEW_DELETE_SUCCESS",
                               "OVERVIEW_DELETE_FAILURE",
+                              "OVERVIEW_COVERAGE_RENEWED",
                               "RATE_LIMIT",
                               "CONNECTION_ERROR"
                             ]
@@ -351,6 +353,7 @@
                             "OVERVIEW_IMPORT_FAILURE",
                             "OVERVIEW_DELETE_SUCCESS",
                             "OVERVIEW_DELETE_FAILURE",
+                            "OVERVIEW_COVERAGE_RENEWED",
                             "RATE_LIMIT",
                             "CONNECTION_ERROR"
                           ]
@@ -515,6 +518,7 @@
                             "OVERVIEW_IMPORT_FAILURE",
                             "OVERVIEW_DELETE_SUCCESS",
                             "OVERVIEW_DELETE_FAILURE",
+                            "OVERVIEW_COVERAGE_RENEWED",
                             "RATE_LIMIT",
                             "CONNECTION_ERROR"
                           ]

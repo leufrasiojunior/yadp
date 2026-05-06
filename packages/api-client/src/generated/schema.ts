@@ -724,6 +724,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/overview/coverage/renew": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["OverviewController_renewCoverage"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/overview/jobs/{id}/retry": {
     parameters: {
       query?: never;
@@ -1059,6 +1075,7 @@ export interface operations {
                 | "OVERVIEW_IMPORT_FAILURE"
                 | "OVERVIEW_DELETE_SUCCESS"
                 | "OVERVIEW_DELETE_FAILURE"
+                | "OVERVIEW_COVERAGE_RENEWED"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
               title: string;
@@ -1133,6 +1150,7 @@ export interface operations {
                 | "OVERVIEW_IMPORT_FAILURE"
                 | "OVERVIEW_DELETE_SUCCESS"
                 | "OVERVIEW_DELETE_FAILURE"
+                | "OVERVIEW_COVERAGE_RENEWED"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
               title: string;
@@ -1202,6 +1220,7 @@ export interface operations {
                 | "OVERVIEW_IMPORT_FAILURE"
                 | "OVERVIEW_DELETE_SUCCESS"
                 | "OVERVIEW_DELETE_FAILURE"
+                | "OVERVIEW_COVERAGE_RENEWED"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
               title: string;
@@ -1288,6 +1307,7 @@ export interface operations {
                 | "OVERVIEW_IMPORT_FAILURE"
                 | "OVERVIEW_DELETE_SUCCESS"
                 | "OVERVIEW_DELETE_FAILURE"
+                | "OVERVIEW_COVERAGE_RENEWED"
                 | "RATE_LIMIT"
                 | "CONNECTION_ERROR";
               title: string;
@@ -3519,6 +3539,24 @@ export interface operations {
     requestBody?: never;
     responses: {
       /** @description Enqueued overview history job. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  OverviewController_renewCoverage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Renewed overview coverage retention without refetching data. */
       200: {
         headers: {
           [name: string]: unknown;
