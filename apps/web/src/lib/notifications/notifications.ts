@@ -35,6 +35,15 @@ type OverviewNotificationMetadata = {
   expiresAt?: string;
 };
 
+type NotificationFailureKind =
+  | "invalid_credentials"
+  | "tls_error"
+  | "timeout"
+  | "dns_error"
+  | "connection_refused"
+  | "pihole_response_error"
+  | "unknown";
+
 function isOverviewNotificationType(type: NotificationItem["type"]): type is OverviewNotificationType {
   return (
     type === "OVERVIEW_IMPORT_SUCCESS" ||
@@ -56,6 +65,59 @@ function readString(value: unknown) {
 
 function readNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function parseNotificationFailureKind(value: unknown): NotificationFailureKind | null {
+  switch (readString(value)) {
+    case "invalid_credentials":
+      return "invalid_credentials";
+    case "tls_error":
+      return "tls_error";
+    case "timeout":
+      return "timeout";
+    case "dns_error":
+      return "dns_error";
+    case "connection_refused":
+      return "connection_refused";
+    case "pihole_response_error":
+      return "pihole_response_error";
+    case "unknown":
+      return "unknown";
+    default:
+      return null;
+  }
+}
+
+function inferFailureKindFromTechnicalTitle(title: string): NotificationFailureKind | null {
+  const normalized = title.trim().toUpperCase();
+
+  if (normalized === "ECONNREFUSED" || normalized === "ECONREFUSED") {
+    return "connection_refused";
+  }
+
+  if (normalized === "ETIMEDOUT" || normalized === "UND_ERR_CONNECT_TIMEOUT") {
+    return "timeout";
+  }
+
+  if (normalized === "ENOTFOUND" || normalized === "EAI_AGAIN") {
+    return "dns_error";
+  }
+
+  if (normalized.includes("SSL") || normalized.includes("TLS") || normalized.includes("CERT")) {
+    return "tls_error";
+  }
+
+  return null;
+}
+
+function getNotificationFailureKind(item: NotificationItem, title: string): NotificationFailureKind | null {
+  const metadataKind = isRecord(item.metadata) ? parseNotificationFailureKind(item.metadata.kind) : null;
+  return metadataKind ?? inferFailureKindFromTechnicalTitle(title);
+}
+
+function getNotificationFailureTitle(item: NotificationItem, title: string, messages: WebMessages) {
+  const kind = getNotificationFailureKind(item, title);
+  return kind ? messages.notifications.failureTitles[kind] : null;
 }
 
 function parseOverviewNotificationMetadata(item: NotificationItem): OverviewNotificationMetadata | null {
@@ -127,6 +189,8 @@ export function getNotificationTypeLabel(type: NotificationItem["type"], message
       return messages.notifications.types.OVERVIEW_DELETE_SUCCESS;
     case "OVERVIEW_DELETE_FAILURE":
       return messages.notifications.types.OVERVIEW_DELETE_FAILURE;
+    case "OVERVIEW_COVERAGE_RENEWED":
+      return messages.notifications.types.OVERVIEW_COVERAGE_RENEWED;
     default:
       return messages.notifications.types.unknown(type);
   }
@@ -137,7 +201,14 @@ export function getNotificationTitle(item: NotificationItem, messages: WebMessag
     return getNotificationTypeLabel(item.type, messages);
   }
 
-  return item.title?.trim().length ? item.title : getNotificationTypeLabel(item.type, messages);
+  const title = item.title?.trim() ?? "";
+  const failureTitle = getNotificationFailureTitle(item, title, messages);
+
+  if (failureTitle && (title.length === 0 || title === item.type || inferFailureKindFromTechnicalTitle(title))) {
+    return failureTitle;
+  }
+
+  return title.length && title !== item.type ? title : getNotificationTypeLabel(item.type, messages);
 }
 
 export function getNotificationInstanceLabel(item: NotificationItem, messages: WebMessages) {

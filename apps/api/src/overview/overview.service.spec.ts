@@ -232,6 +232,33 @@ test("deleteJob removes linked historical queries, coverage windows, and the job
   assert.deepEqual(prisma.state.deletedCoverageWhere, { jobId: "job-delete" });
 });
 
+test("deleteJob allows failed jobs but rejects non-terminal import jobs", async () => {
+  const failedContext = createService(
+    makeJob({
+      id: "job-failed-delete",
+      status: "FAILURE",
+    }),
+  );
+
+  const result = await failedContext.service.deleteJob("job-failed-delete");
+
+  assert.equal(result.job.id, "job-failed-delete");
+  assert.deepEqual(failedContext.prisma.state.deletedQueryWhere, { jobId: "job-failed-delete" });
+  assert.deepEqual(failedContext.prisma.state.deletedCoverageWhere, { jobId: "job-failed-delete" });
+
+  const partialContext = createService(
+    makeJob({
+      id: "job-partial-delete",
+      status: "PARTIAL",
+    }),
+  );
+
+  await assert.rejects(
+    () => partialContext.service.deleteJob("job-partial-delete"),
+    /Only successful or failed jobs can be deleted\./,
+  );
+});
+
 test("retryJob reuses the same paused job and preserves checkpoint summary", async () => {
   const summary = {
     version: 1,

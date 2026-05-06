@@ -2,10 +2,15 @@ import { datetimeLocalToUnixSeconds, unixSecondsToDatetimeLocal } from "@/lib/qu
 
 export const OVERVIEW_TAB_VALUES = ["request", "ranking", "jobs"] as const;
 export type OverviewTab = (typeof OVERVIEW_TAB_VALUES)[number];
+export const OVERVIEW_GROUP_BY_VALUES = ["hour", "day"] as const;
+export type OverviewGroupBy = (typeof OVERVIEW_GROUP_BY_VALUES)[number];
 
 export type OverviewFilters = {
   from: string;
   until: string;
+  domain: string;
+  client_ip: string;
+  groupBy: OverviewGroupBy;
 };
 
 function parseDateOnly(value: string) {
@@ -68,16 +73,24 @@ export function buildDefaultOverviewFilters(timeZone: string): OverviewFilters {
   return {
     from: `${sixDaysBefore}T00:00`,
     until: `${closedDay}T23:59`,
+    domain: "",
+    client_ip: "",
+    groupBy: "hour",
   };
 }
 
 export function buildOverviewQueryFromFilters(filters: OverviewFilters, timeZone: string) {
   const from = datetimeLocalToUnixSeconds(filters.from, timeZone);
   const until = datetimeLocalToUnixSeconds(filters.until, timeZone);
+  const domain = filters.domain.trim();
+  const clientIp = filters.client_ip.trim();
 
   return {
     ...(from !== undefined ? { from } : {}),
     ...(until !== undefined ? { until: until + 59 } : {}),
+    groupBy: filters.groupBy,
+    ...(domain.length > 0 ? { domain } : {}),
+    ...(clientIp.length > 0 ? { client_ip: clientIp } : {}),
   };
 }
 
@@ -101,9 +114,14 @@ export function normalizeOverviewFilters(
 
     return value;
   };
+  const normalizeTextFilter = (value: string) => value.trim();
+  const normalizeGroupBy = (value: string): OverviewGroupBy => (value === "day" ? "day" : "hour");
 
   return {
     from: normalizeDateFilter(read("from"), defaults.from),
     until: normalizeDateFilter(read("until"), defaults.until),
+    domain: normalizeTextFilter(read("domain")),
+    client_ip: normalizeTextFilter(read("client_ip")),
+    groupBy: normalizeGroupBy(read("groupBy")),
   };
 }

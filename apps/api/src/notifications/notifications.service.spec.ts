@@ -943,7 +943,7 @@ test("mesmo fingerprint de sistema atualiza enquanto ativo e cria novo registro 
   assert.equal(prisma.__state.notifications[1]?.isRead, false);
 });
 
-test("usa code e causeMessage sanitizado em falhas de transporte do Pi-hole", async () => {
+test("usa título amigável e detalhe técnico sanitizado em falhas de transporte do Pi-hole", async () => {
   const { service, prisma, sessions } = createService();
   const internals = getServiceInternals(service);
 
@@ -968,14 +968,14 @@ test("usa code e causeMessage sanitizado em falhas de transporte do Pi-hole", as
   await internals.syncPiholeMessages();
 
   assert.equal(prisma.__state.notifications.length, 1);
-  assert.equal(prisma.__state.notifications[0]?.title, "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE");
+  assert.equal(prisma.__state.notifications[0]?.title, "Erro TLS");
   assert.equal(
     prisma.__state.notifications[0]?.message,
-    "error:0A000410:SSL routines:ssl3_read_bytes:ssl/tls alert handshake failure: SSL alert number 40",
+    "Falha amigável antiga. Detalhe técnico: ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE - error:0A000410:SSL routines:ssl3_read_bytes:ssl/tls alert handshake failure: SSL alert number 40.",
   );
 });
 
-test("expõe title com fallback para type ao listar notificações", async () => {
+test("expõe apenas title explícito ao listar notificações", async () => {
   const { service } = createService({
     notifications: [
       makeNotification({
@@ -994,7 +994,43 @@ test("expõe title com fallback para type ao listar notificações", async () =>
   const list = await service.listNotifications({ page: 1, pageSize: 10, readState: "unread" });
 
   assert.equal(list.items.find((item) => item.id === "with-title")?.title, "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE");
-  assert.equal(list.items.find((item) => item.id === "without-title")?.title, "NOTIFICATION_SYNC_ERROR");
+  assert.equal(list.items.find((item) => item.id === "without-title")?.title, "");
+});
+
+test("usa motivo amigável e detalhe técnico para conexão recusada", async () => {
+  const { service, prisma, sessions } = createService();
+  const internals = getServiceInternals(service);
+
+  sessions.listInstanceSummaries = async () => [
+    {
+      id: "instance-1",
+      name: "Pi-hole Casa",
+      baseUrl: "https://192.168.31.16",
+    },
+  ];
+  sessions.withActiveSession = async () => {
+    throw new PiholeRequestError(
+      502,
+      "A conexão foi recusada por https://192.168.31.16. Verifique o host, a porta e se o Pi-hole está em execução.",
+      "connection_refused",
+      {
+        cause: {
+          code: "ECONNREFUSED",
+          causeCode: "ECONNREFUSED",
+          causeMessage: "connect ECONNREFUSED 192.168.31.16:443",
+        },
+      } as const,
+    );
+  };
+
+  await internals.syncPiholeMessages();
+
+  assert.equal(prisma.__state.notifications.length, 1);
+  assert.equal(prisma.__state.notifications[0]?.title, "Conexão recusada");
+  assert.equal(
+    prisma.__state.notifications[0]?.message,
+    "A conexão foi recusada por https://192.168.31.16. Verifique o host, a porta e se o Pi-hole está em execução. Detalhe técnico: ECONNREFUSED - connect ECONNREFUSED 192.168.31.16:443.",
+  );
 });
 
 test("usa notification.title no payload de push", async () => {
@@ -1048,6 +1084,65 @@ test("usa notification.title no payload de push", async () => {
     assert.equal(payloads.length, 1);
     assert.equal(payloads[0]?.title, "ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE - Pi-hole Casa");
     assert.equal(payloads[0]?.body, "ssl/tls alert handshake failure");
+  } finally {
+    webpush.setVapidDetails = originalSetVapidDetails;
+    webpush.sendNotification = originalSendNotification;
+  }
+});
+
+test("usa rótulo amigável no payload de push quando title não é explícito", async () => {
+  const originalSetVapidDetails = webpush.setVapidDetails;
+  const originalSendNotification = webpush.sendNotification;
+  const validKeys = webpush.generateVAPIDKeys();
+  const payloads: Array<{ title: string; body: string; data: { url: string; notificationId: string } }> = [];
+
+  webpush.setVapidDetails = (() => {
+    // Intentionally stubbed for deterministic tests.
+  }) as typeof webpush.setVapidDetails;
+  webpush.sendNotification = (async (_subscription, payload) => {
+    payloads.push(JSON.parse(payload));
+  }) as typeof webpush.sendNotification;
+
+  try {
+    const { service } = createService(
+      {
+        pushSubscriptions: [
+          {
+            endpoint: "https://push.example/subscription-1",
+            p256dh: "key",
+            auth: "auth",
+            userAgent: "test",
+            lastSuccessAt: null,
+            lastFailureAt: null,
+            failureCount: 0,
+            disabledAt: null,
+            createdAt: new Date("2026-04-09T10:00:00.000Z"),
+            updatedAt: new Date("2026-04-09T10:00:00.000Z"),
+          },
+        ],
+      },
+      {
+        env: {
+          WEB_PUSH_VAPID_PUBLIC_KEY: validKeys.publicKey,
+          WEB_PUSH_VAPID_PRIVATE_KEY: validKeys.privateKey,
+        },
+      },
+    );
+
+    await service.onModuleInit();
+    await service.recordSystemEvent({
+      type: "INSTANCE_SESSION_ERROR",
+      fingerprint: "system:push-session",
+      instanceName: "Pi-hole Casa",
+      message: "A conexão foi recusada por https://192.168.31.16.",
+      metadata: {
+        kind: "connection_refused",
+      },
+    });
+
+    assert.equal(payloads.length, 1);
+    assert.equal(payloads[0]?.title, "Conexão recusada - Pi-hole Casa");
+    assert.equal(payloads[0]?.body, "A conexão foi recusada por https://192.168.31.16.");
   } finally {
     webpush.setVapidDetails = originalSetVapidDetails;
     webpush.sendNotification = originalSendNotification;

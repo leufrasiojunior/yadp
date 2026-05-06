@@ -297,8 +297,12 @@ export class OverviewService implements OnModuleInit {
     const filters = this.buildQueryFilters(
       range,
       scope.instances.map((item) => item.id),
+      {
+        domain: query.domain,
+        clientIp: query.client_ip,
+      },
     );
-    const chartGroupBy = "hour" as const;
+    const chartGroupBy = query.groupBy ?? "hour";
 
     const [
       summaryRows,
@@ -550,8 +554,8 @@ export class OverviewService implements OnModuleInit {
       throw new BadRequestException("Overview job not found.");
     }
 
-    if (existing.status !== "SUCCESS") {
-      throw new BadRequestException("Only successful jobs can be deleted.");
+    if (existing.status !== "SUCCESS" && existing.status !== "FAILURE") {
+      throw new BadRequestException("Only successful or failed jobs can be deleted.");
     }
 
     const deleted = await this.prisma.$transaction(async (tx) => {
@@ -1488,7 +1492,11 @@ export class OverviewService implements OnModuleInit {
     return failures;
   }
 
-  private buildQueryFilters(range: HistoryRange, instanceIds?: string[]) {
+  private buildQueryFilters(
+    range: HistoryRange,
+    instanceIds?: string[],
+    filters: { domain?: string; clientIp?: string } = {},
+  ) {
     const clauses: Prisma.Sql[] = [
       Prisma.sql`"occurredAt" >= ${range.from}`,
       Prisma.sql`"occurredAt" <= ${range.until}`,
@@ -1496,6 +1504,14 @@ export class OverviewService implements OnModuleInit {
 
     if (instanceIds && instanceIds.length > 0) {
       clauses.push(Prisma.sql`"instanceId" IN (${Prisma.join(instanceIds)})`);
+    }
+
+    if (filters.domain) {
+      clauses.push(Prisma.sql`"domain" = ${filters.domain}`);
+    }
+
+    if (filters.clientIp) {
+      clauses.push(Prisma.sql`"clientIp" = ${filters.clientIp}`);
     }
 
     const [firstClause, ...restClauses] = clauses;
