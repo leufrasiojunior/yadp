@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 import { useShallow } from "zustand/react/shallow";
 
+import { BetaDisclaimerDialog } from "@/app/(main)/_components/beta-disclaimer-dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +22,7 @@ import { useNavigationSummaryStore } from "@/stores/navigation-summary/navigatio
 import { useNotificationsStore } from "@/stores/notifications/notifications-provider";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
+import logoSrc from "../../../../../../../../media/logo.png";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { SidebarSyncBlocking } from "./sidebar-sync-blocking";
@@ -55,9 +58,14 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link prefetch={false} href="/dashboard">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary font-semibold text-primary-foreground">
-                  Y
-                </span>
+                <Image
+                  alt={`${APP_CONFIG.name} logo`}
+                  className="h-8 w-8 shrink-0 rounded-lg object-contain"
+                  src={logoSrc}
+                  width={32}
+                  height={32}
+                  priority
+                />
                 <span className="font-semibold text-base">{APP_CONFIG.name}</span>
               </Link>
             </SidebarMenuButton>
@@ -72,6 +80,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={{ name: session.baseline.name, email: session.baseline.baseUrl, avatar: "" }} />
+        <BetaDisclaimerDialog placement="sidebar" />
       </SidebarFooter>
     </Sidebar>
   );

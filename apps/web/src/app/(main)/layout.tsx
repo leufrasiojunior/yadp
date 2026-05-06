@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import { Activity, Binary } from "lucide-react";
 
+import { BetaDisclaimerDialog } from "@/app/(main)/_components/beta-disclaimer-dialog";
 import { NotificationBell } from "@/app/(main)/_components/notification-bell";
 import { DashboardScopeSelector } from "@/app/(main)/dashboard/_components/dashboard-scope-selector";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
@@ -94,16 +95,17 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
                     "[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md",
                   )}
                 >
-                  <div className="flex w-full items-center justify-between px-4 lg:px-6">
-                    <div className="flex items-center gap-1 lg:gap-2">
+                  <div className="flex w-full items-center gap-2 px-4 lg:px-6">
+                    <div className="flex min-w-0 items-center gap-1 lg:gap-2">
                       <SidebarTrigger className="-ml-1" />
                       <Separator
                         orientation="vertical"
                         className="mx-2 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
                       />
                       <SearchDialog />
+                      <BetaDisclaimerDialog />
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="ml-auto flex items-center gap-2">
                       <DashboardScopeSelector
                         allInstancesLabel={messages.dashboard.scope.allInstances}
                         instances={instances.items}

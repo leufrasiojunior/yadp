@@ -314,6 +314,14 @@ export type WebMessages = {
     overviewButton: string;
     queriesButton: string;
     instancesButton: string;
+    beta: {
+      label: string;
+      openLabel: string;
+      title: string;
+      description: string;
+      disclaimer: string;
+      close: string;
+    };
   };
   sidebar: {
     groups: {
