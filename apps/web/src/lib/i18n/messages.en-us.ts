@@ -785,8 +785,9 @@ export const enUSMessages: WebMessages = {
       filteredEmptyDescription: "Adjust the status filters to view other jobs.",
       statusFilterTitle: "Filter by status",
       statusFilterValues: {
+        all: "All",
         inProgress: "Running",
-        success: "Success",
+        completed: "Completed",
         partial: "Partial",
         failure: "Failure",
       },

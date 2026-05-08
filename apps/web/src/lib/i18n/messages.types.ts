@@ -727,8 +727,9 @@ export type WebMessages = {
       filteredEmptyDescription: string;
       statusFilterTitle: string;
       statusFilterValues: {
+        all: string;
         inProgress: string;
-        success: string;
+        completed: string;
         partial: string;
         failure: string;
       };

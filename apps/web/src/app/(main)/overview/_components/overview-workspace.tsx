@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
@@ -78,7 +79,7 @@ const RANKING_SHARE_LIMIT = 5;
 const MAX_COMPLETE_CHART_BUCKETS = 5000;
 const DETAILS_POLL_INTERVAL_MS = 2000;
 const COVERAGE_PAGE_SIZE = 6;
-const JOB_STATUS_FILTER_VALUES = ["inProgress", "success", "partial", "failure"] as const;
+const JOB_STATUS_FILTER_VALUES = ["all", "inProgress", "completed", "partial", "failure"] as const;
 const STATUS_CHART_COLORS = [
   "oklch(0.62 0.2 145)",
   "oklch(0.72 0.18 72)",
@@ -125,8 +126,9 @@ type DetailsLoadOptions = {
 };
 
 const JOB_STATUSES_BY_FILTER: Record<OverviewJobFilterGroup, readonly OverviewJobStatus[]> = {
+  all: [],
   inProgress: ["PENDING", "RUNNING"],
-  success: ["SUCCESS"],
+  completed: ["SUCCESS"],
   partial: ["PARTIAL"],
   failure: ["FAILURE", "PAUSED"],
 };
@@ -203,8 +205,12 @@ function canShowCoverageWindow(window: OverviewResponse["coverage"]["savedWindow
   return window.status === "SUCCESS" || window.status === "PARTIAL";
 }
 
-function matchesJobStatusFilters(status: OverviewJobStatus, filters: Record<OverviewJobFilterGroup, boolean>) {
-  return JOB_STATUS_FILTER_VALUES.some((group) => filters[group] && JOB_STATUSES_BY_FILTER[group].includes(status));
+function matchesJobStatusFilter(status: OverviewJobStatus, filter: OverviewJobFilterGroup) {
+  if (filter === "all") {
+    return true;
+  }
+
+  return JOB_STATUSES_BY_FILTER[filter].includes(status);
 }
 
 function isLiveOverviewJobStatus(status: OverviewJobStatus) {
@@ -503,12 +509,7 @@ export function OverviewWorkspace({
   const [detailsLastUpdatedAt, setDetailsLastUpdatedAt] = useState<string | null>(null);
   const [showUpstreams, setShowUpstreams] = useState(false);
   const [coveragePage, setCoveragePage] = useState(1);
-  const [jobStatusFilters, setJobStatusFilters] = useState<Record<OverviewJobFilterGroup, boolean>>({
-    inProgress: true,
-    success: true,
-    partial: true,
-    failure: true,
-  });
+  const [jobStatusFilter, setJobStatusFilter] = useState<OverviewJobFilterGroup>("all");
   const detailsRequestTokenRef = useRef(0);
   const detailsRequestInFlightRef = useRef<string | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
@@ -636,8 +637,8 @@ export function OverviewWorkspace({
     return coverageWindows.slice(start, start + COVERAGE_PAGE_SIZE);
   }, [coveragePage, coverageWindows]);
   const filteredJobs = useMemo(
-    () => jobs.jobs.filter((job) => matchesJobStatusFilters(job.status, jobStatusFilters)),
-    [jobStatusFilters, jobs.jobs],
+    () => jobs.jobs.filter((job) => matchesJobStatusFilter(job.status, jobStatusFilter)),
+    [jobStatusFilter, jobs.jobs],
   );
   const detailsStatus = details?.status ?? null;
   const isDetailsLive = detailsStatus ? isLiveOverviewJobStatus(detailsStatus) : false;
@@ -1088,11 +1089,13 @@ export function OverviewWorkspace({
     return () => window.clearInterval(intervalId);
   }, [detailsStatus, detailsJobId, loadJobDetails]);
 
-  const toggleJobStatusFilter = (status: OverviewJobFilterGroup) => {
-    setJobStatusFilters((current) => ({
-      ...current,
-      [status]: !current[status],
-    }));
+  const selectJobStatusFilter = (status: string) => {
+    if (JOB_STATUS_FILTER_VALUES.includes(status as OverviewJobFilterGroup)) {
+      setJobStatusFilter(status as OverviewJobFilterGroup);
+      return;
+    }
+
+    setJobStatusFilter("all");
   };
 
   const formatCount = (value: number) => numberFormatter.format(value);
@@ -2020,23 +2023,26 @@ export function OverviewWorkspace({
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <div className="flex flex-col gap-2 rounded-lg border bg-muted/25 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex shrink-0 items-center gap-2 text-muted-foreground text-sm">
                   <ListFilter className="size-4" />
                   {messages.overview.jobs.statusFilterTitle}
                 </div>
-                {JOB_STATUS_FILTER_VALUES.map((status) => (
-                  <Button
-                    key={status}
-                    type="button"
-                    variant={jobStatusFilters[status] ? "secondary" : "outline"}
-                    size="sm"
-                    aria-pressed={jobStatusFilters[status]}
-                    onClick={() => toggleJobStatusFilter(status)}
-                  >
-                    {messages.overview.jobs.statusFilterValues[status]}
-                  </Button>
-                ))}
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  size="sm"
+                  value={jobStatusFilter}
+                  onValueChange={selectJobStatusFilter}
+                  className="grid w-full grid-cols-2 sm:flex sm:w-auto"
+                  aria-label={messages.overview.jobs.statusFilterTitle}
+                >
+                  {JOB_STATUS_FILTER_VALUES.map((status) => (
+                    <ToggleGroupItem key={status} value={status} className="min-w-28 justify-center">
+                      {messages.overview.jobs.statusFilterValues[status]}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </div>
 
               {filteredJobs.length === 0 ? (

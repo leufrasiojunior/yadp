@@ -789,8 +789,9 @@ export const ptBRMessages: WebMessages = {
       filteredEmptyDescription: "Ajuste os filtros de status para ver outros jobs.",
       statusFilterTitle: "Filtrar por status",
       statusFilterValues: {
+        all: "Todos",
         inProgress: "Em execução",
-        success: "Sucesso",
+        completed: "Concluídos",
         partial: "Parcial",
         failure: "Falha",
       },
