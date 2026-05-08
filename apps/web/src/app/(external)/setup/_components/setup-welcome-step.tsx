@@ -15,7 +15,7 @@ export function SetupWelcomeStep({ copy }: Readonly<{ copy: SetupCopy["welcome"]
         <CardDescription>{copy.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 text-sm leading-6">
-        <div className="rounded-xl border bg-background/70 p-4">{copy.primary}</div>
+        {/* <div className="rounded-xl border bg-background/70 p-4">{copy.primary}</div> */}
         <div className="rounded-xl border bg-background/70 p-4">{copy.secondary}</div>
       </CardContent>
     </Card>

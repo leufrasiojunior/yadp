@@ -44,6 +44,11 @@ type CoverageWindowRecord = {
   };
 };
 
+type InstanceSummary = {
+  id: string;
+  name: string;
+};
+
 function makeJob(overrides: Partial<OverviewJobRecord> = {}): OverviewJobRecord {
   const now = new Date("2026-04-29T12:00:00.000Z");
 
@@ -92,10 +97,23 @@ function makeCoverageWindow(overrides: Partial<CoverageWindowRecord> = {}): Cove
   };
 }
 
-function createPrismaStub(job: OverviewJobRecord, coverageWindow = makeCoverageWindow()) {
+function createPrismaStub(
+  job: OverviewJobRecord,
+  coverageWindow = makeCoverageWindow(),
+  options: {
+    coverageWindows?: CoverageWindowRecord[];
+    coverageStats?: unknown[];
+    queryRawResults?: unknown[][];
+    timeZone?: string;
+  } = {},
+) {
   const state = {
     job: structuredClone(job),
+    createdJobData: null as unknown,
     coverageWindow: structuredClone(coverageWindow),
+    coverageWindows: structuredClone(options.coverageWindows ?? []),
+    coverageStats: structuredClone(options.coverageStats ?? []),
+    queryRawResults: structuredClone(options.queryRawResults ?? []),
     deletedQueryWhere: null as unknown,
     deletedCoverageWhere: null as unknown,
     renewedQueryWhere: null as unknown,
@@ -108,6 +126,17 @@ function createPrismaStub(job: OverviewJobRecord, coverageWindow = makeCoverageW
     overviewHistoryJob: {
       findUnique: async ({ where }: { where: { id: string } }) =>
         where.id === state.job.id ? structuredClone(state.job) : null,
+      create: async ({ data }: { data: Partial<OverviewJobRecord> }) => {
+        state.createdJobData = data;
+        state.job = makeJob({
+          ...data,
+          id: "job-created",
+          status: "PENDING",
+          createdAt: new Date("2026-04-29T12:05:00.000Z"),
+          updatedAt: new Date("2026-04-29T12:05:00.000Z"),
+        });
+        return structuredClone(state.job);
+      },
       update: async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
         assert.equal(where.id, state.job.id);
         state.job = {
@@ -123,6 +152,7 @@ function createPrismaStub(job: OverviewJobRecord, coverageWindow = makeCoverageW
       },
     },
     historicalQuery: {
+      groupBy: async () => structuredClone(state.coverageStats),
       deleteMany: async ({ where }: { where: unknown }) => {
         state.deletedQueryWhere = where;
         return { count: 12 };
@@ -136,6 +166,7 @@ function createPrismaStub(job: OverviewJobRecord, coverageWindow = makeCoverageW
     overviewCoverageWindow: {
       findUnique: async ({ where }: { where: { id: string } }) =>
         where.id === state.coverageWindow.id ? structuredClone(state.coverageWindow) : null,
+      findMany: async () => structuredClone(state.coverageWindows),
       count: async () => state.coverageWindowCount,
       deleteMany: async ({ where }: { where: unknown }) => {
         state.deletedCoverageWhere = where;
@@ -151,6 +182,10 @@ function createPrismaStub(job: OverviewJobRecord, coverageWindow = makeCoverageW
         return structuredClone(state.coverageWindow);
       },
     },
+    appConfig: {
+      findUnique: async () => ({ timeZone: options.timeZone ?? "UTC" }),
+    },
+    $queryRaw: async () => structuredClone(state.queryRawResults.shift() ?? []),
     $transaction: async <T>(callback: (tx: Record<string, unknown>) => Promise<T>) =>
       callback({
         historicalQuery: {
@@ -198,15 +233,26 @@ function createPrismaStub(job: OverviewJobRecord, coverageWindow = makeCoverageW
   };
 }
 
-function createService(job: OverviewJobRecord) {
-  const prisma = createPrismaStub(job);
+function createService(
+  job: OverviewJobRecord,
+  options: {
+    instances?: InstanceSummary[];
+    coverageWindows?: CoverageWindowRecord[];
+    coverageStats?: unknown[];
+    queryRawResults?: unknown[][];
+    timeZone?: string;
+  } = {},
+) {
+  const prisma = createPrismaStub(job, makeCoverageWindow(), options);
   const service = new OverviewService(
     prisma as never,
     {
-      getInstanceSummary: async () => {
-        throw new Error("not needed");
-      },
-      listInstanceSummaries: async () => [],
+      getInstanceSummary: async (instanceId: string) =>
+        (options.instances ?? []).find((instance) => instance.id === instanceId) ?? {
+          id: instanceId,
+          name: "Pi-hole A",
+        },
+      listInstanceSummaries: async () => options.instances ?? [],
     } as never,
     {} as never,
     {
@@ -246,6 +292,19 @@ test("deleteJob allows failed jobs but rejects non-terminal import jobs", async 
   assert.deepEqual(failedContext.prisma.state.deletedQueryWhere, { jobId: "job-failed-delete" });
   assert.deepEqual(failedContext.prisma.state.deletedCoverageWhere, { jobId: "job-failed-delete" });
 
+  const pausedContext = createService(
+    makeJob({
+      id: "job-paused-delete",
+      status: "PAUSED",
+    }),
+  );
+
+  const pausedResult = await pausedContext.service.deleteJob("job-paused-delete");
+
+  assert.equal(pausedResult.job.id, "job-paused-delete");
+  assert.deepEqual(pausedContext.prisma.state.deletedQueryWhere, { jobId: "job-paused-delete" });
+  assert.deepEqual(pausedContext.prisma.state.deletedCoverageWhere, { jobId: "job-paused-delete" });
+
   const partialContext = createService(
     makeJob({
       id: "job-partial-delete",
@@ -255,8 +314,113 @@ test("deleteJob allows failed jobs but rejects non-terminal import jobs", async 
 
   await assert.rejects(
     () => partialContext.service.deleteJob("job-partial-delete"),
-    /Only successful or failed jobs can be deleted\./,
+    /Only successful, failed, or paused jobs can be deleted\./,
   );
+});
+
+test("enqueueManualImport accepts only one app-timezone calendar day", async () => {
+  const sameDayContext = createService(makeJob(), {
+    instances: [{ id: "instance-1", name: "Pi-hole A" }],
+    timeZone: "America/Sao_Paulo",
+  });
+
+  const sameDayResult = await sameDayContext.service.enqueueManualImport(
+    {
+      scope: "all",
+      from: Date.parse("2026-04-28T03:00:00.000Z") / 1000,
+      until: Date.parse("2026-04-29T02:59:59.000Z") / 1000,
+    } as never,
+    {
+      ip: "10.0.0.9",
+      headers: {
+        "accept-language": "en-US",
+      },
+    } as never,
+  );
+
+  assert.equal(sameDayResult.job.status, "PENDING");
+  assert.equal(sameDayContext.prisma.state.job.requestedFrom.toISOString(), "2026-04-28T03:00:00.000Z");
+  assert.equal(sameDayContext.prisma.state.job.requestedUntil.toISOString(), "2026-04-29T02:59:59.000Z");
+
+  const crossDayContext = createService(makeJob(), {
+    instances: [{ id: "instance-1", name: "Pi-hole A" }],
+    timeZone: "America/Sao_Paulo",
+  });
+
+  await assert.rejects(
+    () =>
+      crossDayContext.service.enqueueManualImport(
+        {
+          scope: "all",
+          from: Date.parse("2026-04-28T03:00:00.000Z") / 1000,
+          until: Date.parse("2026-04-29T03:00:00.000Z") / 1000,
+        } as never,
+        {
+          ip: "10.0.0.9",
+          headers: {
+            "accept-language": "en-US",
+          },
+        } as never,
+      ),
+    /single calendar day/,
+  );
+});
+
+test("getOverview exposes saved dates grouped by stored historical query day", async () => {
+  const context = createService(makeJob(), {
+    instances: [{ id: "instance-1", name: "Pi-hole A" }],
+    timeZone: "America/Sao_Paulo",
+    queryRawResults: [
+      [
+        {
+          totalQueries: 0,
+          blockedQueries: 0,
+          cachedQueries: 0,
+          forwardedQueries: 0,
+          uniqueDomains: 0,
+          uniqueClients: 0,
+        },
+      ],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [
+        {
+          date: "2026-04-28",
+          rowCount: 1500n,
+          instanceCount: 1n,
+          storedFrom: new Date("2026-04-28T03:00:00.000Z"),
+          storedUntil: new Date("2026-04-29T02:59:59.000Z"),
+        },
+      ],
+    ],
+  });
+
+  const result = await context.service.getOverview(
+    {
+      scope: "all",
+      groupBy: "hour",
+      from: Date.parse("2026-04-28T03:00:00.000Z") / 1000,
+      until: Date.parse("2026-04-29T02:59:59.000Z") / 1000,
+    } as never,
+    {
+      headers: {
+        "accept-language": "en-US",
+      },
+    } as never,
+  );
+
+  assert.deepEqual(result.coverage.savedDates, [
+    {
+      date: "2026-04-28",
+      rowCount: 1500,
+      instanceCount: 1,
+      storedFrom: "2026-04-28T03:00:00.000Z",
+      storedUntil: "2026-04-29T02:59:59.000Z",
+    },
+  ]);
 });
 
 test("retryJob reuses the same paused job and preserves checkpoint summary", async () => {

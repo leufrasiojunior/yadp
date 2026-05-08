@@ -65,6 +65,7 @@ import { DASHBOARD_SCOPE_COOKIE, type DashboardScope, serializeDashboardScope } 
 import { useWebI18n } from "@/lib/i18n/client";
 import {
   buildOverviewQueryFromFilters,
+  clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
   type OverviewFilters,
   type OverviewGroupBy,
@@ -77,7 +78,7 @@ const RANKING_SHARE_LIMIT = 5;
 const MAX_COMPLETE_CHART_BUCKETS = 5000;
 const DETAILS_POLL_INTERVAL_MS = 2000;
 const COVERAGE_PAGE_SIZE = 6;
-const JOB_STATUS_FILTER_VALUES = ["SUCCESS", "PARTIAL", "FAILURE"] as const;
+const JOB_STATUS_FILTER_VALUES = ["inProgress", "success", "partial", "failure"] as const;
 const STATUS_CHART_COLORS = [
   "oklch(0.62 0.2 145)",
   "oklch(0.72 0.18 72)",
@@ -98,7 +99,8 @@ type RankingFilterKey = "domain" | "client_ip";
 type RankingRow = { value: string; count: number };
 type QueryChartPoint = OverviewResponse["charts"]["queries"]["points"][number];
 type OverviewJobStatus = OverviewJobsResponse["jobs"][number]["status"];
-type OverviewJobFilterStatus = (typeof JOB_STATUS_FILTER_VALUES)[number];
+type OverviewJobFilterGroup = (typeof JOB_STATUS_FILTER_VALUES)[number];
+type OverviewSavedDate = OverviewResponse["coverage"]["savedDates"][number];
 type RankingShareRow = RankingRow & {
   fill: string;
   percentage: number;
@@ -120,6 +122,13 @@ type RankingKpiCard = {
 };
 type DetailsLoadOptions = {
   silent?: boolean;
+};
+
+const JOB_STATUSES_BY_FILTER: Record<OverviewJobFilterGroup, readonly OverviewJobStatus[]> = {
+  inProgress: ["PENDING", "RUNNING"],
+  success: ["SUCCESS"],
+  partial: ["PARTIAL"],
+  failure: ["FAILURE", "PAUSED"],
 };
 
 function buildOverviewHref(filters: OverviewFilters, timeZone: string, activeTab: OverviewTab) {
@@ -158,10 +167,6 @@ function canOpenJobPeriod(job: OverviewJobsResponse["jobs"][number]) {
   return job.status === "SUCCESS" || job.status === "PARTIAL";
 }
 
-function getRankingUsableJobs(jobs: OverviewJobsResponse["jobs"]) {
-  return jobs.filter((job) => canOpenJobPeriod(job));
-}
-
 function getJobPeriodSeconds(job: OverviewJobsResponse["jobs"][number]) {
   return {
     from: Math.floor(new Date(job.requestedFrom).getTime() / 1000),
@@ -198,8 +203,8 @@ function canShowCoverageWindow(window: OverviewResponse["coverage"]["savedWindow
   return window.status === "SUCCESS" || window.status === "PARTIAL";
 }
 
-function isOverviewJobFilterStatus(status: OverviewJobStatus): status is OverviewJobFilterStatus {
-  return status === "SUCCESS" || status === "PARTIAL" || status === "FAILURE";
+function matchesJobStatusFilters(status: OverviewJobStatus, filters: Record<OverviewJobFilterGroup, boolean>) {
+  return JOB_STATUS_FILTER_VALUES.some((group) => filters[group] && JOB_STATUSES_BY_FILTER[group].includes(status));
 }
 
 function isLiveOverviewJobStatus(status: OverviewJobStatus) {
@@ -207,7 +212,15 @@ function isLiveOverviewJobStatus(status: OverviewJobStatus) {
 }
 
 function canDeleteJob(job: OverviewJobsResponse["jobs"][number]) {
-  return job.status === "SUCCESS" || job.status === "FAILURE";
+  return job.status === "SUCCESS" || job.status === "FAILURE" || job.status === "PAUSED";
+}
+
+function getSavedDateFilters(date: string, filters: OverviewFilters): OverviewFilters {
+  return {
+    ...filters,
+    from: `${date}T00:00`,
+    until: `${date}T23:59`,
+  };
 }
 
 function getJobProgressPercentage(job: OverviewJobsResponse["jobs"][number] | OverviewJobDetailsResponse["job"]) {
@@ -490,10 +503,11 @@ export function OverviewWorkspace({
   const [detailsLastUpdatedAt, setDetailsLastUpdatedAt] = useState<string | null>(null);
   const [showUpstreams, setShowUpstreams] = useState(false);
   const [coveragePage, setCoveragePage] = useState(1);
-  const [jobStatusFilters, setJobStatusFilters] = useState<Record<OverviewJobFilterStatus, boolean>>({
-    SUCCESS: true,
-    PARTIAL: true,
-    FAILURE: true,
+  const [jobStatusFilters, setJobStatusFilters] = useState<Record<OverviewJobFilterGroup, boolean>>({
+    inProgress: true,
+    success: true,
+    partial: true,
+    failure: true,
   });
   const detailsRequestTokenRef = useRef(0);
   const detailsRequestInFlightRef = useRef<string | null>(null);
@@ -507,8 +521,6 @@ export function OverviewWorkspace({
       }),
     [locale],
   );
-  const rankingUsableJobs = useMemo(() => getRankingUsableJobs(jobs.jobs), [jobs.jobs]);
-  const rankingQuery = useMemo(() => buildOverviewQueryFromFilters(filters, timeZone), [filters, timeZone]);
   const rankingClientRows = useMemo(
     () => deduplicateRankingRows(overview.rankings.clients),
     [overview.rankings.clients],
@@ -607,18 +619,13 @@ export function OverviewWorkspace({
       }) satisfies ChartConfig,
     [messages],
   );
-  const selectedRankingJob = useMemo(() => {
-    if (rankingQuery.from === undefined || rankingQuery.until === undefined) {
-      return null;
-    }
-
-    return (
-      rankingUsableJobs.find((job) => {
-        const period = getJobPeriodSeconds(job);
-        return period.from === rankingQuery.from && period.until === rankingQuery.until;
-      }) ?? null
-    );
-  }, [rankingQuery.from, rankingQuery.until, rankingUsableJobs]);
+  const selectedRankingSavedDate = useMemo(
+    () =>
+      overview.coverage.savedDates.find(
+        (savedDate) => filters.from === `${savedDate.date}T00:00` && filters.until === `${savedDate.date}T23:59`,
+      ) ?? null,
+    [filters.from, filters.until, overview.coverage.savedDates],
+  );
   const coverageWindows = useMemo(
     () => overview.coverage.savedWindows.filter(canShowCoverageWindow),
     [overview.coverage.savedWindows],
@@ -629,7 +636,7 @@ export function OverviewWorkspace({
     return coverageWindows.slice(start, start + COVERAGE_PAGE_SIZE);
   }, [coveragePage, coverageWindows]);
   const filteredJobs = useMemo(
-    () => jobs.jobs.filter((job) => isOverviewJobFilterStatus(job.status) && jobStatusFilters[job.status]),
+    () => jobs.jobs.filter((job) => matchesJobStatusFilters(job.status, jobStatusFilters)),
     [jobStatusFilters, jobs.jobs],
   );
   const detailsStatus = details?.status ?? null;
@@ -661,8 +668,12 @@ export function OverviewWorkspace({
     }
 
     for (const failure of overview.sources.failedInstances) {
+      if (failure.kind === "missing_data") {
+        continue;
+      }
+
       const detail =
-        failure.kind === "import_failure" && failure.message.trim().length > 0
+        failure.message.trim().length > 0
           ? messages.overview.partial.importFailureMessage(failure.message)
           : messages.overview.partial.missingDataMessage;
       toast.error(messages.overview.toasts.instanceFailure(failure.instanceName, detail), {
@@ -775,6 +786,30 @@ export function OverviewWorkspace({
     });
   };
 
+  const updateRequestFromFilter = (value: string) => {
+    setFilters((current) =>
+      clampOverviewRequestFiltersToSingleDay(
+        {
+          ...current,
+          from: value,
+        },
+        maxSelectableDateTime,
+      ),
+    );
+  };
+
+  const updateRequestUntilFilter = (value: string) => {
+    setFilters((current) =>
+      clampOverviewRequestFiltersToSingleDay(
+        {
+          ...current,
+          until: value,
+        },
+        maxSelectableDateTime,
+      ),
+    );
+  };
+
   const handleTabChange = (nextTab: string) => {
     if (nextTab !== "request" && nextTab !== "ranking" && nextTab !== "jobs") {
       return;
@@ -799,7 +834,11 @@ export function OverviewWorkspace({
       return;
     }
 
-    const query = overrides ?? buildOverviewQueryFromFilters(filters, timeZone);
+    const requestFilters =
+      path === "/overview/backfill" && !overrides
+        ? clampOverviewRequestFiltersToSingleDay(filters, maxSelectableDateTime)
+        : filters;
+    const query = overrides ?? buildOverviewQueryFromFilters(requestFilters, timeZone);
 
     if (query.from === undefined || query.until === undefined) {
       toast.error(messages.overview.toasts.invalidPeriod);
@@ -807,6 +846,9 @@ export function OverviewWorkspace({
     }
 
     setIsMutating(true);
+    if (path === "/overview/backfill" && !overrides) {
+      setFilters(requestFilters);
+    }
 
     try {
       const { data, response } = await client.POST<OverviewMutationResponse>(path, {
@@ -908,6 +950,16 @@ export function OverviewWorkspace({
 
   const openJobPeriod = (job: OverviewJobsResponse["jobs"][number]) => {
     navigateToJobPeriod(job);
+  };
+
+  const openSavedDate = (savedDate: OverviewSavedDate) => {
+    applyRankingFilters(getSavedDateFilters(savedDate.date, filters));
+  };
+
+  const getSavedDatePeriodSeconds = (savedDate: OverviewSavedDate) => {
+    const query = buildOverviewQueryFromFilters(getSavedDateFilters(savedDate.date, filters), timeZone);
+
+    return query.from !== undefined && query.until !== undefined ? { from: query.from, until: query.until } : null;
   };
 
   const retryJob = async (jobId: string) => {
@@ -1036,7 +1088,7 @@ export function OverviewWorkspace({
     return () => window.clearInterval(intervalId);
   }, [detailsStatus, detailsJobId, loadJobDetails]);
 
-  const toggleJobStatusFilter = (status: OverviewJobFilterStatus) => {
+  const toggleJobStatusFilter = (status: OverviewJobFilterGroup) => {
     setJobStatusFilters((current) => ({
       ...current,
       [status]: !current[status],
@@ -1049,7 +1101,7 @@ export function OverviewWorkspace({
     overview.charts.queries.groupBy === "day"
       ? messages.overview.chart.titleByDay
       : messages.overview.chart.titleByHour;
-  const selectedRankingJobValue = selectedRankingJob?.id;
+  const selectedRankingSavedDateValue = selectedRankingSavedDate?.date;
   const noKpiValue = messages.overview.ranking.kpis.noValue;
   const activeDomainFilter = filters.domain.trim();
   const activeClientFilter = filters.client_ip.trim();
@@ -1142,18 +1194,6 @@ export function OverviewWorkspace({
     return messages.overview.jobs.detailsOriginManual;
   };
 
-  const getRankingJobOptionLabel = (job: OverviewJobsResponse["jobs"][number]) => {
-    const instanceLabel =
-      job.scope === "instance"
-        ? (job.instanceName ?? messages.overview.jobs.detailsUnavailable)
-        : messages.overview.jobs.detailsAllInstances;
-
-    return [
-      messages.overview.coverage.period(formatDateTime(job.requestedFrom), formatDateTime(job.requestedUntil)),
-      instanceLabel,
-    ].join(" | ");
-  };
-
   const getFailureReasonLabel = (reason: OverviewJobDetailsResponse["job"]["failureReason"] | null) => {
     switch (reason) {
       case "timeout":
@@ -1198,6 +1238,13 @@ export function OverviewWorkspace({
         return CheckCircle2;
     }
   };
+
+  const getSavedDateOptionLabel = (savedDate: OverviewSavedDate) =>
+    messages.overview.ranking.savedDateOption(
+      savedDate.date,
+      formatCount(savedDate.rowCount),
+      formatCount(savedDate.instanceCount),
+    );
 
   const renderRankingKpiCard = (item: RankingKpiCard) => (
     <Card key={item.label} className="overflow-hidden">
@@ -1330,19 +1377,6 @@ export function OverviewWorkspace({
 
   const selectedJobSummary = jobs.jobs.find((job) => job.id === detailsJobId) ?? null;
 
-  useEffect(() => {
-    if (activeTab !== "ranking" || selectedRankingJob || rankingUsableJobs.length === 0 || isPending) {
-      return;
-    }
-
-    const mostRecentJob = rankingUsableJobs[0];
-    if (!mostRecentJob) {
-      return;
-    }
-
-    navigateToJobPeriod(mostRecentJob, "replace");
-  }, [activeTab, isPending, navigateToJobPeriod, rankingUsableJobs, selectedRankingJob]);
-
   return (
     <>
       <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-4 md:gap-6">
@@ -1372,7 +1406,7 @@ export function OverviewWorkspace({
                     type="datetime-local"
                     max={maxSelectableDateTime}
                     value={filters.from}
-                    onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))}
+                    onChange={(event) => updateRequestFromFilter(event.target.value)}
                   />
                 </div>
                 <div className="space-y-1">
@@ -1384,7 +1418,7 @@ export function OverviewWorkspace({
                     type="datetime-local"
                     max={maxSelectableDateTime}
                     value={filters.until}
-                    onChange={(event) => setFilters((current) => ({ ...current, until: event.target.value }))}
+                    onChange={(event) => updateRequestUntilFilter(event.target.value)}
                   />
                 </div>
               </div>
@@ -1548,35 +1582,35 @@ export function OverviewWorkspace({
         >
           <Card>
             <CardHeader>
-              <CardTitle>{messages.overview.ranking.importedJobsTitle}</CardTitle>
-              <CardDescription>{messages.overview.ranking.importedJobsDescription}</CardDescription>
+              <CardTitle>{messages.overview.ranking.savedDatesTitle}</CardTitle>
+              <CardDescription>{messages.overview.ranking.savedDatesDescription}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {rankingUsableJobs.length > 0 ? (
+              {overview.coverage.savedDates.length > 0 ? (
                 <div className="space-y-2">
-                  <label className="font-medium text-sm" htmlFor="overview-ranking-job-select">
-                    {messages.overview.ranking.selectLabel}
+                  <label className="font-medium text-sm" htmlFor="overview-ranking-saved-date-select">
+                    {messages.overview.ranking.savedDateSelectLabel}
                   </label>
                   <Select
-                    value={selectedRankingJobValue}
+                    value={selectedRankingSavedDateValue}
                     onValueChange={(value) => {
-                      const nextJob = rankingUsableJobs.find((job) => job.id === value);
-                      if (!nextJob) {
+                      const savedDate = overview.coverage.savedDates.find((item) => item.date === value);
+                      if (!savedDate) {
                         return;
                       }
 
-                      openJobPeriod(nextJob);
+                      openSavedDate(savedDate);
                     }}
                   >
-                    <SelectTrigger id="overview-ranking-job-select" className="w-full md:max-w-3xl">
-                      <SelectValue placeholder={messages.overview.ranking.selectPlaceholder} />
+                    <SelectTrigger id="overview-ranking-saved-date-select" className="w-full md:max-w-3xl">
+                      <SelectValue placeholder={messages.overview.ranking.savedDateSelectPlaceholder} />
                     </SelectTrigger>
                     <SelectContent align="start">
                       <SelectGroup>
-                        <SelectLabel>{messages.overview.ranking.selectLabel}</SelectLabel>
-                        {rankingUsableJobs.map((job) => (
-                          <SelectItem key={job.id} value={job.id}>
-                            {getRankingJobOptionLabel(job)}
+                        <SelectLabel>{messages.overview.ranking.savedDateSelectLabel}</SelectLabel>
+                        {overview.coverage.savedDates.map((savedDate) => (
+                          <SelectItem key={savedDate.date} value={savedDate.date}>
+                            {getSavedDateOptionLabel(savedDate)}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -1656,11 +1690,11 @@ export function OverviewWorkspace({
                 {messages.overview.ranking.nativeWindowNoticeDescription}
               </div>
 
-              {rankingUsableJobs.length === 0 ? (
+              {overview.coverage.savedDates.length === 0 ? (
                 <Empty>
                   <EmptyHeader>
-                    <EmptyTitle>{messages.overview.ranking.emptyImportedTitle}</EmptyTitle>
-                    <EmptyDescription>{messages.overview.ranking.emptyImportedDescription}</EmptyDescription>
+                    <EmptyTitle>{messages.overview.ranking.emptySavedDatesTitle}</EmptyTitle>
+                    <EmptyDescription>{messages.overview.ranking.emptySavedDatesDescription}</EmptyDescription>
                   </EmptyHeader>
                 </Empty>
               ) : null}
@@ -1671,12 +1705,19 @@ export function OverviewWorkspace({
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() =>
-                    selectedRankingJob
-                      ? void triggerJob("/overview/delete", getJobPeriodSeconds(selectedRankingJob))
-                      : undefined
-                  }
-                  disabled={isMutating || !selectedRankingJob}
+                  onClick={() => {
+                    if (!selectedRankingSavedDate) {
+                      return;
+                    }
+
+                    const period = getSavedDatePeriodSeconds(selectedRankingSavedDate);
+                    if (!period) {
+                      return;
+                    }
+
+                    void triggerJob("/overview/delete", period);
+                  }}
+                  disabled={isMutating || !selectedRankingSavedDate}
                 >
                   {isMutating ? messages.overview.actions.deletePeriodLoading : messages.overview.actions.deletePeriod}
                 </Button>

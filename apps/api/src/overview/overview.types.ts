@@ -61,6 +61,14 @@ export type OverviewCoverageWindowItem = {
   expiresInDays: number;
 };
 
+export type OverviewSavedDateItem = {
+  date: string;
+  rowCount: number;
+  instanceCount: number;
+  storedFrom: string | null;
+  storedUntil: string | null;
+};
+
 export type OverviewCoverageRenewResponse = {
   coverageWindow: OverviewCoverageWindowItem;
   renewedQueryCount: number;
@@ -218,6 +226,7 @@ export type OverviewResponse = {
     expiringSoonCount: number;
     windows: OverviewCoverageWindowItem[];
     savedWindows: OverviewCoverageWindowItem[];
+    savedDates: OverviewSavedDateItem[];
     expiringWindows: OverviewCoverageWindowItem[];
   };
   sources: {

@@ -533,6 +533,7 @@ export type WebMessages = {
     };
     actions: {
       markRead: string;
+      markAllRead: string;
       delete: string;
       deleting: string;
       markingRead: string;
@@ -652,14 +653,13 @@ export type WebMessages = {
       description: string;
       filtersTitle: string;
       filtersDescription: string;
-      importedJobsTitle: string;
-      importedJobsDescription: string;
-      importedAt: (value: string) => string;
-      selectedImportedJob: string;
-      emptyImportedTitle: string;
-      emptyImportedDescription: string;
-      selectLabel: string;
-      selectPlaceholder: string;
+      savedDatesTitle: string;
+      savedDatesDescription: string;
+      emptySavedDatesTitle: string;
+      emptySavedDatesDescription: string;
+      savedDateSelectLabel: string;
+      savedDateSelectPlaceholder: string;
+      savedDateOption: (date: string, rowCount: string, instanceCount: string) => string;
       domainFilter: string;
       domainPlaceholder: string;
       clientFilter: string;
@@ -727,9 +727,10 @@ export type WebMessages = {
       filteredEmptyDescription: string;
       statusFilterTitle: string;
       statusFilterValues: {
-        SUCCESS: string;
-        PARTIAL: string;
-        FAILURE: string;
+        inProgress: string;
+        success: string;
+        partial: string;
+        failure: string;
       };
       status: string;
       type: string;

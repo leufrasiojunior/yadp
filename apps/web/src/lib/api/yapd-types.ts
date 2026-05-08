@@ -558,6 +558,13 @@ export type OverviewResponse = {
     latestStoredAt: string | null;
     savedWindowCount: number;
     expiringSoonCount: number;
+    savedDates: Array<{
+      date: string;
+      rowCount: number;
+      instanceCount: number;
+      storedFrom: string | null;
+      storedUntil: string | null;
+    }>;
     windows: Array<{
       id: string;
       jobId: string | null;
