@@ -8172,6 +8172,84 @@
         ],
         "tags": ["sync"]
       }
+    },
+    "/tours/{tourKey}": {
+      "get": {
+        "operationId": "ToursController_getStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Product tour completion status for the current browser.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tourKey": {
+                      "type": "string",
+                      "example": "overview-v1"
+                    },
+                    "completed": {
+                      "type": "boolean"
+                    },
+                    "completedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    }
+                  },
+                  "required": ["tourKey", "completed", "completedAt"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["tours"]
+      }
+    },
+    "/tours/{tourKey}/complete": {
+      "post": {
+        "operationId": "ToursController_complete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Product tour completion status for the current browser.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tourKey": {
+                      "type": "string",
+                      "example": "overview-v1"
+                    },
+                    "completed": {
+                      "type": "boolean"
+                    },
+                    "completedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    }
+                  },
+                  "required": ["tourKey", "completed", "completedAt"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["tours"]
+      }
     }
   },
   "info": {

@@ -125,6 +125,11 @@ export type RegexFilter = Prisma.RegexFilterModel
  */
 export type Notification = Prisma.NotificationModel
 /**
+ * Model ProductTourCompletion
+ * 
+ */
+export type ProductTourCompletion = Prisma.ProductTourCompletionModel
+/**
  * Model HistoricalQuery
  * 
  */

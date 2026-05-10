@@ -302,6 +302,18 @@ model Notification {
   @@index([createdAt])
 }
 
+model ProductTourCompletion {
+  id            String   @id @default(cuid())
+  browserIdHash String
+  tourKey       String
+  completedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([browserIdHash, tourKey])
+  @@index([tourKey, completedAt])
+}
+
 model HistoricalQuery {
   id                  String              @id @default(cuid())
   jobId               String?

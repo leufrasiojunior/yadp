@@ -735,6 +735,12 @@ export type OverviewCoverageRenewResponse = {
   renewedAt: string;
 };
 
+export type ProductTourStatusResponse = {
+  tourKey: string;
+  completed: boolean;
+  completedAt: string | null;
+};
+
 export type QueriesResponse = {
   queries: Array<{
     instanceId: string;

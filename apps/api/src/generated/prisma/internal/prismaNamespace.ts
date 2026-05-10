@@ -401,6 +401,7 @@ export const ModelName = {
   ManagedDomain: 'ManagedDomain',
   RegexFilter: 'RegexFilter',
   Notification: 'Notification',
+  ProductTourCompletion: 'ProductTourCompletion',
   HistoricalQuery: 'HistoricalQuery',
   OverviewHistoryJob: 'OverviewHistoryJob',
   OverviewCoverageWindow: 'OverviewCoverageWindow',
@@ -420,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "historicalQuery" | "overviewHistoryJob" | "overviewCoverageWindow" | "pushSubscription"
+    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "productTourCompletion" | "historicalQuery" | "overviewHistoryJob" | "overviewCoverageWindow" | "pushSubscription"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1682,6 +1683,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProductTourCompletion: {
+      payload: Prisma.$ProductTourCompletionPayload<ExtArgs>
+      fields: Prisma.ProductTourCompletionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProductTourCompletionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProductTourCompletionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>
+        }
+        findFirst: {
+          args: Prisma.ProductTourCompletionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProductTourCompletionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>
+        }
+        findMany: {
+          args: Prisma.ProductTourCompletionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>[]
+        }
+        create: {
+          args: Prisma.ProductTourCompletionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>
+        }
+        createMany: {
+          args: Prisma.ProductTourCompletionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProductTourCompletionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>[]
+        }
+        delete: {
+          args: Prisma.ProductTourCompletionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>
+        }
+        update: {
+          args: Prisma.ProductTourCompletionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProductTourCompletionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProductTourCompletionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProductTourCompletionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProductTourCompletionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductTourCompletionPayload>
+        }
+        aggregate: {
+          args: Prisma.ProductTourCompletionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProductTourCompletion>
+        }
+        groupBy: {
+          args: Prisma.ProductTourCompletionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductTourCompletionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProductTourCompletionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductTourCompletionCountAggregateOutputType> | number
+        }
+      }
+    }
     HistoricalQuery: {
       payload: Prisma.$HistoricalQueryPayload<ExtArgs>
       fields: Prisma.HistoricalQueryFieldRefs
@@ -2269,6 +2344,18 @@ export const NotificationScalarFieldEnum = {
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
+export const ProductTourCompletionScalarFieldEnum = {
+  id: 'id',
+  browserIdHash: 'browserIdHash',
+  tourKey: 'tourKey',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductTourCompletionScalarFieldEnum = (typeof ProductTourCompletionScalarFieldEnum)[keyof typeof ProductTourCompletionScalarFieldEnum]
+
+
 export const HistoricalQueryScalarFieldEnum = {
   id: 'id',
   jobId: 'jobId',
@@ -2727,6 +2814,7 @@ export type GlobalOmitConfig = {
   managedDomain?: Prisma.ManagedDomainOmit
   regexFilter?: Prisma.RegexFilterOmit
   notification?: Prisma.NotificationOmit
+  productTourCompletion?: Prisma.ProductTourCompletionOmit
   historicalQuery?: Prisma.HistoricalQueryOmit
   overviewHistoryJob?: Prisma.OverviewHistoryJobOmit
   overviewCoverageWindow?: Prisma.OverviewCoverageWindowOmit

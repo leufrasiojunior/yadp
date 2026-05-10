@@ -1028,6 +1028,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/tours/{tourKey}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ToursController_getStatus"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/tours/{tourKey}/complete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ToursController_complete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4599,6 +4631,58 @@ export interface operations {
               blocking: "enabled" | "disabled" | null;
               timerSeconds: number | null;
             }[];
+          };
+        };
+      };
+    };
+  };
+  ToursController_getStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Product tour completion status for the current browser. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @example overview-v1 */
+            tourKey: string;
+            completed: boolean;
+            /** Format: date-time */
+            completedAt: string | null;
+          };
+        };
+      };
+    };
+  };
+  ToursController_complete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Product tour completion status for the current browser. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @example overview-v1 */
+            tourKey: string;
+            completed: boolean;
+            /** Format: date-time */
+            completedAt: string | null;
           };
         };
       };

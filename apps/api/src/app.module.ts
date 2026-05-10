@@ -24,6 +24,7 @@ import { QueriesModule } from "./queries/queries.module";
 import { SessionModule } from "./session/session.module";
 import { SetupModule } from "./setup/setup.module";
 import { SyncModule } from "./sync/sync.module";
+import { ToursModule } from "./tours/tours.module";
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { SyncModule } from "./sync/sync.module";
     SessionModule,
     SetupModule,
     SyncModule,
+    ToursModule,
   ],
   providers: [
     {

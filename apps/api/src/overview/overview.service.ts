@@ -293,7 +293,7 @@ function buildEmptyRuntimeSummary(): JobRuntimeSummary {
 @Injectable()
 export class OverviewService implements OnModuleInit {
   private readonly logger = new Logger(OverviewService.name);
-  private readonly activeJobKeys = new Set<string>();
+  private isOverviewQueueDraining = false;
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
@@ -304,6 +304,7 @@ export class OverviewService implements OnModuleInit {
 
   async onModuleInit() {
     await this.markInterruptedJobsAsFailed();
+    this.scheduleQueueDrain();
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
@@ -569,7 +570,7 @@ export class OverviewService implements OnModuleInit {
       },
     });
 
-    this.scheduleJob(retried.id);
+    this.scheduleQueueDrain();
     return { job: this.mapJob(retried) };
   }
 
@@ -618,7 +619,7 @@ export class OverviewService implements OnModuleInit {
       requestedBy: request.ip ?? null,
     });
 
-    this.scheduleJob(job.id);
+    this.scheduleQueueDrain();
     return { job: this.mapJob(job) };
   }
 
@@ -637,7 +638,7 @@ export class OverviewService implements OnModuleInit {
       requestedBy: request.ip ?? null,
     });
 
-    this.scheduleJob(job.id);
+    this.scheduleQueueDrain();
     return { job: this.mapJob(job) };
   }
 
@@ -663,10 +664,11 @@ export class OverviewService implements OnModuleInit {
       this.logger.debug(
         `Skipping automatic overview import for ${range.from.toISOString()} because a job already exists.`,
       );
+      this.scheduleQueueDrain();
       return;
     }
 
-    const job = await this.createJob({
+    await this.createJob({
       kind: "AUTOMATIC_IMPORT",
       scope: "all",
       instanceId: null,
@@ -677,32 +679,52 @@ export class OverviewService implements OnModuleInit {
       requestedBy: null,
     });
 
-    this.scheduleJob(job.id);
+    this.scheduleQueueDrain();
   }
 
-  private scheduleJob(jobId: string) {
+  private scheduleQueueDrain() {
     setImmediate(() => {
-      void this.executeJob(jobId);
+      void this.drainOverviewJobQueue();
     });
   }
 
-  private async executeJob(jobId: string) {
-    const job = await this.prisma.overviewHistoryJob.findUnique({
-      where: { id: jobId },
-    });
-
-    if (!job || job.status !== "PENDING") {
+  private async drainOverviewJobQueue() {
+    if (this.isOverviewQueueDraining) {
       return;
     }
 
-    const key = this.buildJobKey(job);
+    this.isOverviewQueueDraining = true;
 
-    if (this.activeJobKeys.has(key)) {
-      this.logger.debug(`Skipping overview job ${job.id} because ${key} is already running.`);
+    try {
+      while (true) {
+        const nextJob = await this.prisma.overviewHistoryJob.findFirst({
+          where: { status: "PENDING" },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        });
+
+        if (!nextJob) {
+          break;
+        }
+
+        await this.executeQueuedJob(nextJob);
+      }
+    } finally {
+      this.isOverviewQueueDraining = false;
+      const pendingJob = await this.prisma.overviewHistoryJob.findFirst({
+        where: { status: "PENDING" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      });
+
+      if (pendingJob) {
+        this.scheduleQueueDrain();
+      }
+    }
+  }
+
+  private async executeQueuedJob(job: OverviewJobRecord) {
+    if (job.status !== "PENDING") {
       return;
     }
-
-    this.activeJobKeys.add(key);
 
     try {
       if (job.kind === "MANUAL_DELETE") {
@@ -712,8 +734,6 @@ export class OverviewService implements OnModuleInit {
       }
     } catch (error) {
       await this.markJobFailed(job, error);
-    } finally {
-      this.activeJobKeys.delete(key);
     }
   }
 
@@ -1289,9 +1309,7 @@ export class OverviewService implements OnModuleInit {
   private async markInterruptedJobsAsFailed() {
     const interruptedJobs = await this.prisma.overviewHistoryJob.findMany({
       where: {
-        status: {
-          in: ["PENDING", "RUNNING"],
-        },
+        status: "RUNNING",
       },
     });
 
@@ -1616,6 +1634,24 @@ export class OverviewService implements OnModuleInit {
     trigger: string | null;
     requestedBy: string | null;
   }) {
+    const existing = await this.prisma.overviewHistoryJob.findFirst({
+      where: {
+        kind: input.kind,
+        scope: input.scope,
+        instanceId: input.instanceId,
+        requestedFrom: input.requestedFrom,
+        requestedUntil: input.requestedUntil,
+        status: {
+          in: ["PENDING", "RUNNING"],
+        },
+      },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    });
+
+    if (existing) {
+      return existing;
+    }
+
     return this.prisma.overviewHistoryJob.create({
       data: {
         kind: input.kind,
@@ -1645,16 +1681,6 @@ export class OverviewService implements OnModuleInit {
     if (getDateKeyInTimeZone(range.from, timeZone) !== getDateKeyInTimeZone(range.until, timeZone)) {
       throw new BadRequestException("Manual overview import is limited to a single calendar day.");
     }
-  }
-
-  private buildJobKey(job: OverviewJobRecord) {
-    return [
-      job.kind,
-      job.scope,
-      job.instanceId ?? "all",
-      job.requestedFrom.toISOString(),
-      job.requestedUntil.toISOString(),
-    ].join(":");
   }
 
   private mapJob(job: OverviewJobRecord) {

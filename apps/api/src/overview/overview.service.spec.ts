@@ -101,14 +101,18 @@ function createPrismaStub(
   job: OverviewJobRecord,
   coverageWindow = makeCoverageWindow(),
   options: {
+    jobs?: OverviewJobRecord[];
+    enableQueueFind?: boolean;
     coverageWindows?: CoverageWindowRecord[];
     coverageStats?: unknown[];
     queryRawResults?: unknown[][];
     timeZone?: string;
   } = {},
 ) {
+  const initialJobs = [job, ...(options.jobs ?? [])].map((item) => structuredClone(item));
   const state = {
     job: structuredClone(job),
+    jobs: initialJobs,
     createdJobData: null as unknown,
     coverageWindow: structuredClone(coverageWindow),
     coverageWindows: structuredClone(options.coverageWindows ?? []),
@@ -120,12 +124,99 @@ function createPrismaStub(
     renewedQueryData: null as unknown,
     coverageWindowCount: 1,
   };
+  const syncCurrentJob = (updated: OverviewJobRecord) => {
+    const index = state.jobs.findIndex((item) => item.id === updated.id);
+
+    if (index >= 0) {
+      state.jobs[index] = structuredClone(updated);
+    }
+
+    if (state.job.id === updated.id) {
+      state.job = structuredClone(updated);
+    }
+  };
+  const matchesJobWhere = (candidate: OverviewJobRecord, where: Record<string, unknown>) => {
+    for (const [key, value] of Object.entries(where)) {
+      if (key === "status" && value && typeof value === "object" && "in" in value) {
+        if (!(value.in as string[]).includes(candidate.status)) {
+          return false;
+        }
+        continue;
+      }
+
+      if (candidate[key as keyof OverviewJobRecord] instanceof Date && value instanceof Date) {
+        if ((candidate[key as keyof OverviewJobRecord] as Date).getTime() !== value.getTime()) {
+          return false;
+        }
+        continue;
+      }
+
+      if (candidate[key as keyof OverviewJobRecord] !== value) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+  const sortJobs = (jobs: OverviewJobRecord[], orderBy?: Array<Record<string, "asc" | "desc">>) => {
+    if (!orderBy) {
+      return jobs;
+    }
+
+    return [...jobs].sort((left, right) => {
+      for (const order of orderBy) {
+        const [[field, direction]] = Object.entries(order);
+        const leftValue = left[field as keyof OverviewJobRecord];
+        const rightValue = right[field as keyof OverviewJobRecord];
+        const comparison =
+          leftValue instanceof Date && rightValue instanceof Date
+            ? leftValue.getTime() - rightValue.getTime()
+            : String(leftValue).localeCompare(String(rightValue));
+
+        if (comparison !== 0) {
+          return direction === "asc" ? comparison : -comparison;
+        }
+      }
+
+      return 0;
+    });
+  };
 
   return {
     state,
     overviewHistoryJob: {
       findUnique: async ({ where }: { where: { id: string } }) =>
-        where.id === state.job.id ? structuredClone(state.job) : null,
+        structuredClone(state.jobs.find((item) => item.id === where.id) ?? null),
+      findFirst: async ({
+        where,
+        orderBy,
+      }: {
+        where: Record<string, unknown>;
+        orderBy?: Array<Record<string, "asc" | "desc">>;
+      }) => {
+        if (!options.enableQueueFind && Object.keys(where).length === 1 && where.status === "PENDING") {
+          return null;
+        }
+
+        return structuredClone(
+          sortJobs(
+            state.jobs.filter((item) => matchesJobWhere(item, where)),
+            orderBy,
+          )[0] ?? null,
+        );
+      },
+      findMany: async ({
+        where,
+        orderBy,
+        take,
+      }: {
+        where?: Record<string, unknown>;
+        orderBy?: Array<Record<string, "asc" | "desc">>;
+        take?: number;
+      } = {}) => {
+        const matchedJobs = where ? state.jobs.filter((item) => matchesJobWhere(item, where)) : state.jobs;
+        return structuredClone(sortJobs(matchedJobs, orderBy).slice(0, take));
+      },
       create: async ({ data }: { data: Partial<OverviewJobRecord> }) => {
         state.createdJobData = data;
         state.job = makeJob({
@@ -135,20 +226,25 @@ function createPrismaStub(
           createdAt: new Date("2026-04-29T12:05:00.000Z"),
           updatedAt: new Date("2026-04-29T12:05:00.000Z"),
         });
+        state.jobs.push(structuredClone(state.job));
         return structuredClone(state.job);
       },
       update: async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
-        assert.equal(where.id, state.job.id);
-        state.job = {
-          ...state.job,
+        const existing = state.jobs.find((item) => item.id === where.id);
+        assert.ok(existing);
+        const updated = {
+          ...existing,
           ...data,
           updatedAt: new Date("2026-04-29T12:05:00.000Z"),
         };
-        return structuredClone(state.job);
+        syncCurrentJob(updated);
+        return structuredClone(updated);
       },
       delete: async ({ where }: { where: { id: string } }) => {
-        assert.equal(where.id, state.job.id);
-        return structuredClone(state.job);
+        const existing = state.jobs.find((item) => item.id === where.id);
+        assert.ok(existing);
+        state.jobs = state.jobs.filter((item) => item.id !== where.id);
+        return structuredClone(existing);
       },
     },
     historicalQuery: {
@@ -216,17 +312,21 @@ function createPrismaStub(
         },
         overviewHistoryJob: {
           delete: async ({ where }: { where: { id: string } }) => {
-            assert.equal(where.id, state.job.id);
-            return structuredClone(state.job);
+            const existing = state.jobs.find((item) => item.id === where.id);
+            assert.ok(existing);
+            state.jobs = state.jobs.filter((item) => item.id !== where.id);
+            return structuredClone(existing);
           },
           update: async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
-            assert.equal(where.id, state.job.id);
-            state.job = {
-              ...state.job,
+            const existing = state.jobs.find((item) => item.id === where.id);
+            assert.ok(existing);
+            const updated = {
+              ...existing,
               ...data,
               updatedAt: new Date("2026-04-29T12:05:00.000Z"),
             };
-            return structuredClone(state.job);
+            syncCurrentJob(updated);
+            return structuredClone(updated);
           },
         },
       }),
@@ -363,6 +463,114 @@ test("enqueueManualImport accepts only one app-timezone calendar day", async () 
         } as never,
       ),
     /single calendar day/,
+  );
+});
+
+test("enqueueManualImport reuses an identical pending or running job", async () => {
+  const existingJob = makeJob({
+    id: "job-existing",
+    status: "RUNNING",
+    requestedFrom: new Date("2026-04-28T03:00:00.000Z"),
+    requestedUntil: new Date("2026-04-29T02:59:59.000Z"),
+  });
+  const { service, prisma } = createService(existingJob, {
+    instances: [{ id: "instance-1", name: "Pi-hole A" }],
+    timeZone: "America/Sao_Paulo",
+  });
+
+  const result = await service.enqueueManualImport(
+    {
+      scope: "all",
+      from: Date.parse("2026-04-28T03:00:00.000Z") / 1000,
+      until: Date.parse("2026-04-29T02:59:59.000Z") / 1000,
+    } as never,
+    {
+      ip: "10.0.0.9",
+      headers: {
+        "accept-language": "en-US",
+      },
+    } as never,
+  );
+
+  assert.equal(result.job.id, "job-existing");
+  assert.equal(result.job.status, "RUNNING");
+  assert.equal(prisma.state.createdJobData, null);
+});
+
+test("overview queue drains pending jobs sequentially in FIFO order", async () => {
+  const firstJob = makeJob({
+    id: "job-first",
+    status: "PENDING",
+    createdAt: new Date("2026-04-29T12:00:00.000Z"),
+  });
+  const secondJob = makeJob({
+    id: "job-second",
+    status: "PENDING",
+    requestedFrom: new Date("2026-04-27T00:00:00.000Z"),
+    requestedUntil: new Date("2026-04-27T23:59:59.000Z"),
+    createdAt: new Date("2026-04-29T12:01:00.000Z"),
+  });
+  const { service, prisma } = createService(firstJob, {
+    enableQueueFind: true,
+    jobs: [secondJob],
+  });
+  const queueService = service as unknown as {
+    drainOverviewJobQueue: () => Promise<void>;
+    runImportJob: (job: OverviewJobRecord) => Promise<void>;
+  };
+  const executionOrder: string[] = [];
+  let activeExecutions = 0;
+  let maxActiveExecutions = 0;
+
+  queueService.runImportJob = async (job) => {
+    activeExecutions += 1;
+    maxActiveExecutions = Math.max(maxActiveExecutions, activeExecutions);
+    executionOrder.push(job.id);
+    await Promise.resolve();
+    await prisma.overviewHistoryJob.update({
+      where: { id: job.id },
+      data: {
+        status: "SUCCESS",
+        startedAt: new Date("2026-04-29T12:05:00.000Z"),
+        finishedAt: new Date("2026-04-29T12:06:00.000Z"),
+      },
+    });
+    activeExecutions -= 1;
+  };
+
+  await queueService.drainOverviewJobQueue();
+
+  assert.deepEqual(executionOrder, ["job-first", "job-second"]);
+  assert.equal(maxActiveExecutions, 1);
+  assert.deepEqual(
+    prisma.state.jobs.map((job) => [job.id, job.status]),
+    [
+      ["job-first", "SUCCESS"],
+      ["job-second", "SUCCESS"],
+    ],
+  );
+});
+
+test("onModuleInit preserves pending jobs and marks only running jobs as interrupted", async () => {
+  const pendingJob = makeJob({
+    id: "job-pending",
+    status: "PENDING",
+  });
+  const runningJob = makeJob({
+    id: "job-running",
+    status: "RUNNING",
+  });
+  const { service, prisma } = createService(pendingJob, {
+    jobs: [runningJob],
+  });
+
+  await service.onModuleInit();
+
+  assert.equal(prisma.state.jobs.find((job) => job.id === "job-pending")?.status, "PENDING");
+  assert.equal(prisma.state.jobs.find((job) => job.id === "job-running")?.status, "FAILURE");
+  assert.equal(
+    prisma.state.jobs.find((job) => job.id === "job-running")?.errorMessage,
+    "Interrupted by application restart.",
   );
 });
 
