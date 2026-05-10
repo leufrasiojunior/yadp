@@ -1,8 +1,11 @@
 {
   "name": "yapd",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "dev": "npm run dev:apps",
@@ -24,7 +27,9 @@
     "generate:presets": "npm run generate:presets --workspace @yapd/web"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx,json,md}": ["biome check --write --no-errors-on-unmatched"]
+    "*.{js,ts,jsx,tsx,json,md}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
