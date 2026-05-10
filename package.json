@@ -2,10 +2,7 @@
   "name": "yapd",
   "version": "0.3.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "dev": "npm run dev:apps",
@@ -24,12 +21,16 @@
     "prepare": "husky",
     "prisma:generate": "npm run prisma:generate --workspace @yapd/api",
     "generate:api-client": "npm run generate --workspace @yapd/api-client",
-    "generate:presets": "npm run generate:presets --workspace @yapd/web"
+    "generate:presets": "npm run generate:presets --workspace @yapd/web",
+    "release": "node scripts/release-version.mjs",
+    "release:interactive": "node scripts/release-version.mjs",
+    "release:as": "node scripts/release-version.mjs as",
+    "release:beta": "node scripts/release-version.mjs beta",
+    "release:major": "node scripts/release-version.mjs major",
+    "release:help": "node scripts/release-version.mjs --help"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx,json,md}": [
-      "biome check --write --no-errors-on-unmatched"
-    ]
+    "*.{js,ts,jsx,tsx,json,md}": ["biome check --write --no-errors-on-unmatched"]
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
