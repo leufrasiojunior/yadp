@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.2.0...yapd-v0.3.0) (2026-05-10)
+
+
+### Features
+
+* update Docker publish workflow to support additional Git tag fo… ([56c03e3](https://github.com/leufrasiojunior/yadp/commit/56c03e3ef4ddd7c68cf893949542447696c5f2d1))
+* update Docker publish workflow to support additional Git tag format ([0fc83e2](https://github.com/leufrasiojunior/yadp/commit/0fc83e2bcff98dde14496fef5845684e36a91696))
+
 ## [0.2.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.1.0...yapd-v0.2.0) (2026-05-10)
 
 
