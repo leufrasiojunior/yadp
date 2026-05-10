@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       tag:
-        description: Git tag to publish, for example v0.1.0.
+        description: Git tag to publish, for example v0.1.0 or yapd-v0.1.0.
         required: true
         type: string
     secrets:
@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Git tag to publish, for example v0.1.0.
+        description: Git tag to publish, for example v0.1.0 or yapd-v0.1.0.
         required: true
         type: string
 
@@ -51,28 +51,29 @@ jobs:
         env:
           INPUT_TAG: ${{ inputs.tag }}
         run: |
-          tag="$INPUT_TAG"
+          git_tag="$INPUT_TAG"
 
-          if [[ -z "$tag" ]]; then
-            echo "::error::A semver Git tag is required, for example v0.1.0."
+          if [[ -z "$git_tag" ]]; then
+            echo "::error::A release Git tag is required, for example v0.1.0 or yapd-v0.1.0."
             exit 1
           fi
 
-          if [[ ! "$tag" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Expected a semver Git tag like v0.1.0, got '$tag'."
+          if [[ "$git_tag" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
+            version="${BASH_REMATCH[1]}"
+          elif [[ "$git_tag" =~ ^.+-v?([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
+            version="${BASH_REMATCH[1]}"
+          else
+            echo "::error::Expected a release Git tag like v0.1.0 or yapd-v0.1.0, got '$git_tag'."
             exit 1
           fi
 
-          version="${tag#v}"
+          semver_tag="v$version"
           {
-            echo "ref=$tag"
+            echo "ref=$git_tag"
             echo "version=$version"
             echo "tags<<TAGS"
-            echo "$DOCKERHUB_IMAGE:$tag"
-
-            if [[ "$version" != "$tag" ]]; then
-              echo "$DOCKERHUB_IMAGE:$version"
-            fi
+            echo "$DOCKERHUB_IMAGE:$semver_tag"
+            echo "$DOCKERHUB_IMAGE:$version"
 
             if [[ "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
               major="${BASH_REMATCH[1]}"
