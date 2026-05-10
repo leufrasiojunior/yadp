@@ -558,6 +558,13 @@ export type OverviewResponse = {
     latestStoredAt: string | null;
     savedWindowCount: number;
     expiringSoonCount: number;
+    savedDates: Array<{
+      date: string;
+      rowCount: number;
+      instanceCount: number;
+      storedFrom: string | null;
+      storedUntil: string | null;
+    }>;
     windows: Array<{
       id: string;
       jobId: string | null;
@@ -726,6 +733,12 @@ export type OverviewCoverageRenewResponse = {
   coverageWindow: OverviewResponse["coverage"]["savedWindows"][number];
   renewedQueryCount: number;
   renewedAt: string;
+};
+
+export type ProductTourStatusResponse = {
+  tourKey: string;
+  completed: boolean;
+  completedAt: string | null;
 };
 
 export type QueriesResponse = {

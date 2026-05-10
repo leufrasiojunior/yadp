@@ -30,6 +30,7 @@ import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   NotificationMutationResponse,
+  NotificationReadAllResponse,
   NotificationReadState,
   NotificationsListResponse,
 } from "@/lib/api/yapd-types";
@@ -55,6 +56,7 @@ export function NotificationsWorkspace({ initialData }: Readonly<NotificationsWo
   const [data, setData] = useState(initialData);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const isReloading = busyAction === "page" || busyAction === "page-size" || busyAction === "tab";
+  const isMarkingAllAsRead = busyAction === "read-all";
 
   const refreshPage = async (
     page = data.pagination.page,
@@ -129,6 +131,41 @@ export function NotificationsWorkspace({ initialData }: Readonly<NotificationsWo
       }
 
       toast.success(messages.notifications.toasts.markReadSuccess);
+      await refreshPreview();
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    setBusyAction("read-all");
+
+    try {
+      const { data: responseData, response } = await client.PATCH<NotificationReadAllResponse>(
+        "/notifications/read-all",
+        {
+          headers: {
+            "x-yapd-csrf": csrfToken,
+          },
+        },
+      );
+
+      if (!response.ok || !responseData) {
+        toast.error(messages.notifications.toasts.refreshFailed);
+        return;
+      }
+
+      const nextPageData = await refreshPage(
+        data.readState === "unread" ? 1 : data.pagination.page,
+        data.pagination.pageSize,
+        data.readState,
+      );
+
+      if (!nextPageData) {
+        return;
+      }
+
+      toast.success(messages.notifications.toasts.markAllReadSuccess(responseData.updatedCount));
       await refreshPreview();
     } finally {
       setBusyAction(null);
@@ -219,16 +256,30 @@ export function NotificationsWorkspace({ initialData }: Readonly<NotificationsWo
           {isReadTab ? <Archive className="size-4" /> : <BellDot className="size-4" />}
           <span>{countLabel}</span>
         </p>
-        <TabsList className="grid w-full max-w-sm grid-cols-2">
-          <TabsTrigger value="unread" disabled={busyAction !== null}>
-            <BellDot className="size-4" />
-            {messages.notifications.table.tabs.unread}
-          </TabsTrigger>
-          <TabsTrigger value="read" disabled={busyAction !== null}>
-            <Archive className="size-4" />
-            {messages.notifications.table.tabs.read}
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void handleMarkAllAsRead()}
+            disabled={busyAction !== null || data.unreadCount === 0}
+          >
+            <CheckCheck className="size-4" />
+            {isMarkingAllAsRead
+              ? messages.notifications.actions.markingRead
+              : messages.notifications.actions.markAllRead}
+          </Button>
+          <TabsList className="grid w-full max-w-sm grid-cols-2 sm:w-72">
+            <TabsTrigger value="unread" disabled={busyAction !== null}>
+              <BellDot className="size-4" />
+              {messages.notifications.table.tabs.unread}
+            </TabsTrigger>
+            <TabsTrigger value="read" disabled={busyAction !== null}>
+              <Archive className="size-4" />
+              {messages.notifications.table.tabs.read}
+            </TabsTrigger>
+          </TabsList>
+        </div>
       </div>
       <div className="overflow-hidden rounded-lg border bg-background shadow-sm">
         <Table>

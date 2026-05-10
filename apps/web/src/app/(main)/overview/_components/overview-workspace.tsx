@@ -4,6 +4,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState, useT
 
 import { useRouter } from "next/navigation";
 
+import { type StepType, TourProvider, useTour } from "@reactour/tour";
 import {
   Activity,
   Calendar,
@@ -16,6 +17,7 @@ import {
   FileText,
   Filter,
   Globe,
+  HelpCircle,
   Info,
   ListFilter,
   type LucideIcon,
@@ -50,6 +52,8 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
@@ -59,12 +63,16 @@ import type {
   OverviewJobsResponse,
   OverviewMutationResponse,
   OverviewResponse,
+  ProductTourStatusResponse,
 } from "@/lib/api/yapd-types";
 import { setClientCookie } from "@/lib/cookie.client";
 import { DASHBOARD_SCOPE_COOKIE, type DashboardScope, serializeDashboardScope } from "@/lib/dashboard/dashboard-scope";
 import { useWebI18n } from "@/lib/i18n/client";
+import type { WebMessages } from "@/lib/i18n/messages.types";
 import {
+  buildDefaultOverviewFilters,
   buildOverviewQueryFromFilters,
+  clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
   type OverviewFilters,
   type OverviewGroupBy,
@@ -76,8 +84,10 @@ const CLIENT_FILTER_ALL_VALUE = "__all_clients__";
 const RANKING_SHARE_LIMIT = 5;
 const MAX_COMPLETE_CHART_BUCKETS = 5000;
 const DETAILS_POLL_INTERVAL_MS = 2000;
+const JOBS_POLL_INTERVAL_MS = 5000;
 const COVERAGE_PAGE_SIZE = 6;
-const JOB_STATUS_FILTER_VALUES = ["SUCCESS", "PARTIAL", "FAILURE"] as const;
+const OVERVIEW_TOUR_KEY = "overview-v1";
+const JOB_STATUS_FILTER_VALUES = ["all", "inProgress", "completed", "partial", "failure"] as const;
 const STATUS_CHART_COLORS = [
   "oklch(0.62 0.2 145)",
   "oklch(0.72 0.18 72)",
@@ -98,7 +108,8 @@ type RankingFilterKey = "domain" | "client_ip";
 type RankingRow = { value: string; count: number };
 type QueryChartPoint = OverviewResponse["charts"]["queries"]["points"][number];
 type OverviewJobStatus = OverviewJobsResponse["jobs"][number]["status"];
-type OverviewJobFilterStatus = (typeof JOB_STATUS_FILTER_VALUES)[number];
+type OverviewJobFilterGroup = (typeof JOB_STATUS_FILTER_VALUES)[number];
+type OverviewSavedDate = OverviewResponse["coverage"]["savedDates"][number];
 type RankingShareRow = RankingRow & {
   fill: string;
   percentage: number;
@@ -121,6 +132,26 @@ type RankingKpiCard = {
 type DetailsLoadOptions = {
   silent?: boolean;
 };
+type OpenJobDetailsOptions = {
+  tourDemo?: boolean;
+};
+type OverviewWorkspaceProps = Readonly<{
+  initialFilters: OverviewFilters;
+  initialJobs: OverviewJobsResponse;
+  initialOverview: OverviewResponse;
+  initialTab: OverviewTab;
+  scope: DashboardScope;
+}>;
+type RegisterTourBeforeClose = (handler: (() => void) | null) => void;
+type RegisterTourFinish = (handler: (() => void) | null) => void;
+
+const JOB_STATUSES_BY_FILTER: Record<OverviewJobFilterGroup, readonly OverviewJobStatus[]> = {
+  all: [],
+  inProgress: ["PENDING", "RUNNING"],
+  completed: ["SUCCESS"],
+  partial: ["PARTIAL"],
+  failure: ["FAILURE", "PAUSED"],
+};
 
 function buildOverviewHref(filters: OverviewFilters, timeZone: string, activeTab: OverviewTab) {
   const query = buildOverviewQueryFromFilters(filters, timeZone);
@@ -134,6 +165,73 @@ function buildOverviewHref(filters: OverviewFilters, timeZone: string, activeTab
 
   const queryString = searchParams.toString();
   return queryString.length > 0 ? `/overview?${queryString}` : "/overview";
+}
+
+function centerOverviewTourTarget(selector: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      document.querySelector(selector)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+    });
+  });
+}
+
+function buildOverviewTourSteps(messages: WebMessages, showTourTab: (tab: OverviewTab) => void): StepType[] {
+  const showStep = (tab: OverviewTab, selector: string) => () => {
+    showTourTab(tab);
+    centerOverviewTourTarget(selector);
+  };
+
+  return [
+    {
+      selector: '[data-overview-tour="title"]',
+      content: messages.overview.tour.purpose,
+      position: "bottom",
+    },
+    {
+      selector: '[data-overview-tour="tabs"]',
+      content: messages.overview.tour.tabs,
+      position: "bottom",
+    },
+    {
+      selector: '[data-overview-tour="manual-collection"]',
+      content: messages.overview.tour.manualCollection,
+      position: "bottom",
+      action: showStep("request", '[data-overview-tour="manual-collection"]'),
+    },
+    {
+      selector: '[data-overview-tour="coverage"]',
+      content: messages.overview.tour.coverage,
+      position: "center",
+      action: showStep("request", '[data-overview-tour="coverage"]'),
+    },
+    {
+      selector: '[data-overview-tour="ranking-filters"]',
+      content: messages.overview.tour.rankingFilters,
+      position: "bottom",
+      action: showStep("ranking", '[data-overview-tour="ranking-filters"]'),
+    },
+    {
+      selector: '[data-overview-tour="ranking-results"]',
+      highlightedSelectors: ['[data-overview-tour="ranking-chart"]'],
+      content: messages.overview.tour.rankingResults,
+      position: "center",
+      action: showStep("ranking", '[data-overview-tour="ranking-results"]'),
+    },
+    {
+      selector: '[data-overview-tour="jobs-list"]',
+      content: messages.overview.tour.jobs,
+      position: "center",
+      action: showStep("jobs", '[data-overview-tour="jobs-list"]'),
+    },
+  ];
 }
 
 function getJobBadgeVariant(status: OverviewJobsResponse["jobs"][number]["status"]) {
@@ -156,10 +254,6 @@ function canOpenJobPeriod(job: OverviewJobsResponse["jobs"][number]) {
   }
 
   return job.status === "SUCCESS" || job.status === "PARTIAL";
-}
-
-function getRankingUsableJobs(jobs: OverviewJobsResponse["jobs"]) {
-  return jobs.filter((job) => canOpenJobPeriod(job));
 }
 
 function getJobPeriodSeconds(job: OverviewJobsResponse["jobs"][number]) {
@@ -198,8 +292,12 @@ function canShowCoverageWindow(window: OverviewResponse["coverage"]["savedWindow
   return window.status === "SUCCESS" || window.status === "PARTIAL";
 }
 
-function isOverviewJobFilterStatus(status: OverviewJobStatus): status is OverviewJobFilterStatus {
-  return status === "SUCCESS" || status === "PARTIAL" || status === "FAILURE";
+function matchesJobStatusFilter(status: OverviewJobStatus, filter: OverviewJobFilterGroup) {
+  if (filter === "all") {
+    return true;
+  }
+
+  return JOB_STATUSES_BY_FILTER[filter].includes(status);
 }
 
 function isLiveOverviewJobStatus(status: OverviewJobStatus) {
@@ -207,7 +305,15 @@ function isLiveOverviewJobStatus(status: OverviewJobStatus) {
 }
 
 function canDeleteJob(job: OverviewJobsResponse["jobs"][number]) {
-  return job.status === "SUCCESS" || job.status === "FAILURE";
+  return job.status === "SUCCESS" || job.status === "FAILURE" || job.status === "PAUSED";
+}
+
+function getSavedDateFilters(date: string, filters: OverviewFilters): OverviewFilters {
+  return {
+    ...filters,
+    from: `${date}T00:00`,
+    until: `${date}T23:59`,
+  };
 }
 
 function getJobProgressPercentage(job: OverviewJobsResponse["jobs"][number] | OverviewJobDetailsResponse["job"]) {
@@ -222,6 +328,33 @@ function getJobProgressPercentage(job: OverviewJobsResponse["jobs"][number] | Ov
   }
 
   return Math.max(0, Math.min(100, Math.round((job.progress.completedPages / totalPages) * 100)));
+}
+
+function getRunningImportEta(job: OverviewJobsResponse["jobs"][number], nowMs: number) {
+  if (job.kind === "MANUAL_DELETE" || job.status !== "RUNNING") {
+    return null;
+  }
+
+  const startedAtMs = job.startedAt ? new Date(job.startedAt).getTime() : Number.NaN;
+  const completedPages = job.progress.completedPages;
+  const totalPages = job.progress.totalPages;
+
+  if (!Number.isFinite(startedAtMs) || completedPages <= 0 || totalPages <= 0 || completedPages >= totalPages) {
+    return { status: "calculating" as const };
+  }
+
+  const elapsedMs = Math.max(0, nowMs - startedAtMs);
+  const remainingPages = totalPages - completedPages;
+  const remainingMs = (elapsedMs / completedPages) * remainingPages;
+
+  if (!Number.isFinite(remainingMs) || remainingMs <= 0) {
+    return { status: "calculating" as const };
+  }
+
+  return {
+    status: "ready" as const,
+    remainingMs,
+  };
 }
 
 function getInstanceProgressPercentage(
@@ -459,19 +592,113 @@ function getCoverageRenewedOverview(
   };
 }
 
-export function OverviewWorkspace({
+export function OverviewWorkspace(props: OverviewWorkspaceProps) {
+  const tourBeforeCloseRef = useRef<(() => void) | null>(null);
+  const tourFinishRef = useRef<(() => void) | null>(null);
+  const { messages } = useWebI18n();
+  const registerTourBeforeClose = useCallback<RegisterTourBeforeClose>((handler) => {
+    tourBeforeCloseRef.current = handler;
+  }, []);
+  const registerTourFinish = useCallback<RegisterTourFinish>((handler) => {
+    tourFinishRef.current = handler;
+  }, []);
+
+  return (
+    <TourProvider
+      steps={[]}
+      beforeClose={() => {
+        tourBeforeCloseRef.current?.();
+      }}
+      nextButton={({ currentStep, setCurrentStep, setIsOpen, stepsLength }) => {
+        const isLastStep = currentStep >= stepsLength - 1;
+
+        return (
+          <Button
+            type="button"
+            size="sm"
+            variant={isLastStep ? "default" : "secondary"}
+            className="h-8 gap-1.5 px-3"
+            onClick={() => {
+              if (isLastStep) {
+                if (tourFinishRef.current) {
+                  tourFinishRef.current();
+                  return;
+                }
+
+                setIsOpen(false);
+                return;
+              }
+
+              setCurrentStep((step) => Math.min(step + 1, stepsLength - 1));
+            }}
+          >
+            {isLastStep ? <Database className="size-3.5" /> : null}
+            {isLastStep ? messages.overview.tour.finish : messages.overview.tour.next}
+            {isLastStep ? null : <ChevronRight className="size-3.5" />}
+          </Button>
+        );
+      }}
+      accessibilityOptions={{
+        closeButtonAriaLabel: messages.overview.tour.close,
+        showNavigationScreenReaders: true,
+      }}
+      inViewThreshold={{ x: 24, y: 160 }}
+      padding={{ mask: 8, popover: 12 }}
+      scrollSmooth
+      styles={{
+        popover: (base) => ({
+          ...base,
+          backgroundColor: "var(--popover)",
+          border: "1px solid var(--border)",
+          borderRadius: "0.5rem",
+          boxShadow: "var(--shadow-lg)",
+          color: "var(--popover-foreground)",
+          maxHeight: "min(70vh, calc(100vh - 2rem))",
+          maxWidth: "min(28rem, calc(100vw - 2rem))",
+          paddingTop: "2.75rem",
+          overflowY: "auto",
+          overscrollBehavior: "contain",
+          width: "min(28rem, calc(100vw - 2rem))",
+        }),
+        badge: (base) => ({
+          ...base,
+          backgroundColor: "var(--primary)",
+          color: "var(--primary-foreground)",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          top: "0.75rem",
+          left: "0.75rem",
+          minWidth: "1.75rem",
+          height: "1.75rem",
+          lineHeight: 1,
+          paddingLeft: "0.625rem",
+          paddingRight: "0.625rem",
+          zIndex: 1,
+        }),
+      }}
+    >
+      <OverviewWorkspaceContent
+        {...props}
+        registerTourBeforeClose={registerTourBeforeClose}
+        registerTourFinish={registerTourFinish}
+      />
+    </TourProvider>
+  );
+}
+
+function OverviewWorkspaceContent({
   initialFilters,
   initialJobs,
   initialOverview,
   initialTab,
+  registerTourBeforeClose,
+  registerTourFinish,
   scope,
-}: Readonly<{
-  initialFilters: OverviewFilters;
-  initialJobs: OverviewJobsResponse;
-  initialOverview: OverviewResponse;
-  initialTab: OverviewTab;
-  scope: DashboardScope;
-}>) {
+}: OverviewWorkspaceProps & {
+  registerTourBeforeClose: RegisterTourBeforeClose;
+  registerTourFinish: RegisterTourFinish;
+}) {
   const router = useRouter();
   const { csrfToken } = useAppSession();
   const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
@@ -480,6 +707,7 @@ export function OverviewWorkspace({
   const [overview, setOverview] = useState(initialOverview);
   const [jobs, setJobs] = useState(initialJobs);
   const [activeTab, setActiveTab] = useState<OverviewTab>(initialTab);
+  const { setCurrentStep, setIsOpen, setSteps } = useTour();
   const [isPending, startTransition] = useTransition();
   const [isMutating, setIsMutating] = useState(false);
   const [isJobsRefreshing, setIsJobsRefreshing] = useState(false);
@@ -488,13 +716,19 @@ export function OverviewWorkspace({
   const [details, setDetails] = useState<OverviewJobDetailsResponse["job"] | null>(null);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [detailsLastUpdatedAt, setDetailsLastUpdatedAt] = useState<string | null>(null);
+  const [tourDemoDetailsJobId, setTourDemoDetailsJobId] = useState<string | null>(null);
   const [showUpstreams, setShowUpstreams] = useState(false);
   const [coveragePage, setCoveragePage] = useState(1);
-  const [jobStatusFilters, setJobStatusFilters] = useState<Record<OverviewJobFilterStatus, boolean>>({
-    SUCCESS: true,
-    PARTIAL: true,
-    FAILURE: true,
-  });
+  const [jobStatusFilter, setJobStatusFilter] = useState<OverviewJobFilterGroup>("all");
+  const [tourCollectionRequestId, setTourCollectionRequestId] = useState(0);
+  const [pendingTourDetailsJobId, setPendingTourDetailsJobId] = useState<string | null>(null);
+  const activeTabRef = useRef<OverviewTab>(initialTab);
+  const restoreTabAfterTourRef = useRef<OverviewTab | null>(null);
+  const autoTourRequestTokenRef = useRef(0);
+  const autoTourStartedRef = useRef(false);
+  const tourFinishedRef = useRef(false);
+  const tourCompletionInFlightRef = useRef(false);
+  const handledTourCollectionRequestRef = useRef(0);
   const detailsRequestTokenRef = useRef(0);
   const detailsRequestInFlightRef = useRef<string | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
@@ -507,8 +741,6 @@ export function OverviewWorkspace({
       }),
     [locale],
   );
-  const rankingUsableJobs = useMemo(() => getRankingUsableJobs(jobs.jobs), [jobs.jobs]);
-  const rankingQuery = useMemo(() => buildOverviewQueryFromFilters(filters, timeZone), [filters, timeZone]);
   const rankingClientRows = useMemo(
     () => deduplicateRankingRows(overview.rankings.clients),
     [overview.rankings.clients],
@@ -607,18 +839,13 @@ export function OverviewWorkspace({
       }) satisfies ChartConfig,
     [messages],
   );
-  const selectedRankingJob = useMemo(() => {
-    if (rankingQuery.from === undefined || rankingQuery.until === undefined) {
-      return null;
-    }
-
-    return (
-      rankingUsableJobs.find((job) => {
-        const period = getJobPeriodSeconds(job);
-        return period.from === rankingQuery.from && period.until === rankingQuery.until;
-      }) ?? null
-    );
-  }, [rankingQuery.from, rankingQuery.until, rankingUsableJobs]);
+  const selectedRankingSavedDate = useMemo(
+    () =>
+      overview.coverage.savedDates.find(
+        (savedDate) => filters.from === `${savedDate.date}T00:00` && filters.until === `${savedDate.date}T23:59`,
+      ) ?? null,
+    [filters.from, filters.until, overview.coverage.savedDates],
+  );
   const coverageWindows = useMemo(
     () => overview.coverage.savedWindows.filter(canShowCoverageWindow),
     [overview.coverage.savedWindows],
@@ -629,8 +856,8 @@ export function OverviewWorkspace({
     return coverageWindows.slice(start, start + COVERAGE_PAGE_SIZE);
   }, [coveragePage, coverageWindows]);
   const filteredJobs = useMemo(
-    () => jobs.jobs.filter((job) => isOverviewJobFilterStatus(job.status) && jobStatusFilters[job.status]),
-    [jobStatusFilters, jobs.jobs],
+    () => jobs.jobs.filter((job) => matchesJobStatusFilter(job.status, jobStatusFilter)),
+    [jobStatusFilter, jobs.jobs],
   );
   const detailsStatus = details?.status ?? null;
   const isDetailsLive = detailsStatus ? isLiveOverviewJobStatus(detailsStatus) : false;
@@ -652,6 +879,122 @@ export function OverviewWorkspace({
   }, [initialTab]);
 
   useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  const showTourTab = useCallback((tab: OverviewTab) => {
+    setActiveTab(tab);
+  }, []);
+
+  const tourSteps = useMemo(() => buildOverviewTourSteps(messages, showTourTab), [messages, showTourTab]);
+
+  useEffect(() => {
+    setSteps?.(tourSteps);
+  }, [setSteps, tourSteps]);
+
+  const startOverviewTour = useCallback(() => {
+    autoTourStartedRef.current = true;
+    tourFinishedRef.current = false;
+    restoreTabAfterTourRef.current = activeTabRef.current;
+    setSteps?.(tourSteps);
+    setCurrentStep(0);
+    setActiveTab("request");
+    setIsOpen(true);
+  }, [setCurrentStep, setIsOpen, setSteps, tourSteps]);
+
+  const handleTourFinish = useCallback(() => {
+    if (tourFinishedRef.current) {
+      return;
+    }
+
+    tourFinishedRef.current = true;
+    setIsOpen(false);
+    setTourCollectionRequestId((current) => current + 1);
+  }, [setIsOpen]);
+
+  const completeOverviewTour = useCallback(async () => {
+    if (tourCompletionInFlightRef.current) {
+      return;
+    }
+
+    tourCompletionInFlightRef.current = true;
+
+    try {
+      const { data, response } = await client.POST<ProductTourStatusResponse>(`/tours/${OVERVIEW_TOUR_KEY}/complete`, {
+        headers: {
+          "x-yapd-csrf": csrfToken,
+        },
+      });
+
+      if (!response.ok || !data?.completed) {
+        toast.error(messages.overview.toasts.tourCompletionFailed);
+      }
+    } catch {
+      toast.error(messages.overview.toasts.tourCompletionFailed);
+    } finally {
+      tourCompletionInFlightRef.current = false;
+    }
+  }, [client, csrfToken, messages]);
+
+  const handleTourBeforeClose = useCallback(() => {
+    const wasFinished = tourFinishedRef.current;
+    tourFinishedRef.current = false;
+    const restoreTab = restoreTabAfterTourRef.current;
+    restoreTabAfterTourRef.current = null;
+
+    if (!wasFinished && restoreTab) {
+      setActiveTab(restoreTab);
+    }
+
+    void completeOverviewTour();
+  }, [completeOverviewTour]);
+
+  useEffect(() => {
+    registerTourBeforeClose(handleTourBeforeClose);
+
+    return () => {
+      registerTourBeforeClose(null);
+    };
+  }, [handleTourBeforeClose, registerTourBeforeClose]);
+
+  useEffect(() => {
+    registerTourFinish(handleTourFinish);
+
+    return () => {
+      registerTourFinish(null);
+    };
+  }, [handleTourFinish, registerTourFinish]);
+
+  useEffect(() => {
+    const requestToken = autoTourRequestTokenRef.current + 1;
+    autoTourRequestTokenRef.current = requestToken;
+    let cancelled = false;
+
+    async function loadTourStatus() {
+      const { data, response } = await client.GET<ProductTourStatusResponse>(`/tours/${OVERVIEW_TOUR_KEY}`);
+
+      if (
+        cancelled ||
+        autoTourRequestTokenRef.current !== requestToken ||
+        autoTourStartedRef.current ||
+        !response.ok ||
+        !data ||
+        data.completed
+      ) {
+        return;
+      }
+
+      startOverviewTour();
+    }
+
+    void loadTourStatus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [client, startOverviewTour]);
+
+  useEffect(() => {
     setCoveragePage((current) => Math.min(Math.max(1, current), coveragePageCount));
   }, [coveragePageCount]);
 
@@ -661,8 +1004,12 @@ export function OverviewWorkspace({
     }
 
     for (const failure of overview.sources.failedInstances) {
+      if (failure.kind === "missing_data") {
+        continue;
+      }
+
       const detail =
-        failure.kind === "import_failure" && failure.message.trim().length > 0
+        failure.message.trim().length > 0
           ? messages.overview.partial.importFailureMessage(failure.message)
           : messages.overview.partial.missingDataMessage;
       toast.error(messages.overview.toasts.instanceFailure(failure.instanceName, detail), {
@@ -698,12 +1045,16 @@ export function OverviewWorkspace({
   );
 
   useEffect(() => {
+    if (!jobs.jobs.some((job) => isLiveOverviewJobStatus(job.status))) {
+      return;
+    }
+
     const intervalId = window.setInterval(() => {
       void refreshJobs({ silent: true });
-    }, 10000);
+    }, JOBS_POLL_INTERVAL_MS);
 
     return () => window.clearInterval(intervalId);
-  }, [refreshJobs]);
+  }, [jobs.jobs, refreshJobs]);
 
   const areFiltersWithinClosedWindow = useCallback(() => {
     return filters.from <= maxSelectableDateTime && filters.until <= maxSelectableDateTime;
@@ -775,6 +1126,30 @@ export function OverviewWorkspace({
     });
   };
 
+  const updateRequestFromFilter = (value: string) => {
+    setFilters((current) =>
+      clampOverviewRequestFiltersToSingleDay(
+        {
+          ...current,
+          from: value,
+        },
+        maxSelectableDateTime,
+      ),
+    );
+  };
+
+  const updateRequestUntilFilter = (value: string) => {
+    setFilters((current) =>
+      clampOverviewRequestFiltersToSingleDay(
+        {
+          ...current,
+          until: value,
+        },
+        maxSelectableDateTime,
+      ),
+    );
+  };
+
   const handleTabChange = (nextTab: string) => {
     if (nextTab !== "request" && nextTab !== "ranking" && nextTab !== "jobs") {
       return;
@@ -790,57 +1165,116 @@ export function OverviewWorkspace({
     });
   };
 
-  const triggerJob = async (
-    path: "/overview/backfill" | "/overview/delete",
-    overrides?: { from: number; until: number },
-  ) => {
-    if (!overrides && !areFiltersWithinClosedWindow()) {
-      toast.error(messages.overview.toasts.currentDayBlocked);
-      return;
-    }
+  const triggerJob = useCallback(
+    async (
+      path: "/overview/backfill" | "/overview/delete",
+      overrides?: { from: number; until: number },
+    ): Promise<OverviewMutationResponse["job"] | null> => {
+      if (!overrides && !areFiltersWithinClosedWindow()) {
+        toast.error(messages.overview.toasts.currentDayBlocked);
+        return null;
+      }
 
-    const query = overrides ?? buildOverviewQueryFromFilters(filters, timeZone);
+      const requestFilters =
+        path === "/overview/backfill" && !overrides
+          ? clampOverviewRequestFiltersToSingleDay(filters, maxSelectableDateTime)
+          : filters;
+      const query = overrides ?? buildOverviewQueryFromFilters(requestFilters, timeZone);
+
+      if (query.from === undefined || query.until === undefined) {
+        toast.error(messages.overview.toasts.invalidPeriod);
+        return null;
+      }
+
+      setIsMutating(true);
+      if (path === "/overview/backfill" && !overrides) {
+        setFilters(requestFilters);
+      }
+
+      try {
+        const { data, response } = await client.POST<OverviewMutationResponse>(path, {
+          headers: {
+            "x-yapd-csrf": csrfToken,
+          },
+          body: {
+            scope: scope.kind === "all" ? "all" : "instance",
+            ...(scope.kind === "instance" ? { instanceId: scope.instanceId } : {}),
+            from: query.from,
+            until: query.until,
+          },
+        });
+
+        if (!response.ok || !data) {
+          toast.error(
+            path === "/overview/backfill"
+              ? messages.overview.toasts.backfillFailed
+              : messages.overview.toasts.deleteFailed,
+          );
+          return null;
+        }
+
+        toast.success(
+          path === "/overview/backfill"
+            ? messages.overview.toasts.backfillQueued
+            : messages.overview.toasts.deleteQueued,
+        );
+        await refreshJobs();
+        startTransition(() => {
+          router.refresh();
+        });
+        return data.job;
+      } finally {
+        setIsMutating(false);
+      }
+    },
+    [
+      areFiltersWithinClosedWindow,
+      client,
+      csrfToken,
+      filters,
+      maxSelectableDateTime,
+      messages,
+      refreshJobs,
+      router,
+      scope,
+      timeZone,
+    ],
+  );
+
+  const queueDefaultTourCollection = useCallback(async () => {
+    const defaultFilters = buildDefaultOverviewFilters(timeZone);
+    const query = buildOverviewQueryFromFilters(defaultFilters, timeZone);
 
     if (query.from === undefined || query.until === undefined) {
       toast.error(messages.overview.toasts.invalidPeriod);
       return;
     }
 
-    setIsMutating(true);
+    setFilters(defaultFilters);
+    setJobStatusFilter("all");
+    setActiveTab("jobs");
 
-    try {
-      const { data, response } = await client.POST<OverviewMutationResponse>(path, {
-        headers: {
-          "x-yapd-csrf": csrfToken,
-        },
-        body: {
-          scope: scope.kind === "all" ? "all" : "instance",
-          ...(scope.kind === "instance" ? { instanceId: scope.instanceId } : {}),
-          from: query.from,
-          until: query.until,
-        },
-      });
+    const queuedJob = await triggerJob("/overview/backfill", {
+      from: query.from,
+      until: query.until,
+    });
 
-      if (!response.ok || !data) {
-        toast.error(
-          path === "/overview/backfill"
-            ? messages.overview.toasts.backfillFailed
-            : messages.overview.toasts.deleteFailed,
-        );
-        return;
-      }
-
-      toast.success(
-        path === "/overview/backfill" ? messages.overview.toasts.backfillQueued : messages.overview.toasts.deleteQueued,
-      );
-      await refreshJobs();
-      startTransition(() => {
-        router.refresh();
-      });
-    } finally {
-      setIsMutating(false);
+    if (!queuedJob) {
+      return;
     }
-  };
+
+    setActiveTab("jobs");
+    setPendingTourDetailsJobId(queuedJob.id);
+  }, [messages, timeZone, triggerJob]);
+
+  useEffect(() => {
+    if (tourCollectionRequestId === 0 || handledTourCollectionRequestRef.current === tourCollectionRequestId) {
+      return;
+    }
+
+    handledTourCollectionRequestRef.current = tourCollectionRequestId;
+    void queueDefaultTourCollection();
+  }, [queueDefaultTourCollection, tourCollectionRequestId]);
 
   const navigateToJobPeriod = useCallback(
     (job: OverviewJobsResponse["jobs"][number], historyMode: "push" | "replace" = "push") => {
@@ -908,6 +1342,16 @@ export function OverviewWorkspace({
 
   const openJobPeriod = (job: OverviewJobsResponse["jobs"][number]) => {
     navigateToJobPeriod(job);
+  };
+
+  const openSavedDate = (savedDate: OverviewSavedDate) => {
+    applyRankingFilters(getSavedDateFilters(savedDate.date, filters));
+  };
+
+  const getSavedDatePeriodSeconds = (savedDate: OverviewSavedDate) => {
+    const query = buildOverviewQueryFromFilters(getSavedDateFilters(savedDate.date, filters), timeZone);
+
+    return query.from !== undefined && query.until !== undefined ? { from: query.from, until: query.until } : null;
   };
 
   const retryJob = async (jobId: string) => {
@@ -1010,17 +1454,22 @@ export function OverviewWorkspace({
     [client, messages],
   );
 
-  const openJobDetails = async (jobId: string) => {
-    setDetailsJobId(jobId);
-    setDetails(null);
-    setDetailsLastUpdatedAt(null);
-    await loadJobDetails(jobId);
-  };
+  const openJobDetails = useCallback(
+    async (jobId: string, options: OpenJobDetailsOptions = {}) => {
+      setTourDemoDetailsJobId(options.tourDemo ? jobId : null);
+      setDetailsJobId(jobId);
+      setDetails(null);
+      setDetailsLastUpdatedAt(null);
+      await loadJobDetails(jobId);
+    },
+    [loadJobDetails],
+  );
 
   const closeJobDetails = () => {
     detailsRequestTokenRef.current += 1;
     setDetailsJobId(null);
     setDetails(null);
+    setTourDemoDetailsJobId(null);
     setDetailsLastUpdatedAt(null);
   };
 
@@ -1036,20 +1485,59 @@ export function OverviewWorkspace({
     return () => window.clearInterval(intervalId);
   }, [detailsStatus, detailsJobId, loadJobDetails]);
 
-  const toggleJobStatusFilter = (status: OverviewJobFilterStatus) => {
-    setJobStatusFilters((current) => ({
-      ...current,
-      [status]: !current[status],
-    }));
+  useEffect(() => {
+    if (!pendingTourDetailsJobId || activeTab !== "jobs") {
+      return;
+    }
+
+    const jobId = pendingTourDetailsJobId;
+    setPendingTourDetailsJobId(null);
+    void openJobDetails(jobId, { tourDemo: true });
+  }, [activeTab, openJobDetails, pendingTourDetailsJobId]);
+
+  const selectJobStatusFilter = (status: string) => {
+    if (JOB_STATUS_FILTER_VALUES.includes(status as OverviewJobFilterGroup)) {
+      setJobStatusFilter(status as OverviewJobFilterGroup);
+      return;
+    }
+
+    setJobStatusFilter("all");
   };
 
   const formatCount = (value: number) => numberFormatter.format(value);
   const formatPercentage = (value: number) => `${percentageFormatter.format(value)}%`;
+  const formatEtaDuration = (valueMs: number) => {
+    const totalSeconds = Math.max(1, Math.ceil(valueMs / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${numberFormatter.format(hours)}h ${numberFormatter.format(minutes)}min`;
+    }
+
+    if (minutes > 0) {
+      return `${numberFormatter.format(minutes)}min ${numberFormatter.format(seconds)}s`;
+    }
+
+    return `${numberFormatter.format(seconds)}s`;
+  };
+  const formatJobEta = (job: OverviewJobsResponse["jobs"][number]) => {
+    const eta = getRunningImportEta(job, Date.now());
+
+    if (!eta) {
+      return null;
+    }
+
+    return eta.status === "ready"
+      ? messages.overview.jobs.etaRemaining(formatEtaDuration(eta.remainingMs))
+      : messages.overview.jobs.etaCalculating;
+  };
   const chartTitle =
     overview.charts.queries.groupBy === "day"
       ? messages.overview.chart.titleByDay
       : messages.overview.chart.titleByHour;
-  const selectedRankingJobValue = selectedRankingJob?.id;
+  const selectedRankingSavedDateValue = selectedRankingSavedDate?.date;
   const noKpiValue = messages.overview.ranking.kpis.noValue;
   const activeDomainFilter = filters.domain.trim();
   const activeClientFilter = filters.client_ip.trim();
@@ -1142,18 +1630,6 @@ export function OverviewWorkspace({
     return messages.overview.jobs.detailsOriginManual;
   };
 
-  const getRankingJobOptionLabel = (job: OverviewJobsResponse["jobs"][number]) => {
-    const instanceLabel =
-      job.scope === "instance"
-        ? (job.instanceName ?? messages.overview.jobs.detailsUnavailable)
-        : messages.overview.jobs.detailsAllInstances;
-
-    return [
-      messages.overview.coverage.period(formatDateTime(job.requestedFrom), formatDateTime(job.requestedUntil)),
-      instanceLabel,
-    ].join(" | ");
-  };
-
   const getFailureReasonLabel = (reason: OverviewJobDetailsResponse["job"]["failureReason"] | null) => {
     switch (reason) {
       case "timeout":
@@ -1198,6 +1674,13 @@ export function OverviewWorkspace({
         return CheckCircle2;
     }
   };
+
+  const getSavedDateOptionLabel = (savedDate: OverviewSavedDate) =>
+    messages.overview.ranking.savedDateOption(
+      savedDate.date,
+      formatCount(savedDate.rowCount),
+      formatCount(savedDate.instanceCount),
+    );
 
   const renderRankingKpiCard = (item: RankingKpiCard) => (
     <Card key={item.label} className="overflow-hidden">
@@ -1329,34 +1812,51 @@ export function OverviewWorkspace({
   );
 
   const selectedJobSummary = jobs.jobs.find((job) => job.id === detailsJobId) ?? null;
-
-  useEffect(() => {
-    if (activeTab !== "ranking" || selectedRankingJob || rankingUsableJobs.length === 0 || isPending) {
-      return;
-    }
-
-    const mostRecentJob = rankingUsableJobs[0];
-    if (!mostRecentJob) {
-      return;
-    }
-
-    navigateToJobPeriod(mostRecentJob, "replace");
-  }, [activeTab, isPending, navigateToJobPeriod, rankingUsableJobs, selectedRankingJob]);
+  const isTourDemoDetailsModal = detailsJobId !== null && detailsJobId === tourDemoDetailsJobId;
 
   return (
-    <>
+    <div className="@container/main flex flex-col gap-4 md:gap-6" data-overview-tour="workspace">
+      <div data-overview-tour="title">
+        <p className="text-muted-foreground text-sm">{messages.overview.eyebrow}</p>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <h1 className="font-semibold text-3xl tracking-tight">{messages.overview.title}</h1>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground"
+                aria-label={messages.overview.tour.open}
+                onClick={startOverviewTour}
+              >
+                <HelpCircle className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{messages.overview.tour.open}</TooltipContent>
+          </Tooltip>
+        </div>
+        <p className="mt-2 max-w-4xl text-muted-foreground text-sm">{messages.overview.description}</p>
+      </div>
+
       <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-4 md:gap-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="request">{messages.overview.tabs.request}</TabsTrigger>
-          <TabsTrigger value="ranking">{messages.overview.tabs.ranking}</TabsTrigger>
-          <TabsTrigger value="jobs">{messages.overview.tabs.jobs}</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3" data-overview-tour="tabs">
+          <TabsTrigger value="request" data-overview-tour="tab-request">
+            {messages.overview.tabs.request}
+          </TabsTrigger>
+          <TabsTrigger value="ranking" data-overview-tour="tab-ranking">
+            {messages.overview.tabs.ranking}
+          </TabsTrigger>
+          <TabsTrigger value="jobs" data-overview-tour="tab-jobs">
+            {messages.overview.tabs.jobs}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent
           value="request"
           className="data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 space-y-4 outline-none data-[state=active]:animate-in md:space-y-6"
         >
-          <Card>
+          <Card data-overview-tour="manual-collection">
             <CardHeader>
               <CardTitle>{messages.overview.filters.title}</CardTitle>
               <CardDescription>{messages.overview.filters.description}</CardDescription>
@@ -1372,7 +1872,7 @@ export function OverviewWorkspace({
                     type="datetime-local"
                     max={maxSelectableDateTime}
                     value={filters.from}
-                    onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))}
+                    onChange={(event) => updateRequestFromFilter(event.target.value)}
                   />
                 </div>
                 <div className="space-y-1">
@@ -1384,7 +1884,7 @@ export function OverviewWorkspace({
                     type="datetime-local"
                     max={maxSelectableDateTime}
                     value={filters.until}
-                    onChange={(event) => setFilters((current) => ({ ...current, until: event.target.value }))}
+                    onChange={(event) => updateRequestUntilFilter(event.target.value)}
                   />
                 </div>
               </div>
@@ -1399,7 +1899,7 @@ export function OverviewWorkspace({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card data-overview-tour="coverage">
             <CardHeader>
               <CardTitle>{messages.overview.coverage.title}</CardTitle>
               <CardDescription>{messages.overview.coverage.description}</CardDescription>
@@ -1546,37 +2046,37 @@ export function OverviewWorkspace({
           value="ranking"
           className="data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 space-y-4 outline-none data-[state=active]:animate-in md:space-y-6"
         >
-          <Card>
+          <Card data-overview-tour="ranking-filters">
             <CardHeader>
-              <CardTitle>{messages.overview.ranking.importedJobsTitle}</CardTitle>
-              <CardDescription>{messages.overview.ranking.importedJobsDescription}</CardDescription>
+              <CardTitle>{messages.overview.ranking.savedDatesTitle}</CardTitle>
+              <CardDescription>{messages.overview.ranking.savedDatesDescription}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {rankingUsableJobs.length > 0 ? (
+              {overview.coverage.savedDates.length > 0 ? (
                 <div className="space-y-2">
-                  <label className="font-medium text-sm" htmlFor="overview-ranking-job-select">
-                    {messages.overview.ranking.selectLabel}
+                  <label className="font-medium text-sm" htmlFor="overview-ranking-saved-date-select">
+                    {messages.overview.ranking.savedDateSelectLabel}
                   </label>
                   <Select
-                    value={selectedRankingJobValue}
+                    value={selectedRankingSavedDateValue}
                     onValueChange={(value) => {
-                      const nextJob = rankingUsableJobs.find((job) => job.id === value);
-                      if (!nextJob) {
+                      const savedDate = overview.coverage.savedDates.find((item) => item.date === value);
+                      if (!savedDate) {
                         return;
                       }
 
-                      openJobPeriod(nextJob);
+                      openSavedDate(savedDate);
                     }}
                   >
-                    <SelectTrigger id="overview-ranking-job-select" className="w-full md:max-w-3xl">
-                      <SelectValue placeholder={messages.overview.ranking.selectPlaceholder} />
+                    <SelectTrigger id="overview-ranking-saved-date-select" className="w-full md:max-w-3xl">
+                      <SelectValue placeholder={messages.overview.ranking.savedDateSelectPlaceholder} />
                     </SelectTrigger>
                     <SelectContent align="start">
                       <SelectGroup>
-                        <SelectLabel>{messages.overview.ranking.selectLabel}</SelectLabel>
-                        {rankingUsableJobs.map((job) => (
-                          <SelectItem key={job.id} value={job.id}>
-                            {getRankingJobOptionLabel(job)}
+                        <SelectLabel>{messages.overview.ranking.savedDateSelectLabel}</SelectLabel>
+                        {overview.coverage.savedDates.map((savedDate) => (
+                          <SelectItem key={savedDate.date} value={savedDate.date}>
+                            {getSavedDateOptionLabel(savedDate)}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -1656,11 +2156,11 @@ export function OverviewWorkspace({
                 {messages.overview.ranking.nativeWindowNoticeDescription}
               </div>
 
-              {rankingUsableJobs.length === 0 ? (
+              {overview.coverage.savedDates.length === 0 ? (
                 <Empty>
                   <EmptyHeader>
-                    <EmptyTitle>{messages.overview.ranking.emptyImportedTitle}</EmptyTitle>
-                    <EmptyDescription>{messages.overview.ranking.emptyImportedDescription}</EmptyDescription>
+                    <EmptyTitle>{messages.overview.ranking.emptySavedDatesTitle}</EmptyTitle>
+                    <EmptyDescription>{messages.overview.ranking.emptySavedDatesDescription}</EmptyDescription>
                   </EmptyHeader>
                 </Empty>
               ) : null}
@@ -1671,12 +2171,19 @@ export function OverviewWorkspace({
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() =>
-                    selectedRankingJob
-                      ? void triggerJob("/overview/delete", getJobPeriodSeconds(selectedRankingJob))
-                      : undefined
-                  }
-                  disabled={isMutating || !selectedRankingJob}
+                  onClick={() => {
+                    if (!selectedRankingSavedDate) {
+                      return;
+                    }
+
+                    const period = getSavedDatePeriodSeconds(selectedRankingSavedDate);
+                    if (!period) {
+                      return;
+                    }
+
+                    void triggerJob("/overview/delete", period);
+                  }}
+                  disabled={isMutating || !selectedRankingSavedDate}
                 >
                   {isMutating ? messages.overview.actions.deletePeriodLoading : messages.overview.actions.deletePeriod}
                 </Button>
@@ -1691,7 +2198,7 @@ export function OverviewWorkspace({
             </Alert>
           ) : null}
 
-          <Card>
+          <Card data-overview-tour="ranking-chart">
             <CardContent className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
               <div className="space-y-3">
                 <div>
@@ -1888,7 +2395,7 @@ export function OverviewWorkspace({
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+          <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]" data-overview-tour="ranking-results">
             <Card>
               <CardHeader>
                 <CardTitle>{messages.overview.ranking.domains}</CardTitle>
@@ -1968,7 +2475,7 @@ export function OverviewWorkspace({
           value="jobs"
           className="data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 space-y-4 outline-none data-[state=active]:animate-in md:space-y-6"
         >
-          <Card>
+          <Card data-overview-tour="jobs-list">
             <CardHeader className="flex flex-row items-center justify-between gap-3">
               <div>
                 <CardTitle>{messages.overview.jobs.title}</CardTitle>
@@ -1979,23 +2486,26 @@ export function OverviewWorkspace({
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <div className="flex flex-col gap-2 rounded-lg border bg-muted/25 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex shrink-0 items-center gap-2 text-muted-foreground text-sm">
                   <ListFilter className="size-4" />
                   {messages.overview.jobs.statusFilterTitle}
                 </div>
-                {JOB_STATUS_FILTER_VALUES.map((status) => (
-                  <Button
-                    key={status}
-                    type="button"
-                    variant={jobStatusFilters[status] ? "secondary" : "outline"}
-                    size="sm"
-                    aria-pressed={jobStatusFilters[status]}
-                    onClick={() => toggleJobStatusFilter(status)}
-                  >
-                    {messages.overview.jobs.statusFilterValues[status]}
-                  </Button>
-                ))}
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  size="sm"
+                  value={jobStatusFilter}
+                  onValueChange={selectJobStatusFilter}
+                  className="grid w-full grid-cols-2 sm:flex sm:w-auto"
+                  aria-label={messages.overview.jobs.statusFilterTitle}
+                >
+                  {JOB_STATUS_FILTER_VALUES.map((status) => (
+                    <ToggleGroupItem key={status} value={status} className="min-w-28 justify-center">
+                      {messages.overview.jobs.statusFilterValues[status]}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
               </div>
 
               {filteredJobs.length === 0 ? (
@@ -2068,6 +2578,11 @@ export function OverviewWorkspace({
                                 </span>
                               </p>
                             ) : null}
+                            {(() => {
+                              const etaLabel = formatJobEta(job);
+
+                              return etaLabel ? <p className="text-muted-foreground text-xs">{etaLabel}</p> : null;
+                            })()}
                             {job.kind !== "MANUAL_DELETE" ? (
                               <Progress
                                 value={getJobProgressPercentage(job)}
@@ -2134,12 +2649,18 @@ export function OverviewWorkspace({
       </Tabs>
 
       <Dialog open={detailsJobId !== null} onOpenChange={(open) => !open && closeJobDetails()}>
-        <DialogContent className="flex h-[90vh] max-h-[90vh] flex-col overflow-hidden sm:max-w-5xl">
+        <DialogContent className="flex h-[90vh] max-h-[90vh] flex-col overflow-hidden sm:max-w-6xl">
           <DialogHeader>
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 pr-8">
               <DialogTitle className="flex items-center gap-2">
                 <Activity className="size-5" />
                 {messages.overview.jobs.detailsTitle}
+                {isTourDemoDetailsModal ? (
+                  <Badge variant="secondary" className="gap-1.5">
+                    <Info className="size-3" />
+                    {messages.overview.jobs.detailsTourDemoBadge}
+                  </Badge>
+                ) : null}
               </DialogTitle>
               {details ? (
                 <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -2170,6 +2691,13 @@ export function OverviewWorkspace({
                   )
                 : messages.overview.jobs.description}
             </DialogDescription>
+            {isTourDemoDetailsModal ? (
+              <Alert className="mt-3">
+                <Info className="size-4" />
+                <AlertTitle>{messages.overview.jobs.detailsTourDemoTitle}</AlertTitle>
+                <AlertDescription>{messages.overview.jobs.detailsTourDemoDescription}</AlertDescription>
+              </Alert>
+            ) : null}
           </DialogHeader>
 
           {isDetailsLoading || !details ? (
@@ -2194,8 +2722,8 @@ export function OverviewWorkspace({
               </TabsList>
 
               <TabsContent value="summary" className="mt-0 min-h-0 flex-1 overflow-hidden outline-none">
-                <ScrollArea className="h-full pr-4">
-                  <div className="space-y-4 pb-1">
+                <ScrollArea className="h-full">
+                  <div className="space-y-4 pb-1 pr-4 pl-4">
                     <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-4">
                       <div className="rounded-lg border p-3">
                         <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
@@ -2494,8 +3022,8 @@ export function OverviewWorkspace({
               </TabsContent>
 
               <TabsContent value="instances" className="mt-0 min-h-0 flex-1 overflow-hidden outline-none">
-                <ScrollArea className="h-full pr-4">
-                  <div className="space-y-3 pb-1">
+                <ScrollArea className="h-full">
+                  <div className="space-y-3 pb-1 pr-4 pl-4">
                     {details.progress.instanceProgress.map((item) => {
                       const instancePercentage = getInstanceProgressPercentage(item);
 
@@ -2539,11 +3067,11 @@ export function OverviewWorkspace({
               </TabsContent>
 
               <TabsContent value="timeline" className="mt-0 min-h-0 flex-1 overflow-hidden outline-none">
-                <ScrollArea className="h-full pr-4">
+                <ScrollArea className="h-full">
                   {details.timeline.length === 0 ? (
                     <p className="text-muted-foreground text-sm">{messages.overview.jobs.detailsNoTimeline}</p>
                   ) : (
-                    <div className="space-y-3 pb-1">
+                    <div className="space-y-3 pb-1 pr-4 pl-4">
                       {[...details.timeline]
                         .reverse()
                         .map((event: OverviewJobDetailsResponse["job"]["timeline"][number], index: number) => {
@@ -2601,6 +3129,6 @@ export function OverviewWorkspace({
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

@@ -12,6 +12,7 @@
     "test:overview": "TSX_TSCONFIG_PATH=tsconfig.json node --import tsx --test src/overview/overview.service.spec.ts",
     "test:queries": "node --import tsx --test src/queries/*.spec.ts",
     "test:runtime-metadata": "node --test test/controller-runtime-metadata.test.mjs",
+    "test:tours": "node --import tsx --test src/tours/tours.service.spec.ts",
     "start": "sh ./scripts/start-with-migrations.sh",
     "start:server": "node dist/main.js",
     "generate:client": "npx tsx --tsconfig tsconfig.json src/scripts/generate-openapi.ts",

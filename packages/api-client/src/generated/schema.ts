@@ -1028,6 +1028,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/tours/{tourKey}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ToursController_getStatus"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/tours/{tourKey}/complete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ToursController_complete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3471,7 +3503,170 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            scope: {
+              /** @enum {string} */
+              mode: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+            };
+            filters: {
+              /** Format: date-time */
+              from: string;
+              /** Format: date-time */
+              until: string;
+              /** @enum {string} */
+              groupBy: "hour" | "day";
+            };
+            summary: {
+              totalQueries: number;
+              blockedQueries: number;
+              cachedQueries: number;
+              forwardedQueries: number;
+              uniqueDomains: number;
+              uniqueClients: number;
+              percentageBlocked: number;
+            };
+            charts: {
+              queries: {
+                /** @enum {string} */
+                groupBy: "hour" | "day";
+                points: {
+                  /** Format: date-time */
+                  timestamp: string;
+                  totalQueries: number;
+                  blockedQueries: number;
+                  cachedQueries: number;
+                  forwardedQueries: number;
+                  percentageBlocked: number;
+                }[];
+              };
+            };
+            rankings: {
+              domains: {
+                value: string;
+                count: number;
+              }[];
+              clients: {
+                value: string;
+                count: number;
+              }[];
+              upstreams: {
+                value: string;
+                count: number;
+              }[];
+              statuses: {
+                value: string;
+                count: number;
+              }[];
+            };
+            coverage: {
+              hasAnyData: boolean;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              totalStoredQueries: number;
+              /** Format: date-time */
+              earliestStoredAt: string | null;
+              /** Format: date-time */
+              latestStoredAt: string | null;
+              savedWindowCount: number;
+              expiringSoonCount: number;
+              windows: {
+                id: string;
+                jobId: string | null;
+                instanceId: string;
+                instanceName: string;
+                /** Format: date-time */
+                requestedFrom: string;
+                /** Format: date-time */
+                requestedUntil: string;
+                /** Format: date-time */
+                storedFrom: string | null;
+                /** Format: date-time */
+                storedUntil: string | null;
+                rowCount: number;
+                /** @enum {string} */
+                status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                errorMessage: string | null;
+                /** Format: date-time */
+                expiresAt: string;
+                isExpiringSoon: boolean;
+                expiresInDays: number;
+              }[];
+              savedWindows: {
+                id: string;
+                jobId: string | null;
+                instanceId: string;
+                instanceName: string;
+                /** Format: date-time */
+                requestedFrom: string;
+                /** Format: date-time */
+                requestedUntil: string;
+                /** Format: date-time */
+                storedFrom: string | null;
+                /** Format: date-time */
+                storedUntil: string | null;
+                rowCount: number;
+                /** @enum {string} */
+                status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                errorMessage: string | null;
+                /** Format: date-time */
+                expiresAt: string;
+                isExpiringSoon: boolean;
+                expiresInDays: number;
+              }[];
+              savedDates: {
+                /** @example 2026-04-28 */
+                date: string;
+                rowCount: number;
+                instanceCount: number;
+                /** Format: date-time */
+                storedFrom: string | null;
+                /** Format: date-time */
+                storedUntil: string | null;
+              }[];
+              expiringWindows: {
+                id: string;
+                jobId: string | null;
+                instanceId: string;
+                instanceName: string;
+                /** Format: date-time */
+                requestedFrom: string;
+                /** Format: date-time */
+                requestedUntil: string;
+                /** Format: date-time */
+                storedFrom: string | null;
+                /** Format: date-time */
+                storedUntil: string | null;
+                rowCount: number;
+                /** @enum {string} */
+                status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                errorMessage: string | null;
+                /** Format: date-time */
+                expiresAt: string;
+                isExpiringSoon: boolean;
+                expiresInDays: number;
+              }[];
+            };
+            sources: {
+              totalInstances: number;
+              availableInstances: {
+                instanceId: string;
+                instanceName: string;
+              }[];
+              failedInstances: {
+                instanceId: string;
+                instanceName: string;
+                /** @enum {string} */
+                kind: "missing_data" | "import_failure";
+                message: string;
+              }[];
+            };
+          };
+        };
       };
     };
   };
@@ -4436,6 +4631,58 @@ export interface operations {
               blocking: "enabled" | "disabled" | null;
               timerSeconds: number | null;
             }[];
+          };
+        };
+      };
+    };
+  };
+  ToursController_getStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Product tour completion status for the current browser. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @example overview-v1 */
+            tourKey: string;
+            completed: boolean;
+            /** Format: date-time */
+            completedAt: string | null;
+          };
+        };
+      };
+    };
+  };
+  ToursController_complete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Product tour completion status for the current browser. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @example overview-v1 */
+            tourKey: string;
+            completed: boolean;
+            /** Format: date-time */
+            completedAt: string | null;
           };
         };
       };

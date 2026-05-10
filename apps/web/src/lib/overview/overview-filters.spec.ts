@@ -11,6 +11,10 @@ const overviewFilters = require("./overview-filters.ts") as {
     client_ip: string;
     groupBy: "hour" | "day";
   };
+  clampOverviewRequestFiltersToSingleDay: (
+    filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
+    maxSelectableDateTime: string,
+  ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
   buildOverviewQueryFromFilters: (
     filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
     timeZone: string,
@@ -24,6 +28,7 @@ const overviewFilters = require("./overview-filters.ts") as {
 const {
   buildDefaultOverviewFilters,
   buildOverviewQueryFromFilters,
+  clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
   normalizeOverviewFilters,
 } = overviewFilters;
@@ -61,8 +66,12 @@ test("buildOverviewQueryFromFilters keeps from at minute start and expands until
 test("default overview filters use closed days in the app timezone", () => {
   const maxSelectable = getOverviewMaxSelectableDateTime("America/Sao_Paulo");
   const defaults = buildDefaultOverviewFilters("America/Sao_Paulo");
+  const closedDay = maxSelectable.slice(0, 10);
 
   assert.equal(defaults.until, maxSelectable);
+  assert.equal(defaults.from, `${closedDay}T00:00`);
+  assert.equal(defaults.until, `${closedDay}T23:59`);
+  assert.equal(defaults.from.slice(0, 10), defaults.until.slice(0, 10));
   assert.equal(defaults.from.slice(11), "00:00");
   assert.equal(defaults.until.slice(11), "23:59");
   assert.equal(defaults.domain, "");
@@ -108,4 +117,39 @@ test("normalizeOverviewFilters falls back to hourly grouping", () => {
   const filters = normalizeOverviewFilters({ groupBy: "minute" }, "America/Sao_Paulo");
 
   assert.equal(filters.groupBy, "hour");
+});
+
+test("clampOverviewRequestFiltersToSingleDay keeps manual collection inside the from day", () => {
+  const filters = clampOverviewRequestFiltersToSingleDay(
+    {
+      from: "2026-04-27T08:30",
+      until: "2026-04-28T12:45",
+      domain: "example.com",
+      client_ip: "192.168.1.10",
+      groupBy: "day",
+    },
+    "2026-04-28T23:59",
+  );
+
+  assert.equal(filters.from, "2026-04-27T08:30");
+  assert.equal(filters.until, "2026-04-27T23:59");
+  assert.equal(filters.domain, "example.com");
+  assert.equal(filters.client_ip, "192.168.1.10");
+  assert.equal(filters.groupBy, "day");
+});
+
+test("clampOverviewRequestFiltersToSingleDay clamps future manual collection to the latest closed day", () => {
+  const filters = clampOverviewRequestFiltersToSingleDay(
+    {
+      from: "2026-04-29T08:30",
+      until: "2026-04-29T12:45",
+      domain: "",
+      client_ip: "",
+      groupBy: "hour",
+    },
+    "2026-04-28T23:59",
+  );
+
+  assert.equal(filters.from, "2026-04-28T08:30");
+  assert.equal(filters.until, "2026-04-28T23:59");
 });

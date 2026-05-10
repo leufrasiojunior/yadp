@@ -68,6 +68,7 @@ export const ModelName = {
   ManagedDomain: 'ManagedDomain',
   RegexFilter: 'RegexFilter',
   Notification: 'Notification',
+  ProductTourCompletion: 'ProductTourCompletion',
   HistoricalQuery: 'HistoricalQuery',
   OverviewHistoryJob: 'OverviewHistoryJob',
   OverviewCoverageWindow: 'OverviewCoverageWindow',
@@ -340,6 +341,18 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const ProductTourCompletionScalarFieldEnum = {
+  id: 'id',
+  browserIdHash: 'browserIdHash',
+  tourKey: 'tourKey',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductTourCompletionScalarFieldEnum = (typeof ProductTourCompletionScalarFieldEnum)[keyof typeof ProductTourCompletionScalarFieldEnum]
 
 
 export const HistoricalQueryScalarFieldEnum = {

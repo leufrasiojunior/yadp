@@ -3,6 +3,7 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import type { Request } from "express";
 
 import { DEFAULT_API_LOCALE, getRequestLocale } from "../common/i18n/locale";
+import { DEFAULT_API_TIME_ZONE, normalizeApiTimeZone } from "../common/i18n/time-zone";
 import { PrismaService } from "../common/prisma/prisma.service";
 import { Prisma } from "../common/prisma/prisma-client";
 import { NotificationsService } from "../notifications/notifications.service";
@@ -33,6 +34,7 @@ import type {
   OverviewJobsResponse,
   OverviewMutationResponse,
   OverviewResponse,
+  OverviewSavedDateItem,
 } from "./overview.types";
 
 type OverviewJobRecord = Awaited<ReturnType<PrismaService["overviewHistoryJob"]["findFirstOrThrow"]>>;
@@ -70,6 +72,14 @@ type CoverageStatsRow = {
   count: bigint | number;
   earliest: Date | null;
   latest: Date | null;
+};
+
+type SavedDateRow = {
+  date: string;
+  rowCount: bigint | number;
+  instanceCount: bigint | number;
+  storedFrom: Date | null;
+  storedUntil: Date | null;
 };
 
 type CoverageWindowState = {
@@ -164,6 +174,18 @@ function startOfDay(date: Date) {
 
 function endOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+}
+
+function getDateKeyInTimeZone(value: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(value);
+  const getPart = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
 }
 
 function normalizeHistoryRange(from?: number, until?: number): HistoryRange {
@@ -271,7 +293,7 @@ function buildEmptyRuntimeSummary(): JobRuntimeSummary {
 @Injectable()
 export class OverviewService implements OnModuleInit {
   private readonly logger = new Logger(OverviewService.name);
-  private readonly activeJobKeys = new Set<string>();
+  private isOverviewQueueDraining = false;
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
@@ -282,6 +304,7 @@ export class OverviewService implements OnModuleInit {
 
   async onModuleInit() {
     await this.markInterruptedJobsAsFailed();
+    this.scheduleQueueDrain();
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
@@ -292,7 +315,10 @@ export class OverviewService implements OnModuleInit {
 
   async getOverview(query: GetOverviewDto, request: Request): Promise<OverviewResponse> {
     const locale = getRequestLocale(request);
-    const scope = await this.resolveScope(query.scope, query.instanceId, locale);
+    const [scope, timeZone] = await Promise.all([
+      this.resolveScope(query.scope, query.instanceId, locale),
+      this.readAppTimeZone(),
+    ]);
     const range = normalizeHistoryRange(query.from, query.until);
     const filters = this.buildQueryFilters(
       range,
@@ -314,6 +340,7 @@ export class OverviewService implements OnModuleInit {
       coverageStats,
       matchingCoverageWindows,
       savedCoverageWindows,
+      savedDates,
     ] = await Promise.all([
       this.loadSummary(filters),
       this.loadChartRows(filters, chartGroupBy),
@@ -324,6 +351,7 @@ export class OverviewService implements OnModuleInit {
       this.loadCoverageStats(scope.instances, range),
       this.loadCoverageWindows(scope.instances, range),
       this.loadSavedCoverageWindows(scope.instances),
+      this.loadSavedDates(scope.instances, timeZone),
     ]);
 
     const summary = summaryRows ?? {
@@ -400,6 +428,7 @@ export class OverviewService implements OnModuleInit {
         expiringSoonCount: expiringCoverageWindows.length,
         windows: mappedMatchingCoverageWindows,
         savedWindows: mappedSavedCoverageWindows,
+        savedDates: savedDates.map((item) => this.mapSavedDate(item)),
         expiringWindows: expiringCoverageWindows,
       },
       sources: {
@@ -541,7 +570,7 @@ export class OverviewService implements OnModuleInit {
       },
     });
 
-    this.scheduleJob(retried.id);
+    this.scheduleQueueDrain();
     return { job: this.mapJob(retried) };
   }
 
@@ -554,8 +583,8 @@ export class OverviewService implements OnModuleInit {
       throw new BadRequestException("Overview job not found.");
     }
 
-    if (existing.status !== "SUCCESS" && existing.status !== "FAILURE") {
-      throw new BadRequestException("Only successful or failed jobs can be deleted.");
+    if (existing.status !== "SUCCESS" && existing.status !== "FAILURE" && existing.status !== "PAUSED") {
+      throw new BadRequestException("Only successful, failed, or paused jobs can be deleted.");
     }
 
     const deleted = await this.prisma.$transaction(async (tx) => {
@@ -578,6 +607,7 @@ export class OverviewService implements OnModuleInit {
     const locale = getRequestLocale(request);
     const scope = await this.resolveScope(body.scope, body.instanceId, locale);
     const range = normalizeHistoryRange(body.from, body.until);
+    await this.assertManualImportSingleDay(range);
     const job = await this.createJob({
       kind: "MANUAL_IMPORT",
       scope: scope.mode,
@@ -589,7 +619,7 @@ export class OverviewService implements OnModuleInit {
       requestedBy: request.ip ?? null,
     });
 
-    this.scheduleJob(job.id);
+    this.scheduleQueueDrain();
     return { job: this.mapJob(job) };
   }
 
@@ -608,7 +638,7 @@ export class OverviewService implements OnModuleInit {
       requestedBy: request.ip ?? null,
     });
 
-    this.scheduleJob(job.id);
+    this.scheduleQueueDrain();
     return { job: this.mapJob(job) };
   }
 
@@ -634,10 +664,11 @@ export class OverviewService implements OnModuleInit {
       this.logger.debug(
         `Skipping automatic overview import for ${range.from.toISOString()} because a job already exists.`,
       );
+      this.scheduleQueueDrain();
       return;
     }
 
-    const job = await this.createJob({
+    await this.createJob({
       kind: "AUTOMATIC_IMPORT",
       scope: "all",
       instanceId: null,
@@ -648,32 +679,52 @@ export class OverviewService implements OnModuleInit {
       requestedBy: null,
     });
 
-    this.scheduleJob(job.id);
+    this.scheduleQueueDrain();
   }
 
-  private scheduleJob(jobId: string) {
+  private scheduleQueueDrain() {
     setImmediate(() => {
-      void this.executeJob(jobId);
+      void this.drainOverviewJobQueue();
     });
   }
 
-  private async executeJob(jobId: string) {
-    const job = await this.prisma.overviewHistoryJob.findUnique({
-      where: { id: jobId },
-    });
-
-    if (!job || job.status !== "PENDING") {
+  private async drainOverviewJobQueue() {
+    if (this.isOverviewQueueDraining) {
       return;
     }
 
-    const key = this.buildJobKey(job);
+    this.isOverviewQueueDraining = true;
 
-    if (this.activeJobKeys.has(key)) {
-      this.logger.debug(`Skipping overview job ${job.id} because ${key} is already running.`);
+    try {
+      while (true) {
+        const nextJob = await this.prisma.overviewHistoryJob.findFirst({
+          where: { status: "PENDING" },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        });
+
+        if (!nextJob) {
+          break;
+        }
+
+        await this.executeQueuedJob(nextJob);
+      }
+    } finally {
+      this.isOverviewQueueDraining = false;
+      const pendingJob = await this.prisma.overviewHistoryJob.findFirst({
+        where: { status: "PENDING" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      });
+
+      if (pendingJob) {
+        this.scheduleQueueDrain();
+      }
+    }
+  }
+
+  private async executeQueuedJob(job: OverviewJobRecord) {
+    if (job.status !== "PENDING") {
       return;
     }
-
-    this.activeJobKeys.add(key);
 
     try {
       if (job.kind === "MANUAL_DELETE") {
@@ -683,8 +734,6 @@ export class OverviewService implements OnModuleInit {
       }
     } catch (error) {
       await this.markJobFailed(job, error);
-    } finally {
-      this.activeJobKeys.delete(key);
     }
   }
 
@@ -1260,9 +1309,7 @@ export class OverviewService implements OnModuleInit {
   private async markInterruptedJobsAsFailed() {
     const interruptedJobs = await this.prisma.overviewHistoryJob.findMany({
       where: {
-        status: {
-          in: ["PENDING", "RUNNING"],
-        },
+        status: "RUNNING",
       },
     });
 
@@ -1429,6 +1476,26 @@ export class OverviewService implements OnModuleInit {
     });
   }
 
+  private async loadSavedDates(instances: PiholeManagedInstanceSummary[], timeZone: string) {
+    if (instances.length === 0) {
+      return [];
+    }
+
+    return this.prisma.$queryRaw<SavedDateRow[]>(Prisma.sql`
+      SELECT
+        to_char("occurredAt" AT TIME ZONE ${timeZone}, 'YYYY-MM-DD') AS "date",
+        COUNT(*)::bigint AS "rowCount",
+        COUNT(DISTINCT "instanceId")::bigint AS "instanceCount",
+        MIN("occurredAt") AS "storedFrom",
+        MAX("occurredAt") AS "storedUntil"
+      FROM "HistoricalQuery"
+      WHERE "instanceId" IN (${Prisma.join(instances.map((item) => item.id))})
+      GROUP BY 1
+      ORDER BY 1 DESC
+      LIMIT ${DEFAULT_COVERAGE_LIMIT}
+    `);
+  }
+
   private buildCoverageStateByInstance(
     instances: PiholeManagedInstanceSummary[],
     coverageWindows: CoverageWindowRecord[],
@@ -1567,6 +1634,24 @@ export class OverviewService implements OnModuleInit {
     trigger: string | null;
     requestedBy: string | null;
   }) {
+    const existing = await this.prisma.overviewHistoryJob.findFirst({
+      where: {
+        kind: input.kind,
+        scope: input.scope,
+        instanceId: input.instanceId,
+        requestedFrom: input.requestedFrom,
+        requestedUntil: input.requestedUntil,
+        status: {
+          in: ["PENDING", "RUNNING"],
+        },
+      },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    });
+
+    if (existing) {
+      return existing;
+    }
+
     return this.prisma.overviewHistoryJob.create({
       data: {
         kind: input.kind,
@@ -1581,14 +1666,21 @@ export class OverviewService implements OnModuleInit {
     });
   }
 
-  private buildJobKey(job: OverviewJobRecord) {
-    return [
-      job.kind,
-      job.scope,
-      job.instanceId ?? "all",
-      job.requestedFrom.toISOString(),
-      job.requestedUntil.toISOString(),
-    ].join(":");
+  private async readAppTimeZone() {
+    const appConfig = await this.prisma.appConfig.findUnique({
+      where: { id: "singleton" },
+      select: { timeZone: true },
+    });
+
+    return normalizeApiTimeZone(appConfig?.timeZone, DEFAULT_API_TIME_ZONE);
+  }
+
+  private async assertManualImportSingleDay(range: HistoryRange) {
+    const timeZone = await this.readAppTimeZone();
+
+    if (getDateKeyInTimeZone(range.from, timeZone) !== getDateKeyInTimeZone(range.until, timeZone)) {
+      throw new BadRequestException("Manual overview import is limited to a single calendar day.");
+    }
   }
 
   private mapJob(job: OverviewJobRecord) {
@@ -1669,6 +1761,16 @@ export class OverviewService implements OnModuleInit {
       expiresAt: item.expiresAt.toISOString(),
       isExpiringSoon: expiresInDays >= 0 && expiresInDays <= COVERAGE_EXPIRING_SOON_DAYS,
       expiresInDays,
+    };
+  }
+
+  private mapSavedDate(item: SavedDateRow): OverviewSavedDateItem {
+    return {
+      date: item.date,
+      rowCount: toNumber(item.rowCount),
+      instanceCount: toNumber(item.instanceCount),
+      storedFrom: toIso(item.storedFrom),
+      storedUntil: toIso(item.storedUntil),
     };
   }
 

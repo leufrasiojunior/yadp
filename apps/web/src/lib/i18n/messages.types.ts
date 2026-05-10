@@ -533,6 +533,7 @@ export type WebMessages = {
     };
     actions: {
       markRead: string;
+      markAllRead: string;
       delete: string;
       deleting: string;
       markingRead: string;
@@ -582,6 +583,19 @@ export type WebMessages = {
     eyebrow: string;
     title: string;
     description: string;
+    tour: {
+      open: string;
+      close: string;
+      next: string;
+      finish: string;
+      purpose: string;
+      tabs: string;
+      manualCollection: string;
+      coverage: string;
+      rankingFilters: string;
+      rankingResults: string;
+      jobs: string;
+    };
     tabs: {
       request: string;
       ranking: string;
@@ -652,14 +666,13 @@ export type WebMessages = {
       description: string;
       filtersTitle: string;
       filtersDescription: string;
-      importedJobsTitle: string;
-      importedJobsDescription: string;
-      importedAt: (value: string) => string;
-      selectedImportedJob: string;
-      emptyImportedTitle: string;
-      emptyImportedDescription: string;
-      selectLabel: string;
-      selectPlaceholder: string;
+      savedDatesTitle: string;
+      savedDatesDescription: string;
+      emptySavedDatesTitle: string;
+      emptySavedDatesDescription: string;
+      savedDateSelectLabel: string;
+      savedDateSelectPlaceholder: string;
+      savedDateOption: (date: string, rowCount: string, instanceCount: string) => string;
       domainFilter: string;
       domainPlaceholder: string;
       clientFilter: string;
@@ -727,9 +740,11 @@ export type WebMessages = {
       filteredEmptyDescription: string;
       statusFilterTitle: string;
       statusFilterValues: {
-        SUCCESS: string;
-        PARTIAL: string;
-        FAILURE: string;
+        all: string;
+        inProgress: string;
+        completed: string;
+        partial: string;
+        failure: string;
       };
       status: string;
       type: string;
@@ -744,11 +759,16 @@ export type WebMessages = {
       runningHint: string;
       progressSummary: (saved: string, expected: string) => string;
       pagesSummary: (completed: string, total: string) => string;
+      etaCalculating: string;
+      etaRemaining: (value: string) => string;
       detailsTitle: string;
       detailsDescription: (from: string, until: string) => string;
       detailsLoading: string;
       detailsLive: string;
       detailsUpdatedAt: (value: string) => string;
+      detailsTourDemoBadge: string;
+      detailsTourDemoTitle: string;
+      detailsTourDemoDescription: string;
       detailsTabSummary: string;
       detailsTabInstances: string;
       detailsTabTimeline: string;
@@ -847,6 +867,7 @@ export type WebMessages = {
       currentDayBlocked: string;
       coverageRenewed: (renewedQueryCount: string) => string;
       coverageRenewFailed: string;
+      tourCompletionFailed: string;
     };
   };
   queries: {

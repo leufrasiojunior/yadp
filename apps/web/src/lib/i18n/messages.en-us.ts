@@ -582,6 +582,7 @@ export const enUSMessages: WebMessages = {
     },
     actions: {
       markRead: "Mark as read",
+      markAllRead: "Mark all as read",
       delete: "Delete",
       deleting: "Deleting...",
       markingRead: "Marking...",
@@ -633,6 +634,22 @@ export const enUSMessages: WebMessages = {
     title: "Overview",
     description:
       "Review historical data stored locally, track available coverage, and request background imports or deletions.",
+    tour: {
+      open: "Open Overview tour",
+      close: "Close tour",
+      next: "Next",
+      finish: "Finish and collect d-1",
+      purpose:
+        "Overview consolidates locally stored history and separates period requests, rankings, and jobs so imports do not block the screen.",
+      tabs: "Use the tabs to move between period requests, ranking analysis, and background job tracking.",
+      manualCollection: "Choose one closed day here and queue a historical import to populate the local database.",
+      coverage:
+        "Coverage shows what is already stored, when it expires, and which periods can be renewed without importing again.",
+      rankingFilters: "Saved dates and Ranking filters control the universe used by the charts and tables below.",
+      rankingResults:
+        "Rankings and charts are clickable where useful; clicking domains or clients applies the filter and reloads the period.",
+      jobs: "The jobs list shows imports, deletions, progress, and operational details for investigating failures or resuming runs.",
+    },
     tabs: {
       request: "Period and coverage",
       ranking: "Ranking",
@@ -645,7 +662,7 @@ export const enUSMessages: WebMessages = {
       from: "From",
       until: "Until",
       closedDayHint:
-        "Overview works with closed periods. The current date is blocked, but you can still edit the time manually within previous days.",
+        "Manual import accepts only one closed day per request. The current date is blocked, but you can adjust the time within the selected day.",
       apply: "Apply filters",
       applying: "Applying...",
       reload: "Reload",
@@ -707,14 +724,14 @@ export const enUSMessages: WebMessages = {
       description: "Summary of the data stored locally for the selected period.",
       filtersTitle: "Ranking filter",
       filtersDescription: "Adjust here the period used by this tab rankings and charts.",
-      importedJobsTitle: "Imported periods",
-      importedJobsDescription: "Choose a completed job to apply the period used by rankings and charts.",
-      importedAt: (value) => `Imported at ${value}`,
-      selectedImportedJob: "Selected",
-      emptyImportedTitle: "No usable period",
-      emptyImportedDescription: "Only Success or Partial jobs are listed here.",
-      selectLabel: "Imported period",
-      selectPlaceholder: "Select a completed job",
+      savedDatesTitle: "Saved dates",
+      savedDatesDescription: "Choose a day with stored data to apply to rankings and charts.",
+      emptySavedDatesTitle: "No saved date",
+      emptySavedDatesDescription: "Request an import or choose another scope to list days with local history.",
+      savedDateSelectLabel: "Saved date",
+      savedDateSelectPlaceholder: "Select a saved day",
+      savedDateOption: (date, rowCount, instanceCount) =>
+        `${date} | ${rowCount} queries | ${instanceCount} instance(s)`,
       domainFilter: "Domain",
       domainPlaceholder: "example.com",
       clientFilter: "Client IP",
@@ -784,9 +801,11 @@ export const enUSMessages: WebMessages = {
       filteredEmptyDescription: "Adjust the status filters to view other jobs.",
       statusFilterTitle: "Filter by status",
       statusFilterValues: {
-        SUCCESS: "Success",
-        PARTIAL: "Partial",
-        FAILURE: "Failure",
+        all: "All",
+        inProgress: "Running",
+        completed: "Completed",
+        partial: "Partial",
+        failure: "Failure",
       },
       status: "Status",
       type: "Type",
@@ -801,11 +820,17 @@ export const enUSMessages: WebMessages = {
       runningHint: "Waiting for completion",
       progressSummary: (saved, expected) => `${saved} saved out of ${expected} expected`,
       pagesSummary: (completed, total) => `${completed} of ${total} pages`,
+      etaCalculating: "ETA: calculating...",
+      etaRemaining: (value) => `ETA: ~${value}`,
       detailsTitle: "Job details",
       detailsDescription: (from, until) => `Full execution timeline between ${from} and ${until}.`,
       detailsLoading: "Loading job details...",
       detailsLive: "Live",
       detailsUpdatedAt: (value) => `Updated at ${value}`,
+      detailsTourDemoBadge: "Demo",
+      detailsTourDemoTitle: "Tour demo",
+      detailsTourDemoDescription:
+        "This modal was opened by the tour to show where to track progress, instances, and the timeline for the d-1 job created now.",
       detailsTabSummary: "Summary",
       detailsTabInstances: "Instances",
       detailsTabTimeline: "Timeline",
@@ -856,7 +881,7 @@ export const enUSMessages: WebMessages = {
         unexpected: "Unexpected failure",
       },
       statusValues: {
-        PENDING: "Pending",
+        PENDING: "Queued",
         RUNNING: "Running",
         PAUSED: "Paused",
         SUCCESS: "Success",
@@ -864,7 +889,7 @@ export const enUSMessages: WebMessages = {
         FAILURE: "Failure",
       },
       statusSummary: {
-        PENDING: "Waiting to start.",
+        PENDING: "Waiting in the queue.",
         RUNNING: "Import is running with partial progress already saved.",
         PAUSED: "Execution paused after repeated failures.",
         SUCCESS: "The period completed with usable results.",
@@ -915,6 +940,7 @@ export const enUSMessages: WebMessages = {
       coverageRenewed: (renewedQueryCount) =>
         `Coverage renewed for 30 more days across ${renewedQueryCount} querie(s).`,
       coverageRenewFailed: "Could not renew this coverage.",
+      tourCompletionFailed: "Could not save that the tour was completed.",
     },
   },
   queries: {

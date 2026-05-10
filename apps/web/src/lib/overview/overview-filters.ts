@@ -55,8 +55,39 @@ function getCurrentDateInTimeZone(timeZone: string) {
   return zonedNow.slice(0, 10);
 }
 
+function normalizeDateTimeDate(value: string, fallback: string) {
+  const date = value.slice(0, 10);
+
+  return parseDateOnly(date) ? date : fallback;
+}
+
+function normalizeDateTimeTime(value: string, fallback: string) {
+  const time = value.slice(11, 16);
+
+  return /^\d{2}:\d{2}$/.test(time) ? time : fallback;
+}
+
 export function getOverviewMaxSelectableDateTime(timeZone: string) {
   return `${shiftDateOnly(getCurrentDateInTimeZone(timeZone), -1)}T23:59`;
+}
+
+export function clampOverviewRequestFiltersToSingleDay(
+  filters: OverviewFilters,
+  maxSelectableDateTime: string,
+): OverviewFilters {
+  const maxDate = maxSelectableDateTime.slice(0, 10);
+  const requestedDate = normalizeDateTimeDate(filters.from, maxDate);
+  const day = requestedDate > maxDate ? maxDate : requestedDate;
+  const from = `${day}T${normalizeDateTimeTime(filters.from, "00:00")}`;
+  const untilDate = normalizeDateTimeDate(filters.until, day);
+  const untilTime = untilDate === day ? normalizeDateTimeTime(filters.until, "23:59") : "23:59";
+  const until = `${day}T${untilTime}`;
+
+  return {
+    ...filters,
+    from: from > maxSelectableDateTime ? `${day}T00:00` : from,
+    until: until > maxSelectableDateTime ? maxSelectableDateTime : until,
+  };
 }
 
 export function normalizeOverviewTab(searchParams: Record<string, string | string[] | undefined>): OverviewTab {
@@ -68,10 +99,9 @@ export function normalizeOverviewTab(searchParams: Record<string, string | strin
 export function buildDefaultOverviewFilters(timeZone: string): OverviewFilters {
   const maxSelectable = getOverviewMaxSelectableDateTime(timeZone);
   const closedDay = maxSelectable.slice(0, 10);
-  const sixDaysBefore = shiftDateOnly(closedDay, -6);
 
   return {
-    from: `${sixDaysBefore}T00:00`,
+    from: `${closedDay}T00:00`,
     until: `${closedDay}T23:59`,
     domain: "",
     client_ip: "",

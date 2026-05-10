@@ -586,6 +586,7 @@ export const ptBRMessages: WebMessages = {
     },
     actions: {
       markRead: "Marcar como lida",
+      markAllRead: "Marcar todas como lidas",
       delete: "Apagar",
       deleting: "Apagando...",
       markingRead: "Marcando...",
@@ -637,6 +638,24 @@ export const ptBRMessages: WebMessages = {
     title: "Overview",
     description:
       "Consulte o histórico salvo no banco local, acompanhe a cobertura disponível e solicite coletas ou exclusões em segundo plano.",
+    tour: {
+      open: "Abrir tour do Overview",
+      close: "Fechar tour",
+      next: "Próximo",
+      finish: "Concluir e coletar d-1",
+      purpose:
+        "O Overview consolida o histórico salvo localmente e separa consulta, rankings e jobs para acompanhar coletas sem bloquear a tela.",
+      tabs: "Use as abas para alternar entre solicitação de período, análise dos rankings e acompanhamento dos jobs.",
+      manualCollection:
+        "Aqui você escolhe um dia fechado e enfileira uma coleta histórica para preencher o banco local.",
+      coverage:
+        "A cobertura mostra o que já está salvo, quando expira e quais períodos podem ser renovados sem nova coleta.",
+      rankingFilters:
+        "As datas salvas e os filtros do Ranking controlam o universo usado nos gráficos e tabelas abaixo.",
+      rankingResults:
+        "Os rankings e gráficos são clicáveis quando faz sentido; clicar em domínios ou clientes aplica o filtro e recarrega o período.",
+      jobs: "A lista de jobs mostra coletas, exclusões, progresso e detalhes operacionais para investigar falhas ou retomar execuções.",
+    },
     tabs: {
       request: "Período e cobertura",
       ranking: "Ranking",
@@ -649,7 +668,7 @@ export const ptBRMessages: WebMessages = {
       from: "De",
       until: "Até",
       closedDayHint:
-        "O overview trabalha com períodos fechados. A data atual fica bloqueada, mas você pode ajustar manualmente a hora dentro dos dias anteriores.",
+        "A coleta manual aceita somente um dia fechado por solicitação. A data atual fica bloqueada, mas você pode ajustar a hora dentro do dia selecionado.",
       apply: "Aplicar filtros",
       applying: "Aplicando...",
       reload: "Recarregar",
@@ -711,14 +730,14 @@ export const ptBRMessages: WebMessages = {
       description: "Resumo dos dados salvos localmente para o período selecionado.",
       filtersTitle: "Filtro do ranking",
       filtersDescription: "Ajuste aqui o período usado pelos rankings e gráficos desta aba.",
-      importedJobsTitle: "Períodos importados",
-      importedJobsDescription: "Escolha um job concluído para aplicar o período usado nos rankings e gráficos.",
-      importedAt: (value) => `Importado em ${value}`,
-      selectedImportedJob: "Selecionado",
-      emptyImportedTitle: "Nenhum período utilizável",
-      emptyImportedDescription: "Somente jobs com status Sucesso ou Parcial aparecem aqui.",
-      selectLabel: "Período importado",
-      selectPlaceholder: "Selecione um job concluído",
+      savedDatesTitle: "Datas salvas",
+      savedDatesDescription: "Escolha um dia com dados armazenados para aplicar aos rankings e gráficos.",
+      emptySavedDatesTitle: "Nenhuma data salva",
+      emptySavedDatesDescription: "Solicite uma coleta ou escolha outro escopo para listar dias com histórico local.",
+      savedDateSelectLabel: "Data salva",
+      savedDateSelectPlaceholder: "Selecione um dia salvo",
+      savedDateOption: (date, rowCount, instanceCount) =>
+        `${date} | ${rowCount} queries | ${instanceCount} instância(s)`,
       domainFilter: "Domínio",
       domainPlaceholder: "example.com",
       clientFilter: "IP do cliente",
@@ -788,9 +807,11 @@ export const ptBRMessages: WebMessages = {
       filteredEmptyDescription: "Ajuste os filtros de status para ver outros jobs.",
       statusFilterTitle: "Filtrar por status",
       statusFilterValues: {
-        SUCCESS: "Sucesso",
-        PARTIAL: "Parcial",
-        FAILURE: "Falha",
+        all: "Todos",
+        inProgress: "Em execução",
+        completed: "Concluídos",
+        partial: "Parcial",
+        failure: "Falha",
       },
       status: "Status",
       type: "Tipo",
@@ -805,11 +826,17 @@ export const ptBRMessages: WebMessages = {
       runningHint: "Aguardando conclusão",
       progressSummary: (saved, expected) => `${saved} salvas de ${expected} esperadas`,
       pagesSummary: (completed, total) => `${completed} de ${total} páginas`,
+      etaCalculating: "ETA: calculando...",
+      etaRemaining: (value) => `ETA: ~${value}`,
       detailsTitle: "Detalhes do job",
       detailsDescription: (from, until) => `Timeline completa da execução entre ${from} e ${until}.`,
       detailsLoading: "Carregando detalhes do job...",
       detailsLive: "Ao vivo",
       detailsUpdatedAt: (value) => `Atualizado em ${value}`,
+      detailsTourDemoBadge: "Demonstração",
+      detailsTourDemoTitle: "Demonstração do tour",
+      detailsTourDemoDescription:
+        "Este modal foi aberto pelo tour para mostrar onde acompanhar progresso, instâncias e timeline do job d-1 criado agora.",
       detailsTabSummary: "Resumo",
       detailsTabInstances: "Instâncias",
       detailsTabTimeline: "Timeline",
@@ -860,7 +887,7 @@ export const ptBRMessages: WebMessages = {
         unexpected: "Falha inesperada",
       },
       statusValues: {
-        PENDING: "Pendente",
+        PENDING: "Na fila",
         RUNNING: "Executando",
         PAUSED: "Pausado",
         SUCCESS: "Sucesso",
@@ -868,7 +895,7 @@ export const ptBRMessages: WebMessages = {
         FAILURE: "Falha",
       },
       statusSummary: {
-        PENDING: "Aguardando execução.",
+        PENDING: "Aguardando na fila.",
         RUNNING: "Coleta em andamento com progresso parcial salvo.",
         PAUSED: "Execução pausada após falhas consecutivas.",
         SUCCESS: "Período concluído com resultado utilizável.",
@@ -919,6 +946,7 @@ export const ptBRMessages: WebMessages = {
         "O overview histórico não permite usar a data atual. Escolha no máximo o dia anterior fechado.",
       coverageRenewed: (renewedQueryCount) => `Cobertura renovada por mais 30 dias para ${renewedQueryCount} query(s).`,
       coverageRenewFailed: "Não foi possível renovar essa cobertura.",
+      tourCompletionFailed: "Não foi possível salvar que o tour foi concluído.",
     },
   },
   queries: {

@@ -23,7 +23,7 @@ export default async function OverviewPage({
 }: Readonly<{
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>) {
-  const { locale, messages } = await getServerI18n();
+  const { locale } = await getServerI18n();
 
   try {
     const [instances, cookieStore, timeZone, resolvedSearchParams] = await Promise.all([
@@ -53,21 +53,13 @@ export default async function OverviewPage({
     const initialJobs = await getOverviewJobs();
 
     return (
-      <div className="@container/main flex flex-col gap-4 md:gap-6">
-        <div>
-          <p className="text-muted-foreground text-sm">{messages.overview.eyebrow}</p>
-          <h1 className="font-semibold text-3xl tracking-tight">{messages.overview.title}</h1>
-          <p className="mt-2 max-w-4xl text-muted-foreground text-sm">{messages.overview.description}</p>
-        </div>
-
-        <OverviewWorkspace
-          initialFilters={filters}
-          initialJobs={initialJobs}
-          initialOverview={initialOverview}
-          initialTab={activeTab}
-          scope={selectedScope}
-        />
-      </div>
+      <OverviewWorkspace
+        initialFilters={filters}
+        initialJobs={initialJobs}
+        initialOverview={initialOverview}
+        initialTab={activeTab}
+        scope={selectedScope}
+      />
     );
   } catch (error) {
     if (isYapdApiUnavailableError(error)) {
