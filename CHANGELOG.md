@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.3.0...yapd-v0.4.0) (2026-05-10)
+
+
+### Features
+
+* add release versioning script and update package.json ([32dead9](https://github.com/leufrasiojunior/yadp/commit/32dead93f674bb6c2ab5ced27c63bb663f05faf7))
+
 ## [0.3.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.2.0...yapd-v0.3.0) (2026-05-10)
 
 
