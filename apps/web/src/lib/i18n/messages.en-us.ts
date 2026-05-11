@@ -348,6 +348,7 @@ export const enUSMessages: WebMessages = {
     },
   },
   layout: {
+    actionsMenuLabel: "Quick actions",
     overviewButton: "Overview",
     queriesButton: "Queries",
     instancesButton: "Instances",

@@ -80,12 +80,15 @@ export function SearchDialog() {
     <>
       <Button
         onClick={() => setOpen(true)}
-        variant="link"
-        className="px-0! font-normal text-muted-foreground hover:no-underline"
+        variant="outline"
+        size="icon"
+        className="shrink-0 lg:h-8 lg:w-auto lg:gap-1 lg:border-transparent lg:bg-transparent lg:px-0! lg:font-normal lg:text-muted-foreground lg:shadow-none lg:hover:bg-transparent lg:hover:no-underline"
+        aria-label={messages.sidebar.search.button}
+        title={messages.sidebar.search.button}
       >
         <Search data-icon="inline-start" />
-        {messages.sidebar.search.button}
-        <kbd className="inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium text-[10px]">
+        <span className="hidden lg:inline">{messages.sidebar.search.button}</span>
+        <kbd className="hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium text-[10px] xl:inline-flex">
           <span className="text-xs">⌘</span>J
         </kbd>
       </Button>

@@ -288,7 +288,7 @@ export function NotificationBell() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
+        <Button variant="outline" size="icon" className="relative shrink-0">
           <Bell className="size-4" />
           {unreadCount > 0 ? (
             <span className="-top-1 -right-1 absolute min-w-5 rounded-full bg-destructive px-1 text-center text-[10px] text-destructive-foreground">
@@ -298,7 +298,7 @@ export function NotificationBell() {
           <span className="sr-only">{messages.sidebar.items.notifications}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[24rem] p-0">
+      <DropdownMenuContent align="end" className="w-[calc(100vw-1rem)] p-0 sm:w-[24rem]">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <DropdownMenuLabel className="p-0">{messages.notifications.preview.title}</DropdownMenuLabel>

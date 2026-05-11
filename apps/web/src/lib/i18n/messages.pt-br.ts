@@ -351,6 +351,7 @@ export const ptBRMessages: WebMessages = {
     },
   },
   layout: {
+    actionsMenuLabel: "Ações rápidas",
     overviewButton: "Visão geral",
     queriesButton: "Queries",
     instancesButton: "Instâncias",

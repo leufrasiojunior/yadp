@@ -311,6 +311,7 @@ export type WebMessages = {
     };
   };
   layout: {
+    actionsMenuLabel: string;
     overviewButton: string;
     queriesButton: string;
     instancesButton: string;
