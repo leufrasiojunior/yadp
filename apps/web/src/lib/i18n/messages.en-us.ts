@@ -556,6 +556,8 @@ export const enUSMessages: WebMessages = {
       pushEnabled: "Push is enabled on this device",
       pushDenied: "Push permission is blocked in this browser",
       pushUnsupported: "Push is not supported in this browser",
+      pushInsecureContext: "Push requires HTTPS or localhost",
+      pushServerUnavailable: "Push configuration is unavailable",
       pushEnabling: "Enabling push...",
     },
     table: {
@@ -595,6 +597,8 @@ export const enUSMessages: WebMessages = {
       pushEnabled: "Push enabled on this device.",
       pushDisabled: "Push disabled on this device.",
       pushUnsupported: "This browser does not support push notifications.",
+      pushInsecureContext: "Push notifications require HTTPS or localhost. Access YAPD through an HTTPS domain.",
+      pushServerUnavailable: "Push configuration is not available on the server yet.",
       pushDenied: "Allow notifications in the browser to enable push.",
       pushFailed: "Could not configure push right now.",
       refreshFailed: "Could not refresh notifications.",

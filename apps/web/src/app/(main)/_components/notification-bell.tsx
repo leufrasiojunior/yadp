@@ -32,13 +32,20 @@ import {
   getNotificationTitle,
 } from "@/lib/notifications/notifications";
 import { decodePushPublicKey, isCurrentPushSubscriptionServerKey } from "@/lib/notifications/push-subscription";
+import { getPushSupportStatus, type PushSupportStatus } from "@/lib/notifications/push-support";
 import { cn } from "@/lib/utils";
 import { useNotificationsStore } from "@/stores/notifications/notifications-provider";
 
-function isPushSupported() {
-  return (
-    typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator && "PushManager" in window
-  );
+function getPushStatusToastMessage(status: PushSupportStatus, messages: ReturnType<typeof useWebI18n>["messages"]) {
+  if (status === "insecure-context") {
+    return messages.notifications.toasts.pushInsecureContext;
+  }
+
+  if (status === "server-unavailable") {
+    return messages.notifications.toasts.pushServerUnavailable;
+  }
+
+  return messages.notifications.toasts.pushUnsupported;
 }
 
 export function NotificationBell() {
@@ -52,9 +59,11 @@ export function NotificationBell() {
   const [pushAvailable, setPushAvailable] = useState(preview?.push.available ?? false);
   const [pushBusy, setPushBusy] = useState<"enable" | "disable" | null>(null);
   const unreadCount = preview?.unreadCount ?? 0;
+  const browserPushSupportStatus = getPushSupportStatus();
+  const pushSupportStatus = getPushSupportStatus({ serverAvailable: pushAvailable });
 
   useEffect(() => {
-    if (!isPushSupported()) {
+    if (browserPushSupportStatus !== "supported") {
       return;
     }
 
@@ -126,7 +135,7 @@ export function NotificationBell() {
     return () => {
       cancelled = true;
     };
-  }, [client, csrfToken]);
+  }, [browserPushSupportStatus, client, csrfToken]);
 
   const handleMarkAllAsRead = async () => {
     const { data, response } = await client.PATCH<NotificationReadAllResponse>("/notifications/read-all", {
@@ -145,8 +154,8 @@ export function NotificationBell() {
   };
 
   const handleEnablePush = async () => {
-    if (!isPushSupported()) {
-      toast.error(messages.notifications.toasts.pushUnsupported);
+    if (pushSupportStatus !== "supported") {
+      toast.error(getPushStatusToastMessage(pushSupportStatus, messages));
       return;
     }
 
@@ -167,7 +176,7 @@ export function NotificationBell() {
 
       if (!publicKeyResponse.ok || !publicKeyData?.available || !publicKeyData.publicKey) {
         setPushAvailable(false);
-        toast.error(messages.notifications.toasts.pushFailed);
+        toast.error(messages.notifications.toasts.pushServerUnavailable);
         return;
       }
 
@@ -212,8 +221,8 @@ export function NotificationBell() {
   };
 
   const handleDisablePush = async () => {
-    if (!isPushSupported()) {
-      toast.error(messages.notifications.toasts.pushUnsupported);
+    if (browserPushSupportStatus !== "supported") {
+      toast.error(getPushStatusToastMessage(browserPushSupportStatus, messages));
       return;
     }
 
@@ -249,12 +258,16 @@ export function NotificationBell() {
   };
 
   const pushLabel = (() => {
-    if (!isPushSupported()) {
+    if (pushSupportStatus === "insecure-context") {
+      return messages.notifications.preview.pushInsecureContext;
+    }
+
+    if (pushSupportStatus === "unsupported-browser") {
       return messages.notifications.preview.pushUnsupported;
     }
 
-    if (!pushAvailable) {
-      return messages.notifications.preview.pushUnsupported;
+    if (pushSupportStatus === "server-unavailable") {
+      return messages.notifications.preview.pushServerUnavailable;
     }
 
     if (pushPermission === "denied") {
@@ -333,7 +346,7 @@ export function NotificationBell() {
             variant={pushEndpoint ? "outline" : "default"}
             size="sm"
             onClick={() => void (pushEndpoint ? handleDisablePush() : handleEnablePush())}
-            disabled={pushBusy !== null || !pushAvailable}
+            disabled={pushBusy !== null || (!pushEndpoint && pushSupportStatus !== "supported")}
           >
             {pushEndpoint ? <BellOff className="size-4" /> : <Bell className="size-4" />}
             {pushEndpoint ? messages.notifications.preview.pushDisable : pushLabel}

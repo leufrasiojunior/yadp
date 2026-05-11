@@ -507,6 +507,8 @@ export type WebMessages = {
       pushEnabled: string;
       pushDenied: string;
       pushUnsupported: string;
+      pushInsecureContext: string;
+      pushServerUnavailable: string;
       pushEnabling: string;
     };
     table: {
@@ -545,6 +547,8 @@ export type WebMessages = {
       pushEnabled: string;
       pushDisabled: string;
       pushUnsupported: string;
+      pushInsecureContext: string;
+      pushServerUnavailable: string;
       pushDenied: string;
       pushFailed: string;
       refreshFailed: string;

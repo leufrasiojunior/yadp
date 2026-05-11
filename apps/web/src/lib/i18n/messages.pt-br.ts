@@ -560,6 +560,8 @@ export const ptBRMessages: WebMessages = {
       pushEnabled: "Push ativo neste dispositivo",
       pushDenied: "Permissão de push bloqueada no navegador",
       pushUnsupported: "Push não suportado neste navegador",
+      pushInsecureContext: "Push exige HTTPS ou localhost",
+      pushServerUnavailable: "Configuração de push indisponível",
       pushEnabling: "Ativando push...",
     },
     table: {
@@ -599,6 +601,8 @@ export const ptBRMessages: WebMessages = {
       pushEnabled: "Push ativado neste dispositivo.",
       pushDisabled: "Push desativado neste dispositivo.",
       pushUnsupported: "Este navegador não suporta notificações push.",
+      pushInsecureContext: "Notificações push exigem HTTPS ou localhost. Acesse o YAPD por um domínio HTTPS.",
+      pushServerUnavailable: "A configuração de push ainda não está disponível no servidor.",
       pushDenied: "Permita notificações no navegador para ativar o push.",
       pushFailed: "Não foi possível configurar o push agora.",
       refreshFailed: "Não foi possível atualizar as notificações.",

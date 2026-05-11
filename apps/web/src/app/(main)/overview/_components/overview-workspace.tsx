@@ -2723,7 +2723,7 @@ function OverviewWorkspaceContent({
 
               <TabsContent value="summary" className="mt-0 min-h-0 flex-1 overflow-hidden outline-none">
                 <ScrollArea className="h-full">
-                  <div className="space-y-4 pb-1 pr-4 pl-4">
+                  <div className="space-y-4 pr-4 pb-1 pl-4">
                     <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-4">
                       <div className="rounded-lg border p-3">
                         <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
@@ -3023,7 +3023,7 @@ function OverviewWorkspaceContent({
 
               <TabsContent value="instances" className="mt-0 min-h-0 flex-1 overflow-hidden outline-none">
                 <ScrollArea className="h-full">
-                  <div className="space-y-3 pb-1 pr-4 pl-4">
+                  <div className="space-y-3 pr-4 pb-1 pl-4">
                     {details.progress.instanceProgress.map((item) => {
                       const instancePercentage = getInstanceProgressPercentage(item);
 
@@ -3071,7 +3071,7 @@ function OverviewWorkspaceContent({
                   {details.timeline.length === 0 ? (
                     <p className="text-muted-foreground text-sm">{messages.overview.jobs.detailsNoTimeline}</p>
                   ) : (
-                    <div className="space-y-3 pb-1 pr-4 pl-4">
+                    <div className="space-y-3 pr-4 pb-1 pl-4">
                       {[...details.timeline]
                         .reverse()
                         .map((event: OverviewJobDetailsResponse["job"]["timeline"][number], index: number) => {
