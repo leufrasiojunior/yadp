@@ -11,14 +11,31 @@ const overviewFilters = require("./overview-filters.ts") as {
     client_ip: string;
     groupBy: "hour" | "day";
   };
+  buildOverviewHourBucketFilters: (
+    filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
+    timestamp: string,
+    timeZone: string,
+  ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" } | null;
   clampOverviewRequestFiltersToSingleDay: (
     filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
     maxSelectableDateTime: string,
+  ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
+  buildOverviewSavedDateRangeFilters: (
+    filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
+    fromDate: string,
+    untilDate: string,
   ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
   buildOverviewQueryFromFilters: (
     filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
     timeZone: string,
   ) => { from?: number; until?: number; domain?: string; client_ip?: string; groupBy: "hour" | "day" };
+  buildOverviewSingleDayFilters: (
+    filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
+    date: string,
+    fromTime: string,
+    untilTime: string,
+    maxSelectableDateTime: string,
+  ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
   getOverviewMaxSelectableDateTime: (timeZone: string) => string;
   normalizeOverviewFilters: (
     searchParams: Record<string, string | string[] | undefined>,
@@ -27,7 +44,10 @@ const overviewFilters = require("./overview-filters.ts") as {
 };
 const {
   buildDefaultOverviewFilters,
+  buildOverviewHourBucketFilters,
   buildOverviewQueryFromFilters,
+  buildOverviewSavedDateRangeFilters,
+  buildOverviewSingleDayFilters,
   clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
   normalizeOverviewFilters,
@@ -152,4 +172,84 @@ test("clampOverviewRequestFiltersToSingleDay clamps future manual collection to 
 
   assert.equal(filters.from, "2026-04-28T08:30");
   assert.equal(filters.until, "2026-04-28T23:59");
+});
+
+test("buildOverviewSingleDayFilters uses one selected date with editable times", () => {
+  const filters = buildOverviewSingleDayFilters(
+    {
+      from: "2026-04-28T00:00",
+      until: "2026-04-28T23:59",
+      domain: "example.com",
+      client_ip: "192.168.1.10",
+      groupBy: "day",
+    },
+    "2026-05-02",
+    "09:00",
+    "20:59",
+    "2026-05-09T23:59",
+  );
+
+  assert.equal(filters.from, "2026-05-02T09:00");
+  assert.equal(filters.until, "2026-05-02T20:59");
+  assert.equal(filters.domain, "example.com");
+  assert.equal(filters.client_ip, "192.168.1.10");
+  assert.equal(filters.groupBy, "day");
+});
+
+test("buildOverviewSingleDayFilters keeps the end time inside the same day and after the start", () => {
+  const filters = buildOverviewSingleDayFilters(
+    {
+      from: "2026-04-28T00:00",
+      until: "2026-04-28T23:59",
+      domain: "",
+      client_ip: "",
+      groupBy: "hour",
+    },
+    "2026-05-10",
+    "21:30",
+    "07:00",
+    "2026-05-09T23:59",
+  );
+
+  assert.equal(filters.from, "2026-05-09T21:30");
+  assert.equal(filters.until, "2026-05-09T21:30");
+});
+
+test("buildOverviewSavedDateRangeFilters allows saved endpoint ranges with missing dates in the middle", () => {
+  const filters = buildOverviewSavedDateRangeFilters(
+    {
+      from: "2026-01-01T00:00",
+      until: "2026-01-01T23:59",
+      domain: "example.com",
+      client_ip: "",
+      groupBy: "day",
+    },
+    "2026-01-01",
+    "2026-01-03",
+  );
+
+  assert.equal(filters.from, "2026-01-01T00:00");
+  assert.equal(filters.until, "2026-01-03T23:59");
+  assert.equal(filters.groupBy, "hour");
+});
+
+test("buildOverviewHourBucketFilters builds the exact clicked hourly interval", () => {
+  const filters = buildOverviewHourBucketFilters(
+    {
+      from: "2026-05-02T00:00",
+      until: "2026-05-02T23:59",
+      domain: "example.com",
+      client_ip: "192.168.1.10",
+      groupBy: "day",
+    },
+    "2026-05-02T12:00:00.000Z",
+    "America/Sao_Paulo",
+  );
+
+  assert.ok(filters);
+  assert.equal(filters.from, "2026-05-02T09:00");
+  assert.equal(filters.until, "2026-05-02T09:59");
+  assert.equal(filters.domain, "example.com");
+  assert.equal(filters.client_ip, "192.168.1.10");
+  assert.equal(filters.groupBy, "hour");
 });

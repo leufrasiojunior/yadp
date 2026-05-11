@@ -171,11 +171,12 @@ export function LayoutControls() {
     (resolvedThemeMode ?? "light") === "dark" ? messages.sidebar.controls.light : messages.sidebar.controls.dark;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 lg:gap-2">
       <Button
         type="button"
         size="icon"
         variant="outline"
+        className="hidden lg:inline-flex"
         aria-label={`${messages.sidebar.controls.themeMode}: ${quickThemeLabel}`}
         title={`${messages.sidebar.controls.themeMode}: ${quickThemeLabel}`}
         onClick={toggleQuickTheme}
@@ -185,11 +186,11 @@ export function LayoutControls() {
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button size="icon">
+          <Button size="icon" className="shrink-0">
             <Settings />
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end">
+        <PopoverContent align="end" className="w-[calc(100vw-1rem)] max-w-80 sm:w-80">
           <div className="flex flex-col gap-5">
             <div className="space-y-1.5">
               <h4 className="font-medium text-sm leading-none">{messages.sidebar.controls.title}</h4>

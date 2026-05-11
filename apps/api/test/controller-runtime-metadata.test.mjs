@@ -52,6 +52,7 @@ const { OverviewController } = require("../dist/overview/overview.controller.js"
 const { CreateOverviewHistoryJobDto } = require("../dist/overview/dto/create-overview-history-job.dto.js");
 const { GetOverviewDto } = require("../dist/overview/dto/get-overview.dto.js");
 const { GetOverviewJobsDto } = require("../dist/overview/dto/get-overview-jobs.dto.js");
+const { OverviewJobIdParamsDto } = require("../dist/overview/dto/overview-job-id-params.dto.js");
 const { QueriesController } = require("../dist/queries/queries.controller.js");
 const { GetQueriesDto } = require("../dist/queries/dto/get-queries.dto.js");
 const { GetQuerySuggestionsDto } = require("../dist/queries/dto/get-query-suggestions.dto.js");
@@ -172,6 +173,7 @@ const EXPECTATIONS = [
   },
   { controller: OverviewController, method: "getOverview", parameterIndex: 0, expectedType: GetOverviewDto },
   { controller: OverviewController, method: "getJobs", parameterIndex: 0, expectedType: GetOverviewJobsDto },
+  { controller: OverviewController, method: "getJobDetails", parameterIndex: 0, expectedType: OverviewJobIdParamsDto },
   {
     controller: OverviewController,
     method: "createBackfill",
@@ -184,6 +186,9 @@ const EXPECTATIONS = [
     parameterIndex: 0,
     expectedType: CreateOverviewHistoryJobDto,
   },
+  { controller: OverviewController, method: "retryJob", parameterIndex: 0, expectedType: OverviewJobIdParamsDto },
+  { controller: OverviewController, method: "cancelJob", parameterIndex: 0, expectedType: OverviewJobIdParamsDto },
+  { controller: OverviewController, method: "deleteJob", parameterIndex: 0, expectedType: OverviewJobIdParamsDto },
   { controller: QueriesController, method: "getQueries", parameterIndex: 0, expectedType: GetQueriesDto },
   {
     controller: QueriesController,

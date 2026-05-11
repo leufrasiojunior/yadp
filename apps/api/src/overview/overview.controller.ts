@@ -76,6 +76,13 @@ export class OverviewController {
     return this.overviewService.retryJob(params.id, request);
   }
 
+  @Post("jobs/:id/cancel")
+  @UseGuards(CsrfGuard)
+  @ApiOkResponse(OVERVIEW_JOB_MUTATION_API_OK_RESPONSE)
+  cancelJob(@Param() params: OverviewJobIdParamsDto) {
+    return this.overviewService.cancelJob(params.id);
+  }
+
   @Delete("jobs/:id")
   @UseGuards(CsrfGuard)
   @ApiOkResponse(OVERVIEW_JOB_MUTATION_API_OK_RESPONSE)

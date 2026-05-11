@@ -311,6 +311,7 @@ export type WebMessages = {
     };
   };
   layout: {
+    actionsMenuLabel: string;
     overviewButton: string;
     queriesButton: string;
     instancesButton: string;
@@ -507,6 +508,8 @@ export type WebMessages = {
       pushEnabled: string;
       pushDenied: string;
       pushUnsupported: string;
+      pushInsecureContext: string;
+      pushServerUnavailable: string;
       pushEnabling: string;
     };
     table: {
@@ -545,6 +548,8 @@ export type WebMessages = {
       pushEnabled: string;
       pushDisabled: string;
       pushUnsupported: string;
+      pushInsecureContext: string;
+      pushServerUnavailable: string;
       pushDenied: string;
       pushFailed: string;
       refreshFailed: string;
@@ -604,6 +609,7 @@ export type WebMessages = {
     filters: {
       title: string;
       description: string;
+      date: string;
       from: string;
       until: string;
       closedDayHint: string;
@@ -671,6 +677,8 @@ export type WebMessages = {
       emptySavedDatesTitle: string;
       emptySavedDatesDescription: string;
       savedDateSelectLabel: string;
+      savedDateFromLabel: string;
+      savedDateUntilLabel: string;
       savedDateSelectPlaceholder: string;
       savedDateOption: (date: string, rowCount: string, instanceCount: string) => string;
       domainFilter: string;
@@ -745,6 +753,7 @@ export type WebMessages = {
         completed: string;
         partial: string;
         failure: string;
+        cancelled: string;
       };
       status: string;
       type: string;
@@ -755,12 +764,14 @@ export type WebMessages = {
       openPeriod: string;
       viewDetails: string;
       retry: string;
+      cancel: string;
       delete: string;
       runningHint: string;
       progressSummary: (saved: string, expected: string) => string;
       pagesSummary: (completed: string, total: string) => string;
       etaCalculating: string;
       etaRemaining: (value: string) => string;
+      elapsedDuration: (value: string) => string;
       detailsTitle: string;
       detailsDescription: (from: string, until: string) => string;
       detailsLoading: string;
@@ -822,6 +833,7 @@ export type WebMessages = {
         PENDING: string;
         RUNNING: string;
         PAUSED: string;
+        CANCELLED: string;
         SUCCESS: string;
         PARTIAL: string;
         FAILURE: string;
@@ -830,6 +842,7 @@ export type WebMessages = {
         PENDING: string;
         RUNNING: string;
         PAUSED: string;
+        CANCELLED: string;
         SUCCESS: string;
         PARTIAL: string;
         FAILURE: string;
@@ -861,6 +874,8 @@ export type WebMessages = {
       deleteFailed: string;
       retryQueued: string;
       retryFailed: string;
+      cancelled: string;
+      cancelFailed: string;
       jobDeleted: string;
       jobDeleteFailed: string;
       jobDetailsFailed: string;

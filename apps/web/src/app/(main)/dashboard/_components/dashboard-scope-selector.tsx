@@ -48,9 +48,9 @@ export function DashboardScopeSelector({
   };
 
   return (
-    <div>
+    <div className="min-w-0 shrink">
       <Select disabled={isPending} value={value} onValueChange={handleValueChange}>
-        <SelectTrigger className="w-[160px] sm:w-[220px]" size="sm" aria-label={label}>
+        <SelectTrigger className="w-[7.75rem] min-w-0 sm:w-44 lg:w-[220px]" size="sm" aria-label={label}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent align="end">

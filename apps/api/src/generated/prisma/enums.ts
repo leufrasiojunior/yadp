@@ -82,6 +82,7 @@ export const OverviewHistoryJobStatus = {
   PENDING: 'PENDING',
   RUNNING: 'RUNNING',
   PAUSED: 'PAUSED',
+  CANCELLED: 'CANCELLED',
   SUCCESS: 'SUCCESS',
   PARTIAL: 'PARTIAL',
   FAILURE: 'FAILURE'

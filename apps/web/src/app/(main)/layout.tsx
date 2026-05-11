@@ -8,6 +8,7 @@ import { Activity, Binary } from "lucide-react";
 
 import { BetaDisclaimerDialog } from "@/app/(main)/_components/beta-disclaimer-dialog";
 import { NotificationBell } from "@/app/(main)/_components/notification-bell";
+import { ShellActionsMenu } from "@/app/(main)/_components/shell-actions-menu";
 import { DashboardScopeSelector } from "@/app/(main)/dashboard/_components/dashboard-scope-selector";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { LayoutControls } from "@/app/(main)/dashboard/_components/sidebar/layout-controls";
@@ -91,21 +92,21 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
               >
                 <header
                   className={cn(
-                    "flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12",
+                    "flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear",
                     "[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md",
                   )}
                 >
-                  <div className="flex w-full items-center gap-2 px-4 lg:px-6">
-                    <div className="flex min-w-0 items-center gap-1 lg:gap-2">
-                      <SidebarTrigger className="-ml-1" />
+                  <div className="flex w-full min-w-0 items-center gap-1 px-2 sm:px-3 lg:gap-2 lg:px-6">
+                    <div className="flex min-w-0 shrink-0 items-center gap-1 lg:gap-2">
+                      <SidebarTrigger className="lg:-ml-1 shrink-0" />
                       <Separator
                         orientation="vertical"
-                        className="mx-2 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
+                        className="mx-2 hidden data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center lg:block"
                       />
                       <SearchDialog />
-                      <BetaDisclaimerDialog />
+                      <BetaDisclaimerDialog className="hidden lg:inline-flex" />
                     </div>
-                    <div className="ml-auto flex items-center gap-2">
+                    <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
                       <DashboardScopeSelector
                         allInstancesLabel={messages.dashboard.scope.allInstances}
                         instances={instances.items}
@@ -113,13 +114,13 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
                         placeholder={messages.dashboard.scope.placeholder}
                         value={selectedDashboardScope}
                       />
-                      <Button asChild variant="outline" size="sm">
+                      <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
                         <Link prefetch={false} href="/overview">
                           <Activity />
                           {messages.layout.overviewButton}
                         </Link>
                       </Button>
-                      <Button asChild size="sm">
+                      <Button asChild size="sm" className="hidden lg:inline-flex">
                         <Link prefetch={false} href="/instances">
                           <Binary />
                           {messages.layout.instancesButton}
@@ -127,10 +128,16 @@ export default async function MainLayout({ children }: Readonly<{ children: Reac
                       </Button>
                       <NotificationBell />
                       <LayoutControls />
+                      <ShellActionsMenu
+                        actionsLabel={messages.layout.actionsMenuLabel}
+                        className="lg:hidden"
+                        instancesLabel={messages.layout.instancesButton}
+                        overviewLabel={messages.layout.overviewButton}
+                      />
                     </div>
                   </div>
                 </header>
-                <div className="h-full p-4 md:p-6">{children}</div>
+                <div className="h-full p-2 sm:p-4 lg:p-6">{children}</div>
               </SidebarInset>
             </SidebarProvider>
           </NavigationSummaryProvider>

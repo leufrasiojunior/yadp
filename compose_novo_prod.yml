@@ -1,0 +1,93 @@
+x-yapd-config:
+  postgres_password: &yapd_postgres_password "change-this-password"
+  session_secret: &yapd_session_secret "change-this-session-secret"
+  app_encryption_key: &yapd_app_encryption_key "change-this-encryption-key"
+  web_host_port: &yapd_web_host_port "4000"
+  # Use the public HTTPS origin served by your reverse proxy.
+  # Browser push notifications require a trusted HTTPS context or localhost;
+  # direct access through http://<server-ip>:<port> keeps push disabled.
+  web_origin: &yapd_web_origin "https://yapd.example.com"
+
+  # Database:
+  postgres_db: &yapd_postgres_db "yapd"
+  postgres_user: &yapd_postgres_user "yapd"
+
+  # Optional:
+  cookie_secure: &yapd_cookie_secure "true"
+  web_push_vapid_subject: &yapd_web_push_vapid_subject "mailto:admin@yapd.local"
+  swagger_enabled: &yapd_swagger_enabled "false"
+  db_migration_max_attempts: &yapd_db_migration_max_attempts "30"
+  db_migration_retry_delay_seconds: &yapd_db_migration_retry_delay_seconds "2"
+  api_ready_max_attempts: &yapd_api_ready_max_attempts "30"
+  api_ready_retry_delay_seconds: &yapd_api_ready_retry_delay_seconds "1"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: *yapd_postgres_db
+      POSTGRES_USER: *yapd_postgres_user
+      POSTGRES_PASSWORD: *yapd_postgres_password
+    volumes:
+      - yapd-prod-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  yapd:
+    image: leufrasiojunior/yapd:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      API_HOST: 0.0.0.0
+      API_PORT: 3001
+
+      WEB_ORIGIN: *yapd_web_origin
+
+      API_BASE_URL: /api
+      INTERNAL_API_BASE_URL: http://127.0.0.1:3001/api
+      NEXT_PUBLIC_API_BASE_URL: /api
+
+      YAPD_POSTGRES_DB: *yapd_postgres_db
+      YAPD_POSTGRES_USER: *yapd_postgres_user
+      YAPD_POSTGRES_PASSWORD: *yapd_postgres_password
+
+      SESSION_SECRET: *yapd_session_secret
+      APP_ENCRYPTION_KEY: *yapd_app_encryption_key
+      WEB_PUSH_VAPID_SUBJECT: *yapd_web_push_vapid_subject
+
+      COOKIE_SECURE: *yapd_cookie_secure
+      SWAGGER_ENABLED: *yapd_swagger_enabled
+
+      YAPD_DB_MIGRATION_MAX_ATTEMPTS: *yapd_db_migration_max_attempts
+      YAPD_DB_MIGRATION_RETRY_DELAY_SECONDS: *yapd_db_migration_retry_delay_seconds
+      YAPD_API_READY_MAX_ATTEMPTS: *yapd_api_ready_max_attempts
+      YAPD_API_READY_RETRY_DELAY_SECONDS: *yapd_api_ready_retry_delay_seconds
+    command:
+      - bash
+      - -lc
+      - export DATABASE_URL="postgresql://$${YAPD_POSTGRES_USER}:$${YAPD_POSTGRES_PASSWORD}@postgres:5432/$${YAPD_POSTGRES_DB}?schema=public"; exec bash ./scripts/start-app-container.sh
+    ports:
+      - target: 3000
+        published: *yapd_web_host_port
+        protocol: tcp
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/healthz >/dev/null 2>&1 && wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  yapd-prod-postgres-data:
