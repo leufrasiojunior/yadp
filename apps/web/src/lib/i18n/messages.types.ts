@@ -695,6 +695,13 @@ export type WebMessages = {
       };
       applyFilters: string;
       clearFilters: string;
+      periodActions: string;
+      backToPreviousPeriod: string;
+      drillDownLoading: string;
+      deletePeriodDialogTitle: string;
+      deletePeriodDialogDescription: (period: string) => string;
+      deletePeriodDialogConfirm: string;
+      deletePeriodDialogCancel: string;
       nativeWindowNoticeTitle: string;
       nativeWindowNoticeDescription: string;
       statusDistributionTitle: string;
@@ -715,8 +722,10 @@ export type WebMessages = {
         clientContext: (clientIp: string) => string;
         domainContext: (domain: string) => string;
         groupContext: (group: string) => string;
+        totalQueries: string;
         allowedQueries: string;
         blockedQueries: string;
+        blockedPercentage: string;
         topDomainsShareTitle: string;
         topDomainsShareDescription: string;
         topClientsShareTitle: string;
@@ -726,6 +735,7 @@ export type WebMessages = {
         hourlyAccessUnavailable: string;
         hourlyAccessPeak: (hour: string, count: string) => string;
         domainColumn: string;
+        clientColumn: string;
         totalColumn: string;
         percentageColumn: string;
         other: string;

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { type StepType, TourProvider, useTour } from "@reactour/tour";
 import {
   Activity,
+  ArrowLeft,
   Calendar as CalendarIcon,
   CheckCircle2,
   ChevronLeft,
@@ -20,11 +21,14 @@ import {
   HelpCircle,
   Info,
   ListFilter,
+  Loader2,
   type LucideIcon,
   Monitor,
+  MoreHorizontal,
   RefreshCw,
   Server,
   ShieldBan,
+  Trash2,
   TriangleAlert,
   X,
 } from "lucide-react";
@@ -33,6 +37,16 @@ import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from 
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -46,6 +60,12 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -112,6 +132,7 @@ const RANKING_CHART_COLORS = [
 type RankingFilterKey = "domain" | "client_ip";
 type RankingRow = { value: string; count: number };
 type QueryChartPoint = OverviewResponse["charts"]["queries"]["points"][number];
+type RankingDrillDownSource = "volume" | "hourly";
 type OverviewJobStatus = OverviewJobsResponse["jobs"][number]["status"];
 type OverviewJobFilterGroup = (typeof JOB_STATUS_FILTER_VALUES)[number];
 type OverviewSavedDate = OverviewResponse["coverage"]["savedDates"][number];
@@ -149,6 +170,14 @@ type OverviewWorkspaceProps = Readonly<{
 }>;
 type RegisterTourBeforeClose = (handler: (() => void) | null) => void;
 type RegisterTourFinish = (handler: (() => void) | null) => void;
+type ChartTooltipPayload<TPayload> = ReadonlyArray<{
+  payload?: TPayload;
+}>;
+type OverviewChartTooltipProps<TPayload> = {
+  active?: boolean;
+  label?: string | number;
+  payload?: ChartTooltipPayload<TPayload>;
+};
 
 function parseOverviewDateOnlyValue(value: string) {
   const [yearText, monthText, dayText] = value.split("-");
@@ -776,6 +805,11 @@ function OverviewWorkspaceContent({
   const [jobStatusFilter, setJobStatusFilter] = useState<OverviewJobFilterGroup>("all");
   const [tourCollectionRequestId, setTourCollectionRequestId] = useState(0);
   const [pendingTourDetailsJobId, setPendingTourDetailsJobId] = useState<string | null>(null);
+  const [rankingReturnFilters, setRankingReturnFilters] = useState<OverviewFilters | null>(null);
+  const [pendingRankingDrillDownSource, setPendingRankingDrillDownSource] = useState<RankingDrillDownSource | null>(
+    null,
+  );
+  const [isDeletePeriodDialogOpen, setIsDeletePeriodDialogOpen] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const activeTabRef = useRef<OverviewTab>(initialTab);
   const restoreTabAfterTourRef = useRef<OverviewTab | null>(null);
@@ -955,6 +989,12 @@ function OverviewWorkspaceContent({
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    if (!isPending) {
+      setPendingRankingDrillDownSource(null);
+    }
+  }, [isPending]);
 
   useEffect(() => {
     activeTabRef.current = activeTab;
@@ -1168,7 +1208,7 @@ function OverviewWorkspaceContent({
     (
       nextFilters: OverviewFilters,
       historyMode: "push" | "replace" = "push",
-      options: { warnWhenNoSavedCoverage?: boolean } = {},
+      options: { keepReturnFilters?: boolean; warnWhenNoSavedCoverage?: boolean } = {},
     ) => {
       const normalizedFilters = {
         ...nextFilters,
@@ -1185,6 +1225,9 @@ function OverviewWorkspaceContent({
       }
 
       setFilters(normalizedFilters);
+      if (!options.keepReturnFilters) {
+        setRankingReturnFilters(null);
+      }
       startTransition(() => {
         const href = buildOverviewHref(normalizedFilters, timeZone, "ranking");
 
@@ -1198,6 +1241,22 @@ function OverviewWorkspaceContent({
     },
     [messages, router, sortedSavedDates, timeZone],
   );
+
+  const applyRankingDrillDownFilters = (nextFilters: OverviewFilters, source: RankingDrillDownSource) => {
+    setRankingReturnFilters(filters);
+    setPendingRankingDrillDownSource(source);
+    applyRankingFilters(nextFilters, "push", { keepReturnFilters: true });
+  };
+
+  const returnToPreviousRankingPeriod = () => {
+    if (!rankingReturnFilters) {
+      return;
+    }
+
+    const previousFilters = rankingReturnFilters;
+    setRankingReturnFilters(null);
+    applyRankingFilters(previousFilters);
+  };
 
   const handleRankingFilterSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1745,7 +1804,10 @@ function OverviewWorkspaceContent({
       timeZone,
     }).format(date);
   };
-  const applyQueryChartPointFilter = (point: QueryChartPoint | undefined) => {
+  const applyQueryChartPointFilter = (
+    point: QueryChartPoint | undefined,
+    source: RankingDrillDownSource = "volume",
+  ) => {
     if (!point || point.totalQueries <= 0) {
       return;
     }
@@ -1756,7 +1818,24 @@ function OverviewWorkspaceContent({
       return;
     }
 
-    applyRankingFilters(nextFilters);
+    applyRankingDrillDownFilters(nextFilters, source);
+  };
+  const applyHourlyAccessFilter = (row: HourlyAccessRow | undefined) => {
+    if (!row || row.totalQueries <= 0) {
+      return;
+    }
+
+    const peakPoint = queryChartPoints
+      .filter((point) => getLocalHour(point.timestamp, timeZone) === row.hour && point.totalQueries > 0)
+      .reduce<QueryChartPoint | null>((peak, point) => {
+        if (!peak || point.totalQueries > peak.totalQueries) {
+          return point;
+        }
+
+        return peak;
+      }, null);
+
+    applyQueryChartPointFilter(peakPoint ?? undefined, "hourly");
   };
   const chartTitle =
     overview.charts.queries.groupBy === "day"
@@ -1901,6 +1980,74 @@ function OverviewWorkspaceContent({
     }
   };
 
+  const renderTooltipMetricRow = (label: string, value: string) => (
+    <div className="flex items-center justify-between gap-6">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium tabular-nums">{value}</span>
+    </div>
+  );
+
+  const renderQueryChartTooltip = ({ active, payload }: OverviewChartTooltipProps<QueryChartPoint>) => {
+    const point = payload?.[0]?.payload;
+
+    if (!active || !point) {
+      return null;
+    }
+
+    const totalQueries = Math.max(0, point.totalQueries);
+    const blockedQueries = Math.max(0, point.blockedQueries);
+    const allowedQueryCount = Math.max(0, totalQueries - blockedQueries);
+    const blockedQueryPercentage = totalQueries > 0 ? (blockedQueries / totalQueries) * 100 : 0;
+
+    return (
+      <div className="grid min-w-44 gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+        <div className="font-medium">{formatDateTime(point.timestamp)}</div>
+        <div className="grid gap-1">
+          {renderTooltipMetricRow(messages.overview.ranking.analytics.totalQueries, formatCount(totalQueries))}
+          {renderTooltipMetricRow(messages.overview.ranking.analytics.allowedQueries, formatCount(allowedQueryCount))}
+          {renderTooltipMetricRow(messages.overview.ranking.analytics.blockedQueries, formatCount(blockedQueries))}
+          {renderTooltipMetricRow(
+            messages.overview.ranking.analytics.blockedPercentage,
+            formatPercentage(blockedQueryPercentage),
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderHourlyAccessTooltip = ({ active, payload }: OverviewChartTooltipProps<HourlyAccessRow>) => {
+    const row = payload?.[0]?.payload;
+
+    if (!active || !row) {
+      return null;
+    }
+
+    return (
+      <div className="grid min-w-44 gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+        <div className="font-medium">{row.label}</div>
+        <div className="grid gap-1">
+          {renderTooltipMetricRow(messages.overview.ranking.analytics.totalQueries, formatCount(row.totalQueries))}
+          {renderTooltipMetricRow(messages.overview.ranking.analytics.allowedQueries, formatCount(row.allowedQueries))}
+          {renderTooltipMetricRow(messages.overview.ranking.analytics.blockedQueries, formatCount(row.blockedQueries))}
+          {renderTooltipMetricRow(
+            messages.overview.ranking.analytics.blockedPercentage,
+            formatPercentage(row.percentageBlocked),
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderChartLoadingOverlay = (source: RankingDrillDownSource) =>
+    isPending && pendingRankingDrillDownSource === source ? (
+      <div className="absolute inset-0 z-20 flex items-center justify-center rounded-md bg-background/70 backdrop-blur-[1px]">
+        <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-muted-foreground text-sm shadow-sm">
+          <Loader2 className="size-4 animate-spin" />
+          <span>{messages.overview.ranking.drillDownLoading}</span>
+        </div>
+      </div>
+    ) : null;
+
   const renderRankingKpiCard = (item: RankingKpiCard) => (
     <Card key={item.label} className="overflow-hidden">
       <CardContent className="flex min-h-28 items-start gap-3 p-4">
@@ -1932,11 +2079,11 @@ function OverviewWorkspaceContent({
     </div>
   );
 
-  const renderDomainShareTable = (rows: RankingShareRow[]) => (
+  const renderShareTable = (rows: RankingShareRow[], valueLabel: string, filterKey: RankingFilterKey) => (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>{messages.overview.ranking.analytics.domainColumn}</TableHead>
+          <TableHead>{valueLabel}</TableHead>
           <TableHead className="text-right">{messages.overview.ranking.analytics.totalColumn}</TableHead>
           <TableHead className="text-right">{messages.overview.ranking.analytics.percentageColumn}</TableHead>
         </TableRow>
@@ -1944,10 +2091,10 @@ function OverviewWorkspaceContent({
       <TableBody>
         {rows.map((item) => {
           const isOtherRow = item.value === messages.overview.ranking.analytics.other;
-          const isActiveFilter = filters.domain === item.value;
+          const isActiveFilter = filters[filterKey] === item.value;
 
           return (
-            <TableRow key={item.value}>
+            <TableRow key={`${filterKey}-${item.value}`}>
               <TableCell>
                 <div className="flex min-w-0 items-center gap-2">
                   <span className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: item.fill }} />
@@ -1963,7 +2110,7 @@ function OverviewWorkspaceContent({
                         "h-auto min-w-0 justify-start whitespace-normal p-0 text-left font-normal",
                         isActiveFilter ? "font-medium text-foreground" : null,
                       )}
-                      onClick={() => applyRankingValueFilter("domain", item.value)}
+                      onClick={() => applyRankingValueFilter(filterKey, item.value)}
                     >
                       {item.value}
                     </Button>
@@ -2280,152 +2427,198 @@ function OverviewWorkspaceContent({
           value="ranking"
           className="data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 space-y-4 outline-none data-[state=active]:animate-in md:space-y-6"
         >
-          <Card data-overview-tour="ranking-filters">
-            <CardHeader>
-              <CardTitle>{messages.overview.ranking.filtersTitle}</CardTitle>
-              <CardDescription>{messages.overview.ranking.filtersDescription}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form className="space-y-4" onSubmit={handleRankingFilterSubmit}>
-                <div className="grid gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-                  <div className="space-y-2">
-                    <label className="font-medium text-sm" htmlFor="overview-ranking-period">
-                      {messages.overview.ranking.periodFilter}
-                    </label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="overview-ranking-period"
-                          type="button"
-                          variant="outline"
-                          className="h-9 w-full justify-between overflow-hidden font-normal"
-                        >
-                          <span className="min-w-0 truncate text-left">{rankingRangeTriggerLabel}</span>
-                          <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent align="start" className="w-auto max-w-[calc(100vw-2rem)] p-0">
-                        <Calendar
-                          mode="range"
-                          captionLayout="dropdown"
-                          defaultMonth={rankingSelectedDateRange?.from ?? rankingSelectedDateRange?.to}
-                          selected={rankingSelectedDateRange}
-                          onSelect={updateRankingDateRange}
-                          numberOfMonths={2}
-                          modifiers={{ stored: savedDateCalendarDays }}
-                          modifiersClassNames={{
-                            stored:
-                              "after:absolute after:right-1 after:bottom-1 after:z-20 after:h-1.5 after:w-1.5 after:rounded-full after:bg-emerald-500",
-                          }}
-                        />
-                        <div className="space-y-3 border-t p-3">
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            <div className="space-y-1">
-                              <label htmlFor="overview-ranking-from-time" className="font-medium text-sm">
-                                {messages.overview.filters.from}
-                              </label>
-                              <Input
-                                id="overview-ranking-from-time"
-                                type="time"
-                                step={60}
-                                value={filters.from.slice(11, 16)}
-                                onChange={(event) => updateRankingFromTimeFilter(event.target.value)}
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label htmlFor="overview-ranking-until-time" className="font-medium text-sm">
-                                {messages.overview.filters.until}
-                              </label>
-                              <Input
-                                id="overview-ranking-until-time"
-                                type="time"
-                                step={60}
-                                value={filters.until.slice(11, 16)}
-                                onChange={(event) => updateRankingUntilTimeFilter(event.target.value)}
-                              />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
-                            <span>
-                              {overview.coverage.savedDates.length > 0
-                                ? messages.overview.ranking.savedDateLegend
-                                : messages.overview.ranking.noSavedDateLegend}
-                            </span>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+          <AlertDialog open={isDeletePeriodDialogOpen} onOpenChange={setIsDeletePeriodDialogOpen}>
+            <Card data-overview-tour="ranking-filters">
+              <CardHeader>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <CardTitle>{messages.overview.ranking.filtersTitle}</CardTitle>
+                    <CardDescription>{messages.overview.ranking.filtersDescription}</CardDescription>
                   </div>
-                  <div className="space-y-1">
-                    <label htmlFor="overview-ranking-domain" className="font-medium text-sm">
-                      {messages.overview.ranking.domainFilter}
-                    </label>
-                    <Input
-                      id="overview-ranking-domain"
-                      value={filters.domain}
-                      placeholder={messages.overview.ranking.domainPlaceholder}
-                      onChange={(event) => setFilters((current) => ({ ...current, domain: event.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label htmlFor="overview-ranking-client" className="font-medium text-sm">
-                      {messages.overview.ranking.clientFilter}
-                    </label>
-                    <Select value={filters.client_ip || CLIENT_FILTER_ALL_VALUE} onValueChange={updateClientFilter}>
-                      <SelectTrigger id="overview-ranking-client" className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent align="start">
-                        <SelectItem value={CLIENT_FILTER_ALL_VALUE}>{messages.overview.ranking.allClients}</SelectItem>
-                        {rankingClientOptions.map((client) => (
-                          <SelectItem key={client.value} value={client.value}>
-                            {client.value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex flex-wrap items-end gap-2 xl:self-end">
-                    <Button type="submit" variant="secondary" disabled={isPending}>
-                      <Filter />
-                      {messages.overview.ranking.applyFilters}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={clearRankingFilters}
-                      disabled={isPending || !hasRankingFilters}
-                    >
-                      <X />
-                      {messages.overview.ranking.clearFilters}
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        aria-label={messages.overview.ranking.periodActions}
+                        className="self-start"
+                      >
+                        <MoreHorizontal />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem className="gap-2" disabled={isPending} onSelect={reloadCurrentView}>
+                        <RefreshCw className={cn(isPending ? "animate-spin" : undefined)} />
+                        {messages.overview.filters.reload}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="gap-2"
+                        variant="destructive"
+                        disabled={isMutating || !selectedRankingPeriodSeconds || !hasSavedCoverageForRankingRange}
+                        onSelect={(event) => {
+                          event.preventDefault();
+                          setIsDeletePeriodDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 />
+                        {messages.overview.actions.deletePeriod}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-              </form>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form className="space-y-4" onSubmit={handleRankingFilterSubmit}>
+                  <div className="grid gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+                    <div className="space-y-2">
+                      <label className="font-medium text-sm" htmlFor="overview-ranking-period">
+                        {messages.overview.ranking.periodFilter}
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="overview-ranking-period"
+                            type="button"
+                            variant="outline"
+                            className="h-9 w-full justify-between overflow-hidden font-normal"
+                          >
+                            <span className="min-w-0 truncate text-left">{rankingRangeTriggerLabel}</span>
+                            <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-auto max-w-[calc(100vw-2rem)] p-0">
+                          <Calendar
+                            mode="range"
+                            captionLayout="dropdown"
+                            defaultMonth={rankingSelectedDateRange?.from ?? rankingSelectedDateRange?.to}
+                            selected={rankingSelectedDateRange}
+                            onSelect={updateRankingDateRange}
+                            numberOfMonths={2}
+                            modifiers={{ stored: savedDateCalendarDays }}
+                            modifiersClassNames={{
+                              stored:
+                                "after:absolute after:right-1 after:bottom-1 after:z-20 after:h-1.5 after:w-1.5 after:rounded-full after:bg-emerald-500",
+                            }}
+                          />
+                          <div className="space-y-3 border-t p-3">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div className="space-y-1">
+                                <label htmlFor="overview-ranking-from-time" className="font-medium text-sm">
+                                  {messages.overview.filters.from}
+                                </label>
+                                <Input
+                                  id="overview-ranking-from-time"
+                                  type="time"
+                                  step={60}
+                                  value={filters.from.slice(11, 16)}
+                                  onChange={(event) => updateRankingFromTimeFilter(event.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label htmlFor="overview-ranking-until-time" className="font-medium text-sm">
+                                  {messages.overview.filters.until}
+                                </label>
+                                <Input
+                                  id="overview-ranking-until-time"
+                                  type="time"
+                                  step={60}
+                                  value={filters.until.slice(11, 16)}
+                                  onChange={(event) => updateRankingUntilTimeFilter(event.target.value)}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                              <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+                              <span>
+                                {overview.coverage.savedDates.length > 0
+                                  ? messages.overview.ranking.savedDateLegend
+                                  : messages.overview.ranking.noSavedDateLegend}
+                              </span>
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-1">
+                      <label htmlFor="overview-ranking-domain" className="font-medium text-sm">
+                        {messages.overview.ranking.domainFilter}
+                      </label>
+                      <Input
+                        id="overview-ranking-domain"
+                        value={filters.domain}
+                        placeholder={messages.overview.ranking.domainPlaceholder}
+                        onChange={(event) => setFilters((current) => ({ ...current, domain: event.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label htmlFor="overview-ranking-client" className="font-medium text-sm">
+                        {messages.overview.ranking.clientFilter}
+                      </label>
+                      <Select value={filters.client_ip || CLIENT_FILTER_ALL_VALUE} onValueChange={updateClientFilter}>
+                        <SelectTrigger id="overview-ranking-client" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent align="start">
+                          <SelectItem value={CLIENT_FILTER_ALL_VALUE}>
+                            {messages.overview.ranking.allClients}
+                          </SelectItem>
+                          {rankingClientOptions.map((client) => (
+                            <SelectItem key={client.value} value={client.value}>
+                              {client.value}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-2 xl:self-end">
+                      <Button type="submit" variant="secondary" disabled={isPending}>
+                        <Filter />
+                        {messages.overview.ranking.applyFilters}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={clearRankingFilters}
+                        disabled={isPending || !hasRankingFilters}
+                      >
+                        <X />
+                        {messages.overview.ranking.clearFilters}
+                      </Button>
+                    </div>
+                  </div>
+                </form>
 
-              <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-muted-foreground text-xs">
-                <span className="font-medium text-foreground">
-                  {messages.overview.ranking.nativeWindowNoticeTitle}.
-                </span>{" "}
-                {messages.overview.ranking.nativeWindowNoticeDescription}
-              </div>
+                <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-muted-foreground text-xs">
+                  <span className="font-medium text-foreground">
+                    {messages.overview.ranking.nativeWindowNoticeTitle}.
+                  </span>{" "}
+                  {messages.overview.ranking.nativeWindowNoticeDescription}
+                </div>
 
-              {overview.coverage.savedDates.length === 0 ? (
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>{messages.overview.ranking.emptySavedDatesTitle}</EmptyTitle>
-                    <EmptyDescription>{messages.overview.ranking.emptySavedDatesDescription}</EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              ) : null}
+                {overview.coverage.savedDates.length === 0 ? (
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyTitle>{messages.overview.ranking.emptySavedDatesTitle}</EmptyTitle>
+                      <EmptyDescription>{messages.overview.ranking.emptySavedDatesDescription}</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : null}
+              </CardContent>
+            </Card>
 
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={reloadCurrentView} disabled={isPending}>
-                  {messages.overview.filters.reload}
-                </Button>
-                <Button
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{messages.overview.ranking.deletePeriodDialogTitle}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {messages.overview.ranking.deletePeriodDialogDescription(rankingRangeTriggerLabel)}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{messages.overview.ranking.deletePeriodDialogCancel}</AlertDialogCancel>
+                <AlertDialogAction
                   variant="destructive"
+                  disabled={isMutating || !selectedRankingPeriodSeconds || !hasSavedCoverageForRankingRange}
                   onClick={() => {
                     if (!selectedRankingPeriodSeconds) {
                       return;
@@ -2433,13 +2626,12 @@ function OverviewWorkspaceContent({
 
                     void triggerJob("/overview/delete", selectedRankingPeriodSeconds);
                   }}
-                  disabled={isMutating || !selectedRankingPeriodSeconds || !hasSavedCoverageForRankingRange}
                 >
-                  {isMutating ? messages.overview.actions.deletePeriodLoading : messages.overview.actions.deletePeriod}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  {messages.overview.ranking.deletePeriodDialogConfirm}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {overview.sources.failedInstances.length > 0 ? (
             <Alert>
@@ -2471,6 +2663,12 @@ function OverviewWorkspaceContent({
                       messages.overview.ranking.groupByValues[filters.groupBy],
                     )}
                   </Badge>
+                  {rankingReturnFilters ? (
+                    <Button type="button" variant="outline" size="sm" onClick={returnToPreviousRankingPeriod}>
+                      <ArrowLeft />
+                      {messages.overview.ranking.backToPreviousPeriod}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
               <div className="grid min-w-56 grid-cols-2 gap-2">
@@ -2508,37 +2706,40 @@ function OverviewWorkspaceContent({
                   </EmptyHeader>
                 </Empty>
               ) : (
-                <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
-                  <BarChart accessibilityLayer data={queryChartPoints} barCategoryGap={10}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey="timestamp"
-                      tickFormatter={(value: string) =>
-                        overview.charts.queries.groupBy === "hour" ? formatChartHourTick(value) : formatDateTime(value)
-                      }
-                      minTickGap={24}
-                    />
-                    <YAxis allowDecimals={false} width={48} />
-                    <ChartTooltip
-                      content={<ChartTooltipContent labelFormatter={(value) => formatDateTime(String(value))} />}
-                    />
-                    <ChartLegend content={<ChartLegendContent />} />
-                    <Bar
-                      dataKey="totalQueries"
-                      fill="var(--color-totalQueries)"
-                      radius={[4, 4, 0, 0]}
-                      className="cursor-pointer"
-                      onClick={(data) => applyQueryChartPointFilter(data.payload as QueryChartPoint | undefined)}
-                    />
-                    <Bar
-                      dataKey="blockedQueries"
-                      fill="var(--color-blockedQueries)"
-                      radius={[4, 4, 0, 0]}
-                      className="cursor-pointer"
-                      onClick={(data) => applyQueryChartPointFilter(data.payload as QueryChartPoint | undefined)}
-                    />
-                  </BarChart>
-                </ChartContainer>
+                <div className="relative">
+                  {renderChartLoadingOverlay("volume")}
+                  <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
+                    <BarChart accessibilityLayer data={queryChartPoints} barCategoryGap={10}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="timestamp"
+                        tickFormatter={(value: string) =>
+                          overview.charts.queries.groupBy === "hour"
+                            ? formatChartHourTick(value)
+                            : formatDateTime(value)
+                        }
+                        minTickGap={24}
+                      />
+                      <YAxis allowDecimals={false} width={48} />
+                      <ChartTooltip content={renderQueryChartTooltip} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar
+                        dataKey="totalQueries"
+                        fill="var(--color-totalQueries)"
+                        radius={[4, 4, 0, 0]}
+                        className="cursor-pointer"
+                        onClick={(data) => applyQueryChartPointFilter(data.payload as QueryChartPoint | undefined)}
+                      />
+                      <Bar
+                        dataKey="blockedQueries"
+                        fill="var(--color-blockedQueries)"
+                        radius={[4, 4, 0, 0]}
+                        className="cursor-pointer"
+                        onClick={(data) => applyQueryChartPointFilter(data.payload as QueryChartPoint | undefined)}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -2558,7 +2759,7 @@ function OverviewWorkspaceContent({
                     </EmptyHeader>
                   </Empty>
                 ) : (
-                  renderDomainShareTable(domainShareRows)
+                  renderShareTable(domainShareRows, messages.overview.ranking.analytics.domainColumn, "domain")
                 )}
               </CardContent>
             </Card>
@@ -2577,7 +2778,7 @@ function OverviewWorkspaceContent({
                     </EmptyHeader>
                   </Empty>
                 ) : (
-                  <div className="grid gap-4 md:grid-cols-[minmax(12rem,1fr)_1fr]">
+                  <div className="grid gap-4 2xl:grid-cols-[minmax(12rem,0.8fr)_1.2fr]">
                     <ChartContainer config={shareChartConfig} className="aspect-auto h-64 w-full">
                       <BarChart
                         accessibilityLayer
@@ -2603,7 +2804,7 @@ function OverviewWorkspaceContent({
                         </Bar>
                       </BarChart>
                     </ChartContainer>
-                    {renderShareLegend(clientShareRows)}
+                    {renderShareTable(clientShareRows, messages.overview.ranking.analytics.clientColumn, "client_ip")}
                   </div>
                 )}
               </CardContent>
@@ -2640,21 +2841,32 @@ function OverviewWorkspaceContent({
                       )}
                     </p>
                   ) : null}
-                  <ChartContainer config={hourlyAccessChartConfig} className="aspect-auto h-64 w-full">
-                    <BarChart accessibilityLayer data={hourlyAccessRows} barCategoryGap={4}>
-                      <CartesianGrid vertical={false} />
-                      <XAxis dataKey="label" interval={2} tickLine={false} axisLine={false} />
-                      <YAxis allowDecimals={false} width={48} />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="allowedQueries" stackId="queries" fill="var(--color-allowedQueries)" />
-                      <Bar
-                        dataKey="blockedQueries"
-                        stackId="queries"
-                        fill="var(--color-blockedQueries)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ChartContainer>
+                  <div className="relative">
+                    {renderChartLoadingOverlay("hourly")}
+                    <ChartContainer config={hourlyAccessChartConfig} className="aspect-auto h-64 w-full">
+                      <BarChart accessibilityLayer data={hourlyAccessRows} barCategoryGap={4}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="label" interval={2} tickLine={false} axisLine={false} />
+                        <YAxis allowDecimals={false} width={48} />
+                        <ChartTooltip content={renderHourlyAccessTooltip} />
+                        <Bar
+                          dataKey="allowedQueries"
+                          stackId="queries"
+                          fill="var(--color-allowedQueries)"
+                          className="cursor-pointer"
+                          onClick={(data) => applyHourlyAccessFilter(data.payload as HourlyAccessRow | undefined)}
+                        />
+                        <Bar
+                          dataKey="blockedQueries"
+                          stackId="queries"
+                          fill="var(--color-blockedQueries)"
+                          radius={[4, 4, 0, 0]}
+                          className="cursor-pointer"
+                          onClick={(data) => applyHourlyAccessFilter(data.payload as HourlyAccessRow | undefined)}
+                        />
+                      </BarChart>
+                    </ChartContainer>
+                  </div>
                 </div>
               )}
             </CardContent>
