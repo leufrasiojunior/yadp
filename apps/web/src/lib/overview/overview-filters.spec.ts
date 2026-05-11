@@ -25,6 +25,13 @@ const overviewFilters = require("./overview-filters.ts") as {
     fromDate: string,
     untilDate: string,
   ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
+  buildOverviewRankingRangeFilters: (
+    filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
+    fromDate: string,
+    fromTime: string,
+    untilDate: string,
+    untilTime: string,
+  ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
   buildOverviewQueryFromFilters: (
     filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
     timeZone: string,
@@ -46,6 +53,7 @@ const {
   buildDefaultOverviewFilters,
   buildOverviewHourBucketFilters,
   buildOverviewQueryFromFilters,
+  buildOverviewRankingRangeFilters,
   buildOverviewSavedDateRangeFilters,
   buildOverviewSingleDayFilters,
   clampOverviewRequestFiltersToSingleDay,
@@ -230,6 +238,68 @@ test("buildOverviewSavedDateRangeFilters allows saved endpoint ranges with missi
 
   assert.equal(filters.from, "2026-01-01T00:00");
   assert.equal(filters.until, "2026-01-03T23:59");
+  assert.equal(filters.groupBy, "hour");
+});
+
+test("buildOverviewRankingRangeFilters keeps exact date and time boundaries", () => {
+  const filters = buildOverviewRankingRangeFilters(
+    {
+      from: "2026-01-01T00:00",
+      until: "2026-01-01T23:59",
+      domain: "example.com",
+      client_ip: "192.168.1.10",
+      groupBy: "day",
+    },
+    "2026-05-02",
+    "08:15",
+    "2026-05-02",
+    "18:45",
+  );
+
+  assert.equal(filters.from, "2026-05-02T08:15");
+  assert.equal(filters.until, "2026-05-02T18:45");
+  assert.equal(filters.domain, "example.com");
+  assert.equal(filters.client_ip, "192.168.1.10");
+  assert.equal(filters.groupBy, "hour");
+});
+
+test("buildOverviewRankingRangeFilters normalizes inverted intervals", () => {
+  const filters = buildOverviewRankingRangeFilters(
+    {
+      from: "2026-01-01T00:00",
+      until: "2026-01-01T23:59",
+      domain: "",
+      client_ip: "",
+      groupBy: "day",
+    },
+    "2026-05-03",
+    "20:00",
+    "2026-05-01",
+    "07:30",
+  );
+
+  assert.equal(filters.from, "2026-05-01T07:30");
+  assert.equal(filters.until, "2026-05-03T20:00");
+  assert.equal(filters.groupBy, "hour");
+});
+
+test("buildOverviewRankingRangeFilters allows multi-day ranges without forcing whole days", () => {
+  const filters = buildOverviewRankingRangeFilters(
+    {
+      from: "2026-01-01T00:00",
+      until: "2026-01-01T23:59",
+      domain: "",
+      client_ip: "",
+      groupBy: "hour",
+    },
+    "2026-05-01",
+    "06:10",
+    "2026-05-04",
+    "22:20",
+  );
+
+  assert.equal(filters.from, "2026-05-01T06:10");
+  assert.equal(filters.until, "2026-05-04T22:20");
   assert.equal(filters.groupBy, "hour");
 });
 

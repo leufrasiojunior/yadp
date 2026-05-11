@@ -136,6 +136,29 @@ export function buildOverviewSavedDateRangeFilters(
   };
 }
 
+export function buildOverviewRankingRangeFilters(
+  filters: OverviewFilters,
+  fromDate: string,
+  fromTime: string,
+  untilDate: string,
+  untilTime: string,
+): OverviewFilters {
+  const fallbackFromDate = normalizeDateTimeDate(filters.from, "1970-01-01");
+  const fallbackUntilDate = normalizeDateTimeDate(filters.until, fallbackFromDate);
+  const normalizedFromDate = parseDateOnly(fromDate) ? fromDate : fallbackFromDate;
+  const normalizedUntilDate = parseDateOnly(untilDate) ? untilDate : fallbackUntilDate;
+  const from = `${normalizedFromDate}T${normalizeTimeValue(fromTime, "00:00")}`;
+  const until = `${normalizedUntilDate}T${normalizeTimeValue(untilTime, "23:59")}`;
+  const [start, end] = from <= until ? [from, until] : [until, from];
+
+  return {
+    ...filters,
+    from: start,
+    until: end,
+    groupBy: "hour",
+  };
+}
+
 export function buildOverviewHourBucketFilters(
   filters: OverviewFilters,
   timestamp: string,

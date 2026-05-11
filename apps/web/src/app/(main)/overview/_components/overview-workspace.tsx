@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { type StepType, TourProvider, useTour } from "@reactour/tour";
 import {
   Activity,
-  Calendar,
+  Calendar as CalendarIcon,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -28,12 +28,14 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   type ChartConfig,
@@ -46,17 +48,10 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -80,7 +75,7 @@ import {
   buildDefaultOverviewFilters,
   buildOverviewHourBucketFilters,
   buildOverviewQueryFromFilters,
-  buildOverviewSavedDateRangeFilters,
+  buildOverviewRankingRangeFilters,
   buildOverviewSingleDayFilters,
   clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
@@ -154,6 +149,59 @@ type OverviewWorkspaceProps = Readonly<{
 }>;
 type RegisterTourBeforeClose = (handler: (() => void) | null) => void;
 type RegisterTourFinish = (handler: (() => void) | null) => void;
+
+function parseOverviewDateOnlyValue(value: string) {
+  const [yearText, monthText, dayText] = value.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return null;
+  }
+
+  const date = new Date(year, month - 1, day);
+
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
+
+  return date;
+}
+
+function formatOverviewDateOnlyValue(date: Date) {
+  const year = `${date.getFullYear()}`.padStart(4, "0");
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getOverviewDateKey(value: string) {
+  const date = value.slice(0, 10);
+
+  return parseOverviewDateOnlyValue(date) ? date : "";
+}
+
+function formatOverviewLocalDateTimeLabel(value: string) {
+  const date = getOverviewDateKey(value);
+  const time = /^\d{2}:\d{2}$/.test(value.slice(11, 16)) ? value.slice(11, 16) : "";
+
+  return date && time ? `${date} ${time}` : value;
+}
+
+function hasSavedDateOverlap(savedDates: OverviewSavedDate[], fromValue: string, untilValue: string) {
+  const fromDate = getOverviewDateKey(fromValue);
+  const untilDate = getOverviewDateKey(untilValue);
+
+  if (!fromDate || !untilDate) {
+    return false;
+  }
+
+  const [startDate, endDate] = fromDate <= untilDate ? [fromDate, untilDate] : [untilDate, fromDate];
+
+  return savedDates.some((savedDate) => savedDate.date >= startDate && savedDate.date <= endDate);
+}
 
 const JOB_STATUSES_BY_FILTER: Record<OverviewJobFilterGroup, readonly OverviewJobStatus[]> = {
   all: [],
@@ -849,19 +897,33 @@ function OverviewWorkspaceContent({
     () => [...overview.coverage.savedDates].sort((left, right) => left.date.localeCompare(right.date)),
     [overview.coverage.savedDates],
   );
-  const savedDateByDate = useMemo(
-    () => new Map(sortedSavedDates.map((savedDate) => [savedDate.date, savedDate] as const)),
+  const savedDateCalendarDays = useMemo(
+    () =>
+      sortedSavedDates.flatMap((savedDate) => {
+        const date = parseOverviewDateOnlyValue(savedDate.date);
+
+        return date ? [date] : [];
+      }),
     [sortedSavedDates],
   );
-  const selectedRankingSavedDateFrom = savedDateByDate.get(filters.from.slice(0, 10)) ?? null;
-  const selectedRankingSavedDateUntil = savedDateByDate.get(filters.until.slice(0, 10)) ?? null;
-  const selectedRankingSavedDateRange =
-    selectedRankingSavedDateFrom && selectedRankingSavedDateUntil
-      ? {
-          from: selectedRankingSavedDateFrom,
-          until: selectedRankingSavedDateUntil,
-        }
-      : null;
+  const rankingSelectedDateRange = useMemo<DateRange | undefined>(() => {
+    const from = parseOverviewDateOnlyValue(filters.from.slice(0, 10));
+    const to = parseOverviewDateOnlyValue(filters.until.slice(0, 10));
+
+    return from || to ? { from: from ?? undefined, to: to ?? undefined } : undefined;
+  }, [filters.from, filters.until]);
+  const rankingRangeTriggerLabel = `${formatOverviewLocalDateTimeLabel(filters.from)} - ${formatOverviewLocalDateTimeLabel(
+    filters.until,
+  )}`;
+  const hasSavedCoverageForRankingRange = useMemo(
+    () => hasSavedDateOverlap(sortedSavedDates, filters.from, filters.until),
+    [filters.from, filters.until, sortedSavedDates],
+  );
+  const selectedRankingPeriodSeconds = useMemo(() => {
+    const query = buildOverviewQueryFromFilters(filters, timeZone);
+
+    return query.from !== undefined && query.until !== undefined ? { from: query.from, until: query.until } : null;
+  }, [filters, timeZone]);
   const coverageWindows = useMemo(
     () => overview.coverage.savedWindows.filter(canShowCoverageWindow),
     [overview.coverage.savedWindows],
@@ -1103,13 +1165,24 @@ function OverviewWorkspaceContent({
   };
 
   const applyRankingFilters = useCallback(
-    (nextFilters: OverviewFilters, historyMode: "push" | "replace" = "push") => {
+    (
+      nextFilters: OverviewFilters,
+      historyMode: "push" | "replace" = "push",
+      options: { warnWhenNoSavedCoverage?: boolean } = {},
+    ) => {
       const normalizedFilters = {
         ...nextFilters,
         domain: nextFilters.domain.trim(),
         client_ip: nextFilters.client_ip.trim(),
         groupBy: "hour" as const,
       };
+
+      if (
+        options.warnWhenNoSavedCoverage &&
+        !hasSavedDateOverlap(sortedSavedDates, normalizedFilters.from, normalizedFilters.until)
+      ) {
+        toast.warning(messages.overview.toasts.rankingPeriodWithoutCoverage);
+      }
 
       setFilters(normalizedFilters);
       startTransition(() => {
@@ -1123,12 +1196,12 @@ function OverviewWorkspaceContent({
         router.push(href);
       });
     },
-    [router, timeZone],
+    [messages, router, sortedSavedDates, timeZone],
   );
 
   const handleRankingFilterSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    applyRankingFilters(filters);
+    applyRankingFilters(filters, "push", { warnWhenNoSavedCoverage: true });
   };
 
   const applyRankingValueFilter = (key: RankingFilterKey, value: string) => {
@@ -1152,6 +1225,49 @@ function OverviewWorkspaceContent({
       ...filters,
       client_ip: value === CLIENT_FILTER_ALL_VALUE ? "" : value,
     });
+  };
+
+  const updateRankingDateRange = (range: DateRange | undefined) => {
+    if (!range?.from) {
+      return;
+    }
+
+    const fromDate = formatOverviewDateOnlyValue(range.from);
+    const untilDate = formatOverviewDateOnlyValue(range.to ?? range.from);
+
+    setFilters((current) =>
+      buildOverviewRankingRangeFilters(
+        current,
+        fromDate,
+        current.from.slice(11, 16),
+        untilDate,
+        current.until.slice(11, 16),
+      ),
+    );
+  };
+
+  const updateRankingFromTimeFilter = (value: string) => {
+    setFilters((current) =>
+      buildOverviewRankingRangeFilters(
+        current,
+        current.from.slice(0, 10),
+        value,
+        current.until.slice(0, 10),
+        current.until.slice(11, 16),
+      ),
+    );
+  };
+
+  const updateRankingUntilTimeFilter = (value: string) => {
+    setFilters((current) =>
+      buildOverviewRankingRangeFilters(
+        current,
+        current.from.slice(0, 10),
+        current.from.slice(11, 16),
+        current.until.slice(0, 10),
+        value,
+      ),
+    );
   };
 
   const updateRequestDateFilter = (value: string) => {
@@ -1390,19 +1506,6 @@ function OverviewWorkspaceContent({
 
   const openJobPeriod = (job: OverviewJobsResponse["jobs"][number]) => {
     navigateToJobPeriod(job);
-  };
-
-  const applySavedDateRange = (fromDate: string, untilDate: string) => {
-    applyRankingFilters(buildOverviewSavedDateRangeFilters(filters, fromDate, untilDate));
-  };
-
-  const getSavedDateRangePeriodSeconds = (fromDate: string, untilDate: string) => {
-    const query = buildOverviewQueryFromFilters(
-      buildOverviewSavedDateRangeFilters(filters, fromDate, untilDate),
-      timeZone,
-    );
-
-    return query.from !== undefined && query.until !== undefined ? { from: query.from, until: query.until } : null;
   };
 
   const retryJob = async (jobId: string) => {
@@ -1659,8 +1762,6 @@ function OverviewWorkspaceContent({
     overview.charts.queries.groupBy === "day"
       ? messages.overview.chart.titleByDay
       : messages.overview.chart.titleByHour;
-  const selectedRankingSavedDateFromValue = selectedRankingSavedDateFrom?.date;
-  const selectedRankingSavedDateUntilValue = selectedRankingSavedDateUntil?.date;
   const noKpiValue = messages.overview.ranking.kpis.noValue;
   const activeDomainFilter = filters.domain.trim();
   const activeClientFilter = filters.client_ip.trim();
@@ -1799,13 +1900,6 @@ function OverviewWorkspaceContent({
         return CheckCircle2;
     }
   };
-
-  const getSavedDateOptionLabel = (savedDate: OverviewSavedDate) =>
-    messages.overview.ranking.savedDateOption(
-      savedDate.date,
-      formatCount(savedDate.rowCount),
-      formatCount(savedDate.instanceCount),
-    );
 
   const renderRankingKpiCard = (item: RankingKpiCard) => (
     <Card key={item.label} className="overflow-hidden">
@@ -2188,114 +2282,125 @@ function OverviewWorkspaceContent({
         >
           <Card data-overview-tour="ranking-filters">
             <CardHeader>
-              <CardTitle>{messages.overview.ranking.savedDatesTitle}</CardTitle>
-              <CardDescription>{messages.overview.ranking.savedDatesDescription}</CardDescription>
+              <CardTitle>{messages.overview.ranking.filtersTitle}</CardTitle>
+              <CardDescription>{messages.overview.ranking.filtersDescription}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {overview.coverage.savedDates.length > 0 ? (
-                <div className="grid gap-3 md:grid-cols-2">
+              <form className="space-y-4" onSubmit={handleRankingFilterSubmit}>
+                <div className="grid gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
                   <div className="space-y-2">
-                    <label className="font-medium text-sm" htmlFor="overview-ranking-saved-date-from">
-                      {messages.overview.ranking.savedDateFromLabel}
+                    <label className="font-medium text-sm" htmlFor="overview-ranking-period">
+                      {messages.overview.ranking.periodFilter}
                     </label>
-                    <Select
-                      value={selectedRankingSavedDateFromValue}
-                      onValueChange={(value) => {
-                        const untilDate = selectedRankingSavedDateUntilValue ?? value;
-                        applySavedDateRange(value, untilDate < value ? value : untilDate);
-                      }}
-                    >
-                      <SelectTrigger id="overview-ranking-saved-date-from" className="w-full">
-                        <SelectValue placeholder={messages.overview.ranking.savedDateSelectPlaceholder} />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="overview-ranking-period"
+                          type="button"
+                          variant="outline"
+                          className="h-9 w-full justify-between overflow-hidden font-normal"
+                        >
+                          <span className="min-w-0 truncate text-left">{rankingRangeTriggerLabel}</span>
+                          <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-auto max-w-[calc(100vw-2rem)] p-0">
+                        <Calendar
+                          mode="range"
+                          captionLayout="dropdown"
+                          defaultMonth={rankingSelectedDateRange?.from ?? rankingSelectedDateRange?.to}
+                          selected={rankingSelectedDateRange}
+                          onSelect={updateRankingDateRange}
+                          numberOfMonths={2}
+                          modifiers={{ stored: savedDateCalendarDays }}
+                          modifiersClassNames={{
+                            stored:
+                              "after:absolute after:right-1 after:bottom-1 after:z-20 after:h-1.5 after:w-1.5 after:rounded-full after:bg-emerald-500",
+                          }}
+                        />
+                        <div className="space-y-3 border-t p-3">
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="space-y-1">
+                              <label htmlFor="overview-ranking-from-time" className="font-medium text-sm">
+                                {messages.overview.filters.from}
+                              </label>
+                              <Input
+                                id="overview-ranking-from-time"
+                                type="time"
+                                step={60}
+                                value={filters.from.slice(11, 16)}
+                                onChange={(event) => updateRankingFromTimeFilter(event.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label htmlFor="overview-ranking-until-time" className="font-medium text-sm">
+                                {messages.overview.filters.until}
+                              </label>
+                              <Input
+                                id="overview-ranking-until-time"
+                                type="time"
+                                step={60}
+                                value={filters.until.slice(11, 16)}
+                                onChange={(event) => updateRankingUntilTimeFilter(event.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+                            <span>
+                              {overview.coverage.savedDates.length > 0
+                                ? messages.overview.ranking.savedDateLegend
+                                : messages.overview.ranking.noSavedDateLegend}
+                            </span>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="overview-ranking-domain" className="font-medium text-sm">
+                      {messages.overview.ranking.domainFilter}
+                    </label>
+                    <Input
+                      id="overview-ranking-domain"
+                      value={filters.domain}
+                      placeholder={messages.overview.ranking.domainPlaceholder}
+                      onChange={(event) => setFilters((current) => ({ ...current, domain: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="overview-ranking-client" className="font-medium text-sm">
+                      {messages.overview.ranking.clientFilter}
+                    </label>
+                    <Select value={filters.client_ip || CLIENT_FILTER_ALL_VALUE} onValueChange={updateClientFilter}>
+                      <SelectTrigger id="overview-ranking-client" className="w-full">
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent align="start">
-                        <SelectGroup>
-                          <SelectLabel>{messages.overview.ranking.savedDateFromLabel}</SelectLabel>
-                          {sortedSavedDates.map((savedDate) => (
-                            <SelectItem key={savedDate.date} value={savedDate.date}>
-                              {getSavedDateOptionLabel(savedDate)}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
+                        <SelectItem value={CLIENT_FILTER_ALL_VALUE}>{messages.overview.ranking.allClients}</SelectItem>
+                        {rankingClientOptions.map((client) => (
+                          <SelectItem key={client.value} value={client.value}>
+                            {client.value}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <label className="font-medium text-sm" htmlFor="overview-ranking-saved-date-until">
-                      {messages.overview.ranking.savedDateUntilLabel}
-                    </label>
-                    <Select
-                      value={selectedRankingSavedDateUntilValue}
-                      onValueChange={(value) => {
-                        const fromDate = selectedRankingSavedDateFromValue ?? value;
-                        applySavedDateRange(fromDate > value ? value : fromDate, value);
-                      }}
+                  <div className="flex flex-wrap items-end gap-2 xl:self-end">
+                    <Button type="submit" variant="secondary" disabled={isPending}>
+                      <Filter />
+                      {messages.overview.ranking.applyFilters}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={clearRankingFilters}
+                      disabled={isPending || !hasRankingFilters}
                     >
-                      <SelectTrigger id="overview-ranking-saved-date-until" className="w-full">
-                        <SelectValue placeholder={messages.overview.ranking.savedDateSelectPlaceholder} />
-                      </SelectTrigger>
-                      <SelectContent align="start">
-                        <SelectGroup>
-                          <SelectLabel>{messages.overview.ranking.savedDateUntilLabel}</SelectLabel>
-                          {sortedSavedDates.map((savedDate) => (
-                            <SelectItem key={savedDate.date} value={savedDate.date}>
-                              {getSavedDateOptionLabel(savedDate)}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                      <X />
+                      {messages.overview.ranking.clearFilters}
+                    </Button>
                   </div>
-                </div>
-              ) : null}
-
-              <form
-                className="grid gap-3 border-t pt-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_auto]"
-                onSubmit={handleRankingFilterSubmit}
-              >
-                <div className="space-y-1">
-                  <label htmlFor="overview-ranking-domain" className="font-medium text-sm">
-                    {messages.overview.ranking.domainFilter}
-                  </label>
-                  <Input
-                    id="overview-ranking-domain"
-                    value={filters.domain}
-                    placeholder={messages.overview.ranking.domainPlaceholder}
-                    onChange={(event) => setFilters((current) => ({ ...current, domain: event.target.value }))}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="overview-ranking-client" className="font-medium text-sm">
-                    {messages.overview.ranking.clientFilter}
-                  </label>
-                  <Select value={filters.client_ip || CLIENT_FILTER_ALL_VALUE} onValueChange={updateClientFilter}>
-                    <SelectTrigger id="overview-ranking-client" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent align="start">
-                      <SelectItem value={CLIENT_FILTER_ALL_VALUE}>{messages.overview.ranking.allClients}</SelectItem>
-                      {rankingClientOptions.map((client) => (
-                        <SelectItem key={client.value} value={client.value}>
-                          {client.value}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex flex-wrap items-end gap-2 md:self-end">
-                  <Button type="submit" variant="secondary" disabled={isPending}>
-                    <Filter />
-                    {messages.overview.ranking.applyFilters}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={clearRankingFilters}
-                    disabled={isPending || !hasRankingFilters}
-                  >
-                    <X />
-                    {messages.overview.ranking.clearFilters}
-                  </Button>
                 </div>
               </form>
 
@@ -2322,21 +2427,13 @@ function OverviewWorkspaceContent({
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    if (!selectedRankingSavedDateRange) {
+                    if (!selectedRankingPeriodSeconds) {
                       return;
                     }
 
-                    const period = getSavedDateRangePeriodSeconds(
-                      selectedRankingSavedDateRange.from.date,
-                      selectedRankingSavedDateRange.until.date,
-                    );
-                    if (!period) {
-                      return;
-                    }
-
-                    void triggerJob("/overview/delete", period);
+                    void triggerJob("/overview/delete", selectedRankingPeriodSeconds);
                   }}
-                  disabled={isMutating || !selectedRankingSavedDateRange}
+                  disabled={isMutating || !selectedRankingPeriodSeconds || !hasSavedCoverageForRankingRange}
                 >
                   {isMutating ? messages.overview.actions.deletePeriodLoading : messages.overview.actions.deletePeriod}
                 </Button>
@@ -2938,7 +3035,7 @@ function OverviewWorkspaceContent({
                       </div>
                       <div className="rounded-lg border p-3">
                         <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
-                          <Calendar className="size-3.5" />
+                          <CalendarIcon className="size-3.5" />
                           {messages.overview.jobs.detailsPeriodLabel}
                         </p>
                         <p className="mt-2 font-semibold text-xs">{formatDateTime(details.requestedFrom)}</p>

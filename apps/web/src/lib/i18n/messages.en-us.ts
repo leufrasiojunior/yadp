@@ -740,6 +740,9 @@ export const enUSMessages: WebMessages = {
       savedDateSelectPlaceholder: "Select a saved day",
       savedDateOption: (date, rowCount, instanceCount) =>
         `${date} | ${rowCount} queries | ${instanceCount} instance(s)`,
+      periodFilter: "Period",
+      savedDateLegend: "Days with a green dot have stored records.",
+      noSavedDateLegend: "No saved dates to highlight for this scope.",
       domainFilter: "Domain",
       domainPlaceholder: "example.com",
       clientFilter: "Client IP",
@@ -938,6 +941,7 @@ export const enUSMessages: WebMessages = {
     },
     toasts: {
       invalidPeriod: "Provide a valid period before starting the operation.",
+      rankingPeriodWithoutCoverage: "No saved date overlaps the selected period.",
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       jobsRefreshFailed: "Could not refresh overview jobs.",
       backfillQueued: "Import job queued.",

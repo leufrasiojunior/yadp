@@ -681,6 +681,9 @@ export type WebMessages = {
       savedDateUntilLabel: string;
       savedDateSelectPlaceholder: string;
       savedDateOption: (date: string, rowCount: string, instanceCount: string) => string;
+      periodFilter: string;
+      savedDateLegend: string;
+      noSavedDateLegend: string;
       domainFilter: string;
       domainPlaceholder: string;
       clientFilter: string;
@@ -866,6 +869,7 @@ export type WebMessages = {
     };
     toasts: {
       invalidPeriod: string;
+      rankingPeriodWithoutCoverage: string;
       instanceFailure: (instanceName: string, message: string) => string;
       jobsRefreshFailed: string;
       backfillQueued: string;

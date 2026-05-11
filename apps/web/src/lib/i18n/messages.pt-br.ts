@@ -746,6 +746,9 @@ export const ptBRMessages: WebMessages = {
       savedDateSelectPlaceholder: "Selecione um dia salvo",
       savedDateOption: (date, rowCount, instanceCount) =>
         `${date} | ${rowCount} queries | ${instanceCount} instância(s)`,
+      periodFilter: "Período",
+      savedDateLegend: "Dias com ponto verde têm registro salvo.",
+      noSavedDateLegend: "Nenhuma data salva para destacar neste escopo.",
       domainFilter: "Domínio",
       domainPlaceholder: "example.com",
       clientFilter: "IP do cliente",
@@ -944,6 +947,7 @@ export const ptBRMessages: WebMessages = {
     },
     toasts: {
       invalidPeriod: "Informe um período válido antes de iniciar a operação.",
+      rankingPeriodWithoutCoverage: "Nenhuma data salva cruza o período escolhido.",
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       jobsRefreshFailed: "Não foi possível atualizar os jobs do overview.",
       backfillQueued: "Job de coleta enfileirado.",
