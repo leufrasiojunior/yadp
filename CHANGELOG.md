@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.4.0...yapd-v0.5.0) (2026-05-11)
+
+
+### Features
+
+* add CANCELLED status to overview job responses and update related filters ([a084480](https://github.com/leufrasiojunior/yadp/commit/a084480400da79b010b5f8b2070a7b4ce4c98251))
+* implement push notification support and improve user feedback messages ([736a97d](https://github.com/leufrasiojunior/yadp/commit/736a97d0ff03cf6d73119fa6bca8584b654c0d42))
+* improve UI components and add ShellActionsMenu for quick actions ([329c703](https://github.com/leufrasiojunior/yadp/commit/329c70392ec69c20b7fac309a4f4fd27114c47c1))
+
 ## [0.4.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.3.0...yapd-v0.4.0) (2026-05-10)
 
 
