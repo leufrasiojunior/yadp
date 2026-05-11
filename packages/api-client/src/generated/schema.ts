@@ -756,6 +756,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/overview/jobs/{id}/cancel": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["OverviewController_cancelJob"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/overview/jobs/{id}": {
     parameters: {
       query?: never;
@@ -3589,7 +3605,7 @@ export interface operations {
                 storedUntil: string | null;
                 rowCount: number;
                 /** @enum {string} */
-                status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
                 errorMessage: string | null;
                 /** Format: date-time */
                 expiresAt: string;
@@ -3611,7 +3627,7 @@ export interface operations {
                 storedUntil: string | null;
                 rowCount: number;
                 /** @enum {string} */
-                status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
                 errorMessage: string | null;
                 /** Format: date-time */
                 expiresAt: string;
@@ -3643,7 +3659,7 @@ export interface operations {
                 storedUntil: string | null;
                 rowCount: number;
                 /** @enum {string} */
-                status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
                 errorMessage: string | null;
                 /** Format: date-time */
                 expiresAt: string;
@@ -3761,6 +3777,24 @@ export interface operations {
     };
   };
   OverviewController_retryJob: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Enqueued overview history job. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  OverviewController_cancelJob: {
     parameters: {
       query?: never;
       header?: never;

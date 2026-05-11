@@ -5652,7 +5652,7 @@
                               },
                               "status": {
                                 "type": "string",
-                                "enum": ["PENDING", "RUNNING", "PAUSED", "SUCCESS", "PARTIAL", "FAILURE"]
+                                "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
                               },
                               "errorMessage": {
                                 "type": "string",
@@ -5728,7 +5728,7 @@
                               },
                               "status": {
                                 "type": "string",
-                                "enum": ["PENDING", "RUNNING", "PAUSED", "SUCCESS", "PARTIAL", "FAILURE"]
+                                "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
                               },
                               "errorMessage": {
                                 "type": "string",
@@ -5833,7 +5833,7 @@
                               },
                               "status": {
                                 "type": "string",
-                                "enum": ["PENDING", "RUNNING", "PAUSED", "SUCCESS", "PARTIAL", "FAILURE"]
+                                "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
                               },
                               "errorMessage": {
                                 "type": "string",
@@ -6033,6 +6033,23 @@
     "/overview/jobs/{id}/retry": {
       "post": {
         "operationId": "OverviewController_retryJob",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Enqueued overview history job."
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
+    "/overview/jobs/{id}/cancel": {
+      "post": {
+        "operationId": "OverviewController_cancelJob",
         "parameters": [],
         "responses": {
           "200": {

@@ -575,7 +575,7 @@ export type OverviewResponse = {
       storedFrom: string | null;
       storedUntil: string | null;
       rowCount: number;
-      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
       errorMessage: string | null;
       expiresAt: string;
       isExpiringSoon: boolean;
@@ -591,7 +591,7 @@ export type OverviewResponse = {
       storedFrom: string | null;
       storedUntil: string | null;
       rowCount: number;
-      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
       errorMessage: string | null;
       expiresAt: string;
       isExpiringSoon: boolean;
@@ -607,7 +607,7 @@ export type OverviewResponse = {
       storedFrom: string | null;
       storedUntil: string | null;
       rowCount: number;
-      status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+      status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
       errorMessage: string | null;
       expiresAt: string;
       isExpiringSoon: boolean;
@@ -654,7 +654,7 @@ export type OverviewJobProgress = {
   instanceProgress: Array<{
     instanceId: string;
     instanceName: string;
-    status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
     expectedRecords: number | null;
     fetchedRecords: number;
     insertedRecords: number;
@@ -681,7 +681,7 @@ export type OverviewJobsResponse = {
     instanceName: string | null;
     requestedFrom: string;
     requestedUntil: string;
-    status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
     trigger: string | null;
     requestedBy: string | null;
     queryCount: number;

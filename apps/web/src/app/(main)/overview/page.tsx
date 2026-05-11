@@ -36,8 +36,9 @@ export default async function OverviewPage({
       parseDashboardScope(cookieStore.get(DASHBOARD_SCOPE_COOKIE)?.value),
       instances.items,
     );
-    const filters = normalizeOverviewFilters(resolvedSearchParams, timeZone);
     const activeTab = normalizeOverviewTab(resolvedSearchParams);
+    const normalizedFilters = normalizeOverviewFilters(resolvedSearchParams, timeZone);
+    const filters = activeTab === "ranking" ? { ...normalizedFilters, groupBy: "hour" as const } : normalizedFilters;
     const overviewQuery = buildOverviewQueryFromFilters(filters, timeZone);
     const initialOverview =
       selectedScope.kind === "all"

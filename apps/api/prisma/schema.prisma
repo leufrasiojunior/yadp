@@ -57,6 +57,7 @@ enum OverviewHistoryJobStatus {
   PENDING
   RUNNING
   PAUSED
+  CANCELLED
   SUCCESS
   PARTIAL
   FAILURE

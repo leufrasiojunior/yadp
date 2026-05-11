@@ -67,6 +67,10 @@ function normalizeDateTimeTime(value: string, fallback: string) {
   return /^\d{2}:\d{2}$/.test(time) ? time : fallback;
 }
 
+function normalizeTimeValue(value: string, fallback: string) {
+  return /^\d{2}:\d{2}$/.test(value) ? value : fallback;
+}
+
 export function getOverviewMaxSelectableDateTime(timeZone: string) {
   return `${shiftDateOnly(getCurrentDateInTimeZone(timeZone), -1)}T23:59`;
 }
@@ -83,10 +87,78 @@ export function clampOverviewRequestFiltersToSingleDay(
   const untilTime = untilDate === day ? normalizeDateTimeTime(filters.until, "23:59") : "23:59";
   const until = `${day}T${untilTime}`;
 
+  const normalizedFrom = from > maxSelectableDateTime ? `${day}T00:00` : from;
+  const normalizedUntil = until > maxSelectableDateTime ? maxSelectableDateTime : until;
+
   return {
     ...filters,
-    from: from > maxSelectableDateTime ? `${day}T00:00` : from,
-    until: until > maxSelectableDateTime ? maxSelectableDateTime : until,
+    from: normalizedFrom,
+    until: normalizedUntil < normalizedFrom ? normalizedFrom : normalizedUntil,
+  };
+}
+
+export function buildOverviewSingleDayFilters(
+  filters: OverviewFilters,
+  date: string,
+  fromTime: string,
+  untilTime: string,
+  maxSelectableDateTime: string,
+): OverviewFilters {
+  const maxDate = maxSelectableDateTime.slice(0, 10);
+  const day = parseDateOnly(date) && date <= maxDate ? date : maxDate;
+  const from = `${day}T${normalizeTimeValue(fromTime, "00:00")}`;
+  const until = `${day}T${normalizeTimeValue(untilTime, "23:59")}`;
+
+  return clampOverviewRequestFiltersToSingleDay(
+    {
+      ...filters,
+      from,
+      until: until < from ? from : until,
+    },
+    maxSelectableDateTime,
+  );
+}
+
+export function buildOverviewSavedDateRangeFilters(
+  filters: OverviewFilters,
+  fromDate: string,
+  untilDate: string,
+): OverviewFilters {
+  const from = parseDateOnly(fromDate) ? fromDate : filters.from.slice(0, 10);
+  const until = parseDateOnly(untilDate) ? untilDate : filters.until.slice(0, 10);
+  const [startDate, endDate] = from <= until ? [from, until] : [until, from];
+
+  return {
+    ...filters,
+    from: `${startDate}T00:00`,
+    until: `${endDate}T23:59`,
+    groupBy: "hour",
+  };
+}
+
+export function buildOverviewHourBucketFilters(
+  filters: OverviewFilters,
+  timestamp: string,
+  timeZone: string,
+): OverviewFilters | null {
+  const bucketStartMs = new Date(timestamp).getTime();
+
+  if (!Number.isFinite(bucketStartMs)) {
+    return null;
+  }
+
+  const from = unixSecondsToDatetimeLocal(Math.floor(bucketStartMs / 1000), timeZone);
+  const until = unixSecondsToDatetimeLocal(Math.floor(bucketStartMs / 1000) + 3599, timeZone);
+
+  if (!from || !until) {
+    return null;
+  }
+
+  return {
+    ...filters,
+    from,
+    until,
+    groupBy: "hour",
   };
 }
 

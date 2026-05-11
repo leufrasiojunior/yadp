@@ -1,7 +1,15 @@
 export const OVERVIEW_SCOPE_VALUES = ["all", "instance"] as const;
 export const OVERVIEW_GROUP_BY_VALUES = ["hour", "day"] as const;
 export const OVERVIEW_JOB_KIND_VALUES = ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"] as const;
-export const OVERVIEW_JOB_STATUS_VALUES = ["PENDING", "RUNNING", "PAUSED", "SUCCESS", "PARTIAL", "FAILURE"] as const;
+export const OVERVIEW_JOB_STATUS_VALUES = [
+  "PENDING",
+  "RUNNING",
+  "PAUSED",
+  "CANCELLED",
+  "SUCCESS",
+  "PARTIAL",
+  "FAILURE",
+] as const;
 export const OVERVIEW_FAILURE_KIND_VALUES = ["missing_data", "import_failure"] as const;
 export const OVERVIEW_JOB_FAILURE_REASON_VALUES = [
   "timeout",

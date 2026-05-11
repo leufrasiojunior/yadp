@@ -550,8 +550,8 @@ export class OverviewService implements OnModuleInit {
       throw new BadRequestException("Overview job not found.");
     }
 
-    if (!["FAILURE", "PARTIAL", "PAUSED"].includes(existing.status)) {
-      throw new BadRequestException("Only failed, partial, or paused jobs can be retried.");
+    if (!["FAILURE", "PARTIAL", "PAUSED", "CANCELLED"].includes(existing.status)) {
+      throw new BadRequestException("Only failed, partial, paused, or cancelled jobs can be retried.");
     }
 
     if (existing.scope === "instance") {
@@ -574,6 +574,61 @@ export class OverviewService implements OnModuleInit {
     return { job: this.mapJob(retried) };
   }
 
+  async cancelJob(jobId: string): Promise<OverviewMutationResponse> {
+    const existing = await this.prisma.overviewHistoryJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!existing) {
+      throw new BadRequestException("Overview job not found.");
+    }
+
+    if (existing.status !== "PENDING") {
+      throw new BadRequestException("Only queued overview jobs can be cancelled.");
+    }
+
+    const cancelledAt = new Date();
+    let runtime = this.readRuntimeSummary(existing.summary);
+    runtime = this.pushEvent(runtime, {
+      level: "info",
+      type: "job_cancelled",
+      message: "Job cancelled while waiting in queue.",
+      instanceId: null,
+      instanceName: null,
+      page: null,
+      start: null,
+      failureReason: null,
+    });
+
+    const result = await this.prisma.overviewHistoryJob.updateMany({
+      where: {
+        id: jobId,
+        status: "PENDING",
+      },
+      data: {
+        status: "CANCELLED",
+        summary: this.serializeRuntimeSummary(runtime),
+        errorMessage: null,
+        finishedAt: cancelledAt,
+        expiresAt: buildHistoryExpiry(cancelledAt),
+      },
+    });
+
+    if (result.count === 0) {
+      throw new BadRequestException("Only queued overview jobs can be cancelled.");
+    }
+
+    const cancelled = await this.prisma.overviewHistoryJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!cancelled) {
+      throw new BadRequestException("Overview job not found.");
+    }
+
+    return { job: this.mapJob(cancelled) };
+  }
+
   async deleteJob(jobId: string): Promise<OverviewJobDeleteResponse> {
     const existing = await this.prisma.overviewHistoryJob.findUnique({
       where: { id: jobId },
@@ -583,8 +638,13 @@ export class OverviewService implements OnModuleInit {
       throw new BadRequestException("Overview job not found.");
     }
 
-    if (existing.status !== "SUCCESS" && existing.status !== "FAILURE" && existing.status !== "PAUSED") {
-      throw new BadRequestException("Only successful, failed, or paused jobs can be deleted.");
+    if (
+      existing.status !== "SUCCESS" &&
+      existing.status !== "FAILURE" &&
+      existing.status !== "PAUSED" &&
+      existing.status !== "CANCELLED"
+    ) {
+      throw new BadRequestException("Only successful, failed, paused, or cancelled jobs can be deleted.");
     }
 
     const deleted = await this.prisma.$transaction(async (tx) => {
@@ -726,15 +786,46 @@ export class OverviewService implements OnModuleInit {
       return;
     }
 
+    const claimedJob = await this.claimQueuedJob(job.id);
+
+    if (!claimedJob) {
+      return;
+    }
+
     try {
-      if (job.kind === "MANUAL_DELETE") {
-        await this.runDeleteJob(job);
+      if (claimedJob.kind === "MANUAL_DELETE") {
+        await this.runDeleteJob(claimedJob);
       } else {
-        await this.runImportJob(job);
+        await this.runImportJob(claimedJob);
       }
     } catch (error) {
-      await this.markJobFailed(job, error);
+      await this.markJobFailed(claimedJob, error);
     }
+  }
+
+  private async claimQueuedJob(jobId: string) {
+    const startedAt = new Date();
+    const result = await this.prisma.overviewHistoryJob.updateMany({
+      where: {
+        id: jobId,
+        status: "PENDING",
+      },
+      data: {
+        status: "RUNNING",
+        startedAt,
+        finishedAt: null,
+        errorMessage: null,
+        expiresAt: null,
+      },
+    });
+
+    if (result.count === 0) {
+      return null;
+    }
+
+    return this.prisma.overviewHistoryJob.findUnique({
+      where: { id: jobId },
+    });
   }
 
   private async runImportJob(job: OverviewJobRecord) {
@@ -1178,7 +1269,7 @@ export class OverviewService implements OnModuleInit {
       where: { id: job.id },
       data: {
         status: "RUNNING",
-        startedAt: new Date(),
+        startedAt: job.startedAt ?? new Date(),
         finishedAt: null,
         errorMessage: null,
       },
@@ -1483,7 +1574,7 @@ export class OverviewService implements OnModuleInit {
 
     return this.prisma.$queryRaw<SavedDateRow[]>(Prisma.sql`
       SELECT
-        to_char("occurredAt" AT TIME ZONE ${timeZone}, 'YYYY-MM-DD') AS "date",
+        to_char(("occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timeZone}, 'YYYY-MM-DD') AS "date",
         COUNT(*)::bigint AS "rowCount",
         COUNT(DISTINCT "instanceId")::bigint AS "instanceCount",
         MIN("occurredAt") AS "storedFrom",

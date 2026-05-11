@@ -10,7 +10,7 @@ type OverviewJobRecord = {
   instanceNameSnapshot: string | null;
   requestedFrom: Date;
   requestedUntil: Date;
-  status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
   trigger: string | null;
   requestedBy: string | null;
   summary: unknown;
@@ -34,7 +34,7 @@ type CoverageWindowRecord = {
   storedFrom: Date | null;
   storedUntil: Date | null;
   rowCount: number;
-  status: "PENDING" | "RUNNING" | "PAUSED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
   errorMessage: string | null;
   expiresAt: Date;
   createdAt: Date;
@@ -240,6 +240,25 @@ function createPrismaStub(
         syncCurrentJob(updated);
         return structuredClone(updated);
       },
+      updateMany: async ({ where, data }: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
+        let count = 0;
+
+        for (const existing of state.jobs) {
+          if (!matchesJobWhere(existing, where)) {
+            continue;
+          }
+
+          count += 1;
+          const updated = {
+            ...existing,
+            ...data,
+            updatedAt: new Date("2026-04-29T12:05:00.000Z"),
+          };
+          syncCurrentJob(updated);
+        }
+
+        return { count };
+      },
       delete: async ({ where }: { where: { id: string } }) => {
         const existing = state.jobs.find((item) => item.id === where.id);
         assert.ok(existing);
@@ -337,6 +356,8 @@ function createService(
   job: OverviewJobRecord,
   options: {
     instances?: InstanceSummary[];
+    jobs?: OverviewJobRecord[];
+    enableQueueFind?: boolean;
     coverageWindows?: CoverageWindowRecord[];
     coverageStats?: unknown[];
     queryRawResults?: unknown[][];
@@ -405,6 +426,19 @@ test("deleteJob allows failed jobs but rejects non-terminal import jobs", async 
   assert.deepEqual(pausedContext.prisma.state.deletedQueryWhere, { jobId: "job-paused-delete" });
   assert.deepEqual(pausedContext.prisma.state.deletedCoverageWhere, { jobId: "job-paused-delete" });
 
+  const cancelledContext = createService(
+    makeJob({
+      id: "job-cancelled-delete",
+      status: "CANCELLED",
+    }),
+  );
+
+  const cancelledResult = await cancelledContext.service.deleteJob("job-cancelled-delete");
+
+  assert.equal(cancelledResult.job.id, "job-cancelled-delete");
+  assert.deepEqual(cancelledContext.prisma.state.deletedQueryWhere, { jobId: "job-cancelled-delete" });
+  assert.deepEqual(cancelledContext.prisma.state.deletedCoverageWhere, { jobId: "job-cancelled-delete" });
+
   const partialContext = createService(
     makeJob({
       id: "job-partial-delete",
@@ -414,8 +448,42 @@ test("deleteJob allows failed jobs but rejects non-terminal import jobs", async 
 
   await assert.rejects(
     () => partialContext.service.deleteJob("job-partial-delete"),
-    /Only successful, failed, or paused jobs can be deleted\./,
+    /Only successful, failed, paused, or cancelled jobs can be deleted\./,
   );
+});
+
+test("cancelJob marks only pending jobs as cancelled and keeps an audit timeline", async () => {
+  const { service, prisma } = createService(
+    makeJob({
+      id: "job-cancel",
+      status: "PENDING",
+    }),
+  );
+
+  const result = await service.cancelJob("job-cancel");
+
+  assert.equal(result.job.id, "job-cancel");
+  assert.equal(result.job.status, "CANCELLED");
+  assert.ok(result.job.finishedAt);
+  assert.equal(result.job.errorMessage, null);
+  assert.equal(prisma.state.job.status, "CANCELLED");
+
+  const summary = prisma.state.job.summary as { timeline: Array<{ type: string; message: string }> };
+  assert.equal(summary.timeline.at(-1)?.type, "job_cancelled");
+  assert.match(summary.timeline.at(-1)?.message ?? "", /cancelled/);
+});
+
+test("cancelJob rejects jobs that already started or finished", async () => {
+  for (const status of ["RUNNING", "SUCCESS", "PARTIAL", "FAILURE", "PAUSED"] as const) {
+    const { service } = createService(
+      makeJob({
+        id: `job-${status.toLowerCase()}`,
+        status,
+      }),
+    );
+
+    await assert.rejects(() => service.cancelJob(`job-${status.toLowerCase()}`), /Only queued overview jobs/);
+  }
 });
 
 test("enqueueManualImport accepts only one app-timezone calendar day", async () => {
@@ -551,6 +619,47 @@ test("overview queue drains pending jobs sequentially in FIFO order", async () =
   );
 });
 
+test("overview queue does not execute a job cancelled before it is claimed", async () => {
+  const { service, prisma } = createService(
+    makeJob({
+      id: "job-race",
+      status: "PENDING",
+    }),
+    {
+      enableQueueFind: true,
+    },
+  );
+  const queueService = service as unknown as {
+    drainOverviewJobQueue: () => Promise<void>;
+    runImportJob: (job: OverviewJobRecord) => Promise<void>;
+  };
+  const originalFindFirst = prisma.overviewHistoryJob.findFirst;
+  let cancelledBeforeClaim = false;
+  let executionCount = 0;
+
+  prisma.overviewHistoryJob.findFirst = async (args) => {
+    const found = await originalFindFirst(args);
+
+    if (found && !cancelledBeforeClaim && args.where.status === "PENDING") {
+      cancelledBeforeClaim = true;
+      const job = prisma.state.jobs.find((item) => item.id === found.id);
+
+      assert.ok(job);
+      job.status = "CANCELLED";
+    }
+
+    return found;
+  };
+  queueService.runImportJob = async () => {
+    executionCount += 1;
+  };
+
+  await queueService.drainOverviewJobQueue();
+
+  assert.equal(executionCount, 0);
+  assert.equal(prisma.state.jobs.find((job) => job.id === "job-race")?.status, "CANCELLED");
+});
+
 test("onModuleInit preserves pending jobs and marks only running jobs as interrupted", async () => {
   const pendingJob = makeJob({
     id: "job-pending",
@@ -678,6 +787,29 @@ test("retryJob reuses the same paused job and preserves checkpoint summary", asy
   assert.equal(prisma.state.job.id, "job-paused");
   assert.equal(prisma.state.job.status, "PENDING");
   assert.deepEqual(prisma.state.job.summary, summary);
+});
+
+test("retryJob can requeue a cancelled job", async () => {
+  const { service, prisma } = createService(
+    makeJob({
+      id: "job-cancelled-retry",
+      status: "CANCELLED",
+      finishedAt: new Date("2026-04-29T12:05:00.000Z"),
+    }),
+  );
+
+  const result = await service.retryJob("job-cancelled-retry", {
+    ip: "10.0.0.9",
+    headers: {
+      "accept-language": "en-US",
+    },
+  } as never);
+
+  assert.equal(result.job.id, "job-cancelled-retry");
+  assert.equal(result.job.status, "PENDING");
+  assert.equal(result.job.startedAt, null);
+  assert.equal(result.job.finishedAt, null);
+  assert.equal(prisma.state.job.status, "PENDING");
 });
 
 test("getJobDetails exposes explicit diagnostics for the latest successful step and the stalled checkpoint", async () => {
