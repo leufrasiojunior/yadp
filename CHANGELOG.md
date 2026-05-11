@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.5.0...yapd-v0.6.0) (2026-05-11)
+
+
+### Features
+
+* add ranking date range filters and improve UI for overview filters ([d14a7aa](https://github.com/leufrasiojunior/yadp/commit/d14a7aa0e0d147210b69ced590b0b602b5099f5e))
+* add ranking drill down functionality and improve UI components ([25cb32b](https://github.com/leufrasiojunior/yadp/commit/25cb32b30d920c8fc46cf1705d63d337b44324b2))
+
 ## [0.5.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.4.0...yapd-v0.5.0) (2026-05-11)
 
 
