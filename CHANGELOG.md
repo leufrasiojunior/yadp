@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.8.0...yapd-v0.9.0) (2026-05-12)
+
+
+### Features
+
+* add service worker registration script to layout ([433bfa5](https://github.com/leufrasiojunior/yadp/commit/433bfa580e9147355c3a1295be90b60620049f89))
+
 ## [0.8.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.7.0...yapd-v0.8.0) (2026-05-12)
 
 
