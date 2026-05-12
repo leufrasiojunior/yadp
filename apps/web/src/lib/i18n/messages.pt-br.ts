@@ -647,7 +647,7 @@ export const ptBRMessages: WebMessages = {
       open: "Abrir tour do Overview",
       close: "Fechar tour",
       next: "Próximo",
-      finish: "Concluir e coletar d-1",
+      finish: "Concluir",
       purpose:
         "O Overview consolida o histórico salvo localmente e separa consulta, rankings e jobs para acompanhar coletas sem bloquear a tela.",
       tabs: "Use as abas para alternar entre solicitação de período, análise dos rankings e acompanhamento dos jobs.",
@@ -659,7 +659,7 @@ export const ptBRMessages: WebMessages = {
         "As datas salvas e os filtros do Ranking controlam o universo usado nos gráficos e tabelas abaixo.",
       rankingResults:
         "Os rankings e gráficos são clicáveis quando faz sentido; clicar em domínios ou clientes aplica o filtro e recarrega o período.",
-      jobs: "A lista de jobs mostra coletas, exclusões, progresso e detalhes operacionais para investigar falhas ou retomar execuções.",
+      jobs: "A lista de jobs mostra coletas, exclusões, progresso e detalhes operacionais para investigar falhas ou retomar execuções. Também existe uma coleta automática todos os dias às 03:00 da manhã, no horário do servidor.",
     },
     tabs: {
       request: "Período e cobertura",
@@ -668,8 +668,6 @@ export const ptBRMessages: WebMessages = {
     },
     filters: {
       title: "Solicitação de período",
-      description:
-        "O `/overview` lê apenas o histórico local. Use o período atual para consultar, coletar ou apagar dados.",
       date: "Data",
       from: "De",
       until: "Até",

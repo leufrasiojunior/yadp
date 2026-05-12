@@ -608,7 +608,6 @@ export type WebMessages = {
     };
     filters: {
       title: string;
-      description: string;
       date: string;
       from: string;
       until: string;

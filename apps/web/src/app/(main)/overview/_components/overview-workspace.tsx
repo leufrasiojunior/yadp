@@ -158,6 +158,7 @@ type RankingKpiCard = {
   Icon: LucideIcon;
   accentClassName: string;
 };
+type OverviewTourOrigin = "auto" | "manual";
 type DetailsLoadOptions = {
   silent?: boolean;
 };
@@ -793,6 +794,7 @@ function OverviewWorkspaceContent({
   const autoTourRequestTokenRef = useRef(0);
   const autoTourStartedRef = useRef(false);
   const tourFinishedRef = useRef(false);
+  const tourOriginRef = useRef<OverviewTourOrigin | null>(null);
   const tourCompletionInFlightRef = useRef(false);
   const handledTourCollectionRequestRef = useRef(0);
   const detailsRequestTokenRef = useRef(0);
@@ -1021,15 +1023,19 @@ function OverviewWorkspaceContent({
     setSteps?.(tourSteps);
   }, [setSteps, tourSteps]);
 
-  const startOverviewTour = useCallback(() => {
-    autoTourStartedRef.current = true;
-    tourFinishedRef.current = false;
-    restoreTabAfterTourRef.current = activeTabRef.current;
-    setSteps?.(tourSteps);
-    setCurrentStep(0);
-    setActiveTab("request");
-    setIsOpen(true);
-  }, [setCurrentStep, setIsOpen, setSteps, tourSteps]);
+  const startOverviewTour = useCallback(
+    (origin: OverviewTourOrigin) => {
+      autoTourStartedRef.current = true;
+      tourFinishedRef.current = false;
+      tourOriginRef.current = origin;
+      restoreTabAfterTourRef.current = activeTabRef.current;
+      setSteps?.(tourSteps);
+      setCurrentStep(0);
+      setActiveTab("request");
+      setIsOpen(true);
+    },
+    [setCurrentStep, setIsOpen, setSteps, tourSteps],
+  );
 
   const handleTourFinish = useCallback(() => {
     if (tourFinishedRef.current) {
@@ -1037,8 +1043,13 @@ function OverviewWorkspaceContent({
     }
 
     tourFinishedRef.current = true;
+    const shouldQueueCollection = tourOriginRef.current === "auto";
+    tourOriginRef.current = null;
     setIsOpen(false);
-    setTourCollectionRequestId((current) => current + 1);
+
+    if (shouldQueueCollection) {
+      setTourCollectionRequestId((current) => current + 1);
+    }
   }, [setIsOpen]);
 
   const completeOverviewTour = useCallback(async () => {
@@ -1068,6 +1079,7 @@ function OverviewWorkspaceContent({
   const handleTourBeforeClose = useCallback(() => {
     const wasFinished = tourFinishedRef.current;
     tourFinishedRef.current = false;
+    tourOriginRef.current = null;
     const restoreTab = restoreTabAfterTourRef.current;
     restoreTabAfterTourRef.current = null;
 
@@ -1113,7 +1125,7 @@ function OverviewWorkspaceContent({
         return;
       }
 
-      startOverviewTour();
+      startOverviewTour("auto");
     }
 
     void loadTourStatus();
@@ -2175,7 +2187,7 @@ function OverviewWorkspaceContent({
                 size="icon"
                 className="size-8 text-muted-foreground"
                 aria-label={messages.overview.tour.open}
-                onClick={startOverviewTour}
+                onClick={() => startOverviewTour("manual")}
               >
                 <HelpCircle className="size-4" />
               </Button>
@@ -2209,7 +2221,6 @@ function OverviewWorkspaceContent({
           <Card data-overview-tour="manual-collection">
             <CardHeader>
               <CardTitle>{messages.overview.filters.title}</CardTitle>
-              <CardDescription>{messages.overview.filters.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(8rem,0.4fr)_minmax(8rem,0.4fr)]">
@@ -2296,9 +2307,21 @@ function OverviewWorkspaceContent({
                     {formatCount(overview.coverage.savedWindowCount)}
                   </p>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div
+                  className={cn(
+                    "rounded-lg border p-3",
+                    overview.coverage.expiringSoonCount > 0
+                      ? "border-amber-500/50 bg-amber-500/10 shadow-amber-500/10 shadow-sm dark:border-amber-400/40 dark:bg-amber-400/10"
+                      : undefined,
+                  )}
+                >
                   <p className="text-muted-foreground text-sm">{messages.overview.coverage.expiringSoon}</p>
-                  <p className="mt-1 font-semibold text-xl tabular-nums">
+                  <p
+                    className={cn(
+                      "mt-1 font-semibold text-xl tabular-nums",
+                      overview.coverage.expiringSoonCount > 0 ? "text-amber-700 dark:text-amber-200" : undefined,
+                    )}
+                  >
                     {formatCount(overview.coverage.expiringSoonCount)}
                   </p>
                 </div>
@@ -2326,7 +2349,15 @@ function OverviewWorkspaceContent({
                 <div className="space-y-3">
                   <div className="grid gap-3 xl:grid-cols-2">
                     {paginatedCoverageWindows.map((window) => (
-                      <div key={window.id} className="rounded-lg border p-3 text-sm">
+                      <div
+                        key={window.id}
+                        className={cn(
+                          "rounded-lg border p-3 text-sm",
+                          window.isExpiringSoon
+                            ? "border-amber-500/50 bg-amber-500/10 shadow-amber-500/10 shadow-sm dark:border-amber-400/40 dark:bg-amber-400/10"
+                            : undefined,
+                        )}
+                      >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="font-medium">{window.instanceName}</p>
@@ -2334,7 +2365,12 @@ function OverviewWorkspaceContent({
                               {messages.overview.jobs.statusValues[window.status]}
                             </Badge>
                             {window.isExpiringSoon ? (
-                              <Badge variant="secondary">{messages.overview.coverage.expiringSoonBadge}</Badge>
+                              <Badge
+                                variant="secondary"
+                                className="border-amber-500/40 bg-amber-500/15 text-amber-800 dark:text-amber-200"
+                              >
+                                {messages.overview.coverage.expiringSoonBadge}
+                              </Badge>
                             ) : null}
                           </div>
                           <Button

@@ -643,7 +643,7 @@ export const enUSMessages: WebMessages = {
       open: "Open Overview tour",
       close: "Close tour",
       next: "Next",
-      finish: "Finish and collect d-1",
+      finish: "Finish",
       purpose:
         "Overview consolidates locally stored history and separates period requests, rankings, and jobs so imports do not block the screen.",
       tabs: "Use the tabs to move between period requests, ranking analysis, and background job tracking.",
@@ -653,7 +653,7 @@ export const enUSMessages: WebMessages = {
       rankingFilters: "Saved dates and Ranking filters control the universe used by the charts and tables below.",
       rankingResults:
         "Rankings and charts are clickable where useful; clicking domains or clients applies the filter and reloads the period.",
-      jobs: "The jobs list shows imports, deletions, progress, and operational details for investigating failures or resuming runs.",
+      jobs: "The jobs list shows imports, deletions, progress, and operational details for investigating failures or resuming runs. An automatic import also runs every day at 03:00 in the server timezone.",
     },
     tabs: {
       request: "Period and coverage",
@@ -662,8 +662,6 @@ export const enUSMessages: WebMessages = {
     },
     filters: {
       title: "Period request",
-      description:
-        "The `/overview` page reads only from local history. Use the current period to query, import, or delete data.",
       date: "Date",
       from: "From",
       until: "Until",

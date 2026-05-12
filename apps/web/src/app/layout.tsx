@@ -13,11 +13,17 @@ import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { ThemeBootScript } from "@/scripts/theme-boot";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
 
+import logoSrc from "../../../../media/logo.png";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: APP_CONFIG.meta.title,
   description: APP_CONFIG.meta.description,
+  icons: {
+    icon: [{ url: logoSrc.src, type: "image/png" }],
+    shortcut: [{ url: logoSrc.src, type: "image/png" }],
+    apple: [{ url: logoSrc.src, type: "image/png" }],
+  },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
