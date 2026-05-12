@@ -93,9 +93,13 @@ import { useWebI18n } from "@/lib/i18n/client";
 import type { WebMessages } from "@/lib/i18n/messages.types";
 import {
   buildDefaultOverviewFilters,
+  buildOverviewChartBucketTimestamp,
+  buildOverviewChartBucketTimestamps,
   buildOverviewHourBucketFilters,
+  buildOverviewLocalHourRange,
   buildOverviewQueryFromFilters,
   buildOverviewRankingRangeFilters,
+  buildOverviewSavedDateRangeFilters,
   buildOverviewSingleDayFilters,
   clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
@@ -108,6 +112,8 @@ import { cn } from "@/lib/utils";
 const CLIENT_FILTER_ALL_VALUE = "__all_clients__";
 const RANKING_SHARE_LIMIT = 5;
 const MAX_COMPLETE_CHART_BUCKETS = 5000;
+const QUERY_CHART_MIN_WIDTH_PX = 720;
+const QUERY_CHART_HOUR_BUCKET_WIDTH_PX = 34;
 const DETAILS_POLL_INTERVAL_MS = 2000;
 const JOBS_POLL_INTERVAL_MS = 5000;
 const COVERAGE_PAGE_SIZE = 6;
@@ -140,13 +146,10 @@ type RankingShareRow = RankingRow & {
   fill: string;
   percentage: number;
 };
-type HourlyAccessRow = {
+type HourlyAccessRow = QueryChartPoint & {
   hour: number;
   label: string;
-  totalQueries: number;
-  blockedQueries: number;
   allowedQueries: number;
-  percentageBlocked: number;
 };
 type RankingKpiCard = {
   label: string;
@@ -493,34 +496,6 @@ function getRankingLeader(rows: RankingRow[], totalQueries: number) {
   };
 }
 
-function getBucketStart(value: string, groupBy: OverviewGroupBy) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  if (groupBy === "day") {
-    date.setUTCHours(0, 0, 0, 0);
-    return date;
-  }
-
-  date.setUTCMinutes(0, 0, 0);
-  return date;
-}
-
-function addBucket(date: Date, groupBy: OverviewGroupBy) {
-  const next = new Date(date);
-
-  if (groupBy === "day") {
-    next.setUTCDate(next.getUTCDate() + 1);
-    return next;
-  }
-
-  next.setUTCHours(next.getUTCHours() + 1);
-  return next;
-}
-
 function createEmptyChartPoint(timestamp: string): QueryChartPoint {
   return {
     timestamp,
@@ -537,33 +512,20 @@ function buildCompleteQueryPoints(points: QueryChartPoint[], from: string, until
     return points;
   }
 
-  const firstBucket = getBucketStart(from, groupBy);
-  const lastBucket = getBucketStart(until, groupBy);
+  const bucketTimestamps = buildOverviewChartBucketTimestamps(from, until, groupBy, MAX_COMPLETE_CHART_BUCKETS);
 
-  if (!firstBucket || !lastBucket || firstBucket > lastBucket) {
+  if (bucketTimestamps.length === 0) {
     return points;
   }
 
   const pointsByBucket = new Map(
     points.flatMap((point) => {
-      const bucket = getBucketStart(point.timestamp, groupBy);
-      return bucket ? [[bucket.toISOString(), point] as const] : [];
+      const bucket = buildOverviewChartBucketTimestamp(point.timestamp, groupBy);
+      return bucket ? [[bucket, point] as const] : [];
     }),
   );
-  const completePoints: QueryChartPoint[] = [];
-  let cursor = firstBucket;
 
-  while (cursor <= lastBucket) {
-    if (completePoints.length >= MAX_COMPLETE_CHART_BUCKETS) {
-      return points;
-    }
-
-    const timestamp = cursor.toISOString();
-    completePoints.push(pointsByBucket.get(timestamp) ?? createEmptyChartPoint(timestamp));
-    cursor = addBucket(cursor, groupBy);
-  }
-
-  return completePoints;
+  return bucketTimestamps.map((timestamp) => pointsByBucket.get(timestamp) ?? createEmptyChartPoint(timestamp));
 }
 
 function buildRankingShareRows(
@@ -615,15 +577,19 @@ function getLocalHour(timestamp: string, timeZone: string) {
   return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : null;
 }
 
-function buildHourlyAccessRows(points: QueryChartPoint[], timeZone: string): HourlyAccessRow[] {
-  const rows = Array.from({ length: 24 }, (_, hour) => ({
+function buildHourlyAccessRows(points: QueryChartPoint[], timeZone: string, hours: number[]): HourlyAccessRow[] {
+  const rows = hours.map((hour) => ({
+    timestamp: `1970-01-01T${String(hour).padStart(2, "0")}:00:00.000Z`,
     hour,
     label: `${String(hour).padStart(2, "0")}:00`,
     totalQueries: 0,
     blockedQueries: 0,
+    cachedQueries: 0,
+    forwardedQueries: 0,
     allowedQueries: 0,
     percentageBlocked: 0,
   }));
+  const rowsByHour = new Map(rows.map((row) => [row.hour, row]));
 
   for (const point of points) {
     const hour = getLocalHour(point.timestamp, timeZone);
@@ -632,7 +598,7 @@ function buildHourlyAccessRows(points: QueryChartPoint[], timeZone: string): Hou
       continue;
     }
 
-    const row = rows[hour];
+    const row = rowsByHour.get(hour);
 
     if (!row) {
       continue;
@@ -640,6 +606,8 @@ function buildHourlyAccessRows(points: QueryChartPoint[], timeZone: string): Hou
 
     row.totalQueries += point.totalQueries;
     row.blockedQueries += point.blockedQueries;
+    row.cachedQueries += point.cachedQueries;
+    row.forwardedQueries += point.forwardedQueries;
   }
 
   return rows.map((row) => {
@@ -651,6 +619,15 @@ function buildHourlyAccessRows(points: QueryChartPoint[], timeZone: string): Hou
       percentageBlocked: row.totalQueries > 0 ? (row.blockedQueries / row.totalQueries) * 100 : 0,
     };
   });
+}
+
+function buildConsolidatedHourlyRows(
+  points: QueryChartPoint[],
+  from: string,
+  until: string,
+  timeZone: string,
+): HourlyAccessRow[] {
+  return buildHourlyAccessRows(points, timeZone, buildOverviewLocalHourRange(from, until, timeZone));
 }
 
 function getCoverageRenewedOverview(
@@ -844,6 +821,35 @@ function OverviewWorkspaceContent({
       ),
     [overview.charts.queries.groupBy, overview.charts.queries.points, overview.filters.from, overview.filters.until],
   );
+  const consolidatedHourlyRows = useMemo(
+    () =>
+      overview.charts.queries.groupBy === "hour"
+        ? buildConsolidatedHourlyRows(
+            overview.charts.queries.points,
+            overview.filters.from,
+            overview.filters.until,
+            timeZone,
+          )
+        : ([] satisfies HourlyAccessRow[]),
+    [
+      overview.charts.queries.groupBy,
+      overview.charts.queries.points,
+      overview.filters.from,
+      overview.filters.until,
+      timeZone,
+    ],
+  );
+  const queryChartHourTicks = useMemo(
+    () => (overview.charts.queries.groupBy === "hour" ? consolidatedHourlyRows.map((row) => row.label) : undefined),
+    [consolidatedHourlyRows, overview.charts.queries.groupBy],
+  );
+  const queryChartMinWidth = useMemo(
+    () =>
+      overview.charts.queries.groupBy === "hour"
+        ? Math.max(QUERY_CHART_MIN_WIDTH_PX, consolidatedHourlyRows.length * QUERY_CHART_HOUR_BUCKET_WIDTH_PX)
+        : undefined,
+    [consolidatedHourlyRows.length, overview.charts.queries.groupBy],
+  );
   const rankingClientOptions = useMemo(() => {
     if (!filters.client_ip || rankingClientRows.some((row) => row.value === filters.client_ip)) {
       return rankingClientRows;
@@ -883,11 +889,8 @@ function OverviewWorkspaceContent({
     [messages, overview.rankings.statuses, overview.summary.totalQueries],
   );
   const hourlyAccessRows = useMemo(
-    () =>
-      overview.charts.queries.groupBy === "hour"
-        ? buildHourlyAccessRows(queryChartPoints, timeZone)
-        : ([] satisfies HourlyAccessRow[]),
-    [overview.charts.queries.groupBy, queryChartPoints, timeZone],
+    () => (overview.charts.queries.groupBy === "hour" ? consolidatedHourlyRows : ([] satisfies HourlyAccessRow[])),
+    [consolidatedHourlyRows, overview.charts.queries.groupBy],
   );
   const chartConfig = useMemo(
     () =>
@@ -1294,15 +1297,7 @@ function OverviewWorkspaceContent({
     const fromDate = formatOverviewDateOnlyValue(range.from);
     const untilDate = formatOverviewDateOnlyValue(range.to ?? range.from);
 
-    setFilters((current) =>
-      buildOverviewRankingRangeFilters(
-        current,
-        fromDate,
-        current.from.slice(11, 16),
-        untilDate,
-        current.until.slice(11, 16),
-      ),
-    );
+    setFilters((current) => buildOverviewSavedDateRangeFilters(current, fromDate, untilDate));
   };
 
   const updateRankingFromTimeFilter = (value: string) => {
@@ -1789,20 +1784,6 @@ function OverviewWorkspaceContent({
     }
 
     return messages.overview.jobs.elapsedDuration(formatEtaDuration(Math.max(0, endMs - startedAtMs)));
-  };
-  const formatChartHourTick = (value: string) => {
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat(locale, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-      timeZone,
-    }).format(date);
   };
   const applyQueryChartPointFilter = (
     point: QueryChartPoint | undefined,
@@ -2708,37 +2689,61 @@ function OverviewWorkspaceContent({
               ) : (
                 <div className="relative">
                   {renderChartLoadingOverlay("volume")}
-                  <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
-                    <BarChart accessibilityLayer data={queryChartPoints} barCategoryGap={10}>
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey="timestamp"
-                        tickFormatter={(value: string) =>
-                          overview.charts.queries.groupBy === "hour"
-                            ? formatChartHourTick(value)
-                            : formatDateTime(value)
-                        }
-                        minTickGap={24}
-                      />
-                      <YAxis allowDecimals={false} width={48} />
-                      <ChartTooltip content={renderQueryChartTooltip} />
-                      <ChartLegend content={<ChartLegendContent />} />
-                      <Bar
-                        dataKey="totalQueries"
-                        fill="var(--color-totalQueries)"
-                        radius={[4, 4, 0, 0]}
-                        className="cursor-pointer"
-                        onClick={(data) => applyQueryChartPointFilter(data.payload as QueryChartPoint | undefined)}
-                      />
-                      <Bar
-                        dataKey="blockedQueries"
-                        fill="var(--color-blockedQueries)"
-                        radius={[4, 4, 0, 0]}
-                        className="cursor-pointer"
-                        onClick={(data) => applyQueryChartPointFilter(data.payload as QueryChartPoint | undefined)}
-                      />
-                    </BarChart>
-                  </ChartContainer>
+                  <div className="overflow-x-auto pb-2">
+                    <ChartContainer
+                      config={chartConfig}
+                      className="aspect-auto h-64 w-full"
+                      style={queryChartMinWidth ? { minWidth: queryChartMinWidth } : undefined}
+                    >
+                      <BarChart
+                        accessibilityLayer
+                        data={overview.charts.queries.groupBy === "hour" ? consolidatedHourlyRows : queryChartPoints}
+                        barCategoryGap={10}
+                      >
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                          dataKey={overview.charts.queries.groupBy === "hour" ? "label" : "timestamp"}
+                          interval={overview.charts.queries.groupBy === "hour" ? 0 : undefined}
+                          minTickGap={overview.charts.queries.groupBy === "hour" ? 0 : 24}
+                          ticks={queryChartHourTicks}
+                          tickFormatter={(value: string) =>
+                            overview.charts.queries.groupBy === "hour" ? value : formatDateTime(value)
+                          }
+                        />
+                        <YAxis allowDecimals={false} width={48} />
+                        <ChartTooltip
+                          content={
+                            overview.charts.queries.groupBy === "hour"
+                              ? renderHourlyAccessTooltip
+                              : renderQueryChartTooltip
+                          }
+                        />
+                        <ChartLegend content={<ChartLegendContent />} />
+                        <Bar
+                          dataKey="totalQueries"
+                          fill="var(--color-totalQueries)"
+                          radius={[4, 4, 0, 0]}
+                          className="cursor-pointer"
+                          onClick={(data) =>
+                            overview.charts.queries.groupBy === "hour"
+                              ? applyHourlyAccessFilter(data.payload as HourlyAccessRow | undefined)
+                              : applyQueryChartPointFilter(data.payload as QueryChartPoint | undefined)
+                          }
+                        />
+                        <Bar
+                          dataKey="blockedQueries"
+                          fill="var(--color-blockedQueries)"
+                          radius={[4, 4, 0, 0]}
+                          className="cursor-pointer"
+                          onClick={(data) =>
+                            overview.charts.queries.groupBy === "hour"
+                              ? applyHourlyAccessFilter(data.payload as HourlyAccessRow | undefined)
+                              : applyQueryChartPointFilter(data.payload as QueryChartPoint | undefined)
+                          }
+                        />
+                      </BarChart>
+                    </ChartContainer>
+                  </div>
                 </div>
               )}
             </CardContent>

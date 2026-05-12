@@ -159,6 +159,109 @@ export function buildOverviewRankingRangeFilters(
   };
 }
 
+function getOverviewChartBucketStart(value: string, groupBy: OverviewGroupBy) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  if (groupBy === "day") {
+    date.setUTCHours(0, 0, 0, 0);
+    return date;
+  }
+
+  date.setUTCMinutes(0, 0, 0);
+  return date;
+}
+
+function addOverviewChartBucket(date: Date, groupBy: OverviewGroupBy) {
+  const next = new Date(date);
+
+  if (groupBy === "day") {
+    next.setUTCDate(next.getUTCDate() + 1);
+    return next;
+  }
+
+  next.setUTCHours(next.getUTCHours() + 1);
+  return next;
+}
+
+function getOverviewLocalHour(value: string, timeZone: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const hourPart = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    hourCycle: "h23",
+    timeZone,
+  })
+    .formatToParts(date)
+    .find((part) => part.type === "hour");
+  const hour = Number(hourPart?.value);
+
+  return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : null;
+}
+
+export function buildOverviewChartBucketTimestamp(value: string, groupBy: OverviewGroupBy) {
+  return getOverviewChartBucketStart(value, groupBy)?.toISOString() ?? null;
+}
+
+export function buildOverviewChartBucketTimestamps(
+  from: string,
+  until: string,
+  groupBy: OverviewGroupBy,
+  maxBuckets = 5000,
+) {
+  const firstBucket = getOverviewChartBucketStart(from, groupBy);
+  const lastBucket = getOverviewChartBucketStart(until, groupBy);
+
+  if (!firstBucket || !lastBucket || firstBucket > lastBucket || maxBuckets <= 0) {
+    return [];
+  }
+
+  const timestamps: string[] = [];
+  let cursor = firstBucket;
+
+  while (cursor <= lastBucket) {
+    if (timestamps.length >= maxBuckets) {
+      return [];
+    }
+
+    timestamps.push(cursor.toISOString());
+    cursor = addOverviewChartBucket(cursor, groupBy);
+  }
+
+  return timestamps;
+}
+
+export function buildOverviewLocalHourRange(from: string, until: string, timeZone: string) {
+  const fromHour = getOverviewLocalHour(from, timeZone);
+  const untilHour = getOverviewLocalHour(until, timeZone);
+
+  if (fromHour === null || untilHour === null) {
+    return Array.from({ length: 24 }, (_, hour) => hour);
+  }
+
+  const hours: number[] = [];
+  let cursor = fromHour;
+
+  while (hours.length < 24) {
+    hours.push(cursor);
+
+    if (cursor === untilHour) {
+      return hours;
+    }
+
+    cursor = (cursor + 1) % 24;
+  }
+
+  return hours;
+}
+
 export function buildOverviewHourBucketFilters(
   filters: OverviewFilters,
   timestamp: string,

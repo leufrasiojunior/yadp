@@ -4,6 +4,14 @@ import test from "node:test";
 
 const require = createRequire(import.meta.url);
 const overviewFilters = require("./overview-filters.ts") as {
+  buildOverviewChartBucketTimestamp: (value: string, groupBy: "hour" | "day") => string | null;
+  buildOverviewChartBucketTimestamps: (
+    from: string,
+    until: string,
+    groupBy: "hour" | "day",
+    maxBuckets?: number,
+  ) => string[];
+  buildOverviewLocalHourRange: (from: string, until: string, timeZone: string) => number[];
   buildDefaultOverviewFilters: (timeZone: string) => {
     from: string;
     until: string;
@@ -50,6 +58,9 @@ const overviewFilters = require("./overview-filters.ts") as {
   ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
 };
 const {
+  buildOverviewChartBucketTimestamp,
+  buildOverviewChartBucketTimestamps,
+  buildOverviewLocalHourRange,
   buildDefaultOverviewFilters,
   buildOverviewHourBucketFilters,
   buildOverviewQueryFromFilters,
@@ -241,6 +252,26 @@ test("buildOverviewSavedDateRangeFilters allows saved endpoint ranges with missi
   assert.equal(filters.groupBy, "hour");
 });
 
+test("buildOverviewSavedDateRangeFilters resets calendar selections to full days", () => {
+  const filters = buildOverviewSavedDateRangeFilters(
+    {
+      from: "2026-01-01T07:00",
+      until: "2026-01-01T19:00",
+      domain: "example.com",
+      client_ip: "192.168.1.10",
+      groupBy: "day",
+    },
+    "2026-05-01",
+    "2026-05-04",
+  );
+
+  assert.equal(filters.from, "2026-05-01T00:00");
+  assert.equal(filters.until, "2026-05-04T23:59");
+  assert.equal(filters.domain, "example.com");
+  assert.equal(filters.client_ip, "192.168.1.10");
+  assert.equal(filters.groupBy, "hour");
+});
+
 test("buildOverviewRankingRangeFilters keeps exact date and time boundaries", () => {
   const filters = buildOverviewRankingRangeFilters(
     {
@@ -301,6 +332,46 @@ test("buildOverviewRankingRangeFilters allows multi-day ranges without forcing w
   assert.equal(filters.from, "2026-05-01T06:10");
   assert.equal(filters.until, "2026-05-04T22:20");
   assert.equal(filters.groupBy, "hour");
+});
+
+test("buildOverviewChartBucketTimestamps builds an hourly display range from the selected start to end", () => {
+  const buckets = buildOverviewChartBucketTimestamps("2026-05-01T10:00:00.000Z", "2026-05-01T13:59:59.000Z", "hour");
+
+  assert.deepEqual(buckets, [
+    "2026-05-01T10:00:00.000Z",
+    "2026-05-01T11:00:00.000Z",
+    "2026-05-01T12:00:00.000Z",
+    "2026-05-01T13:00:00.000Z",
+  ]);
+});
+
+test("buildOverviewChartBucketTimestamp normalizes chart points to their hourly bucket", () => {
+  const bucket = buildOverviewChartBucketTimestamp("2026-05-01T13:45:30.000Z", "hour");
+
+  assert.equal(bucket, "2026-05-01T13:00:00.000Z");
+});
+
+test("buildOverviewLocalHourRange returns a sorted full-day range for multi-day full periods", () => {
+  const hours = buildOverviewLocalHourRange(
+    "2026-05-01T03:00:00.000Z",
+    "2026-05-12T02:59:59.000Z",
+    "America/Sao_Paulo",
+  );
+
+  assert.deepEqual(
+    hours,
+    Array.from({ length: 24 }, (_, hour) => hour),
+  );
+});
+
+test("buildOverviewLocalHourRange preserves partial wrapped hour ranges in order", () => {
+  const hours = buildOverviewLocalHourRange(
+    "2026-05-01T21:00:00.000Z",
+    "2026-05-03T10:59:59.000Z",
+    "America/Sao_Paulo",
+  );
+
+  assert.deepEqual(hours, [18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7]);
 });
 
 test("buildOverviewHourBucketFilters builds the exact clicked hourly interval", () => {

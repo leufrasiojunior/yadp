@@ -298,8 +298,8 @@ export function NotificationBell() {
           <span className="sr-only">{messages.sidebar.items.notifications}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[calc(100vw-1rem)] p-0 sm:w-[24rem]">
-        <div className="flex items-center justify-between px-4 py-3">
+      <DropdownMenuContent align="end" className="w-[calc(100vw-1rem)] overflow-hidden p-0 sm:w-[24rem]">
+        <div className="flex shrink-0 items-center justify-between px-4 py-3">
           <div>
             <DropdownMenuLabel className="p-0">{messages.notifications.preview.title}</DropdownMenuLabel>
             <p className="text-muted-foreground text-xs">{messages.notifications.preview.unreadCount(unreadCount)}</p>
@@ -309,8 +309,8 @@ export function NotificationBell() {
             {messages.notifications.preview.markAllRead}
           </Button>
         </div>
-        <DropdownMenuSeparator />
-        <ScrollArea className="max-h-80">
+        <DropdownMenuSeparator className="shrink-0" />
+        <ScrollArea className="max-h-[min(20rem,max(8rem,calc(var(--radix-dropdown-menu-content-available-height)-10rem)))] overflow-hidden">
           {preview?.items.length ? (
             <div className="flex flex-col">
               {preview.items.map((item) => (
@@ -340,8 +340,8 @@ export function NotificationBell() {
             </div>
           )}
         </ScrollArea>
-        <DropdownMenuSeparator />
-        <div className="flex flex-col gap-2 px-4 py-3">
+        <DropdownMenuSeparator className="shrink-0" />
+        <div className="flex shrink-0 flex-col gap-2 px-4 py-3">
           <Button
             variant={pushEndpoint ? "outline" : "default"}
             size="sm"
