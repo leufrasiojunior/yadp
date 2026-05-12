@@ -98,4 +98,4 @@ echo "[yapd-app] Starting web..."
 npm run start --workspace @yapd/web -- --hostname 0.0.0.0 --port 3000 &
 WEB_PID=$!
 
-wait -n "${API_PID}" "${WEB_PID}"
+wait -n "${API_PID}" "${WEB_PID}" "${NGINX_PID}"

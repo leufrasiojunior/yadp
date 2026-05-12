@@ -2,8 +2,8 @@ x-yapd-config:
   postgres_password: &yapd_postgres_password "change-this-password"
   session_secret: &yapd_session_secret "change-this-session-secret"
   app_encryption_key: &yapd_app_encryption_key "change-this-encryption-key"
-  web_host_port: &yapd_web_host_port "80"
-  web_https_port: &yapd_web_https_port "443"
+  web_host_port: &yapd_web_host_port "48080"
+  web_https_port: &yapd_web_https_port "48443"
   # Use the public HTTPS origin served by your reverse proxy.
   # Browser push notifications require a trusted HTTPS context or localhost;
   # direct access through http://<server-ip>:<port> keeps push disabled.
@@ -25,7 +25,10 @@ x-yapd-config:
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: yapd-db-prod
     restart: unless-stopped
+    networks:
+      - yapd-prod-network
     environment:
       POSTGRES_DB: *yapd_postgres_db
       POSTGRES_USER: *yapd_postgres_user
@@ -33,7 +36,7 @@ services:
     volumes:
       - yapd-prod-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      test: ["CMD-SHELL", "pg_isready -h localhost -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,13 +44,16 @@ services:
 
   yapd:
     image: leufrasiojunior/yapd:latest
+    container_name: yapd-app-prod
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - yapd-prod-network
     environment:
       NODE_ENV: production
-
+      # ... (rest of environment remains same)
       PORT: 3000
       HOSTNAME: 0.0.0.0
       API_HOST: 0.0.0.0
@@ -59,6 +65,7 @@ services:
       INTERNAL_API_BASE_URL: http://127.0.0.1:3001/api
       NEXT_PUBLIC_API_BASE_URL: /api
 
+      YAPD_POSTGRES_HOST: postgres
       YAPD_POSTGRES_DB: *yapd_postgres_db
       YAPD_POSTGRES_USER: *yapd_postgres_user
       YAPD_POSTGRES_PASSWORD: *yapd_postgres_password
@@ -76,8 +83,10 @@ services:
       YAPD_API_READY_RETRY_DELAY_SECONDS: *yapd_api_ready_retry_delay_seconds
     command:
       - bash
-      - -lc
-      - export DATABASE_URL="postgresql://$${YAPD_POSTGRES_USER}:$${YAPD_POSTGRES_PASSWORD}@postgres:5432/$${YAPD_POSTGRES_DB}?schema=public"; exec bash ./scripts/start-app-container.sh
+      - -c
+      - |
+        export DATABASE_URL="postgresql://$${YAPD_POSTGRES_USER}:$${YAPD_POSTGRES_PASSWORD}@$${YAPD_POSTGRES_HOST}:5432/$${YAPD_POSTGRES_DB}?schema=public"
+        exec bash ./scripts/start-app-container.sh
     ports:
       - target: 80
         published: *yapd_web_host_port
@@ -87,11 +96,15 @@ services:
         protocol: tcp
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/healthz >/dev/null 2>&1 && wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
+        ["CMD-SHELL", "nc -z 127.0.0.1 80 && nc -z 127.0.0.1 3001 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+
+networks:
+  yapd-prod-network:
+    driver: bridge
 
 volumes:
   yapd-prod-postgres-data:
