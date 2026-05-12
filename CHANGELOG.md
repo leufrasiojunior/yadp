@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.6.0...yapd-v0.7.0) (2026-05-12)
+
+
+### Features
+
+* add Nginx support for HTTPS and update production deployment instructions ([2a44875](https://github.com/leufrasiojunior/yadp/commit/2a448754f1d6e270b518c878a4a742769557a1e8))
+* add overview tour origin handling and update UI messages ([1aaf64a](https://github.com/leufrasiojunior/yadp/commit/1aaf64a7222cd7a709104407c1ba1556ba7fce64))
+* improve notification bell UI and enhance overview filters functionality ([a8e9fbb](https://github.com/leufrasiojunior/yadp/commit/a8e9fbbf28430f8e7c67664502b63eba280f9e3e))
+
 ## [0.6.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.5.0...yapd-v0.6.0) (2026-05-11)
 
 
