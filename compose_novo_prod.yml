@@ -2,7 +2,8 @@ x-yapd-config:
   postgres_password: &yapd_postgres_password "change-this-password"
   session_secret: &yapd_session_secret "change-this-session-secret"
   app_encryption_key: &yapd_app_encryption_key "change-this-encryption-key"
-  web_host_port: &yapd_web_host_port "4000"
+  web_host_port: &yapd_web_host_port "80"
+  web_https_port: &yapd_web_https_port "443"
   # Use the public HTTPS origin served by your reverse proxy.
   # Browser push notifications require a trusted HTTPS context or localhost;
   # direct access through http://<server-ip>:<port> keeps push disabled.
@@ -78,12 +79,15 @@ services:
       - -lc
       - export DATABASE_URL="postgresql://$${YAPD_POSTGRES_USER}:$${YAPD_POSTGRES_PASSWORD}@postgres:5432/$${YAPD_POSTGRES_DB}?schema=public"; exec bash ./scripts/start-app-container.sh
     ports:
-      - target: 3000
+      - target: 80
         published: *yapd_web_host_port
+        protocol: tcp
+      - target: 443
+        published: *yapd_web_https_port
         protocol: tcp
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/healthz >/dev/null 2>&1 && wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
+        ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/healthz >/dev/null 2>&1 && wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

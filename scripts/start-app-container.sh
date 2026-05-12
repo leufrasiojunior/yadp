@@ -11,10 +11,16 @@ API_READY_RETRY_DELAY_SECONDS="${YAPD_API_READY_RETRY_DELAY_SECONDS:-1}"
 ATTEMPT=1
 API_PID=""
 WEB_PID=""
+NGINX_PID=""
 PRISMA_BIN="/app/node_modules/.bin/prisma"
 API_HEALTH_URL="http://127.0.0.1:${API_PORT:-3001}/api/health"
 
 shutdown() {
+  if [[ -n "${NGINX_PID}" ]] && kill -0 "${NGINX_PID}" 2>/dev/null; then
+    echo "[yapd-app] Stopping Nginx..."
+    kill "${NGINX_PID}" 2>/dev/null || true
+  fi
+
   if [[ -n "${API_PID}" ]] && kill -0 "${API_PID}" 2>/dev/null; then
     kill "${API_PID}" 2>/dev/null || true
   fi
@@ -25,6 +31,19 @@ shutdown() {
 }
 
 trap shutdown EXIT INT TERM
+
+echo "[yapd-app] Checking SSL certificates..."
+if [[ ! -f /etc/nginx/ssl/nginx.crt ]]; then
+  echo "[yapd-app] Generating self-signed certificate..."
+  mkdir -p /etc/nginx/ssl
+  openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+    -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt \
+    -subj "/C=US/ST=State/L=City/O=YAPD/CN=yapd.local"
+fi
+
+echo "[yapd-app] Starting Nginx..."
+nginx -g "daemon off;" &
+NGINX_PID=$!
 
 echo "[yapd-app] Checking pending Prisma migrations before startup..."
 

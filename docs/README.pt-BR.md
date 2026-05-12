@@ -116,6 +116,35 @@ A direção da v1 inclui:
 - reautenticação para ações perigosas;
 - nenhum admin padrão estático ou senha bootstrap hardcoded.
 
+## Deploy em Produção
+
+Para ambientes de produção, é recomendado o uso do arquivo `compose_novo_prod.yml`, que é otimizado para estabilidade e segurança.
+
+1.  **Baixe a configuração**:
+    ```bash
+    curl -O https://raw.githubusercontent.com/leufrasiojunior/yapd/main/compose_novo_prod.yml
+    ```
+2.  **Edite os segredos**: Abra o arquivo e altere os valores na seção `x-yapd-config`, especialmente `postgres_password`, `session_secret` e `app_encryption_key`.
+3.  **Inicie a aplicação**:
+    ```bash
+    docker compose -f compose_novo_prod.yml up -d
+    ```
+
+A aplicação estará disponível em `https://<seu-ip>` (porta 443) e `http://<seu-ip>` (porta 80).
+
+## HTTPS e Proxy Reverso
+
+Por padrão, o container Docker do YAPD roda o Nginx como um proxy reverso interno. Ele serve a aplicação via **HTTPS** (porta 443) usando um certificado auto-assinado gerado na inicialização e **HTTP** (porta 80) como alternativa.
+
+### Usando com um Proxy Reverso Externo
+
+Se você já usa um proxy reverso no seu ambiente (como Nginx Proxy Manager, Traefik ou Caddy):
+
+1.  **Via HTTP**: Aponte seu proxy externo para a porta `80` do container YAPD. Esta é a forma mais simples, pois o seu proxy externo cuidará do certificado SSL "real".
+2.  **Via HTTPS**: Se preferir manter o tráfego criptografado mesmo entre proxies, aponte para a porta `443` e configure seu proxy externo para "ignorar erros de certificado" ou "confiar em backend inseguro".
+
+Certifique-se de que seu proxy externo esteja configurado para passar os headers corretos (`X-Forwarded-For`, `X-Forwarded-Proto`, etc.) e suporte WebSockets (para atualizações em tempo real).
+
 ## Início Rápido Para Desenvolvimento
 
 ```bash

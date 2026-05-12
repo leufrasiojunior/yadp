@@ -118,6 +118,35 @@ The v1 direction includes:
 - reauthentication for dangerous actions;
 - no static default admin account or hardcoded bootstrap password.
 
+## Production Deployment
+
+For production environments, it is recommended to use the `compose_novo_prod.yml` file, which is optimized for stability and security.
+
+1.  **Download the configuration**:
+    ```bash
+    curl -O https://raw.githubusercontent.com/leufrasiojunior/yapd/main/compose_novo_prod.yml
+    ```
+2.  **Edit the secrets**: Open the file and change the values in the `x-yapd-config` section, especially `postgres_password`, `session_secret`, and `app_encryption_key`.
+3.  **Start the application**:
+    ```bash
+    docker compose -f compose_novo_prod.yml up -d
+    ```
+
+The application will be available at `https://<your-ip>` (port 443) and `http://<your-ip>` (port 80).
+
+## HTTPS and Reverse Proxy
+
+By default, the YAPD Docker container runs Nginx as an internal reverse proxy. It serves the application over **HTTPS** (port 443) using an auto-generated self-signed certificate and **HTTP** (port 80) as a fallback.
+
+### Using with an External Reverse Proxy
+
+If you are already using a reverse proxy in your environment (like Nginx Proxy Manager, Traefik, or Caddy):
+
+1.  **Via HTTP**: Point your external proxy to the YAPD container's port `80`. This is the simplest way as the external proxy will handle the "real" SSL certificate.
+2.  **Via HTTPS**: If you prefer to keep the traffic encrypted even between proxies, point to port `443` and configure your external proxy to "ignore certificate errors" or "trust insecure backend".
+
+Ensure your external proxy is configured to pass the correct headers (`X-Forwarded-For`, `X-Forwarded-Proto`, etc.) and supports WebSockets (for real-time updates).
+
 ## Quick Start For Development
 
 ```bash
