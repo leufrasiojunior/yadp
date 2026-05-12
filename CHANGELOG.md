@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.7.0...yapd-v0.8.0) (2026-05-12)
+
+
+### Features
+
+* update production configuration and improve service health checks ([017e7d2](https://github.com/leufrasiojunior/yadp/commit/017e7d2f51aea3437c583a5be02243dc50b8cebe))
+
 ## [0.7.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.6.0...yapd-v0.7.0) (2026-05-12)
 
 
