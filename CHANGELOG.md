@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.9.0...yapd-v0.10.0) (2026-05-13)
+
+
+### Features
+
+* Adiciona a opção --no-verify ao comando de commit para a criação de releases ([0ce1d60](https://github.com/leufrasiojunior/yadp/commit/0ce1d6090351173ecc6b05e9dc395eb181f002c6))
+
 ## [0.9.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.8.0...yapd-v0.9.0) (2026-05-12)
 
 
