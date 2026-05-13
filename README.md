@@ -132,7 +132,7 @@ For production environments, it is recommended to use the `compose_novo_prod.yml
     docker compose -f compose_novo_prod.yml up -d
     ```
 
-The application will be available at `https://<your-ip>` (port 443) and `http://<your-ip>` (port 80).
+With the production compose file, the application is published on `http://<your-ip>:48080` and `https://<your-ip>:48443`. If you expose YAPD through an external reverse proxy, point the proxy to the HTTP endpoint and let the external proxy terminate the public TLS certificate.
 
 ## HTTPS and Reverse Proxy
 
@@ -140,12 +140,17 @@ By default, the YAPD Docker container runs Nginx as an internal reverse proxy. I
 
 ### Using with an External Reverse Proxy
 
-If you are already using a reverse proxy in your environment (like Nginx Proxy Manager, Traefik, or Caddy):
+For detailed configurations on how to use YAPD with external proxies (Nginx, Caddy, Nginx Proxy Manager), see the [Reverse Proxy Configuration Guide](docs/reverse-proxy.md).
 
-1.  **Via HTTP**: Point your external proxy to the YAPD container's port `80`. This is the simplest way as the external proxy will handle the "real" SSL certificate.
-2.  **Via HTTPS**: If you prefer to keep the traffic encrypted even between proxies, point to port `443` and configure your external proxy to "ignore certificate errors" or "trust insecure backend".
+Recommended setup:
 
-Ensure your external proxy is configured to pass the correct headers (`X-Forwarded-For`, `X-Forwarded-Proto`, etc.) and supports WebSockets (for real-time updates).
+1. Point the external proxy to YAPD over **HTTP**. With `compose_novo_prod.yml`, use the host port `48080`.
+2. Terminate the public HTTPS certificate in the external proxy, for example with Let's Encrypt.
+3. Set `WEB_ORIGIN` to the exact browser URL, such as `https://yapd.example.com`.
+4. Keep `COOKIE_SECURE=true` when browser access is HTTPS.
+5. Enable WebSocket support and forward `Host`, `X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto`.
+
+Avoid pointing the external proxy to YAPD's internal HTTPS port unless you explicitly trust or ignore the self-signed backend certificate. Browser push notifications require the public browser URL to be HTTPS with a trusted certificate; the backend hop can remain HTTP on your private network.
 
 ## Quick Start For Development
 

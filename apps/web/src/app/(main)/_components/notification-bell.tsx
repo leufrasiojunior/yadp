@@ -36,6 +36,28 @@ import { getPushSupportStatus, type PushSupportStatus } from "@/lib/notification
 import { cn } from "@/lib/utils";
 import { useNotificationsStore } from "@/stores/notifications/notifications-provider";
 
+const SERVICE_WORKER_READY_TIMEOUT_MS = 10_000;
+
+type PushClient = ReturnType<typeof getAuthenticatedBrowserApiClient>;
+
+type PushActivationFailureKind =
+  | "permission-blocked"
+  | "permission-denied"
+  | "service-worker-unavailable"
+  | "vapid-unavailable"
+  | "subscribe-failed"
+  | "subscription-save-failed"
+  | "session-expired"
+  | "security-rejected"
+  | "unknown";
+
+class PushActivationError extends Error {
+  constructor(readonly kind: PushActivationFailureKind) {
+    super(kind);
+    this.name = "PushActivationError";
+  }
+}
+
 function getPushStatusToastMessage(status: PushSupportStatus, messages: ReturnType<typeof useWebI18n>["messages"]) {
   if (status === "insecure-context") {
     return messages.notifications.toasts.pushInsecureContext;
@@ -46,6 +68,147 @@ function getPushStatusToastMessage(status: PushSupportStatus, messages: ReturnTy
   }
 
   return messages.notifications.toasts.pushUnsupported;
+}
+
+function getPushActivationFailureMessage(
+  kind: PushActivationFailureKind,
+  messages: ReturnType<typeof useWebI18n>["messages"],
+) {
+  switch (kind) {
+    case "permission-blocked":
+      return messages.notifications.toasts.pushPermissionBlocked;
+    case "permission-denied":
+      return messages.notifications.toasts.pushDenied;
+    case "service-worker-unavailable":
+      return messages.notifications.toasts.pushServiceWorkerUnavailable;
+    case "vapid-unavailable":
+      return messages.notifications.toasts.pushServerUnavailable;
+    case "subscribe-failed":
+      return messages.notifications.toasts.pushSubscribeFailed;
+    case "subscription-save-failed":
+      return messages.notifications.toasts.pushSubscriptionSaveFailed;
+    case "session-expired":
+      return messages.notifications.toasts.pushSessionExpired;
+    case "security-rejected":
+      return messages.notifications.toasts.pushSecurityRejected;
+    case "unknown":
+      return messages.notifications.toasts.pushFailed;
+  }
+}
+
+function getPushApiFailureKind(response: Response): PushActivationFailureKind | null {
+  if (response.status === 401) {
+    return "session-expired";
+  }
+
+  if (response.status === 403) {
+    return "security-rejected";
+  }
+
+  return null;
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, kind: PushActivationFailureKind) {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeoutPromise = new Promise<never>((_resolve, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new PushActivationError(kind));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
+async function getReadyServiceWorkerRegistration() {
+  try {
+    return await withTimeout(
+      navigator.serviceWorker.ready,
+      SERVICE_WORKER_READY_TIMEOUT_MS,
+      "service-worker-unavailable",
+    );
+  } catch (error) {
+    if (error instanceof PushActivationError) {
+      throw error;
+    }
+
+    throw new PushActivationError("service-worker-unavailable");
+  }
+}
+
+async function getPushPublicKeyOrThrow(client: PushClient) {
+  const { data, response } = await client.GET<PushPublicKeyResponse>("/notifications/push/public-key");
+  const apiFailureKind = getPushApiFailureKind(response);
+
+  if (apiFailureKind) {
+    throw new PushActivationError(apiFailureKind);
+  }
+
+  if (!response.ok || !data?.available || !data.publicKey) {
+    throw new PushActivationError("vapid-unavailable");
+  }
+
+  return data.publicKey;
+}
+
+async function requestPushPermissionOrThrow() {
+  if (Notification.permission === "denied") {
+    throw new PushActivationError("permission-blocked");
+  }
+
+  const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+
+  if (permission !== "granted") {
+    throw new PushActivationError("permission-denied");
+  }
+
+  return permission;
+}
+
+async function getCurrentPushSubscriptionOrSubscribe(
+  client: PushClient,
+  csrfToken: string,
+  registration: ServiceWorkerRegistration,
+  publicKey: string,
+) {
+  const subscription = await registration.pushManager.getSubscription();
+
+  if (subscription && isCurrentPushSubscriptionServerKey(subscription.options.applicationServerKey, publicKey)) {
+    return subscription;
+  }
+
+  if (subscription) {
+    try {
+      await client.DELETE<PushSubscriptionResponse>("/notifications/push/subscription", {
+        headers: {
+          "x-yapd-csrf": csrfToken,
+        },
+        params: {
+          query: {
+            endpoint: subscription.endpoint,
+          },
+        },
+      });
+    } catch {
+      // Best-effort cleanup for stale subscriptions.
+    }
+
+    await subscription.unsubscribe();
+  }
+
+  try {
+    return await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: decodePushPublicKey(publicKey),
+    });
+  } catch {
+    throw new PushActivationError("subscribe-failed");
+  }
 }
 
 export function NotificationBell() {
@@ -70,64 +233,70 @@ export function NotificationBell() {
     let cancelled = false;
 
     const loadPushState = async () => {
-      const { data: publicKeyData, response: publicKeyResponse } = await client.GET<PushPublicKeyResponse>(
-        "/notifications/push/public-key",
-      );
-      const publicKey =
-        publicKeyResponse.ok && publicKeyData?.available && publicKeyData.publicKey ? publicKeyData.publicKey : null;
-      const registration = await navigator.serviceWorker.ready;
-      let subscription = await registration.pushManager.getSubscription();
+      try {
+        const { data: publicKeyData, response: publicKeyResponse } = await client.GET<PushPublicKeyResponse>(
+          "/notifications/push/public-key",
+        );
+        const publicKey =
+          publicKeyResponse.ok && publicKeyData?.available && publicKeyData.publicKey ? publicKeyData.publicKey : null;
+        const registration = await getReadyServiceWorkerRegistration();
+        let subscription = await registration.pushManager.getSubscription();
 
-      if (
-        Notification.permission === "granted" &&
-        subscription &&
-        publicKey &&
-        !isCurrentPushSubscriptionServerKey(subscription.options.applicationServerKey, publicKey)
-      ) {
-        try {
-          await client.DELETE<PushSubscriptionResponse>("/notifications/push/subscription", {
+        if (
+          Notification.permission === "granted" &&
+          subscription &&
+          publicKey &&
+          !isCurrentPushSubscriptionServerKey(subscription.options.applicationServerKey, publicKey)
+        ) {
+          try {
+            await client.DELETE<PushSubscriptionResponse>("/notifications/push/subscription", {
+              headers: {
+                "x-yapd-csrf": csrfToken,
+              },
+              params: {
+                query: {
+                  endpoint: subscription.endpoint,
+                },
+              },
+            });
+          } catch {
+            // Best-effort cleanup for stale subscriptions.
+          }
+
+          await subscription.unsubscribe();
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: decodePushPublicKey(publicKey),
+          });
+
+          const subscriptionJson = subscription.toJSON();
+          await client.PUT<PushSubscriptionResponse>("/notifications/push/subscription", {
             headers: {
               "x-yapd-csrf": csrfToken,
             },
-            params: {
-              query: {
-                endpoint: subscription.endpoint,
+            body: {
+              endpoint: subscription.endpoint,
+              keys: {
+                auth: subscriptionJson.keys?.auth ?? "",
+                p256dh: subscriptionJson.keys?.p256dh ?? "",
               },
+              userAgent: navigator.userAgent,
             },
           });
-        } catch {
-          // Best-effort cleanup for stale subscriptions.
         }
 
-        await subscription.unsubscribe();
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: decodePushPublicKey(publicKey),
-        });
+        if (cancelled) {
+          return;
+        }
 
-        const subscriptionJson = subscription.toJSON();
-        await client.PUT<PushSubscriptionResponse>("/notifications/push/subscription", {
-          headers: {
-            "x-yapd-csrf": csrfToken,
-          },
-          body: {
-            endpoint: subscription.endpoint,
-            keys: {
-              auth: subscriptionJson.keys?.auth ?? "",
-              p256dh: subscriptionJson.keys?.p256dh ?? "",
-            },
-            userAgent: navigator.userAgent,
-          },
-        });
+        setPushAvailable(Boolean(publicKey));
+        setPushPermission(Notification.permission);
+        setPushEndpoint(subscription?.endpoint ?? null);
+      } catch {
+        if (!cancelled) {
+          setPushPermission(Notification.permission);
+        }
       }
-
-      if (cancelled) {
-        return;
-      }
-
-      setPushAvailable(Boolean(publicKey));
-      setPushPermission(Notification.permission);
-      setPushEndpoint(subscription?.endpoint ?? null);
     };
 
     void loadPushState();
@@ -162,33 +331,14 @@ export function NotificationBell() {
     setPushBusy("enable");
 
     try {
-      const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+      const permission = await requestPushPermissionOrThrow();
       setPushPermission(permission);
 
-      if (permission !== "granted") {
-        toast.error(messages.notifications.toasts.pushDenied);
-        return;
-      }
-
-      const { data: publicKeyData, response: publicKeyResponse } = await client.GET<PushPublicKeyResponse>(
-        "/notifications/push/public-key",
-      );
-
-      if (!publicKeyResponse.ok || !publicKeyData?.available || !publicKeyData.publicKey) {
-        setPushAvailable(false);
-        toast.error(messages.notifications.toasts.pushServerUnavailable);
-        return;
-      }
-
+      const publicKey = await getPushPublicKeyOrThrow(client);
       setPushAvailable(true);
 
-      const registration = await navigator.serviceWorker.ready;
-      const subscription =
-        (await registration.pushManager.getSubscription()) ??
-        (await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: decodePushPublicKey(publicKeyData.publicKey),
-        }));
+      const registration = await getReadyServiceWorkerRegistration();
+      const subscription = await getCurrentPushSubscriptionOrSubscribe(client, csrfToken, registration, publicKey);
       const subscriptionJson = subscription.toJSON();
       const body: PushSubscriptionBody = {
         endpoint: subscription.endpoint,
@@ -204,17 +354,22 @@ export function NotificationBell() {
         },
         body,
       });
+      const apiFailureKind = getPushApiFailureKind(response);
+
+      if (apiFailureKind) {
+        throw new PushActivationError(apiFailureKind);
+      }
 
       if (!response.ok || !data) {
-        toast.error(messages.notifications.toasts.pushFailed);
-        return;
+        throw new PushActivationError("subscription-save-failed");
       }
 
       setPushEndpoint(data.endpoint);
       toast.success(messages.notifications.toasts.pushEnabled);
       await refreshPreview();
-    } catch {
-      toast.error(messages.notifications.toasts.pushFailed);
+    } catch (error) {
+      const kind = error instanceof PushActivationError ? error.kind : "unknown";
+      toast.error(getPushActivationFailureMessage(kind, messages));
     } finally {
       setPushBusy(null);
     }
@@ -229,7 +384,7 @@ export function NotificationBell() {
     setPushBusy("disable");
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await getReadyServiceWorkerRegistration();
       const subscription = await registration.pushManager.getSubscription();
       const endpoint = subscription?.endpoint ?? pushEndpoint;
 

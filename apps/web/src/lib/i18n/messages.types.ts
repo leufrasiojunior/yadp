@@ -551,6 +551,12 @@ export type WebMessages = {
       pushInsecureContext: string;
       pushServerUnavailable: string;
       pushDenied: string;
+      pushPermissionBlocked: string;
+      pushServiceWorkerUnavailable: string;
+      pushSubscribeFailed: string;
+      pushSubscriptionSaveFailed: string;
+      pushSessionExpired: string;
+      pushSecurityRejected: string;
       pushFailed: string;
       refreshFailed: string;
     };

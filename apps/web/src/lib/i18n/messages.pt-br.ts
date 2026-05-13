@@ -605,6 +605,15 @@ export const ptBRMessages: WebMessages = {
       pushInsecureContext: "Notificações push exigem HTTPS ou localhost. Acesse o YAPD por um domínio HTTPS.",
       pushServerUnavailable: "A configuração de push ainda não está disponível no servidor.",
       pushDenied: "Permita notificações no navegador para ativar o push.",
+      pushPermissionBlocked:
+        "A permissão de notificações está bloqueada neste site. Libere nas configurações do navegador e tente novamente.",
+      pushServiceWorkerUnavailable:
+        "O Service Worker de notificações não ficou pronto. Recarregue a página e tente novamente.",
+      pushSubscribeFailed: "O navegador recusou a inscrição push. Verifique as permissões do site e tente novamente.",
+      pushSubscriptionSaveFailed: "O navegador criou a inscrição, mas o YAPD não conseguiu salvá-la no servidor.",
+      pushSessionExpired: "Sua sessão expirou. Entre novamente e tente ativar o push.",
+      pushSecurityRejected:
+        "O servidor recusou a ativação por token de segurança inválido. Recarregue a página e tente novamente.",
       pushFailed: "Não foi possível configurar o push agora.",
       refreshFailed: "Não foi possível atualizar as notificações.",
     },

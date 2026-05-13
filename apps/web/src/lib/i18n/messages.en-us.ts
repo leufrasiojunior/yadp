@@ -601,6 +601,15 @@ export const enUSMessages: WebMessages = {
       pushInsecureContext: "Push notifications require HTTPS or localhost. Access YAPD through an HTTPS domain.",
       pushServerUnavailable: "Push configuration is not available on the server yet.",
       pushDenied: "Allow notifications in the browser to enable push.",
+      pushPermissionBlocked:
+        "Notification permission is blocked for this site. Allow it in browser settings and try again.",
+      pushServiceWorkerUnavailable:
+        "The notifications service worker did not become ready. Reload the page and try again.",
+      pushSubscribeFailed: "The browser rejected the push subscription. Check site permissions and try again.",
+      pushSubscriptionSaveFailed: "The browser created the subscription, but YAPD could not save it on the server.",
+      pushSessionExpired: "Your session expired. Sign in again and try enabling push.",
+      pushSecurityRejected:
+        "The server rejected the request because the security token was invalid. Reload and try again.",
       pushFailed: "Could not configure push right now.",
       refreshFailed: "Could not refresh notifications.",
     },

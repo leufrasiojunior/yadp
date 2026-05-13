@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import Script from "next/script";
-
 import type { Metadata } from "next";
 
 import "@reactour/tour/dist/index.css";
@@ -27,16 +25,6 @@ export const metadata: Metadata = {
     apple: [{ url: logoSrc.src, type: "image/png" }],
   },
 };
-
-const swScript = `
-  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/notifications-sw.js").catch(function (error) {
-        console.error("Service Worker registration failed:", error);
-      });
-    });
-  }
-`;
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const [locale, timeZone] = await Promise.all([getServerLocale(), getServerTimeZone()]);
@@ -90,12 +78,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <Toaster />
           </PreferencesStoreProvider>
         </TooltipProvider>
-        <Script
-          id="service-worker-registration"
-          strategy="afterInteractive"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: static script for service worker registration
-          dangerouslySetInnerHTML={{ __html: swScript }}
-        />
       </body>
     </html>
   );

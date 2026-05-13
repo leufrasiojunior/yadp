@@ -17,7 +17,7 @@ function registerNotificationsServiceWorker() {
     return;
   }
 
-  void navigator.serviceWorker.register("/notifications-sw.js");
+  void navigator.serviceWorker.register("/notifications-sw.js", { updateViaCache: "none" });
 }
 
 export function NotificationsProvider({

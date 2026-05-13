@@ -7,7 +7,7 @@ x-yapd-config:
   # Use the public HTTPS origin served by your reverse proxy.
   # Browser push notifications require a trusted HTTPS context or localhost;
   # direct access through http://<server-ip>:<port> keeps push disabled.
-  web_origin: &yapd_web_origin "https://yapd.example.com"
+  web_origin: &yapd_web_origin "https://yapd.wiseflow.duckdns.org"
 
   # Database:
   postgres_db: &yapd_postgres_db "yapd"
