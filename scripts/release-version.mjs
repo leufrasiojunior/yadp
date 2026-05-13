@@ -194,9 +194,13 @@ function nextBetaVersion(baseVersion, { noFetch, dryRun }) {
 
 function createReleaseAsCommit(version, { dryRun, push }) {
   console.log(`Creating Release-As commit for ${version}`);
-  run("git", ["commit", "--allow-empty", "-m", `chore: release ${version}`, "-m", `Release-As: ${version}`], {
-    dryRun,
-  });
+  run(
+    "git",
+    ["commit", "--allow-empty", "--no-verify", "-m", `chore: release ${version}`, "-m", `Release-As: ${version}`],
+    {
+      dryRun,
+    },
+  );
 
   if (dryRun) {
     console.log("Dry run only. No commit was created.");
