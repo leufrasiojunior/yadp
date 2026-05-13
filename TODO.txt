@@ -5,8 +5,7 @@ salvar tambem as configuracoes selecionadas no BD, mas manter o cookie como prim
 -----
 
 mandar o codex
-remover o aviso do checkbox de atualizando, e deixar um simples spiner ao lado.(como somente indicativo que esta atualizando)
-Botao de atualizar a tabela
+
 
 adicionar um passo opcional no setup, depois de configurar as instancias, ja perguntar se quer sincronizar(usar o teleport para todas as instancias, e ir 1 por vez nessa parte, com o componente progress, se uma instancia falhar,  perguntar se quer tentar de novo, se falhar 3x seguidas perguntar se quer fazer isso depois, ou cancelar. Salvar os estados das instancias para tentar recuperar tambem usando a mesma rota.)
 (perguntar 2x, pois pode ser uma acao destrutiva, ou seja, quando aceitar a primeira vez, perguntar de novo com titulo diferente. Usar a rota de export para exportar e depois importar em todas as instancias. Lembrar de apagar o ZIP gerado)
