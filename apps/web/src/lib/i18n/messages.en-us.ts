@@ -848,6 +848,11 @@ export const enUSMessages: WebMessages = {
       retry: "Retry",
       cancel: "Cancel",
       delete: "Delete job",
+      deleteJobDialogTitle: "Delete this job?",
+      deleteJobDialogDescription: (kind, status, period) =>
+        `This deletes the ${kind} job with status ${status} and removes historical data linked to ${period}.`,
+      deleteJobDialogConfirm: "Delete job",
+      deleteJobDialogCancel: "Cancel",
       runningHint: "Waiting for completion",
       progressSummary: (saved, expected) => `${saved} saved out of ${expected} expected`,
       pagesSummary: (completed, total) => `${completed} of ${total} pages`,

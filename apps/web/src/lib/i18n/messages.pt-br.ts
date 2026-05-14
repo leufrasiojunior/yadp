@@ -854,6 +854,11 @@ export const ptBRMessages: WebMessages = {
       retry: "Tentar novamente",
       cancel: "Cancelar",
       delete: "Apagar job",
+      deleteJobDialogTitle: "Apagar este job?",
+      deleteJobDialogDescription: (kind, status, period) =>
+        `Esta ação apaga o job ${kind} com status ${status} e remove os dados históricos vinculados ao período ${period}.`,
+      deleteJobDialogConfirm: "Apagar job",
+      deleteJobDialogCancel: "Cancelar",
       runningHint: "Aguardando conclusão",
       progressSummary: (saved, expected) => `${saved} salvas de ${expected} esperadas`,
       pagesSummary: (completed, total) => `${completed} de ${total} páginas`,
