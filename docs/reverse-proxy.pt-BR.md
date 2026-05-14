@@ -12,7 +12,7 @@ Use o proxy reverso externo como entrada HTTPS pública e encaminhe o tráfego p
 Navegador -> https://yapd.seu-dominio.com -> proxy reverso externo -> http://HOST_YAPD:48080
 ```
 
-Com `compose_novo_prod.yml`, o container YAPD publica:
+Com `compose.yml`, o container YAPD publica:
 
 - `48080` -> porta HTTP interna `80` do container
 - `48443` -> porta HTTPS interna `443` do container
@@ -21,7 +21,7 @@ Na maioria dos deploys, use `48080` como destino upstream. A porta `48443` usa u
 
 ## Variáveis de Ambiente Cruciais
 
-Ao usar um proxy reverso, você deve ajustar as seguintes variáveis no seu `compose.yaml` ou arquivo `.env`:
+Ao usar um proxy reverso, você deve ajustar as seguintes variáveis no seu `compose.yml` ou arquivo `.env`:
 
 ### 1. `COOKIE_SECURE`
 - **`true` (Recomendado)**: Use se o acesso final do usuário for via **HTTPS**. O navegador exigirá uma conexão segura para enviar o cookie de sessão.
@@ -124,7 +124,7 @@ yapd.seu-dominio.com {
 2. **Domain Names**: `yapd.seu-dominio.com`.
 3. **Scheme**: `http`.
 4. **Forward Hostname/IP**: IP do host YAPD, por exemplo `192.168.31.17`.
-5. **Forward Port**: `48080` ao usar `compose_novo_prod.yml`.
+5. **Forward Port**: `48080` ao usar `compose.yml`.
 6. Ative **Websockets Support**.
 7. Na aba **SSL**, selecione seu certificado (ou gere um novo via Let's Encrypt) e ative **Force SSL** e **HTTP/2 Support**.
 8. Ative HSTS apenas depois de confirmar que o domínio funciona em HTTPS. Use **HSTS Subdomains** somente se todos os subdomínios do mesmo domínio pai estiverem prontos para HTTPS forçado.

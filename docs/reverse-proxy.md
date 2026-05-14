@@ -12,7 +12,7 @@ Use the external reverse proxy as the public HTTPS entrypoint and forward traffi
 Browser -> https://yapd.your-domain.com -> external reverse proxy -> http://YAPD_HOST:48080
 ```
 
-With `compose_novo_prod.yml`, the YAPD container publishes:
+With `compose.yml`, the YAPD container publishes:
 
 - `48080` -> internal container HTTP port `80`
 - `48443` -> internal container HTTPS port `443`
@@ -21,7 +21,7 @@ For most deployments, use `48080` as the upstream target. The `48443` port uses 
 
 ## Crucial Environment Variables
 
-When using a reverse proxy, you must adjust the following variables in your `compose.yaml` or `.env` file:
+When using a reverse proxy, you must adjust the following variables in your `compose.yml` or `.env` file:
 
 ### 1. `COOKIE_SECURE`
 - **`true` (Recommended)**: Use if the final user access is via **HTTPS**. The browser will require a secure connection to send the session cookie.
@@ -124,7 +124,7 @@ yapd.your-domain.com {
 2. **Domain Names**: `yapd.your-domain.com`.
 3. **Scheme**: `http`.
 4. **Forward Hostname/IP**: YAPD host IP, for example `192.168.31.17`.
-5. **Forward Port**: `48080` when using `compose_novo_prod.yml`.
+5. **Forward Port**: `48080` when using `compose.yml`.
 6. Enable **Websockets Support**.
 7. In the **SSL** tab, select your certificate (or generate a new one via Let's Encrypt) and enable **Force SSL** and **HTTP/2 Support**.
 8. Enable HSTS only after confirming the domain works over HTTPS. Use **HSTS Subdomains** only if every subdomain under the same parent domain is ready for enforced HTTPS.

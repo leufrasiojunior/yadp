@@ -2,19 +2,16 @@
   "name": "yapd",
   "version": "0.10.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "dev": "npm run dev:apps",
     "dev:apps": "concurrently -k -n api,web -c blue,magenta \"npm run dev:api\" \"npm run dev:web\"",
     "dev:api": "npm run dev --workspace @yapd/api",
     "dev:web": "npm run dev --workspace @yapd/web",
-    "db:up": "docker compose up -d postgres",
-    "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f postgres",
+    "db:up": "docker compose -f compose.dev.yaml up -d postgres",
+    "db:down": "docker compose -f compose.dev.yaml down",
+    "db:logs": "docker compose -f compose.dev.yaml logs -f postgres",
     "db:migrate:deploy": "npm run db:migrate:deploy --workspace @yapd/api",
     "db:migrate:dev": "npm run db:migrate:dev --workspace @yapd/api",
     "db:migrate:status": "npm run db:migrate:status --workspace @yapd/api",
@@ -33,9 +30,7 @@
     "release:help": "node scripts/release-version.mjs --help"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx,json,md}": [
-      "biome check --write --no-errors-on-unmatched"
-    ]
+    "*.{js,ts,jsx,tsx,json,md}": ["biome check --write --no-errors-on-unmatched"]
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",

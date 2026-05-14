@@ -118,16 +118,16 @@ A direção da v1 inclui:
 
 ## Deploy em Produção
 
-Para ambientes de produção, é recomendado o uso do arquivo `compose_novo_prod.yml`, que é otimizado para estabilidade e segurança.
+Para ambientes de produção, use o arquivo `compose.yml`, que é otimizado para estabilidade e segurança.
 
 1.  **Baixe a configuração**:
     ```bash
-    curl -O https://raw.githubusercontent.com/leufrasiojunior/yapd/main/compose_novo_prod.yml
+    curl -O https://raw.githubusercontent.com/leufrasiojunior/yadp/main/compose.yml
     ```
 2.  **Edite os segredos**: Abra o arquivo e altere os valores na seção `x-yapd-config`, especialmente `postgres_password`, `session_secret` e `app_encryption_key`.
 3.  **Inicie a aplicação**:
     ```bash
-    docker compose -f compose_novo_prod.yml up -d
+    docker compose up -d
     ```
 
 Com o compose de produção, a aplicação é publicada em `http://<seu-ip>:48080` e `https://<seu-ip>:48443`. Se você expuser o YAPD por um proxy reverso externo, aponte o proxy para o endpoint HTTP e deixe o proxy externo terminar o certificado TLS público.
@@ -142,7 +142,7 @@ Para configurações detalhadas de como usar o YAPD com proxies externos (Nginx,
 
 Configuração recomendada:
 
-1. Aponte o proxy externo para o YAPD via **HTTP**. Com `compose_novo_prod.yml`, use a porta publicada `48080`.
+1. Aponte o proxy externo para o YAPD via **HTTP**. Com `compose.yml`, use a porta publicada `48080`.
 2. Termine o certificado HTTPS público no proxy externo, por exemplo com Let's Encrypt.
 3. Configure `WEB_ORIGIN` com a URL exata usada no navegador, como `https://yapd.exemplo.com`.
 4. Mantenha `COOKIE_SECURE=true` quando o acesso pelo navegador for HTTPS.

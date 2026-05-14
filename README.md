@@ -120,16 +120,16 @@ The v1 direction includes:
 
 ## Production Deployment
 
-For production environments, it is recommended to use the `compose_novo_prod.yml` file, which is optimized for stability and security.
+For production environments, use the `compose.yml` file, which is optimized for stability and security.
 
 1.  **Download the configuration**:
     ```bash
-    curl -O https://raw.githubusercontent.com/leufrasiojunior/yapd/main/compose_novo_prod.yml
+    curl -O https://raw.githubusercontent.com/leufrasiojunior/yadp/main/compose.yml
     ```
 2.  **Edit the secrets**: Open the file and change the values in the `x-yapd-config` section, especially `postgres_password`, `session_secret`, and `app_encryption_key`.
 3.  **Start the application**:
     ```bash
-    docker compose -f compose_novo_prod.yml up -d
+    docker compose up -d
     ```
 
 With the production compose file, the application is published on `http://<your-ip>:48080` and `https://<your-ip>:48443`. If you expose YAPD through an external reverse proxy, point the proxy to the HTTP endpoint and let the external proxy terminate the public TLS certificate.
@@ -144,7 +144,7 @@ For detailed configurations on how to use YAPD with external proxies (Nginx, Cad
 
 Recommended setup:
 
-1. Point the external proxy to YAPD over **HTTP**. With `compose_novo_prod.yml`, use the host port `48080`.
+1. Point the external proxy to YAPD over **HTTP**. With `compose.yml`, use the host port `48080`.
 2. Terminate the public HTTPS certificate in the external proxy, for example with Let's Encrypt.
 3. Set `WEB_ORIGIN` to the exact browser URL, such as `https://yapd.example.com`.
 4. Keep `COOKIE_SECURE=true` when browser access is HTTPS.
