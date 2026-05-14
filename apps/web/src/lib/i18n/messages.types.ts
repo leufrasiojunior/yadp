@@ -784,6 +784,10 @@ export type WebMessages = {
       retry: string;
       cancel: string;
       delete: string;
+      deleteJobDialogTitle: string;
+      deleteJobDialogDescription: (kind: string, status: string, period: string) => string;
+      deleteJobDialogConfirm: string;
+      deleteJobDialogCancel: string;
       runningHint: string;
       progressSummary: (saved: string, expected: string) => string;
       pagesSummary: (completed: string, total: string) => string;

@@ -72,6 +72,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -119,6 +120,16 @@ const JOBS_POLL_INTERVAL_MS = 5000;
 const COVERAGE_PAGE_SIZE = 6;
 const OVERVIEW_TOUR_KEY = "overview-v1";
 const JOB_STATUS_FILTER_VALUES = ["all", "inProgress", "completed", "partial", "failure", "cancelled"] as const;
+const RANKING_KPI_SKELETON_KEYS = [
+  "peak-queries",
+  "peak-blocked",
+  "top-domain",
+  "top-client",
+  "top-upstream",
+  "top-status",
+] as const;
+const RANKING_TABLE_SKELETON_KEYS = ["row-a", "row-b", "row-c", "row-d", "row-e"] as const;
+const RANKING_LEGEND_SKELETON_KEYS = ["legend-a", "legend-b", "legend-c", "legend-d", "legend-e"] as const;
 const STATUS_CHART_COLORS = [
   "oklch(0.62 0.2 145)",
   "oklch(0.72 0.18 72)",
@@ -136,6 +147,7 @@ const RANKING_CHART_COLORS = [
 ] as const;
 
 type RankingFilterKey = "domain" | "client_ip";
+type RankingPendingAction = "apply" | "back" | "clear" | "client" | "drilldown" | "reload" | "value";
 type RankingRow = { value: string; count: number };
 type QueryChartPoint = OverviewResponse["charts"]["queries"]["points"][number];
 type RankingDrillDownSource = "volume" | "hourly";
@@ -787,7 +799,9 @@ function OverviewWorkspaceContent({
   const [pendingRankingDrillDownSource, setPendingRankingDrillDownSource] = useState<RankingDrillDownSource | null>(
     null,
   );
+  const [pendingRankingAction, setPendingRankingAction] = useState<RankingPendingAction | null>(null);
   const [isDeletePeriodDialogOpen, setIsDeletePeriodDialogOpen] = useState(false);
+  const [deleteJobDialogJobId, setDeleteJobDialogJobId] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const activeTabRef = useRef<OverviewTab>(initialTab);
   const restoreTabAfterTourRef = useRef<OverviewTab | null>(null);
@@ -978,6 +992,8 @@ function OverviewWorkspaceContent({
   );
   const detailsStatus = details?.status ?? null;
   const isDetailsLive = detailsStatus ? isLiveOverviewJobStatus(detailsStatus) : false;
+  const isRankingLoading = activeTab === "ranking" && isPending;
+  const isRankingActionLoading = (action: RankingPendingAction) => isRankingLoading && pendingRankingAction === action;
 
   useEffect(() => {
     setFilters(initialFilters);
@@ -998,6 +1014,7 @@ function OverviewWorkspaceContent({
   useEffect(() => {
     if (!isPending) {
       setPendingRankingDrillDownSource(null);
+      setPendingRankingAction(null);
     }
   }, [isPending]);
 
@@ -1214,6 +1231,10 @@ function OverviewWorkspaceContent({
   }, [filters.from, filters.until, maxSelectableDateTime]);
 
   const reloadCurrentView = () => {
+    if (activeTabRef.current === "ranking") {
+      setPendingRankingAction("reload");
+    }
+
     startTransition(() => {
       router.refresh();
     });
@@ -1223,7 +1244,11 @@ function OverviewWorkspaceContent({
     (
       nextFilters: OverviewFilters,
       historyMode: "push" | "replace" = "push",
-      options: { keepReturnFilters?: boolean; warnWhenNoSavedCoverage?: boolean } = {},
+      options: {
+        action?: RankingPendingAction;
+        keepReturnFilters?: boolean;
+        warnWhenNoSavedCoverage?: boolean;
+      } = {},
     ) => {
       const normalizedFilters = {
         ...nextFilters,
@@ -1243,6 +1268,7 @@ function OverviewWorkspaceContent({
       if (!options.keepReturnFilters) {
         setRankingReturnFilters(null);
       }
+      setPendingRankingAction(options.action ?? "apply");
       startTransition(() => {
         const href = buildOverviewHref(normalizedFilters, timeZone, "ranking");
 
@@ -1260,7 +1286,7 @@ function OverviewWorkspaceContent({
   const applyRankingDrillDownFilters = (nextFilters: OverviewFilters, source: RankingDrillDownSource) => {
     setRankingReturnFilters(filters);
     setPendingRankingDrillDownSource(source);
-    applyRankingFilters(nextFilters, "push", { keepReturnFilters: true });
+    applyRankingFilters(nextFilters, "push", { action: "drilldown", keepReturnFilters: true });
   };
 
   const returnToPreviousRankingPeriod = () => {
@@ -1270,35 +1296,47 @@ function OverviewWorkspaceContent({
 
     const previousFilters = rankingReturnFilters;
     setRankingReturnFilters(null);
-    applyRankingFilters(previousFilters);
+    applyRankingFilters(previousFilters, "push", { action: "back" });
   };
 
   const handleRankingFilterSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    applyRankingFilters(filters, "push", { warnWhenNoSavedCoverage: true });
+    applyRankingFilters(filters, "push", { action: "apply", warnWhenNoSavedCoverage: true });
   };
 
   const applyRankingValueFilter = (key: RankingFilterKey, value: string) => {
-    applyRankingFilters({
-      ...filters,
-      [key]: value,
-    });
+    applyRankingFilters(
+      {
+        ...filters,
+        [key]: value,
+      },
+      "push",
+      { action: "value" },
+    );
   };
 
   const clearRankingFilters = () => {
-    applyRankingFilters({
-      ...filters,
-      domain: "",
-      client_ip: "",
-      groupBy: "hour",
-    });
+    applyRankingFilters(
+      {
+        ...filters,
+        domain: "",
+        client_ip: "",
+        groupBy: "hour",
+      },
+      "push",
+      { action: "clear" },
+    );
   };
 
   const updateClientFilter = (value: string) => {
-    applyRankingFilters({
-      ...filters,
-      client_ip: value === CLIENT_FILTER_ALL_VALUE ? "" : value,
-    });
+    applyRankingFilters(
+      {
+        ...filters,
+        client_ip: value === CLIENT_FILTER_ALL_VALUE ? "" : value,
+      },
+      "push",
+      { action: "client" },
+    );
   };
 
   const updateRankingDateRange = (range: DateRange | undefined) => {
@@ -1654,6 +1692,7 @@ function OverviewWorkspaceContent({
         setDetailsJobId(null);
         setDetails(null);
       }
+      setDeleteJobDialogJobId(null);
       toast.success(messages.overview.toasts.jobDeleted);
     } finally {
       setBusyJobAction(null);
@@ -2031,8 +2070,54 @@ function OverviewWorkspaceContent({
     );
   };
 
+  const renderRankingLoadingBlock = (className = "h-64") => (
+    <div
+      className={cn("relative overflow-hidden rounded-md border bg-muted/20 p-4", className)}
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-11/12" />
+        <Skeleton className="h-8 w-4/5" />
+        <Skeleton className="h-8 w-2/3" />
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center bg-background/55 backdrop-blur-[1px]">
+        <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-muted-foreground text-sm shadow-sm">
+          <Loader2 className="size-4 animate-spin" />
+          <span>{messages.overview.ranking.drillDownLoading}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderRankingKpiSkeleton = (key: string) => (
+    <Card key={`ranking-kpi-loading-${key}`} className="overflow-hidden">
+      <CardContent className="flex min-h-28 items-start gap-3 p-4" aria-busy="true">
+        <Skeleton className="size-9 shrink-0" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-3 w-2/5" />
+          <Skeleton className="h-5 w-4/5" />
+          <Skeleton className="h-3 w-3/5" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderRankingTableSkeleton = () => (
+    <div className="space-y-3" aria-busy="true">
+      {RANKING_TABLE_SKELETON_KEYS.map((key) => (
+        <div key={`ranking-table-loading-${key}`} className="grid grid-cols-[minmax(0,1fr)_5rem] gap-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+      ))}
+    </div>
+  );
+
   const renderChartLoadingOverlay = (source: RankingDrillDownSource) =>
-    isPending && pendingRankingDrillDownSource === source ? (
+    isRankingLoading && pendingRankingDrillDownSource === source ? (
       <div className="absolute inset-0 z-20 flex items-center justify-center rounded-md bg-background/70 backdrop-blur-[1px]">
         <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-muted-foreground text-sm shadow-sm">
           <Loader2 className="size-4 animate-spin" />
@@ -2056,68 +2141,81 @@ function OverviewWorkspaceContent({
     </Card>
   );
 
-  const renderShareLegend = (rows: RankingShareRow[]) => (
-    <div className="space-y-2 self-center">
-      {rows.map((item) => (
-        <div key={item.value} className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: item.fill }} />
-            <span className="truncate">{item.value}</span>
+  const renderShareLegend = (rows: RankingShareRow[]) =>
+    isRankingLoading ? (
+      <div className="space-y-3 self-center" aria-busy="true">
+        {RANKING_LEGEND_SKELETON_KEYS.map((key) => (
+          <div key={`ranking-legend-loading-${key}`} className="flex items-center justify-between gap-3">
+            <Skeleton className="h-4 w-2/5" />
+            <Skeleton className="h-4 w-20" />
           </div>
-          <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
-            {formatCount(item.count)} | {formatPercentage(item.percentage)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
+        ))}
+      </div>
+    ) : (
+      <div className="space-y-2 self-center">
+        {rows.map((item) => (
+          <div key={item.value} className="flex items-center justify-between gap-3 text-sm">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: item.fill }} />
+              <span className="truncate">{item.value}</span>
+            </div>
+            <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
+              {formatCount(item.count)} | {formatPercentage(item.percentage)}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
 
-  const renderShareTable = (rows: RankingShareRow[], valueLabel: string, filterKey: RankingFilterKey) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>{valueLabel}</TableHead>
-          <TableHead className="text-right">{messages.overview.ranking.analytics.totalColumn}</TableHead>
-          <TableHead className="text-right">{messages.overview.ranking.analytics.percentageColumn}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((item) => {
-          const isOtherRow = item.value === messages.overview.ranking.analytics.other;
-          const isActiveFilter = filters[filterKey] === item.value;
+  const renderShareTable = (rows: RankingShareRow[], valueLabel: string, filterKey: RankingFilterKey) =>
+    isRankingLoading ? (
+      renderRankingTableSkeleton()
+    ) : (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{valueLabel}</TableHead>
+            <TableHead className="text-right">{messages.overview.ranking.analytics.totalColumn}</TableHead>
+            <TableHead className="text-right">{messages.overview.ranking.analytics.percentageColumn}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((item) => {
+            const isOtherRow = item.value === messages.overview.ranking.analytics.other;
+            const isActiveFilter = filters[filterKey] === item.value;
 
-          return (
-            <TableRow key={`${filterKey}-${item.value}`}>
-              <TableCell>
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: item.fill }} />
-                  {isOtherRow ? (
-                    <span className="truncate">{item.value}</span>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="xs"
-                      aria-pressed={isActiveFilter}
-                      className={cn(
-                        "h-auto min-w-0 justify-start whitespace-normal p-0 text-left font-normal",
-                        isActiveFilter ? "font-medium text-foreground" : null,
-                      )}
-                      onClick={() => applyRankingValueFilter(filterKey, item.value)}
-                    >
-                      {item.value}
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell className="text-right tabular-nums">{formatCount(item.count)}</TableCell>
-              <TableCell className="text-right tabular-nums">{formatPercentage(item.percentage)}</TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
-  );
+            return (
+              <TableRow key={`${filterKey}-${item.value}`}>
+                <TableCell>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: item.fill }} />
+                    {isOtherRow ? (
+                      <span className="truncate">{item.value}</span>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="xs"
+                        aria-pressed={isActiveFilter}
+                        className={cn(
+                          "h-auto min-w-0 justify-start whitespace-normal p-0 text-left font-normal",
+                          isActiveFilter ? "font-medium text-foreground" : null,
+                        )}
+                        onClick={() => applyRankingValueFilter(filterKey, item.value)}
+                      >
+                        {item.value}
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right tabular-nums">{formatCount(item.count)}</TableCell>
+                <TableCell className="text-right tabular-nums">{formatPercentage(item.percentage)}</TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    );
 
   const renderRankingTable = (
     rows: Array<{ value: string; count: number }>,
@@ -2125,7 +2223,9 @@ function OverviewWorkspaceContent({
     filterKey?: RankingFilterKey,
   ) => (
     <div className="space-y-2">
-      {rows.length === 0 ? (
+      {isRankingLoading ? (
+        renderRankingTableSkeleton()
+      ) : rows.length === 0 ? (
         <p className="text-muted-foreground text-sm">{messages.overview.ranking.noData}</p>
       ) : (
         <Table>
@@ -2171,6 +2271,10 @@ function OverviewWorkspaceContent({
   );
 
   const selectedJobSummary = jobs.jobs.find((job) => job.id === detailsJobId) ?? null;
+  const deleteJobDialogJob = jobs.jobs.find((job) => job.id === deleteJobDialogJobId) ?? null;
+  const deleteJobDialogPeriod = deleteJobDialogJob
+    ? `${formatDateTime(deleteJobDialogJob.requestedFrom)} - ${formatDateTime(deleteJobDialogJob.requestedUntil)}`
+    : "";
   const isTourDemoDetailsModal = detailsJobId !== null && detailsJobId === tourDemoDetailsJobId;
 
   return (
@@ -2466,7 +2570,7 @@ function OverviewWorkspaceContent({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuItem className="gap-2" disabled={isPending} onSelect={reloadCurrentView}>
-                        <RefreshCw className={cn(isPending ? "animate-spin" : undefined)} />
+                        <RefreshCw className={cn(isRankingActionLoading("reload") ? "animate-spin" : undefined)} />
                         {messages.overview.filters.reload}
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -2499,6 +2603,7 @@ function OverviewWorkspaceContent({
                             type="button"
                             variant="outline"
                             className="h-9 w-full justify-between overflow-hidden font-normal"
+                            disabled={isRankingLoading}
                           >
                             <span className="min-w-0 truncate text-left">{rankingRangeTriggerLabel}</span>
                             <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
@@ -2529,6 +2634,7 @@ function OverviewWorkspaceContent({
                                   type="time"
                                   step={60}
                                   value={filters.from.slice(11, 16)}
+                                  disabled={isRankingLoading}
                                   onChange={(event) => updateRankingFromTimeFilter(event.target.value)}
                                 />
                               </div>
@@ -2541,6 +2647,7 @@ function OverviewWorkspaceContent({
                                   type="time"
                                   step={60}
                                   value={filters.until.slice(11, 16)}
+                                  disabled={isRankingLoading}
                                   onChange={(event) => updateRankingUntilTimeFilter(event.target.value)}
                                 />
                               </div>
@@ -2565,6 +2672,7 @@ function OverviewWorkspaceContent({
                         id="overview-ranking-domain"
                         value={filters.domain}
                         placeholder={messages.overview.ranking.domainPlaceholder}
+                        disabled={isRankingLoading}
                         onChange={(event) => setFilters((current) => ({ ...current, domain: event.target.value }))}
                       />
                     </div>
@@ -2572,7 +2680,11 @@ function OverviewWorkspaceContent({
                       <label htmlFor="overview-ranking-client" className="font-medium text-sm">
                         {messages.overview.ranking.clientFilter}
                       </label>
-                      <Select value={filters.client_ip || CLIENT_FILTER_ALL_VALUE} onValueChange={updateClientFilter}>
+                      <Select
+                        value={filters.client_ip || CLIENT_FILTER_ALL_VALUE}
+                        onValueChange={updateClientFilter}
+                        disabled={isRankingLoading}
+                      >
                         <SelectTrigger id="overview-ranking-client" className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -2590,7 +2702,7 @@ function OverviewWorkspaceContent({
                     </div>
                     <div className="flex flex-wrap items-end gap-2 xl:self-end">
                       <Button type="submit" variant="secondary" disabled={isPending}>
-                        <Filter />
+                        {isRankingActionLoading("apply") ? <Loader2 className="animate-spin" /> : <Filter />}
                         {messages.overview.ranking.applyFilters}
                       </Button>
                       <Button
@@ -2599,7 +2711,7 @@ function OverviewWorkspaceContent({
                         onClick={clearRankingFilters}
                         disabled={isPending || !hasRankingFilters}
                       >
-                        <X />
+                        {isRankingActionLoading("clear") ? <Loader2 className="animate-spin" /> : <X />}
                         {messages.overview.ranking.clearFilters}
                       </Button>
                     </div>
@@ -2658,55 +2770,71 @@ function OverviewWorkspaceContent({
           ) : null}
 
           <Card data-overview-tour="ranking-chart">
-            <CardContent className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
-              <div className="space-y-3">
-                <div>
-                  <p className="font-medium text-sm">{rankingContextTitle}</p>
-                  <p className="text-muted-foreground text-sm">{rankingContextDescription}</p>
+            <CardContent className="p-4">
+              {isRankingLoading ? (
+                renderRankingLoadingBlock("min-h-32")
+              ) : (
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="font-medium text-sm">{rankingContextTitle}</p>
+                      <p className="text-muted-foreground text-sm">{rankingContextDescription}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {activeClientFilter ? (
+                        <Badge variant="secondary">
+                          {messages.overview.ranking.analytics.clientContext(activeClientFilter)}
+                        </Badge>
+                      ) : null}
+                      {activeDomainFilter ? (
+                        <Badge variant="secondary">
+                          {messages.overview.ranking.analytics.domainContext(activeDomainFilter)}
+                        </Badge>
+                      ) : null}
+                      <Badge variant="outline">
+                        {messages.overview.ranking.analytics.groupContext(
+                          messages.overview.ranking.groupByValues[filters.groupBy],
+                        )}
+                      </Badge>
+                      {rankingReturnFilters ? (
+                        <Button type="button" variant="outline" size="sm" onClick={returnToPreviousRankingPeriod}>
+                          {isRankingActionLoading("back") ? <Loader2 className="animate-spin" /> : <ArrowLeft />}
+                          {messages.overview.ranking.backToPreviousPeriod}
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="grid min-w-56 grid-cols-2 gap-2">
+                    <div className="rounded-md border bg-muted/30 p-3">
+                      <p className="text-muted-foreground text-xs">
+                        {messages.overview.ranking.analytics.allowedQueries}
+                      </p>
+                      <p className="mt-1 font-semibold text-lg tabular-nums">{formatCount(allowedQueries)}</p>
+                      <p className="text-muted-foreground text-xs tabular-nums">
+                        {formatPercentage(allowedPercentage)}
+                      </p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-3">
+                      <p className="text-muted-foreground text-xs">
+                        {messages.overview.ranking.analytics.blockedQueries}
+                      </p>
+                      <p className="mt-1 font-semibold text-lg tabular-nums">
+                        {formatCount(overview.summary.blockedQueries)}
+                      </p>
+                      <p className="text-muted-foreground text-xs tabular-nums">
+                        {formatPercentage(blockedPercentage)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {activeClientFilter ? (
-                    <Badge variant="secondary">
-                      {messages.overview.ranking.analytics.clientContext(activeClientFilter)}
-                    </Badge>
-                  ) : null}
-                  {activeDomainFilter ? (
-                    <Badge variant="secondary">
-                      {messages.overview.ranking.analytics.domainContext(activeDomainFilter)}
-                    </Badge>
-                  ) : null}
-                  <Badge variant="outline">
-                    {messages.overview.ranking.analytics.groupContext(
-                      messages.overview.ranking.groupByValues[filters.groupBy],
-                    )}
-                  </Badge>
-                  {rankingReturnFilters ? (
-                    <Button type="button" variant="outline" size="sm" onClick={returnToPreviousRankingPeriod}>
-                      <ArrowLeft />
-                      {messages.overview.ranking.backToPreviousPeriod}
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-              <div className="grid min-w-56 grid-cols-2 gap-2">
-                <div className="rounded-md border bg-muted/30 p-3">
-                  <p className="text-muted-foreground text-xs">{messages.overview.ranking.analytics.allowedQueries}</p>
-                  <p className="mt-1 font-semibold text-lg tabular-nums">{formatCount(allowedQueries)}</p>
-                  <p className="text-muted-foreground text-xs tabular-nums">{formatPercentage(allowedPercentage)}</p>
-                </div>
-                <div className="rounded-md border bg-muted/30 p-3">
-                  <p className="text-muted-foreground text-xs">{messages.overview.ranking.analytics.blockedQueries}</p>
-                  <p className="mt-1 font-semibold text-lg tabular-nums">
-                    {formatCount(overview.summary.blockedQueries)}
-                  </p>
-                  <p className="text-muted-foreground text-xs tabular-nums">{formatPercentage(blockedPercentage)}</p>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-            {rankingKpis.map(renderRankingKpiCard)}
+            {isRankingLoading
+              ? RANKING_KPI_SKELETON_KEYS.map(renderRankingKpiSkeleton)
+              : rankingKpis.map(renderRankingKpiCard)}
           </div>
 
           <Card>
@@ -2715,7 +2843,9 @@ function OverviewWorkspaceContent({
               <CardDescription>{messages.overview.chart.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              {overview.charts.queries.points.length === 0 ? (
+              {isRankingLoading ? (
+                renderRankingLoadingBlock()
+              ) : overview.charts.queries.points.length === 0 ? (
                 <Empty>
                   <EmptyHeader>
                     <EmptyTitle>{messages.overview.chart.noDataTitle}</EmptyTitle>
@@ -2792,7 +2922,9 @@ function OverviewWorkspaceContent({
                 <CardDescription>{messages.overview.ranking.analytics.topDomainsShareDescription}</CardDescription>
               </CardHeader>
               <CardContent>
-                {domainShareRows.length === 0 ? (
+                {isRankingLoading ? (
+                  renderRankingLoadingBlock()
+                ) : domainShareRows.length === 0 ? (
                   <Empty>
                     <EmptyHeader>
                       <EmptyTitle>{messages.overview.chart.noDataTitle}</EmptyTitle>
@@ -2811,7 +2943,9 @@ function OverviewWorkspaceContent({
                 <CardDescription>{messages.overview.ranking.analytics.topClientsShareDescription}</CardDescription>
               </CardHeader>
               <CardContent>
-                {clientShareRows.length === 0 ? (
+                {isRankingLoading ? (
+                  renderRankingLoadingBlock()
+                ) : clientShareRows.length === 0 ? (
                   <Empty>
                     <EmptyHeader>
                       <EmptyTitle>{messages.overview.chart.noDataTitle}</EmptyTitle>
@@ -2858,7 +2992,9 @@ function OverviewWorkspaceContent({
               <CardDescription>{messages.overview.ranking.analytics.hourlyAccessDescription}</CardDescription>
             </CardHeader>
             <CardContent>
-              {overview.charts.queries.groupBy !== "hour" ? (
+              {isRankingLoading ? (
+                renderRankingLoadingBlock()
+              ) : overview.charts.queries.groupBy !== "hour" ? (
                 <Empty>
                   <EmptyHeader>
                     <EmptyTitle>{messages.overview.ranking.analytics.hourlyAccessTitle}</EmptyTitle>
@@ -2939,7 +3075,9 @@ function OverviewWorkspaceContent({
               <CardDescription>{messages.overview.ranking.statusDistributionDescription}</CardDescription>
             </CardHeader>
             <CardContent>
-              {statusChartRows.length === 0 ? (
+              {isRankingLoading ? (
+                renderRankingLoadingBlock("h-56")
+              ) : statusChartRows.length === 0 ? (
                 <Empty>
                   <EmptyHeader>
                     <EmptyTitle>{messages.overview.chart.noDataTitle}</EmptyTitle>
@@ -3164,7 +3302,7 @@ function OverviewWorkspaceContent({
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => void deleteJob(job.id)}
+                                onClick={() => setDeleteJobDialogJobId(job.id)}
                                 disabled={busyJobAction !== null}
                               >
                                 {messages.overview.jobs.delete}
@@ -3181,6 +3319,67 @@ function OverviewWorkspaceContent({
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog
+        open={deleteJobDialogJob !== null}
+        onOpenChange={(open) => {
+          if (!open && busyJobAction !== `delete:${deleteJobDialogJobId}`) {
+            setDeleteJobDialogJobId(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{messages.overview.jobs.deleteJobDialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteJobDialogJob
+                ? messages.overview.jobs.deleteJobDialogDescription(
+                    messages.overview.jobs.kindValues[deleteJobDialogJob.kind],
+                    messages.overview.jobs.statusValues[deleteJobDialogJob.status],
+                    deleteJobDialogPeriod,
+                  )
+                : messages.overview.jobs.deleteJobDialogDescription("", "", "")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deleteJobDialogJob ? (
+            <div className="grid gap-2 rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.type}</span>
+                <span className="font-medium">{messages.overview.jobs.kindValues[deleteJobDialogJob.kind]}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.status}</span>
+                <span className="font-medium">{messages.overview.jobs.statusValues[deleteJobDialogJob.status]}</span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.period}</span>
+                <span className="text-right font-medium">{deleteJobDialogPeriod}</span>
+              </div>
+            </div>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busyJobAction === `delete:${deleteJobDialogJobId}`}>
+              {messages.overview.jobs.deleteJobDialogCancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={!deleteJobDialogJob || busyJobAction !== null}
+              onClick={(event) => {
+                event.preventDefault();
+
+                if (!deleteJobDialogJob) {
+                  return;
+                }
+
+                void deleteJob(deleteJobDialogJob.id);
+              }}
+            >
+              {busyJobAction === `delete:${deleteJobDialogJobId}` ? <Loader2 className="animate-spin" /> : <Trash2 />}
+              {messages.overview.jobs.deleteJobDialogConfirm}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={detailsJobId !== null} onOpenChange={(open) => !open && closeJobDetails()}>
         <DialogContent className="flex h-[90vh] max-h-[90vh] flex-col overflow-hidden sm:max-w-6xl">

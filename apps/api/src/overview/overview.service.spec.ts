@@ -486,6 +486,30 @@ test("cancelJob rejects jobs that already started or finished", async () => {
   }
 });
 
+test("enqueueAutomaticImport uses the previous closed day in the app timezone", async () => {
+  const { service, prisma } = createService(makeJob(), {
+    timeZone: "America/Sao_Paulo",
+  });
+
+  await (
+    service as unknown as {
+      enqueueAutomaticImport(reference: Date): Promise<void>;
+    }
+  ).enqueueAutomaticImport(new Date("2026-04-29T12:00:00.000Z"));
+
+  const createdJobData = prisma.state.createdJobData as {
+    kind: string;
+    requestedFrom: Date;
+    requestedUntil: Date;
+    trigger: string;
+  };
+
+  assert.equal(createdJobData.kind, "AUTOMATIC_IMPORT");
+  assert.equal(createdJobData.requestedFrom.toISOString(), "2026-04-28T03:00:00.000Z");
+  assert.equal(createdJobData.requestedUntil.toISOString(), "2026-04-29T02:59:59.999Z");
+  assert.equal(createdJobData.trigger, "cron");
+});
+
 test("enqueueManualImport accepts only one app-timezone calendar day", async () => {
   const sameDayContext = createService(makeJob(), {
     instances: [{ id: "instance-1", name: "Pi-hole A" }],

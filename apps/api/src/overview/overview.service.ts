@@ -176,6 +176,40 @@ function endOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
 }
 
+type DateTimeParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+  millisecond: number;
+};
+
+const timeZoneFormatterCache = new Map<string, Intl.DateTimeFormat>();
+
+function getTimeZoneFormatter(timeZone: string) {
+  const cached = timeZoneFormatterCache.get(timeZone);
+
+  if (cached) {
+    return cached;
+  }
+
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+
+  timeZoneFormatterCache.set(timeZone, formatter);
+  return formatter;
+}
+
 function getDateKeyInTimeZone(value: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -186,6 +220,131 @@ function getDateKeyInTimeZone(value: Date, timeZone: string) {
   const getPart = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
 
   return `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+}
+
+function parseDateKey(value: string) {
+  const [yearText, monthText, dayText] = value.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return null;
+  }
+
+  return { year, month, day };
+}
+
+function formatDateKey(parts: { year: number; month: number; day: number }) {
+  const year = `${parts.year}`.padStart(4, "0");
+  const month = `${parts.month}`.padStart(2, "0");
+  const day = `${parts.day}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function shiftDateKey(value: string, days: number) {
+  const parts = parseDateKey(value);
+
+  if (!parts) {
+    return value;
+  }
+
+  const shifted = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
+
+  return formatDateKey({
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+  });
+}
+
+function getDateTimePartsInTimeZone(value: Date, timeZone: string): DateTimeParts {
+  const parts = getTimeZoneFormatter(timeZone).formatToParts(value);
+  const byType = Object.fromEntries(
+    parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]),
+  );
+
+  return {
+    year: Number(byType.year),
+    month: Number(byType.month),
+    day: Number(byType.day),
+    hour: Number(byType.hour),
+    minute: Number(byType.minute),
+    second: Number(byType.second),
+    millisecond: value.getUTCMilliseconds(),
+  };
+}
+
+function dateTimePartsToUtcMilliseconds(parts: DateTimeParts) {
+  return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second, parts.millisecond);
+}
+
+function isSameDateTimeParts(left: DateTimeParts, right: DateTimeParts) {
+  return (
+    left.year === right.year &&
+    left.month === right.month &&
+    left.day === right.day &&
+    left.hour === right.hour &&
+    left.minute === right.minute &&
+    left.second === right.second &&
+    left.millisecond === right.millisecond
+  );
+}
+
+function getTimeZoneOffsetMilliseconds(epochMilliseconds: number, timeZone: string) {
+  const epochSecondMilliseconds = Math.floor(epochMilliseconds / 1000) * 1000;
+  const parts = getDateTimePartsInTimeZone(new Date(epochMilliseconds), timeZone);
+
+  return dateTimePartsToUtcMilliseconds({ ...parts, millisecond: 0 }) - epochSecondMilliseconds;
+}
+
+function dateTimePartsInTimeZoneToDate(parts: DateTimeParts, timeZone: string) {
+  const localAsUtc = dateTimePartsToUtcMilliseconds(parts);
+  let candidate = localAsUtc;
+
+  for (let index = 0; index < 4; index += 1) {
+    const nextCandidate = localAsUtc - getTimeZoneOffsetMilliseconds(candidate, timeZone);
+
+    if (nextCandidate === candidate) {
+      break;
+    }
+
+    candidate = nextCandidate;
+  }
+
+  if (isSameDateTimeParts(getDateTimePartsInTimeZone(new Date(candidate), timeZone), parts)) {
+    return new Date(candidate);
+  }
+
+  for (const offset of [-60 * 60 * 1000, 60 * 60 * 1000]) {
+    const adjustedCandidate = candidate + offset;
+
+    if (isSameDateTimeParts(getDateTimePartsInTimeZone(new Date(adjustedCandidate), timeZone), parts)) {
+      return new Date(adjustedCandidate);
+    }
+  }
+
+  return new Date(candidate);
+}
+
+function buildPreviousClosedDayRange(reference: Date, timeZone: string): HistoryRange {
+  const previousDateKey = shiftDateKey(getDateKeyInTimeZone(reference, timeZone), -1);
+  const parts = parseDateKey(previousDateKey);
+
+  if (!parts) {
+    const previousDay = new Date(reference.getFullYear(), reference.getMonth(), reference.getDate() - 1);
+
+    return {
+      from: startOfDay(previousDay),
+      until: endOfDay(previousDay),
+    };
+  }
+
+  return {
+    from: dateTimePartsInTimeZoneToDate({ ...parts, hour: 0, minute: 0, second: 0, millisecond: 0 }, timeZone),
+    until: dateTimePartsInTimeZoneToDate({ ...parts, hour: 23, minute: 59, second: 59, millisecond: 999 }, timeZone),
+  };
 }
 
 function normalizeHistoryRange(from?: number, until?: number): HistoryRange {
@@ -702,13 +861,9 @@ export class OverviewService implements OnModuleInit {
     return { job: this.mapJob(job) };
   }
 
-  private async enqueueAutomaticImport() {
-    const now = new Date();
-    const previousDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-    const range = {
-      from: startOfDay(previousDay),
-      until: endOfDay(previousDay),
-    };
+  private async enqueueAutomaticImport(reference = new Date()) {
+    const timeZone = await this.readAppTimeZone();
+    const range = buildPreviousClosedDayRange(reference, timeZone);
     const existing = await this.prisma.overviewHistoryJob.findFirst({
       where: {
         kind: "AUTOMATIC_IMPORT",
