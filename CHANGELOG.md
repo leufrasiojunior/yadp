@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.10.0...yapd-v0.10.1) (2026-05-14)
+
+
+### Features
+
+* Add confirmation dialogs for job deletion. and bug fixes ([77e9075](https://github.com/leufrasiojunior/yadp/commit/77e9075cd939ca5a80e657dd48620147931e3888))
+
 ## [0.10.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.9.0...yapd-v0.10.0) (2026-05-13)
 
 
