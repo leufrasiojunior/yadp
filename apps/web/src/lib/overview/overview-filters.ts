@@ -1,6 +1,6 @@
 import { datetimeLocalToUnixSeconds, unixSecondsToDatetimeLocal } from "@/lib/queries/queries-filters";
 
-export const OVERVIEW_TAB_VALUES = ["request", "ranking", "jobs"] as const;
+export const OVERVIEW_TAB_VALUES = ["request", "ranking", "jobs", "settings"] as const;
 export type OverviewTab = (typeof OVERVIEW_TAB_VALUES)[number];
 export const OVERVIEW_GROUP_BY_VALUES = ["hour", "day"] as const;
 export type OverviewGroupBy = (typeof OVERVIEW_GROUP_BY_VALUES)[number];
@@ -291,7 +291,7 @@ export function buildOverviewHourBucketFilters(
 export function normalizeOverviewTab(searchParams: Record<string, string | string[] | undefined>): OverviewTab {
   const tab = searchParams.tab;
   const value = Array.isArray(tab) ? (tab[0] ?? "") : (tab ?? "");
-  return value === "ranking" || value === "jobs" ? value : "request";
+  return value === "ranking" || value === "jobs" || value === "settings" ? value : "request";
 }
 
 export function buildDefaultOverviewFilters(timeZone: string): OverviewFilters {

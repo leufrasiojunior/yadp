@@ -1,6 +1,7 @@
 import type { ApiResponseNoStatusOptions } from "@nestjs/swagger";
 
 import {
+  OVERVIEW_AUTOMATIC_IMPORT_RUN_STATUS_VALUES,
   OVERVIEW_FAILURE_KIND_VALUES,
   OVERVIEW_GROUP_BY_VALUES,
   OVERVIEW_JOB_STATUS_VALUES,
@@ -84,6 +85,48 @@ const instanceSourceSchema = {
     instanceName: { type: "string" },
   },
   required: ["instanceId", "instanceName"],
+};
+
+const automaticImportRuleSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    name: { type: "string" },
+    enabled: { type: "boolean" },
+    cronExpression: { type: "string" },
+    scope: { type: "string", enum: [...OVERVIEW_SCOPE_VALUES] },
+    instanceId: { type: "string", nullable: true },
+    instanceName: { type: "string", nullable: true },
+    timeZone: { type: "string" },
+    nextRunAt: { type: "string", format: "date-time", nullable: true },
+    lastRun: {
+      type: "object",
+      properties: {
+        at: { type: "string", format: "date-time", nullable: true },
+        status: { type: "string", enum: [...OVERVIEW_AUTOMATIC_IMPORT_RUN_STATUS_VALUES], nullable: true },
+        jobCount: { type: "number" },
+        skippedCount: { type: "number" },
+        errorMessage: { type: "string", nullable: true },
+      },
+      required: ["at", "status", "jobCount", "skippedCount", "errorMessage"],
+    },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+  required: [
+    "id",
+    "name",
+    "enabled",
+    "cronExpression",
+    "scope",
+    "instanceId",
+    "instanceName",
+    "timeZone",
+    "nextRunAt",
+    "lastRun",
+    "createdAt",
+    "updatedAt",
+  ],
 };
 
 export const OVERVIEW_API_OK_RESPONSE = {
@@ -225,4 +268,27 @@ export const OVERVIEW_JOB_MUTATION_API_OK_RESPONSE = {
 
 export const OVERVIEW_COVERAGE_RENEW_API_OK_RESPONSE = {
   description: "Renewed overview coverage retention without refetching data.",
+};
+
+export const OVERVIEW_AUTOMATIC_IMPORTS_API_OK_RESPONSE = {
+  description: "Configured automatic overview import rules.",
+  schema: {
+    type: "object",
+    properties: {
+      timeZone: { type: "string" },
+      rules: { type: "array", items: automaticImportRuleSchema },
+    },
+    required: ["timeZone", "rules"],
+  },
+};
+
+export const OVERVIEW_AUTOMATIC_IMPORT_RULE_MUTATION_API_OK_RESPONSE = {
+  description: "Configured automatic overview import rule.",
+  schema: {
+    type: "object",
+    properties: {
+      rule: automaticImportRuleSchema,
+    },
+    required: ["rule"],
+  },
 };

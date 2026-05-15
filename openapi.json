@@ -5962,6 +5962,456 @@
         "tags": ["overview"]
       }
     },
+    "/overview/automatic-imports": {
+      "get": {
+        "operationId": "OverviewController_getAutomaticImports",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Configured automatic overview import rules.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "timeZone": {
+                      "type": "string"
+                    },
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "cronExpression": {
+                            "type": "string"
+                          },
+                          "scope": {
+                            "type": "string",
+                            "enum": ["all", "instance"]
+                          },
+                          "instanceId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "instanceName": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "timeZone": {
+                            "type": "string"
+                          },
+                          "nextRunAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "lastRun": {
+                            "type": "object",
+                            "properties": {
+                              "at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": ["SUCCESS", "SKIPPED", "FAILURE"],
+                                "nullable": true
+                              },
+                              "jobCount": {
+                                "type": "number"
+                              },
+                              "skippedCount": {
+                                "type": "number"
+                              },
+                              "errorMessage": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": ["at", "status", "jobCount", "skippedCount", "errorMessage"]
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "enabled",
+                          "cronExpression",
+                          "scope",
+                          "instanceId",
+                          "instanceName",
+                          "timeZone",
+                          "nextRunAt",
+                          "lastRun",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": ["timeZone", "rules"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      },
+      "post": {
+        "operationId": "OverviewController_createAutomaticImport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Configured automatic overview import rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rule": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "cronExpression": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "timeZone": {
+                          "type": "string"
+                        },
+                        "nextRunAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "lastRun": {
+                          "type": "object",
+                          "properties": {
+                            "at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": ["SUCCESS", "SKIPPED", "FAILURE"],
+                              "nullable": true
+                            },
+                            "jobCount": {
+                              "type": "number"
+                            },
+                            "skippedCount": {
+                              "type": "number"
+                            },
+                            "errorMessage": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": ["at", "status", "jobCount", "skippedCount", "errorMessage"]
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "enabled",
+                        "cronExpression",
+                        "scope",
+                        "instanceId",
+                        "instanceName",
+                        "timeZone",
+                        "nextRunAt",
+                        "lastRun",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["rule"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
+    "/overview/automatic-imports/{id}": {
+      "patch": {
+        "operationId": "OverviewController_updateAutomaticImport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Configured automatic overview import rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rule": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "cronExpression": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "timeZone": {
+                          "type": "string"
+                        },
+                        "nextRunAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "lastRun": {
+                          "type": "object",
+                          "properties": {
+                            "at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": ["SUCCESS", "SKIPPED", "FAILURE"],
+                              "nullable": true
+                            },
+                            "jobCount": {
+                              "type": "number"
+                            },
+                            "skippedCount": {
+                              "type": "number"
+                            },
+                            "errorMessage": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": ["at", "status", "jobCount", "skippedCount", "errorMessage"]
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "enabled",
+                        "cronExpression",
+                        "scope",
+                        "instanceId",
+                        "instanceName",
+                        "timeZone",
+                        "nextRunAt",
+                        "lastRun",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["rule"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      },
+      "delete": {
+        "operationId": "OverviewController_deleteAutomaticImport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Configured automatic overview import rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rule": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "cronExpression": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "timeZone": {
+                          "type": "string"
+                        },
+                        "nextRunAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "lastRun": {
+                          "type": "object",
+                          "properties": {
+                            "at": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": ["SUCCESS", "SKIPPED", "FAILURE"],
+                              "nullable": true
+                            },
+                            "jobCount": {
+                              "type": "number"
+                            },
+                            "skippedCount": {
+                              "type": "number"
+                            },
+                            "errorMessage": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": ["at", "status", "jobCount", "skippedCount", "errorMessage"]
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "enabled",
+                        "cronExpression",
+                        "scope",
+                        "instanceId",
+                        "instanceName",
+                        "timeZone",
+                        "nextRunAt",
+                        "lastRun",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["rule"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["overview"]
+      }
+    },
     "/overview/jobs/{id}/details": {
       "get": {
         "operationId": "OverviewController_getJobDetails",

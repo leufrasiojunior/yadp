@@ -11,6 +11,7 @@ export const OVERVIEW_JOB_STATUS_VALUES = [
   "FAILURE",
 ] as const;
 export const OVERVIEW_FAILURE_KIND_VALUES = ["missing_data", "import_failure"] as const;
+export const OVERVIEW_AUTOMATIC_IMPORT_RUN_STATUS_VALUES = ["SUCCESS", "SKIPPED", "FAILURE"] as const;
 export const OVERVIEW_JOB_FAILURE_REASON_VALUES = [
   "timeout",
   "session",
@@ -25,6 +26,7 @@ export type OverviewGroupBy = (typeof OVERVIEW_GROUP_BY_VALUES)[number];
 export type OverviewJobKind = (typeof OVERVIEW_JOB_KIND_VALUES)[number];
 export type OverviewJobStatus = (typeof OVERVIEW_JOB_STATUS_VALUES)[number];
 export type OverviewFailureKind = (typeof OVERVIEW_FAILURE_KIND_VALUES)[number];
+export type OverviewAutomaticImportRunStatus = (typeof OVERVIEW_AUTOMATIC_IMPORT_RUN_STATUS_VALUES)[number];
 export type OverviewJobFailureReason = (typeof OVERVIEW_JOB_FAILURE_REASON_VALUES)[number];
 export type OverviewJobEventLevel = (typeof OVERVIEW_JOB_EVENT_LEVEL_VALUES)[number];
 
@@ -189,6 +191,36 @@ export type OverviewMutationResponse = {
 
 export type OverviewJobDeleteResponse = {
   job: OverviewJobSummary;
+};
+
+export type OverviewAutomaticImportRuleItem = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  cronExpression: string;
+  scope: OverviewScopeMode;
+  instanceId: string | null;
+  instanceName: string | null;
+  timeZone: string;
+  nextRunAt: string | null;
+  lastRun: {
+    at: string | null;
+    status: OverviewAutomaticImportRunStatus | null;
+    jobCount: number;
+    skippedCount: number;
+    errorMessage: string | null;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OverviewAutomaticImportsResponse = {
+  timeZone: string;
+  rules: OverviewAutomaticImportRuleItem[];
+};
+
+export type OverviewAutomaticImportRuleMutationResponse = {
+  rule: OverviewAutomaticImportRuleItem;
 };
 
 export type OverviewResponse = {

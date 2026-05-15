@@ -735,6 +735,38 @@ export type OverviewCoverageRenewResponse = {
   renewedAt: string;
 };
 
+export type OverviewAutomaticImportRunStatus = "SUCCESS" | "SKIPPED" | "FAILURE";
+
+export type OverviewAutomaticImportRule = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  cronExpression: string;
+  scope: "all" | "instance";
+  instanceId: string | null;
+  instanceName: string | null;
+  timeZone: string;
+  nextRunAt: string | null;
+  lastRun: {
+    at: string | null;
+    status: OverviewAutomaticImportRunStatus | null;
+    jobCount: number;
+    skippedCount: number;
+    errorMessage: string | null;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OverviewAutomaticImportsResponse = {
+  timeZone: string;
+  rules: OverviewAutomaticImportRule[];
+};
+
+export type OverviewAutomaticImportRuleMutationResponse = {
+  rule: OverviewAutomaticImportRule;
+};
+
 export type ProductTourStatusResponse = {
   tourKey: string;
   completed: boolean;

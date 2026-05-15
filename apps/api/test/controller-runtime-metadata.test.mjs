@@ -49,10 +49,19 @@ const { GetNotificationsPreviewDto } = require("../dist/notifications/dto/get-no
 const { NotificationIdParamsDto } = require("../dist/notifications/dto/notification-id-params.dto.js");
 const { UpsertPushSubscriptionDto } = require("../dist/notifications/dto/upsert-push-subscription.dto.js");
 const { OverviewController } = require("../dist/overview/overview.controller.js");
+const {
+  CreateOverviewAutomaticImportRuleDto,
+} = require("../dist/overview/dto/create-overview-automatic-import-rule.dto.js");
 const { CreateOverviewHistoryJobDto } = require("../dist/overview/dto/create-overview-history-job.dto.js");
 const { GetOverviewDto } = require("../dist/overview/dto/get-overview.dto.js");
 const { GetOverviewJobsDto } = require("../dist/overview/dto/get-overview-jobs.dto.js");
+const {
+  OverviewAutomaticImportRuleIdParamsDto,
+} = require("../dist/overview/dto/overview-automatic-import-rule-id-params.dto.js");
 const { OverviewJobIdParamsDto } = require("../dist/overview/dto/overview-job-id-params.dto.js");
+const {
+  UpdateOverviewAutomaticImportRuleDto,
+} = require("../dist/overview/dto/update-overview-automatic-import-rule.dto.js");
 const { QueriesController } = require("../dist/queries/queries.controller.js");
 const { GetQueriesDto } = require("../dist/queries/dto/get-queries.dto.js");
 const { GetQuerySuggestionsDto } = require("../dist/queries/dto/get-query-suggestions.dto.js");
@@ -173,6 +182,30 @@ const EXPECTATIONS = [
   },
   { controller: OverviewController, method: "getOverview", parameterIndex: 0, expectedType: GetOverviewDto },
   { controller: OverviewController, method: "getJobs", parameterIndex: 0, expectedType: GetOverviewJobsDto },
+  {
+    controller: OverviewController,
+    method: "createAutomaticImport",
+    parameterIndex: 0,
+    expectedType: CreateOverviewAutomaticImportRuleDto,
+  },
+  {
+    controller: OverviewController,
+    method: "updateAutomaticImport",
+    parameterIndex: 0,
+    expectedType: OverviewAutomaticImportRuleIdParamsDto,
+  },
+  {
+    controller: OverviewController,
+    method: "updateAutomaticImport",
+    parameterIndex: 1,
+    expectedType: UpdateOverviewAutomaticImportRuleDto,
+  },
+  {
+    controller: OverviewController,
+    method: "deleteAutomaticImport",
+    parameterIndex: 0,
+    expectedType: OverviewAutomaticImportRuleIdParamsDto,
+  },
   { controller: OverviewController, method: "getJobDetails", parameterIndex: 0, expectedType: OverviewJobIdParamsDto },
   {
     controller: OverviewController,

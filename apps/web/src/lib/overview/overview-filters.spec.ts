@@ -56,6 +56,7 @@ const overviewFilters = require("./overview-filters.ts") as {
     searchParams: Record<string, string | string[] | undefined>,
     timeZone: string,
   ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
+  normalizeOverviewTab: (searchParams: Record<string, string | string[] | undefined>) => string;
 };
 const {
   buildOverviewChartBucketTimestamp,
@@ -70,6 +71,7 @@ const {
   clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
   normalizeOverviewFilters,
+  normalizeOverviewTab,
 } = overviewFilters;
 
 test("normalizeOverviewFilters converts unix timestamp query params into datetime-local values", () => {
@@ -83,6 +85,12 @@ test("normalizeOverviewFilters converts unix timestamp query params into datetim
 
   assert.equal(filters.from, "2026-03-30T19:50");
   assert.equal(filters.until, "2026-03-31T19:49");
+});
+
+test("normalizeOverviewTab accepts settings tab deep links", () => {
+  assert.equal(normalizeOverviewTab({ tab: "settings" }), "settings");
+  assert.equal(normalizeOverviewTab({ tab: "jobs" }), "jobs");
+  assert.equal(normalizeOverviewTab({ tab: "unknown" }), "request");
 });
 
 test("buildOverviewQueryFromFilters keeps from at minute start and expands until to the end of the minute", () => {

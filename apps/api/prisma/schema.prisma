@@ -104,6 +104,7 @@ model Instance {
   historicalQueries HistoricalQuery[]
   overviewCoverage  OverviewCoverageWindow[]
   overviewJobs      OverviewHistoryJob[]
+  overviewAutomaticImportRules OverviewAutomaticImportRule[]
 }
 
 model InstanceSecret {
@@ -402,6 +403,26 @@ model OverviewCoverageWindow {
   @@index([instanceId, requestedFrom, requestedUntil])
   @@index([jobId])
   @@index([expiresAt])
+}
+
+model OverviewAutomaticImportRule {
+  id                  String    @id @default(cuid())
+  name                String
+  enabled             Boolean   @default(true)
+  cronExpression      String
+  scope               String
+  instanceId          String?
+  lastRunAt           DateTime?
+  lastRunStatus       String?
+  lastRunJobCount     Int       @default(0)
+  lastRunSkippedCount Int       @default(0)
+  lastRunErrorMessage String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  instance            Instance? @relation(fields: [instanceId], references: [id], onDelete: SetNull)
+
+  @@index([enabled])
+  @@index([instanceId])
 }
 
 model PushSubscription {

@@ -25,8 +25,12 @@ import {
   type LucideIcon,
   Monitor,
   MoreHorizontal,
+  Pencil,
+  Plus,
   RefreshCw,
+  Save,
   Server,
+  Settings,
   ShieldBan,
   Trash2,
   TriangleAlert,
@@ -73,6 +77,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -80,6 +85,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
+  InstanceItem,
+  OverviewAutomaticImportRule,
+  OverviewAutomaticImportRuleMutationResponse,
+  OverviewAutomaticImportsResponse,
   OverviewCoverageRenewResponse,
   OverviewJobDeleteResponse,
   OverviewJobDetailsResponse,
@@ -118,6 +127,27 @@ const QUERY_CHART_HOUR_BUCKET_WIDTH_PX = 34;
 const DETAILS_POLL_INTERVAL_MS = 2000;
 const JOBS_POLL_INTERVAL_MS = 5000;
 const COVERAGE_PAGE_SIZE = 6;
+const AUTOMATIC_IMPORT_SCOPE_ALL_VALUE = "__all_instances__";
+const AUTOMATIC_IMPORT_PRESETS = [
+  { value: "0 03 * * *", labelKey: "daily3" },
+  { value: "0 00 * * *", labelKey: "daily0" },
+  { value: "0 06 * * *", labelKey: "daily6" },
+  { value: "0 * * * *", labelKey: "hourly" },
+] as const;
+const AUTOMATIC_IMPORT_DAY_OF_WEEK_VALUES = ["*", "1-5", "0,6"] as const;
+type AutomaticImportPresetLabelKey = (typeof AUTOMATIC_IMPORT_PRESETS)[number]["labelKey"];
+type AutomaticImportDayOfWeekValue = (typeof AUTOMATIC_IMPORT_DAY_OF_WEEK_VALUES)[number];
+type AutomaticImportFormState = {
+  id: string | null;
+  name: string;
+  enabled: boolean;
+  cronExpression: string;
+  scope: "all" | "instance";
+  instanceId: string;
+  builderHour: string;
+  builderMinute: string;
+  builderDayOfWeek: AutomaticImportDayOfWeekValue;
+};
 const OVERVIEW_TOUR_KEY = "overview-v1";
 const JOB_STATUS_FILTER_VALUES = ["all", "inProgress", "completed", "partial", "failure", "cancelled"] as const;
 const RANKING_KPI_SKELETON_KEYS = [
@@ -179,9 +209,11 @@ type OpenJobDetailsOptions = {
 };
 type OverviewWorkspaceProps = Readonly<{
   initialFilters: OverviewFilters;
+  initialAutomaticImports: OverviewAutomaticImportsResponse;
   initialJobs: OverviewJobsResponse;
   initialOverview: OverviewResponse;
   initialTab: OverviewTab;
+  instances: InstanceItem[];
   scope: DashboardScope;
 }>;
 type RegisterTourBeforeClose = (handler: (() => void) | null) => void;
@@ -269,6 +301,44 @@ function buildOverviewHref(filters: OverviewFilters, timeZone: string, activeTab
 
   const queryString = searchParams.toString();
   return queryString.length > 0 ? `/overview?${queryString}` : "/overview";
+}
+
+function buildDefaultAutomaticImportForm(): AutomaticImportFormState {
+  return {
+    id: null,
+    name: "",
+    enabled: true,
+    cronExpression: "0 03 * * *",
+    scope: "all",
+    instanceId: "",
+    builderHour: "03",
+    builderMinute: "00",
+    builderDayOfWeek: "*",
+  };
+}
+
+function buildAutomaticImportFormFromRule(rule: OverviewAutomaticImportRule): AutomaticImportFormState {
+  return {
+    id: rule.id,
+    name: rule.name,
+    enabled: rule.enabled,
+    cronExpression: rule.cronExpression,
+    scope: rule.scope === "instance" && rule.instanceId ? "instance" : "all",
+    instanceId: rule.instanceId ?? "",
+    builderHour: "03",
+    builderMinute: "00",
+    builderDayOfWeek: "*",
+  };
+}
+
+function normalizeClockPart(value: string, max: number) {
+  const numeric = Number(value);
+
+  if (!Number.isInteger(numeric) || numeric < 0 || numeric > max) {
+    return "00";
+  }
+
+  return `${numeric}`.padStart(2, "0");
 }
 
 function centerOverviewTourTarget(selector: string) {
@@ -762,9 +832,11 @@ export function OverviewWorkspace(props: OverviewWorkspaceProps) {
 
 function OverviewWorkspaceContent({
   initialFilters,
+  initialAutomaticImports,
   initialJobs,
   initialOverview,
   initialTab,
+  instances,
   registerTourBeforeClose,
   registerTourFinish,
   scope,
@@ -777,6 +849,10 @@ function OverviewWorkspaceContent({
   const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
   const { formatDateTime, formatFullDateTime, locale, messages, timeZone } = useWebI18n();
   const [filters, setFilters] = useState(initialFilters);
+  const [automaticImports, setAutomaticImports] = useState(initialAutomaticImports);
+  const [automaticImportForm, setAutomaticImportForm] = useState<AutomaticImportFormState>(() =>
+    buildDefaultAutomaticImportForm(),
+  );
   const [overview, setOverview] = useState(initialOverview);
   const [jobs, setJobs] = useState(initialJobs);
   const [activeTab, setActiveTab] = useState<OverviewTab>(initialTab);
@@ -802,6 +878,7 @@ function OverviewWorkspaceContent({
   const [pendingRankingAction, setPendingRankingAction] = useState<RankingPendingAction | null>(null);
   const [isDeletePeriodDialogOpen, setIsDeletePeriodDialogOpen] = useState(false);
   const [deleteJobDialogJobId, setDeleteJobDialogJobId] = useState<string | null>(null);
+  const [deleteAutomaticImportRuleId, setDeleteAutomaticImportRuleId] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const activeTabRef = useRef<OverviewTab>(initialTab);
   const restoreTabAfterTourRef = useRef<OverviewTab | null>(null);
@@ -1008,6 +1085,10 @@ function OverviewWorkspaceContent({
   }, [initialJobs]);
 
   useEffect(() => {
+    setAutomaticImports(initialAutomaticImports);
+  }, [initialAutomaticImports]);
+
+  useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
 
@@ -1023,11 +1104,11 @@ function OverviewWorkspaceContent({
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab !== "jobs" || typeof window === "undefined") {
+    if ((activeTab !== "jobs" && activeTab !== "settings") || typeof window === "undefined") {
       return;
     }
 
-    window.history.replaceState(null, "", "/overview");
+    window.history.replaceState(null, "", `/overview?tab=${activeTab}`);
   }, [activeTab]);
 
   const showTourTab = useCallback((tab: OverviewTab) => {
@@ -1201,6 +1282,158 @@ function OverviewWorkspaceContent({
     },
     [client, messages],
   );
+
+  const refreshAutomaticImports = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      const { data, response } = await client.GET<OverviewAutomaticImportsResponse>("/overview/automatic-imports");
+
+      if (!response.ok || !data) {
+        if (!silent) {
+          toast.error(messages.overview.toasts.automaticImportsRefreshFailed);
+        }
+        return;
+      }
+
+      setAutomaticImports(data);
+    },
+    [client, messages],
+  );
+
+  const resetAutomaticImportForm = () => {
+    setAutomaticImportForm(buildDefaultAutomaticImportForm());
+  };
+
+  const submitAutomaticImportRule = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const body = {
+      name: automaticImportForm.name,
+      enabled: automaticImportForm.enabled,
+      cronExpression: automaticImportForm.cronExpression,
+      scope: automaticImportForm.scope,
+      ...(automaticImportForm.scope === "instance" ? { instanceId: automaticImportForm.instanceId } : {}),
+    };
+
+    setIsMutating(true);
+
+    try {
+      const request = automaticImportForm.id
+        ? client.PATCH<OverviewAutomaticImportRuleMutationResponse>(
+            `/overview/automatic-imports/${automaticImportForm.id}`,
+            {
+              headers: {
+                "x-yapd-csrf": csrfToken,
+              },
+              body,
+            },
+          )
+        : client.POST<OverviewAutomaticImportRuleMutationResponse>("/overview/automatic-imports", {
+            headers: {
+              "x-yapd-csrf": csrfToken,
+            },
+            body,
+          });
+      const { data, response } = await request;
+
+      if (!response.ok || !data) {
+        toast.error(messages.overview.toasts.automaticImportSaveFailed);
+        return;
+      }
+
+      setAutomaticImports((current) => {
+        const existingIndex = current.rules.findIndex((rule) => rule.id === data.rule.id);
+        const rules =
+          existingIndex >= 0
+            ? current.rules.map((rule) => (rule.id === data.rule.id ? data.rule : rule))
+            : [...current.rules, data.rule];
+
+        return {
+          ...current,
+          timeZone: data.rule.timeZone,
+          rules,
+        };
+      });
+      resetAutomaticImportForm();
+      toast.success(messages.overview.toasts.automaticImportSaved);
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const editAutomaticImportRule = (rule: OverviewAutomaticImportRule) => {
+    setAutomaticImportForm(buildAutomaticImportFormFromRule(rule));
+  };
+
+  const toggleAutomaticImportRule = async (rule: OverviewAutomaticImportRule, enabled: boolean) => {
+    setBusyJobAction(`automatic-toggle:${rule.id}`);
+
+    try {
+      const { data, response } = await client.PATCH<OverviewAutomaticImportRuleMutationResponse>(
+        `/overview/automatic-imports/${rule.id}`,
+        {
+          headers: {
+            "x-yapd-csrf": csrfToken,
+          },
+          body: {
+            enabled,
+          },
+        },
+      );
+
+      if (!response.ok || !data) {
+        toast.error(messages.overview.toasts.automaticImportSaveFailed);
+        return;
+      }
+
+      setAutomaticImports((current) => ({
+        ...current,
+        timeZone: data.rule.timeZone,
+        rules: current.rules.map((item) => (item.id === data.rule.id ? data.rule : item)),
+      }));
+    } finally {
+      setBusyJobAction(null);
+    }
+  };
+
+  const deleteAutomaticImportRule = async (ruleId: string) => {
+    setBusyJobAction(`automatic-delete:${ruleId}`);
+
+    try {
+      const { data, response } = await client.DELETE<OverviewAutomaticImportRuleMutationResponse>(
+        `/overview/automatic-imports/${ruleId}`,
+        {
+          headers: {
+            "x-yapd-csrf": csrfToken,
+          },
+        },
+      );
+
+      if (!response.ok || !data) {
+        toast.error(messages.overview.toasts.automaticImportDeleteFailed);
+        return;
+      }
+
+      setAutomaticImports((current) => ({
+        ...current,
+        rules: current.rules.filter((rule) => rule.id !== data.rule.id),
+      }));
+      setDeleteAutomaticImportRuleId(null);
+      toast.success(messages.overview.toasts.automaticImportDeleted);
+    } finally {
+      setBusyJobAction(null);
+    }
+  };
+
+  const applyAutomaticImportBuilder = () => {
+    const minute = normalizeClockPart(automaticImportForm.builderMinute, 59);
+    const hour = normalizeClockPart(automaticImportForm.builderHour, 23);
+
+    setAutomaticImportForm((current) => ({
+      ...current,
+      builderMinute: minute,
+      builderHour: hour,
+      cronExpression: `${minute} ${hour} * * ${current.builderDayOfWeek}`,
+    }));
+  };
 
   useEffect(() => {
     if (!jobs.jobs.some((job) => isLiveOverviewJobStatus(job.status))) {
@@ -1411,7 +1644,7 @@ function OverviewWorkspaceContent({
   };
 
   const handleTabChange = (nextTab: string) => {
-    if (nextTab !== "request" && nextTab !== "ranking" && nextTab !== "jobs") {
+    if (nextTab !== "request" && nextTab !== "ranking" && nextTab !== "jobs" && nextTab !== "settings") {
       return;
     }
 
@@ -1421,9 +1654,9 @@ function OverviewWorkspaceContent({
 
     setActiveTab(nextTab);
 
-    if (nextTab === "jobs") {
+    if (nextTab === "jobs" || nextTab === "settings") {
       if (typeof window !== "undefined") {
-        window.history.replaceState(null, "", "/overview");
+        window.history.replaceState(null, "", `/overview?tab=${nextTab}`);
       }
       return;
     }
@@ -2272,6 +2505,8 @@ function OverviewWorkspaceContent({
 
   const selectedJobSummary = jobs.jobs.find((job) => job.id === detailsJobId) ?? null;
   const deleteJobDialogJob = jobs.jobs.find((job) => job.id === deleteJobDialogJobId) ?? null;
+  const deleteAutomaticImportRuleTarget =
+    automaticImports.rules.find((rule) => rule.id === deleteAutomaticImportRuleId) ?? null;
   const deleteJobDialogPeriod = deleteJobDialogJob
     ? `${formatDateTime(deleteJobDialogJob.requestedFrom)} - ${formatDateTime(deleteJobDialogJob.requestedUntil)}`
     : "";
@@ -2303,18 +2538,37 @@ function OverviewWorkspaceContent({
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="gap-4 md:gap-6">
-        <TabsList className="grid w-full grid-cols-3" data-overview-tour="tabs">
-          <TabsTrigger value="request" data-overview-tour="tab-request" className="gap-2">
+        <TabsList className="grid w-full grid-cols-4" data-overview-tour="tabs">
+          <TabsTrigger
+            value="request"
+            data-overview-tour="tab-request"
+            className="gap-2"
+            aria-label={messages.overview.tabs.request}
+          >
             <Database className="size-4" />
-            {messages.overview.tabs.request}
+            <span className="hidden sm:inline">{messages.overview.tabs.request}</span>
           </TabsTrigger>
-          <TabsTrigger value="ranking" data-overview-tour="tab-ranking" className="gap-2">
+          <TabsTrigger
+            value="ranking"
+            data-overview-tour="tab-ranking"
+            className="gap-2"
+            aria-label={messages.overview.tabs.ranking}
+          >
             <Activity className="size-4" />
-            {messages.overview.tabs.ranking}
+            <span className="hidden sm:inline">{messages.overview.tabs.ranking}</span>
           </TabsTrigger>
-          <TabsTrigger value="jobs" data-overview-tour="tab-jobs" className="gap-2">
+          <TabsTrigger
+            value="jobs"
+            data-overview-tour="tab-jobs"
+            className="gap-2"
+            aria-label={messages.overview.tabs.jobs}
+          >
             <ListFilter className="size-4" />
-            {messages.overview.tabs.jobs}
+            <span className="hidden sm:inline">{messages.overview.tabs.jobs}</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="gap-2" aria-label={messages.overview.tabs.settings}>
+            <Settings className="size-4" />
+            <span className="hidden sm:inline">{messages.overview.tabs.settings}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -3318,7 +3572,458 @@ function OverviewWorkspaceContent({
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent
+          value="settings"
+          className="data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 space-y-4 outline-none data-[state=active]:animate-in md:space-y-6"
+        >
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.75fr)] xl:items-start">
+            <Card className="min-w-0">
+              <CardHeader>
+                <CardTitle>{messages.overview.settings.formTitle}</CardTitle>
+                <CardDescription>
+                  {messages.overview.settings.formDescription(automaticImports.timeZone)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-5" onSubmit={(event) => void submitAutomaticImportRule(event)}>
+                  <div className="rounded-lg border bg-muted/20 p-4">
+                    <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(14rem,0.45fr)] md:items-start">
+                      <div className="space-y-1.5">
+                        <label htmlFor="overview-auto-name" className="font-medium text-sm">
+                          {messages.overview.settings.name}
+                        </label>
+                        <Input
+                          id="overview-auto-name"
+                          value={automaticImportForm.name}
+                          maxLength={120}
+                          onChange={(event) =>
+                            setAutomaticImportForm((current) => ({ ...current, name: event.target.value }))
+                          }
+                          placeholder={messages.overview.settings.namePlaceholder}
+                        />
+                      </div>
+                      <div className="flex min-h-20 items-center justify-between gap-3 rounded-md border bg-background/70 p-3">
+                        <div className="min-w-0 space-y-1">
+                          <p className="font-medium text-sm">{messages.overview.settings.enabled}</p>
+                          <p className="text-muted-foreground text-xs">
+                            {messages.overview.settings.enabledDescription}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={automaticImportForm.enabled}
+                          onCheckedChange={(enabled) => setAutomaticImportForm((current) => ({ ...current, enabled }))}
+                          aria-label={messages.overview.settings.enabled}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border bg-background/60 p-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <label htmlFor="overview-auto-scope" className="font-medium text-sm">
+                          {messages.overview.settings.target}
+                        </label>
+                        <Select
+                          value={
+                            automaticImportForm.scope === "all"
+                              ? AUTOMATIC_IMPORT_SCOPE_ALL_VALUE
+                              : automaticImportForm.instanceId
+                          }
+                          onValueChange={(value) =>
+                            setAutomaticImportForm((current) =>
+                              value === AUTOMATIC_IMPORT_SCOPE_ALL_VALUE
+                                ? { ...current, scope: "all", instanceId: "" }
+                                : { ...current, scope: "instance", instanceId: value },
+                            )
+                          }
+                        >
+                          <SelectTrigger id="overview-auto-scope" className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={AUTOMATIC_IMPORT_SCOPE_ALL_VALUE}>
+                              {messages.overview.settings.allInstances}
+                            </SelectItem>
+                            {instances.map((instance) => (
+                              <SelectItem key={instance.id} value={instance.id}>
+                                {instance.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label htmlFor="overview-auto-preset" className="font-medium text-sm">
+                          {messages.overview.settings.preset}
+                        </label>
+                        <Select
+                          value={
+                            AUTOMATIC_IMPORT_PRESETS.some(
+                              (preset) => preset.value === automaticImportForm.cronExpression,
+                            )
+                              ? automaticImportForm.cronExpression
+                              : "custom"
+                          }
+                          onValueChange={(value) => {
+                            if (value === "custom") {
+                              return;
+                            }
+
+                            setAutomaticImportForm((current) => ({ ...current, cronExpression: value }));
+                          }}
+                        >
+                          <SelectTrigger id="overview-auto-preset" className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {AUTOMATIC_IMPORT_PRESETS.map((preset) => (
+                              <SelectItem key={preset.value} value={preset.value}>
+                                {messages.overview.settings.presets[preset.labelKey as AutomaticImportPresetLabelKey]}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="custom">{messages.overview.settings.presets.custom}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(6rem,0.35fr)_minmax(6rem,0.35fr)_minmax(12rem,0.75fr)]">
+                      <div className="space-y-1.5">
+                        <label htmlFor="overview-auto-builder-hour" className="font-medium text-sm">
+                          {messages.overview.settings.hour}
+                        </label>
+                        <Input
+                          id="overview-auto-builder-hour"
+                          type="number"
+                          min={0}
+                          max={23}
+                          value={automaticImportForm.builderHour}
+                          onChange={(event) =>
+                            setAutomaticImportForm((current) => ({ ...current, builderHour: event.target.value }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label htmlFor="overview-auto-builder-minute" className="font-medium text-sm">
+                          {messages.overview.settings.minute}
+                        </label>
+                        <Input
+                          id="overview-auto-builder-minute"
+                          type="number"
+                          min={0}
+                          max={59}
+                          value={automaticImportForm.builderMinute}
+                          onChange={(event) =>
+                            setAutomaticImportForm((current) => ({ ...current, builderMinute: event.target.value }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+                        <label htmlFor="overview-auto-builder-days" className="font-medium text-sm">
+                          {messages.overview.settings.days}
+                        </label>
+                        <Select
+                          value={automaticImportForm.builderDayOfWeek}
+                          onValueChange={(value) =>
+                            setAutomaticImportForm((current) => ({
+                              ...current,
+                              builderDayOfWeek: value as AutomaticImportDayOfWeekValue,
+                            }))
+                          }
+                        >
+                          <SelectTrigger id="overview-auto-builder-days" className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="*">{messages.overview.settings.dayValues.everyDay}</SelectItem>
+                            <SelectItem value="1-5">{messages.overview.settings.dayValues.weekdays}</SelectItem>
+                            <SelectItem value="0,6">{messages.overview.settings.dayValues.weekends}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex justify-start sm:justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                        onClick={applyAutomaticImportBuilder}
+                      >
+                        <Clock3 />
+                        {messages.overview.settings.applyBuilder}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-dashed bg-muted/10 p-4">
+                    <div className="space-y-1.5">
+                      <label htmlFor="overview-auto-cron" className="font-medium text-sm">
+                        {messages.overview.settings.cronExpression}
+                      </label>
+                      <Input
+                        id="overview-auto-cron"
+                        value={automaticImportForm.cronExpression}
+                        className="font-mono"
+                        onChange={(event) =>
+                          setAutomaticImportForm((current) => ({ ...current, cronExpression: event.target.value }))
+                        }
+                        placeholder="0 03 * * *"
+                      />
+                      <p className="text-muted-foreground text-xs">
+                        {messages.overview.settings.fixedWindowNotice(automaticImports.timeZone)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+                    <Button type="submit" className="w-full sm:w-auto" disabled={isMutating}>
+                      {automaticImportForm.id ? <Save /> : <Plus />}
+                      {isMutating
+                        ? messages.overview.settings.saving
+                        : automaticImportForm.id
+                          ? messages.overview.settings.update
+                          : messages.overview.settings.create}
+                    </Button>
+                    {automaticImportForm.id ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                        onClick={resetAutomaticImportForm}
+                        disabled={isMutating}
+                      >
+                        <X />
+                        {messages.overview.settings.cancelEdit}
+                      </Button>
+                    ) : null}
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card className="min-w-0">
+              <CardHeader className="gap-3 sm:grid-cols-[1fr_auto] sm:items-start">
+                <div>
+                  <CardTitle>{messages.overview.settings.rulesTitle}</CardTitle>
+                  <CardDescription>{messages.overview.settings.rulesDescription}</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-center sm:w-auto sm:justify-self-end"
+                  onClick={() => void refreshAutomaticImports()}
+                >
+                  <RefreshCw />
+                  {messages.overview.settings.refresh}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {automaticImports.rules.length === 0 ? (
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyTitle>{messages.overview.settings.emptyTitle}</EmptyTitle>
+                      <EmptyDescription>{messages.overview.settings.emptyDescription}</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : (
+                  <div className="grid gap-3">
+                    {automaticImports.rules.map((rule) => {
+                      const ruleStatusLabel = rule.enabled
+                        ? messages.overview.settings.enabledStatus
+                        : messages.overview.settings.disabledStatus;
+                      const ruleTargetLabel =
+                        rule.scope === "all"
+                          ? messages.overview.settings.allInstances
+                          : rule.instanceName || messages.overview.settings.missingInstance;
+                      const ruleNextRunLabel = rule.nextRunAt
+                        ? formatFullDateTime(rule.nextRunAt)
+                        : messages.overview.coverage.unavailable;
+                      const ruleLastRunLabel = rule.lastRun.at
+                        ? messages.overview.settings.lastRunSummary(
+                            messages.overview.settings.runStatus[rule.lastRun.status ?? "SKIPPED"],
+                            formatFullDateTime(rule.lastRun.at),
+                            formatCount(rule.lastRun.jobCount),
+                            formatCount(rule.lastRun.skippedCount),
+                          )
+                        : messages.overview.settings.neverRun;
+                      const ruleToggleLabel = rule.enabled
+                        ? messages.overview.settings.disableAction
+                        : messages.overview.settings.enableAction;
+
+                      return (
+                        <div key={rule.id} className="rounded-lg border bg-background/60 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="min-w-0 break-words font-semibold leading-tight">{rule.name}</p>
+                                <Badge variant={rule.enabled ? "default" : "secondary"}>{ruleStatusLabel}</Badge>
+                              </div>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-8 shrink-0 lg:hidden"
+                                  aria-label={messages.overview.settings.actions}
+                                  disabled={busyJobAction !== null}
+                                >
+                                  <MoreHorizontal className="size-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem
+                                  className="gap-2"
+                                  disabled={busyJobAction !== null}
+                                  onSelect={() => editAutomaticImportRule(rule)}
+                                >
+                                  <Pencil className="size-4" />
+                                  {messages.overview.settings.edit}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="gap-2"
+                                  disabled={busyJobAction !== null}
+                                  onSelect={() => void toggleAutomaticImportRule(rule, !rule.enabled)}
+                                >
+                                  {rule.enabled ? <X className="size-4" /> : <CheckCircle2 className="size-4" />}
+                                  {ruleToggleLabel}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="gap-2 text-destructive focus:text-destructive"
+                                  disabled={busyJobAction !== null}
+                                  onSelect={() => setDeleteAutomaticImportRuleId(rule.id)}
+                                >
+                                  <Trash2 className="size-4" />
+                                  {messages.overview.settings.delete}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+
+                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div className="min-w-0 rounded-md border bg-muted/20 p-3">
+                              <p className="font-medium text-muted-foreground text-xs">
+                                {messages.overview.settings.target}
+                              </p>
+                              <p className="mt-1 break-words text-foreground text-sm">{ruleTargetLabel}</p>
+                            </div>
+                            <div className="min-w-0 rounded-md border bg-muted/20 p-3">
+                              <p className="font-medium text-muted-foreground text-xs">
+                                {messages.overview.settings.cronExpression}
+                              </p>
+                              <p className="mt-1 break-all font-mono text-foreground text-sm">{rule.cronExpression}</p>
+                            </div>
+                            <div className="min-w-0 rounded-md border bg-muted/20 p-3">
+                              <p className="font-medium text-muted-foreground text-xs">
+                                {messages.overview.settings.nextRun}
+                              </p>
+                              <p className="mt-1 break-words text-foreground text-sm">{ruleNextRunLabel}</p>
+                            </div>
+                            <div className="min-w-0 rounded-md border bg-muted/20 p-3">
+                              <p className="font-medium text-muted-foreground text-xs">
+                                {messages.overview.settings.lastRun}
+                              </p>
+                              <p className="mt-1 break-words text-foreground text-sm">{ruleLastRunLabel}</p>
+                            </div>
+                          </div>
+
+                          {rule.lastRun.errorMessage ? (
+                            <p className="mt-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-destructive text-sm">
+                              {rule.lastRun.errorMessage}
+                            </p>
+                          ) : null}
+
+                          <div className="mt-4 hidden flex-wrap justify-end gap-2 lg:flex">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => editAutomaticImportRule(rule)}
+                              disabled={busyJobAction !== null}
+                            >
+                              <Pencil />
+                              {messages.overview.settings.edit}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void toggleAutomaticImportRule(rule, !rule.enabled)}
+                              disabled={busyJobAction !== null}
+                            >
+                              {rule.enabled ? <X /> : <CheckCircle2 />}
+                              {ruleToggleLabel}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => setDeleteAutomaticImportRuleId(rule.id)}
+                              disabled={busyJobAction !== null}
+                            >
+                              <Trash2 />
+                              {messages.overview.settings.delete}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      <AlertDialog
+        open={deleteAutomaticImportRuleTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && busyJobAction !== `automatic-delete:${deleteAutomaticImportRuleId}`) {
+            setDeleteAutomaticImportRuleId(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{messages.overview.settings.deleteDialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteAutomaticImportRuleTarget
+                ? messages.overview.settings.deleteDialogDescription(deleteAutomaticImportRuleTarget.name)
+                : messages.overview.settings.deleteDialogDescription("")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busyJobAction === `automatic-delete:${deleteAutomaticImportRuleId}`}>
+              {messages.overview.settings.deleteDialogCancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={!deleteAutomaticImportRuleTarget || busyJobAction !== null}
+              onClick={(event) => {
+                event.preventDefault();
+
+                if (!deleteAutomaticImportRuleTarget) {
+                  return;
+                }
+
+                void deleteAutomaticImportRule(deleteAutomaticImportRuleTarget.id);
+              }}
+            >
+              {busyJobAction === `automatic-delete:${deleteAutomaticImportRuleId}` ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <Trash2 />
+              )}
+              {messages.overview.settings.deleteDialogConfirm}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={deleteJobDialogJob !== null}

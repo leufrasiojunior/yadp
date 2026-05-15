@@ -676,6 +676,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/overview/automatic-imports": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["OverviewController_getAutomaticImports"];
+    put?: never;
+    post: operations["OverviewController_createAutomaticImport"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/overview/automatic-imports/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["OverviewController_deleteAutomaticImport"];
+    options?: never;
+    head?: never;
+    patch: operations["OverviewController_updateAutomaticImport"];
+    trace?: never;
+  };
   "/overview/jobs/{id}/details": {
     parameters: {
       query?: never;
@@ -3701,6 +3733,195 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  OverviewController_getAutomaticImports: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Configured automatic overview import rules. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            timeZone: string;
+            rules: {
+              id: string;
+              name: string;
+              enabled: boolean;
+              cronExpression: string;
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              timeZone: string;
+              /** Format: date-time */
+              nextRunAt: string | null;
+              lastRun: {
+                /** Format: date-time */
+                at: string | null;
+                /** @enum {string|null} */
+                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+                jobCount: number;
+                skippedCount: number;
+                errorMessage: string | null;
+              };
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+            }[];
+          };
+        };
+      };
+    };
+  };
+  OverviewController_createAutomaticImport: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Configured automatic overview import rule. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            rule: {
+              id: string;
+              name: string;
+              enabled: boolean;
+              cronExpression: string;
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              timeZone: string;
+              /** Format: date-time */
+              nextRunAt: string | null;
+              lastRun: {
+                /** Format: date-time */
+                at: string | null;
+                /** @enum {string|null} */
+                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+                jobCount: number;
+                skippedCount: number;
+                errorMessage: string | null;
+              };
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  OverviewController_deleteAutomaticImport: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Configured automatic overview import rule. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            rule: {
+              id: string;
+              name: string;
+              enabled: boolean;
+              cronExpression: string;
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              timeZone: string;
+              /** Format: date-time */
+              nextRunAt: string | null;
+              lastRun: {
+                /** Format: date-time */
+                at: string | null;
+                /** @enum {string|null} */
+                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+                jobCount: number;
+                skippedCount: number;
+                errorMessage: string | null;
+              };
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  OverviewController_updateAutomaticImport: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Configured automatic overview import rule. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            rule: {
+              id: string;
+              name: string;
+              enabled: boolean;
+              cronExpression: string;
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              timeZone: string;
+              /** Format: date-time */
+              nextRunAt: string | null;
+              lastRun: {
+                /** Format: date-time */
+                at: string | null;
+                /** @enum {string|null} */
+                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+                jobCount: number;
+                skippedCount: number;
+                errorMessage: string | null;
+              };
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+            };
+          };
+        };
       };
     };
   };
