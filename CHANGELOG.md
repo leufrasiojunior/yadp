@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.10.1...yapd-v0.11.0) (2026-05-15)
+
+
+### Features
+
+* add DTOs for automatic import rule management ([2c8fa4b](https://github.com/leufrasiojunior/yadp/commit/2c8fa4b975ca87c05f498cc4fe48ac0bd49d6f10))
+* add DTOs for automatic import rule management ([d533f38](https://github.com/leufrasiojunior/yadp/commit/d533f38a7c3a598986cf6fff50f7c5fa973abf56))
+
 ## [0.10.1](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.10.0...yapd-v0.10.1) (2026-05-14)
 
 
