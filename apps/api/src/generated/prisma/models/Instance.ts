@@ -223,6 +223,7 @@ export type InstanceWhereInput = {
   historicalQueries?: Prisma.HistoricalQueryListRelationFilter
   overviewCoverage?: Prisma.OverviewCoverageWindowListRelationFilter
   overviewJobs?: Prisma.OverviewHistoryJobListRelationFilter
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleListRelationFilter
 }
 
 export type InstanceOrderByWithRelationInput = {
@@ -244,6 +245,7 @@ export type InstanceOrderByWithRelationInput = {
   historicalQueries?: Prisma.HistoricalQueryOrderByRelationAggregateInput
   overviewCoverage?: Prisma.OverviewCoverageWindowOrderByRelationAggregateInput
   overviewJobs?: Prisma.OverviewHistoryJobOrderByRelationAggregateInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleOrderByRelationAggregateInput
 }
 
 export type InstanceWhereUniqueInput = Prisma.AtLeast<{
@@ -268,6 +270,7 @@ export type InstanceWhereUniqueInput = Prisma.AtLeast<{
   historicalQueries?: Prisma.HistoricalQueryListRelationFilter
   overviewCoverage?: Prisma.OverviewCoverageWindowListRelationFilter
   overviewJobs?: Prisma.OverviewHistoryJobListRelationFilter
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleListRelationFilter
 }, "id">
 
 export type InstanceOrderByWithAggregationInput = {
@@ -319,6 +322,7 @@ export type InstanceCreateInput = {
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateInput = {
@@ -340,6 +344,7 @@ export type InstanceUncheckedCreateInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUpdateInput = {
@@ -361,6 +366,7 @@ export type InstanceUpdateInput = {
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateInput = {
@@ -382,6 +388,7 @@ export type InstanceUncheckedUpdateInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateManyInput = {
@@ -604,6 +611,22 @@ export type InstanceUpdateOneRequiredWithoutOverviewCoverageNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutOverviewCoverageInput, Prisma.InstanceUpdateWithoutOverviewCoverageInput>, Prisma.InstanceUncheckedUpdateWithoutOverviewCoverageInput>
 }
 
+export type InstanceCreateNestedOneWithoutOverviewAutomaticImportRulesInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewAutomaticImportRulesInput, Prisma.InstanceUncheckedCreateWithoutOverviewAutomaticImportRulesInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutOverviewAutomaticImportRulesInput
+  connect?: Prisma.InstanceWhereUniqueInput
+}
+
+export type InstanceUpdateOneWithoutOverviewAutomaticImportRulesNestedInput = {
+  create?: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewAutomaticImportRulesInput, Prisma.InstanceUncheckedCreateWithoutOverviewAutomaticImportRulesInput>
+  connectOrCreate?: Prisma.InstanceCreateOrConnectWithoutOverviewAutomaticImportRulesInput
+  upsert?: Prisma.InstanceUpsertWithoutOverviewAutomaticImportRulesInput
+  disconnect?: Prisma.InstanceWhereInput | boolean
+  delete?: Prisma.InstanceWhereInput | boolean
+  connect?: Prisma.InstanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstanceUpdateToOneWithWhereWithoutOverviewAutomaticImportRulesInput, Prisma.InstanceUpdateWithoutOverviewAutomaticImportRulesInput>, Prisma.InstanceUncheckedUpdateWithoutOverviewAutomaticImportRulesInput>
+}
+
 export type InstanceCreateWithoutSecretInput = {
   id?: string
   name: string
@@ -622,6 +645,7 @@ export type InstanceCreateWithoutSecretInput = {
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSecretInput = {
@@ -642,6 +666,7 @@ export type InstanceUncheckedCreateWithoutSecretInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSecretInput = {
@@ -678,6 +703,7 @@ export type InstanceUpdateWithoutSecretInput = {
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSecretInput = {
@@ -698,6 +724,7 @@ export type InstanceUncheckedUpdateWithoutSecretInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutCertificateTrustInput = {
@@ -718,6 +745,7 @@ export type InstanceCreateWithoutCertificateTrustInput = {
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
@@ -738,6 +766,7 @@ export type InstanceUncheckedCreateWithoutCertificateTrustInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutCertificateTrustInput = {
@@ -774,6 +803,7 @@ export type InstanceUpdateWithoutCertificateTrustInput = {
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
@@ -794,6 +824,7 @@ export type InstanceUncheckedUpdateWithoutCertificateTrustInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutSessionInput = {
@@ -814,6 +845,7 @@ export type InstanceCreateWithoutSessionInput = {
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSessionInput = {
@@ -834,6 +866,7 @@ export type InstanceUncheckedCreateWithoutSessionInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSessionInput = {
@@ -870,6 +903,7 @@ export type InstanceUpdateWithoutSessionInput = {
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSessionInput = {
@@ -890,6 +924,7 @@ export type InstanceUncheckedUpdateWithoutSessionInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutGroupMembershipsInput = {
@@ -910,6 +945,7 @@ export type InstanceCreateWithoutGroupMembershipsInput = {
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutGroupMembershipsInput = {
@@ -930,6 +966,7 @@ export type InstanceUncheckedCreateWithoutGroupMembershipsInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutGroupMembershipsInput = {
@@ -966,6 +1003,7 @@ export type InstanceUpdateWithoutGroupMembershipsInput = {
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutGroupMembershipsInput = {
@@ -986,6 +1024,7 @@ export type InstanceUncheckedUpdateWithoutGroupMembershipsInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutSyncAttemptsInput = {
@@ -1006,6 +1045,7 @@ export type InstanceCreateWithoutSyncAttemptsInput = {
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutSyncAttemptsInput = {
@@ -1026,6 +1066,7 @@ export type InstanceUncheckedCreateWithoutSyncAttemptsInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutSyncAttemptsInput = {
@@ -1062,6 +1103,7 @@ export type InstanceUpdateWithoutSyncAttemptsInput = {
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutSyncAttemptsInput = {
@@ -1082,6 +1124,7 @@ export type InstanceUncheckedUpdateWithoutSyncAttemptsInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutNotificationsInput = {
@@ -1102,6 +1145,7 @@ export type InstanceCreateWithoutNotificationsInput = {
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutNotificationsInput = {
@@ -1122,6 +1166,7 @@ export type InstanceUncheckedCreateWithoutNotificationsInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutNotificationsInput = {
@@ -1158,6 +1203,7 @@ export type InstanceUpdateWithoutNotificationsInput = {
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutNotificationsInput = {
@@ -1178,6 +1224,7 @@ export type InstanceUncheckedUpdateWithoutNotificationsInput = {
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutHistoricalQueriesInput = {
@@ -1198,6 +1245,7 @@ export type InstanceCreateWithoutHistoricalQueriesInput = {
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutHistoricalQueriesInput = {
@@ -1218,6 +1266,7 @@ export type InstanceUncheckedCreateWithoutHistoricalQueriesInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutHistoricalQueriesInput = {
@@ -1254,6 +1303,7 @@ export type InstanceUpdateWithoutHistoricalQueriesInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutHistoricalQueriesInput = {
@@ -1274,6 +1324,7 @@ export type InstanceUncheckedUpdateWithoutHistoricalQueriesInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutOverviewJobsInput = {
@@ -1294,6 +1345,7 @@ export type InstanceCreateWithoutOverviewJobsInput = {
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutOverviewJobsInput = {
@@ -1314,6 +1366,7 @@ export type InstanceUncheckedCreateWithoutOverviewJobsInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutOverviewJobsInput = {
@@ -1350,6 +1403,7 @@ export type InstanceUpdateWithoutOverviewJobsInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutOverviewJobsInput = {
@@ -1370,6 +1424,7 @@ export type InstanceUncheckedUpdateWithoutOverviewJobsInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceCreateWithoutOverviewCoverageInput = {
@@ -1390,6 +1445,7 @@ export type InstanceCreateWithoutOverviewCoverageInput = {
   groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
   historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceUncheckedCreateWithoutOverviewCoverageInput = {
@@ -1410,6 +1466,7 @@ export type InstanceUncheckedCreateWithoutOverviewCoverageInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
   historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedCreateNestedManyWithoutInstanceInput
 }
 
 export type InstanceCreateOrConnectWithoutOverviewCoverageInput = {
@@ -1446,6 +1503,7 @@ export type InstanceUpdateWithoutOverviewCoverageInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
   historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUpdateManyWithoutInstanceNestedInput
 }
 
 export type InstanceUncheckedUpdateWithoutOverviewCoverageInput = {
@@ -1466,6 +1524,107 @@ export type InstanceUncheckedUpdateWithoutOverviewCoverageInput = {
   groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
   historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
   overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewAutomaticImportRules?: Prisma.OverviewAutomaticImportRuleUncheckedUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceCreateWithoutOverviewAutomaticImportRulesInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceUncheckedCreateWithoutOverviewAutomaticImportRulesInput = {
+  id?: string
+  name: string
+  baseUrl: string
+  isBaseline?: boolean
+  syncEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lastValidatedAt?: Date | string | null
+  lastKnownVersion?: string | null
+  secret?: Prisma.InstanceSecretUncheckedCreateNestedOneWithoutInstanceInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedCreateNestedOneWithoutInstanceInput
+  session?: Prisma.InstanceSessionUncheckedCreateNestedOneWithoutInstanceInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedCreateNestedManyWithoutInstanceInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutInstanceInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedCreateNestedManyWithoutInstanceInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedCreateNestedManyWithoutInstanceInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedCreateNestedManyWithoutInstanceInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedCreateNestedManyWithoutInstanceInput
+}
+
+export type InstanceCreateOrConnectWithoutOverviewAutomaticImportRulesInput = {
+  where: Prisma.InstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewAutomaticImportRulesInput, Prisma.InstanceUncheckedCreateWithoutOverviewAutomaticImportRulesInput>
+}
+
+export type InstanceUpsertWithoutOverviewAutomaticImportRulesInput = {
+  update: Prisma.XOR<Prisma.InstanceUpdateWithoutOverviewAutomaticImportRulesInput, Prisma.InstanceUncheckedUpdateWithoutOverviewAutomaticImportRulesInput>
+  create: Prisma.XOR<Prisma.InstanceCreateWithoutOverviewAutomaticImportRulesInput, Prisma.InstanceUncheckedCreateWithoutOverviewAutomaticImportRulesInput>
+  where?: Prisma.InstanceWhereInput
+}
+
+export type InstanceUpdateToOneWithWhereWithoutOverviewAutomaticImportRulesInput = {
+  where?: Prisma.InstanceWhereInput
+  data: Prisma.XOR<Prisma.InstanceUpdateWithoutOverviewAutomaticImportRulesInput, Prisma.InstanceUncheckedUpdateWithoutOverviewAutomaticImportRulesInput>
+}
+
+export type InstanceUpdateWithoutOverviewAutomaticImportRulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUpdateManyWithoutInstanceNestedInput
+}
+
+export type InstanceUncheckedUpdateWithoutOverviewAutomaticImportRulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  baseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  isBaseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastValidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastKnownVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secret?: Prisma.InstanceSecretUncheckedUpdateOneWithoutInstanceNestedInput
+  certificateTrust?: Prisma.InstanceCertificateTrustUncheckedUpdateOneWithoutInstanceNestedInput
+  session?: Prisma.InstanceSessionUncheckedUpdateOneWithoutInstanceNestedInput
+  syncAttempts?: Prisma.SyncAttemptUncheckedUpdateManyWithoutInstanceNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutInstanceNestedInput
+  groupMemberships?: Prisma.ClientGroupMembershipUncheckedUpdateManyWithoutInstanceNestedInput
+  historicalQueries?: Prisma.HistoricalQueryUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewCoverage?: Prisma.OverviewCoverageWindowUncheckedUpdateManyWithoutInstanceNestedInput
+  overviewJobs?: Prisma.OverviewHistoryJobUncheckedUpdateManyWithoutInstanceNestedInput
 }
 
 
@@ -1480,6 +1639,7 @@ export type InstanceCountOutputType = {
   historicalQueries: number
   overviewCoverage: number
   overviewJobs: number
+  overviewAutomaticImportRules: number
 }
 
 export type InstanceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1489,6 +1649,7 @@ export type InstanceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   historicalQueries?: boolean | InstanceCountOutputTypeCountHistoricalQueriesArgs
   overviewCoverage?: boolean | InstanceCountOutputTypeCountOverviewCoverageArgs
   overviewJobs?: boolean | InstanceCountOutputTypeCountOverviewJobsArgs
+  overviewAutomaticImportRules?: boolean | InstanceCountOutputTypeCountOverviewAutomaticImportRulesArgs
 }
 
 /**
@@ -1543,6 +1704,13 @@ export type InstanceCountOutputTypeCountOverviewJobsArgs<ExtArgs extends runtime
   where?: Prisma.OverviewHistoryJobWhereInput
 }
 
+/**
+ * InstanceCountOutputType without action
+ */
+export type InstanceCountOutputTypeCountOverviewAutomaticImportRulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OverviewAutomaticImportRuleWhereInput
+}
+
 
 export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1563,6 +1731,7 @@ export type InstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   historicalQueries?: boolean | Prisma.Instance$historicalQueriesArgs<ExtArgs>
   overviewCoverage?: boolean | Prisma.Instance$overviewCoverageArgs<ExtArgs>
   overviewJobs?: boolean | Prisma.Instance$overviewJobsArgs<ExtArgs>
+  overviewAutomaticImportRules?: boolean | Prisma.Instance$overviewAutomaticImportRulesArgs<ExtArgs>
   _count?: boolean | Prisma.InstanceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instance"]>
 
@@ -1613,6 +1782,7 @@ export type InstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   historicalQueries?: boolean | Prisma.Instance$historicalQueriesArgs<ExtArgs>
   overviewCoverage?: boolean | Prisma.Instance$overviewCoverageArgs<ExtArgs>
   overviewJobs?: boolean | Prisma.Instance$overviewJobsArgs<ExtArgs>
+  overviewAutomaticImportRules?: boolean | Prisma.Instance$overviewAutomaticImportRulesArgs<ExtArgs>
   _count?: boolean | Prisma.InstanceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InstanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1630,6 +1800,7 @@ export type $InstancePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     historicalQueries: Prisma.$HistoricalQueryPayload<ExtArgs>[]
     overviewCoverage: Prisma.$OverviewCoverageWindowPayload<ExtArgs>[]
     overviewJobs: Prisma.$OverviewHistoryJobPayload<ExtArgs>[]
+    overviewAutomaticImportRules: Prisma.$OverviewAutomaticImportRulePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2044,6 +2215,7 @@ export interface Prisma__InstanceClient<T, Null = never, ExtArgs extends runtime
   historicalQueries<T extends Prisma.Instance$historicalQueriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$historicalQueriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HistoricalQueryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   overviewCoverage<T extends Prisma.Instance$overviewCoverageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$overviewCoverageArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OverviewCoverageWindowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   overviewJobs<T extends Prisma.Instance$overviewJobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$overviewJobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OverviewHistoryJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  overviewAutomaticImportRules<T extends Prisma.Instance$overviewAutomaticImportRulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instance$overviewAutomaticImportRulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OverviewAutomaticImportRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2673,6 +2845,30 @@ export type Instance$overviewJobsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.OverviewHistoryJobScalarFieldEnum | Prisma.OverviewHistoryJobScalarFieldEnum[]
+}
+
+/**
+ * Instance.overviewAutomaticImportRules
+ */
+export type Instance$overviewAutomaticImportRulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OverviewAutomaticImportRule
+   */
+  select?: Prisma.OverviewAutomaticImportRuleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OverviewAutomaticImportRule
+   */
+  omit?: Prisma.OverviewAutomaticImportRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OverviewAutomaticImportRuleInclude<ExtArgs> | null
+  where?: Prisma.OverviewAutomaticImportRuleWhereInput
+  orderBy?: Prisma.OverviewAutomaticImportRuleOrderByWithRelationInput | Prisma.OverviewAutomaticImportRuleOrderByWithRelationInput[]
+  cursor?: Prisma.OverviewAutomaticImportRuleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OverviewAutomaticImportRuleScalarFieldEnum | Prisma.OverviewAutomaticImportRuleScalarFieldEnum[]
 }
 
 /**

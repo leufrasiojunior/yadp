@@ -611,6 +611,7 @@ export type WebMessages = {
       request: string;
       ranking: string;
       jobs: string;
+      settings: string;
     };
     filters: {
       title: string;
@@ -875,6 +876,65 @@ export type WebMessages = {
         MANUAL_DELETE: string;
       };
     };
+    settings: {
+      formTitle: string;
+      formDescription: (timeZone: string) => string;
+      rulesTitle: string;
+      rulesDescription: string;
+      name: string;
+      namePlaceholder: string;
+      enabled: string;
+      enabledDescription: string;
+      target: string;
+      allInstances: string;
+      missingInstance: string;
+      preset: string;
+      presets: {
+        daily3: string;
+        daily0: string;
+        daily6: string;
+        hourly: string;
+        custom: string;
+      };
+      hour: string;
+      minute: string;
+      days: string;
+      dayValues: {
+        everyDay: string;
+        weekdays: string;
+        weekends: string;
+      };
+      applyBuilder: string;
+      cronExpression: string;
+      fixedWindowNotice: (timeZone: string) => string;
+      create: string;
+      update: string;
+      saving: string;
+      cancelEdit: string;
+      refresh: string;
+      edit: string;
+      delete: string;
+      actions: string;
+      enableAction: string;
+      disableAction: string;
+      enabledStatus: string;
+      disabledStatus: string;
+      nextRun: string;
+      lastRun: string;
+      neverRun: string;
+      lastRunSummary: (status: string, at: string, jobCount: string, skippedCount: string) => string;
+      runStatus: {
+        SUCCESS: string;
+        SKIPPED: string;
+        FAILURE: string;
+      };
+      emptyTitle: string;
+      emptyDescription: string;
+      deleteDialogTitle: string;
+      deleteDialogDescription: (name: string) => string;
+      deleteDialogConfirm: string;
+      deleteDialogCancel: string;
+    };
     notifications: {
       triggerAutomatic: string;
       triggerManual: string;
@@ -906,6 +966,11 @@ export type WebMessages = {
       coverageRenewed: (renewedQueryCount: string) => string;
       coverageRenewFailed: string;
       tourCompletionFailed: string;
+      automaticImportsRefreshFailed: string;
+      automaticImportSaved: string;
+      automaticImportSaveFailed: string;
+      automaticImportDeleted: string;
+      automaticImportDeleteFailed: string;
     };
   };
   queries: {

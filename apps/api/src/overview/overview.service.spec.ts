@@ -44,6 +44,25 @@ type CoverageWindowRecord = {
   };
 };
 
+type AutomaticImportRuleRecord = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  cronExpression: string;
+  scope: "all" | "instance";
+  instanceId: string | null;
+  lastRunAt: Date | null;
+  lastRunStatus: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+  lastRunJobCount: number;
+  lastRunSkippedCount: number;
+  lastRunErrorMessage: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  instance?: {
+    name: string;
+  } | null;
+};
+
 type InstanceSummary = {
   id: string;
   name: string;
@@ -97,6 +116,27 @@ function makeCoverageWindow(overrides: Partial<CoverageWindowRecord> = {}): Cove
   };
 }
 
+function makeAutomaticImportRule(overrides: Partial<AutomaticImportRuleRecord> = {}): AutomaticImportRuleRecord {
+  const now = new Date("2026-04-29T12:00:00.000Z");
+
+  return {
+    id: overrides.id ?? "rule-1",
+    name: overrides.name ?? "Daily import",
+    enabled: overrides.enabled ?? true,
+    cronExpression: overrides.cronExpression ?? "0 03 * * *",
+    scope: overrides.scope ?? "all",
+    instanceId: overrides.instanceId ?? null,
+    lastRunAt: overrides.lastRunAt ?? null,
+    lastRunStatus: overrides.lastRunStatus ?? null,
+    lastRunJobCount: overrides.lastRunJobCount ?? 0,
+    lastRunSkippedCount: overrides.lastRunSkippedCount ?? 0,
+    lastRunErrorMessage: overrides.lastRunErrorMessage ?? null,
+    createdAt: overrides.createdAt ?? now,
+    updatedAt: overrides.updatedAt ?? now,
+    instance: overrides.instance,
+  };
+}
+
 function createPrismaStub(
   job: OverviewJobRecord,
   coverageWindow = makeCoverageWindow(),
@@ -107,12 +147,16 @@ function createPrismaStub(
     coverageStats?: unknown[];
     queryRawResults?: unknown[][];
     timeZone?: string;
+    automaticImportRules?: AutomaticImportRuleRecord[];
   } = {},
 ) {
   const initialJobs = [job, ...(options.jobs ?? [])].map((item) => structuredClone(item));
+  const initialAutomaticImportRules = options.automaticImportRules ?? [makeAutomaticImportRule()];
   const state = {
     job: structuredClone(job),
     jobs: initialJobs,
+    automaticImportRules: initialAutomaticImportRules.map((item) => structuredClone(item)),
+    createdAutomaticImportRuleData: null as unknown,
     createdJobData: null as unknown,
     coverageWindow: structuredClone(coverageWindow),
     coverageWindows: structuredClone(options.coverageWindows ?? []),
@@ -135,29 +179,68 @@ function createPrismaStub(
       state.job = structuredClone(updated);
     }
   };
-  const matchesJobWhere = (candidate: OverviewJobRecord, where: Record<string, unknown>) => {
+  const matchesWhere = <T extends Record<string, unknown>>(candidate: T, where: Record<string, unknown>) => {
     for (const [key, value] of Object.entries(where)) {
-      if (key === "status" && value && typeof value === "object" && "in" in value) {
-        if (!(value.in as string[]).includes(candidate.status)) {
+      if (key === "OR" && Array.isArray(value)) {
+        if (!value.some((item) => matchesWhere(candidate, item as Record<string, unknown>))) {
           return false;
         }
         continue;
       }
 
-      if (candidate[key as keyof OverviewJobRecord] instanceof Date && value instanceof Date) {
-        if ((candidate[key as keyof OverviewJobRecord] as Date).getTime() !== value.getTime()) {
+      const candidateValue = candidate[key];
+
+      if (value && typeof value === "object" && "in" in value) {
+        if (!((value as { in: unknown[] }).in ?? []).includes(candidateValue)) {
           return false;
         }
         continue;
       }
 
-      if (candidate[key as keyof OverviewJobRecord] !== value) {
+      if (value && typeof value === "object" && "lte" in value) {
+        const limit = (value as { lte: unknown }).lte;
+
+        if (candidateValue instanceof Date && limit instanceof Date) {
+          if (candidateValue.getTime() > limit.getTime()) {
+            return false;
+          }
+        } else if (candidateValue > limit) {
+          return false;
+        }
+        continue;
+      }
+
+      if (value && typeof value === "object" && "gte" in value) {
+        const limit = (value as { gte: unknown }).gte;
+
+        if (candidateValue instanceof Date && limit instanceof Date) {
+          if (candidateValue.getTime() < limit.getTime()) {
+            return false;
+          }
+        } else if (candidateValue < limit) {
+          return false;
+        }
+        continue;
+      }
+
+      if (candidateValue instanceof Date && value instanceof Date) {
+        if (candidateValue.getTime() !== value.getTime()) {
+          return false;
+        }
+        continue;
+      }
+
+      if (candidateValue !== value) {
         return false;
       }
     }
 
     return true;
   };
+  const matchesJobWhere = (candidate: OverviewJobRecord, where: Record<string, unknown>) =>
+    matchesWhere(candidate as unknown as Record<string, unknown>, where);
+  const matchesAutomaticRuleWhere = (candidate: AutomaticImportRuleRecord, where: Record<string, unknown>) =>
+    matchesWhere(candidate as unknown as Record<string, unknown>, where);
   const sortJobs = (jobs: OverviewJobRecord[], orderBy?: Array<Record<string, "asc" | "desc">>) => {
     if (!orderBy) {
       return jobs;
@@ -266,6 +349,130 @@ function createPrismaStub(
         return structuredClone(existing);
       },
     },
+    overviewAutomaticImportRule: {
+      findUnique: async ({
+        where,
+        include,
+      }: {
+        where: { id: string };
+        include?: { instance?: { select: { name: boolean } } };
+      }) => {
+        const rule = state.automaticImportRules.find((item) => item.id === where.id);
+
+        if (!rule) {
+          return null;
+        }
+
+        const instance = include?.instance
+          ? ((options.instances ?? []).find((item) => item.id === rule.instanceId) ?? null)
+          : undefined;
+
+        return structuredClone({
+          ...rule,
+          ...(include?.instance ? { instance: instance ? { name: instance.name } : null } : {}),
+        });
+      },
+      findMany: async ({
+        where,
+        orderBy,
+        include,
+      }: {
+        where?: Record<string, unknown>;
+        orderBy?: Array<Record<string, "asc" | "desc">>;
+        include?: { instance?: { select: { name: boolean } } };
+      } = {}) => {
+        const matchedRules = where
+          ? state.automaticImportRules.filter((item) => matchesAutomaticRuleWhere(item, where))
+          : state.automaticImportRules;
+        const mapped = sortJobs(matchedRules as unknown as OverviewJobRecord[], orderBy).map(
+          (item) => item as unknown as AutomaticImportRuleRecord,
+        );
+
+        return structuredClone(
+          mapped.map((rule) => {
+            const instance = include?.instance
+              ? ((options.instances ?? []).find((item) => item.id === rule.instanceId) ?? null)
+              : undefined;
+
+            return {
+              ...rule,
+              ...(include?.instance ? { instance: instance ? { name: instance.name } : null } : {}),
+            };
+          }),
+        );
+      },
+      create: async ({
+        data,
+        include,
+      }: {
+        data: Partial<AutomaticImportRuleRecord>;
+        include?: { instance?: { select: { name: boolean } } };
+      }) => {
+        state.createdAutomaticImportRuleData = data;
+        const rule = makeAutomaticImportRule({
+          ...data,
+          id: "rule-created",
+          createdAt: new Date("2026-04-29T12:05:00.000Z"),
+          updatedAt: new Date("2026-04-29T12:05:00.000Z"),
+        });
+        state.automaticImportRules.push(structuredClone(rule));
+        const instance = include?.instance
+          ? ((options.instances ?? []).find((item) => item.id === rule.instanceId) ?? null)
+          : undefined;
+
+        return structuredClone({
+          ...rule,
+          ...(include?.instance ? { instance: instance ? { name: instance.name } : null } : {}),
+        });
+      },
+      update: async ({
+        where,
+        data,
+        include,
+      }: {
+        where: { id: string };
+        data: Partial<AutomaticImportRuleRecord>;
+        include?: { instance?: { select: { name: boolean } } };
+      }) => {
+        const existing = state.automaticImportRules.find((item) => item.id === where.id);
+        assert.ok(existing);
+        const updated = {
+          ...existing,
+          ...data,
+          updatedAt: new Date("2026-04-29T12:05:00.000Z"),
+        };
+        const index = state.automaticImportRules.findIndex((item) => item.id === where.id);
+        state.automaticImportRules[index] = structuredClone(updated);
+        const instance = include?.instance
+          ? ((options.instances ?? []).find((item) => item.id === updated.instanceId) ?? null)
+          : undefined;
+
+        return structuredClone({
+          ...updated,
+          ...(include?.instance ? { instance: instance ? { name: instance.name } : null } : {}),
+        });
+      },
+      delete: async ({
+        where,
+        include,
+      }: {
+        where: { id: string };
+        include?: { instance?: { select: { name: boolean } } };
+      }) => {
+        const existing = state.automaticImportRules.find((item) => item.id === where.id);
+        assert.ok(existing);
+        state.automaticImportRules = state.automaticImportRules.filter((item) => item.id !== where.id);
+        const instance = include?.instance
+          ? ((options.instances ?? []).find((item) => item.id === existing.instanceId) ?? null)
+          : undefined;
+
+        return structuredClone({
+          ...existing,
+          ...(include?.instance ? { instance: instance ? { name: instance.name } : null } : {}),
+        });
+      },
+      count: async () => state.automaticImportRules.length,
+    },
     historicalQuery: {
       groupBy: async () => structuredClone(state.coverageStats),
       deleteMany: async ({ where }: { where: unknown }) => {
@@ -362,9 +569,11 @@ function createService(
     coverageStats?: unknown[];
     queryRawResults?: unknown[][];
     timeZone?: string;
+    automaticImportRules?: AutomaticImportRuleRecord[];
   } = {},
 ) {
   const prisma = createPrismaStub(job, makeCoverageWindow(), options);
+  const cronJobs = new Map<string, { stop: () => void }>();
   const service = new OverviewService(
     prisma as never,
     {
@@ -378,6 +587,15 @@ function createService(
     {} as never,
     {
       recordSystemEvent: async () => undefined,
+    } as never,
+    {
+      getCronJobs: () => cronJobs,
+      addCronJob: (name: string, cronJob: { stop: () => void }) => {
+        cronJobs.set(name, cronJob);
+      },
+      deleteCronJob: (name: string) => {
+        cronJobs.delete(name);
+      },
     } as never,
   );
 
@@ -486,28 +704,124 @@ test("cancelJob rejects jobs that already started or finished", async () => {
   }
 });
 
-test("enqueueAutomaticImport uses the previous closed day in the app timezone", async () => {
+test("runAutomaticImportRule expands all-instance rules into d-1 per-instance jobs in the app timezone", async () => {
   const { service, prisma } = createService(makeJob(), {
     timeZone: "America/Sao_Paulo",
+    instances: [
+      { id: "instance-1", name: "Pi-hole A" },
+      { id: "instance-2", name: "Pi-hole B" },
+    ],
+    automaticImportRules: [makeAutomaticImportRule({ id: "rule-all", scope: "all" })],
   });
 
   await (
     service as unknown as {
-      enqueueAutomaticImport(reference: Date): Promise<void>;
+      runAutomaticImportRule(ruleId: string, reference: Date): Promise<void>;
     }
-  ).enqueueAutomaticImport(new Date("2026-04-29T12:00:00.000Z"));
+  ).runAutomaticImportRule("rule-all", new Date("2026-04-29T12:00:00.000Z"));
 
+  const createdJobs = prisma.state.jobs.filter((job) => job.id === "job-created");
   const createdJobData = prisma.state.createdJobData as {
     kind: string;
+    scope: string;
+    instanceId: string;
     requestedFrom: Date;
     requestedUntil: Date;
     trigger: string;
   };
 
+  assert.equal(createdJobs.length, 2);
   assert.equal(createdJobData.kind, "AUTOMATIC_IMPORT");
+  assert.equal(createdJobData.scope, "instance");
+  assert.equal(createdJobData.instanceId, "instance-2");
   assert.equal(createdJobData.requestedFrom.toISOString(), "2026-04-28T03:00:00.000Z");
   assert.equal(createdJobData.requestedUntil.toISOString(), "2026-04-29T02:59:59.999Z");
   assert.equal(createdJobData.trigger, "cron");
+  assert.equal(prisma.state.automaticImportRules[0].lastRunStatus, "SUCCESS");
+  assert.equal(prisma.state.automaticImportRules[0].lastRunJobCount, 2);
+});
+
+test("runAutomaticImportRule skips an instance when an import job already covers the d-1 window", async () => {
+  const existingJob = makeJob({
+    id: "job-existing-import",
+    kind: "MANUAL_IMPORT",
+    status: "SUCCESS",
+    scope: "instance",
+    instanceId: "instance-1",
+    requestedFrom: new Date("2026-04-28T03:00:00.000Z"),
+    requestedUntil: new Date("2026-04-29T02:59:59.000Z"),
+  });
+  const { service, prisma } = createService(existingJob, {
+    timeZone: "America/Sao_Paulo",
+    instances: [{ id: "instance-1", name: "Pi-hole A" }],
+    automaticImportRules: [
+      makeAutomaticImportRule({ id: "rule-instance", scope: "instance", instanceId: "instance-1" }),
+    ],
+  });
+
+  await (
+    service as unknown as {
+      runAutomaticImportRule(ruleId: string, reference: Date): Promise<void>;
+    }
+  ).runAutomaticImportRule("rule-instance", new Date("2026-04-29T12:00:00.000Z"));
+
+  assert.equal(prisma.state.createdJobData, null);
+  assert.equal(prisma.state.automaticImportRules[0].lastRunStatus, "SKIPPED");
+  assert.equal(prisma.state.automaticImportRules[0].lastRunSkippedCount, 1);
+});
+
+test("automatic import rule CRUD validates cron and instance scope", async () => {
+  const { service, prisma } = createService(makeJob(), {
+    timeZone: "America/Sao_Paulo",
+    instances: [{ id: "instance-1", name: "Pi-hole A" }],
+    automaticImportRules: [],
+  });
+
+  const created = await service.createAutomaticImportRule({
+    name: "  Madrugada A  ",
+    enabled: true,
+    cronExpression: "0   4 * * *",
+    scope: "instance",
+    instanceId: "instance-1",
+  } as never);
+
+  assert.equal(created.rule.name, "Madrugada A");
+  assert.equal(created.rule.cronExpression, "0 4 * * *");
+  assert.equal(created.rule.scope, "instance");
+  assert.equal(created.rule.instanceName, "Pi-hole A");
+  assert.deepEqual(prisma.state.createdAutomaticImportRuleData, {
+    name: "Madrugada A",
+    enabled: true,
+    cronExpression: "0 4 * * *",
+    scope: "instance",
+    instanceId: "instance-1",
+  });
+
+  const updated = await service.updateAutomaticImportRule("rule-created", {
+    enabled: false,
+    scope: "all",
+  } as never);
+
+  assert.equal(updated.rule.enabled, false);
+  assert.equal(updated.rule.scope, "all");
+  assert.equal(updated.rule.instanceId, null);
+  assert.equal(updated.rule.nextRunAt, null);
+
+  const deleted = await service.deleteAutomaticImportRule("rule-created");
+
+  assert.equal(deleted.rule.id, "rule-created");
+  assert.equal(prisma.state.automaticImportRules.length, 0);
+
+  await assert.rejects(
+    () =>
+      service.createAutomaticImportRule({
+        name: "Invalid cron",
+        enabled: true,
+        cronExpression: "not a cron",
+        scope: "all",
+      } as never),
+    /Invalid cron expression/,
+  );
 });
 
 test("enqueueManualImport accepts only one app-timezone calendar day", async () => {
@@ -695,6 +1009,7 @@ test("onModuleInit preserves pending jobs and marks only running jobs as interru
   });
   const { service, prisma } = createService(pendingJob, {
     jobs: [runningJob],
+    automaticImportRules: [],
   });
 
   await service.onModuleInit();

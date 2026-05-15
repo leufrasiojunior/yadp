@@ -123,6 +123,11 @@ export type OverviewHistoryJob = Prisma.OverviewHistoryJobModel
  */
 export type OverviewCoverageWindow = Prisma.OverviewCoverageWindowModel
 /**
+ * Model OverviewAutomaticImportRule
+ * 
+ */
+export type OverviewAutomaticImportRule = Prisma.OverviewAutomaticImportRuleModel
+/**
  * Model PushSubscription
  * 
  */

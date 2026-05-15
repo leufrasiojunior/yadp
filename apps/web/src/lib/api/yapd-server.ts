@@ -25,6 +25,7 @@ import type {
   NotificationReadState,
   NotificationsListResponse,
   NotificationsPreviewResponse,
+  OverviewAutomaticImportsResponse,
   OverviewJobsResponse,
   OverviewResponse,
   PushPublicKeyResponse,
@@ -488,6 +489,25 @@ export async function getOverviewJobs(query?: { limit?: number }): Promise<Overv
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load overview jobs.");
+  }
+
+  return data;
+}
+
+export async function getOverviewAutomaticImports(): Promise<OverviewAutomaticImportsResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<OverviewAutomaticImportsResponse>("/overview/automatic-imports");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load overview automatic imports.");
   }
 
   return data;

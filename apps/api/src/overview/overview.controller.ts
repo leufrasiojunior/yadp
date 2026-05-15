@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Inject, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import type { Request } from "express";
 
 import { CsrfGuard } from "../session/csrf.guard";
 import { SessionGuard } from "../session/session.guard";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { CreateOverviewAutomaticImportRuleDto } from "./dto/create-overview-automatic-import-rule.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { CreateOverviewHistoryJobDto } from "./dto/create-overview-history-job.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
@@ -11,11 +13,17 @@ import { GetOverviewDto } from "./dto/get-overview.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { GetOverviewJobsDto } from "./dto/get-overview-jobs.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { OverviewAutomaticImportRuleIdParamsDto } from "./dto/overview-automatic-import-rule-id-params.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { OverviewJobIdParamsDto } from "./dto/overview-job-id-params.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { RenewOverviewCoverageDto } from "./dto/renew-overview-coverage.dto";
+// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
+import { UpdateOverviewAutomaticImportRuleDto } from "./dto/update-overview-automatic-import-rule.dto";
 import {
   OVERVIEW_API_OK_RESPONSE,
+  OVERVIEW_AUTOMATIC_IMPORT_RULE_MUTATION_API_OK_RESPONSE,
+  OVERVIEW_AUTOMATIC_IMPORTS_API_OK_RESPONSE,
   OVERVIEW_COVERAGE_RENEW_API_OK_RESPONSE,
   OVERVIEW_JOB_DETAILS_API_OK_RESPONSE,
   OVERVIEW_JOB_MUTATION_API_OK_RESPONSE,
@@ -40,6 +48,36 @@ export class OverviewController {
   @ApiOkResponse(OVERVIEW_JOBS_API_OK_RESPONSE)
   getJobs(@Query() query: GetOverviewJobsDto) {
     return this.overviewService.listJobs(query);
+  }
+
+  @Get("automatic-imports")
+  @ApiOkResponse(OVERVIEW_AUTOMATIC_IMPORTS_API_OK_RESPONSE)
+  getAutomaticImports() {
+    return this.overviewService.listAutomaticImportRules();
+  }
+
+  @Post("automatic-imports")
+  @UseGuards(CsrfGuard)
+  @ApiOkResponse(OVERVIEW_AUTOMATIC_IMPORT_RULE_MUTATION_API_OK_RESPONSE)
+  createAutomaticImport(@Body() body: CreateOverviewAutomaticImportRuleDto) {
+    return this.overviewService.createAutomaticImportRule(body);
+  }
+
+  @Patch("automatic-imports/:id")
+  @UseGuards(CsrfGuard)
+  @ApiOkResponse(OVERVIEW_AUTOMATIC_IMPORT_RULE_MUTATION_API_OK_RESPONSE)
+  updateAutomaticImport(
+    @Param() params: OverviewAutomaticImportRuleIdParamsDto,
+    @Body() body: UpdateOverviewAutomaticImportRuleDto,
+  ) {
+    return this.overviewService.updateAutomaticImportRule(params.id, body);
+  }
+
+  @Delete("automatic-imports/:id")
+  @UseGuards(CsrfGuard)
+  @ApiOkResponse(OVERVIEW_AUTOMATIC_IMPORT_RULE_MUTATION_API_OK_RESPONSE)
+  deleteAutomaticImport(@Param() params: OverviewAutomaticImportRuleIdParamsDto) {
+    return this.overviewService.deleteAutomaticImportRule(params.id);
   }
 
   @Get("jobs/:id/details")

@@ -1,5 +1,13 @@
-import { BadRequestException, Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
-import { Cron, CronExpression } from "@nestjs/schedule";
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  type OnModuleDestroy,
+  type OnModuleInit,
+} from "@nestjs/common";
+import { Cron, CronExpression, SchedulerRegistry } from "@nestjs/schedule";
+import { CronJob, CronTime } from "cron";
 import type { Request } from "express";
 
 import { DEFAULT_API_LOCALE, getRequestLocale } from "../common/i18n/locale";
@@ -14,10 +22,16 @@ import type {
   PiholeQueryListResult,
 } from "../pihole/pihole.types";
 import { PiholeInstanceSessionService } from "../pihole/pihole-instance-session.service";
+import type { CreateOverviewAutomaticImportRuleDto } from "./dto/create-overview-automatic-import-rule.dto";
 import type { CreateOverviewHistoryJobDto } from "./dto/create-overview-history-job.dto";
 import type { GetOverviewDto } from "./dto/get-overview.dto";
 import type { GetOverviewJobsDto } from "./dto/get-overview-jobs.dto";
+import type { UpdateOverviewAutomaticImportRuleDto } from "./dto/update-overview-automatic-import-rule.dto";
 import type {
+  OverviewAutomaticImportRuleItem,
+  OverviewAutomaticImportRuleMutationResponse,
+  OverviewAutomaticImportRunStatus,
+  OverviewAutomaticImportsResponse,
   OverviewChartPoint,
   OverviewCoverageRenewResponse,
   OverviewCoverageWindowItem,
@@ -38,6 +52,12 @@ import type {
 } from "./overview.types";
 
 type OverviewJobRecord = Awaited<ReturnType<PrismaService["overviewHistoryJob"]["findFirstOrThrow"]>>;
+type OverviewAutomaticImportRuleRecord = Awaited<
+  ReturnType<PrismaService["overviewAutomaticImportRule"]["findFirstOrThrow"]>
+>;
+type OverviewAutomaticImportRuleWithInstance = OverviewAutomaticImportRuleRecord & {
+  instance?: { name: string } | null;
+};
 type CoverageWindowRecord = Awaited<ReturnType<PrismaService["overviewCoverageWindow"]["findFirstOrThrow"]>>;
 
 type HistoryRange = {
@@ -155,6 +175,8 @@ const DEFAULT_COVERAGE_LIMIT = 100;
 const MAX_CONSECUTIVE_FAILURES = 3;
 const RETRY_DELAY_MS = 60_000;
 const COVERAGE_EXPIRING_SOON_DAYS = 5;
+const AUTOMATIC_IMPORT_SCHEDULE_PREFIX = "overview:automatic-import:";
+const AUTOMATIC_IMPORT_DEDUPLICATED_STATUSES = ["PENDING", "RUNNING", "SUCCESS", "PARTIAL"] as const;
 
 function toNumber(value: bigint | number | null | undefined) {
   if (typeof value === "bigint") {
@@ -391,6 +413,22 @@ function stringifyFailure(error: unknown) {
   return "Unknown error";
 }
 
+function normalizeAutomaticImportText(value: string | undefined, fallback = "") {
+  return (value ?? fallback).trim();
+}
+
+function normalizeCronExpression(value: string | undefined) {
+  return normalizeAutomaticImportText(value).replaceAll(/\s+/g, " ");
+}
+
+function validateCronExpression(value: string, timeZone: string) {
+  try {
+    new CronTime(value, timeZone);
+  } catch (error) {
+    throw new BadRequestException(`Invalid cron expression: ${stringifyFailure(error)}`);
+  }
+}
+
 function classifyFailureReason(message: string): OverviewJobFailureReason {
   const normalized = message.toLowerCase();
 
@@ -450,7 +488,7 @@ function buildEmptyRuntimeSummary(): JobRuntimeSummary {
 }
 
 @Injectable()
-export class OverviewService implements OnModuleInit {
+export class OverviewService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(OverviewService.name);
   private isOverviewQueueDraining = false;
 
@@ -459,16 +497,21 @@ export class OverviewService implements OnModuleInit {
     @Inject(PiholeInstanceSessionService) private readonly instanceSessions: PiholeInstanceSessionService,
     @Inject(PiholeService) private readonly pihole: PiholeService,
     @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(SchedulerRegistry) private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
 
   async onModuleInit() {
     await this.markInterruptedJobsAsFailed();
+    await this.refreshAutomaticImportSchedules();
     this.scheduleQueueDrain();
+  }
+
+  onModuleDestroy() {
+    this.clearAutomaticImportSchedules();
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   handleDailyHistoryMaintenance() {
-    void this.enqueueAutomaticImport();
     void this.cleanupExpiredHistory();
   }
 
@@ -606,6 +649,93 @@ export class OverviewService implements OnModuleInit {
 
     return {
       jobs: jobs.map((job) => this.mapJob(job)),
+    };
+  }
+
+  async listAutomaticImportRules(): Promise<OverviewAutomaticImportsResponse> {
+    const [rules, timeZone] = await Promise.all([this.loadAutomaticImportRules(), this.readAppTimeZone()]);
+
+    return {
+      timeZone,
+      rules: rules.map((rule) => this.mapAutomaticImportRule(rule, timeZone)),
+    };
+  }
+
+  async createAutomaticImportRule(
+    body: CreateOverviewAutomaticImportRuleDto,
+  ): Promise<OverviewAutomaticImportRuleMutationResponse> {
+    const timeZone = await this.readAppTimeZone();
+    const data = await this.buildAutomaticImportRuleData(body, timeZone);
+    const rule = await this.prisma.overviewAutomaticImportRule.create({
+      data,
+      include: {
+        instance: {
+          select: { name: true },
+        },
+      },
+    });
+
+    await this.refreshAutomaticImportSchedules();
+
+    return {
+      rule: this.mapAutomaticImportRule(rule, timeZone),
+    };
+  }
+
+  async updateAutomaticImportRule(
+    ruleId: string,
+    body: UpdateOverviewAutomaticImportRuleDto,
+  ): Promise<OverviewAutomaticImportRuleMutationResponse> {
+    const existing = await this.prisma.overviewAutomaticImportRule.findUnique({
+      where: { id: ruleId },
+    });
+
+    if (!existing) {
+      throw new BadRequestException("Automatic overview import rule not found.");
+    }
+
+    const timeZone = await this.readAppTimeZone();
+    const data = await this.buildAutomaticImportRuleData(body, timeZone, existing);
+    const rule = await this.prisma.overviewAutomaticImportRule.update({
+      where: { id: ruleId },
+      data,
+      include: {
+        instance: {
+          select: { name: true },
+        },
+      },
+    });
+
+    await this.refreshAutomaticImportSchedules();
+
+    return {
+      rule: this.mapAutomaticImportRule(rule, timeZone),
+    };
+  }
+
+  async deleteAutomaticImportRule(ruleId: string): Promise<OverviewAutomaticImportRuleMutationResponse> {
+    const timeZone = await this.readAppTimeZone();
+    const existing = await this.prisma.overviewAutomaticImportRule.findUnique({
+      where: { id: ruleId },
+    });
+
+    if (!existing) {
+      throw new BadRequestException("Automatic overview import rule not found.");
+    }
+
+    const rule = await this.prisma.overviewAutomaticImportRule.delete({
+      where: { id: ruleId },
+      include: {
+        instance: {
+          select: { name: true },
+        },
+      },
+    });
+
+    await this.refreshAutomaticImportSchedules();
+
+    return {
+      rule: this.mapAutomaticImportRule(rule, timeZone),
     };
   }
 
@@ -861,40 +991,297 @@ export class OverviewService implements OnModuleInit {
     return { job: this.mapJob(job) };
   }
 
-  private async enqueueAutomaticImport(reference = new Date()) {
+  private async runAutomaticImportRule(ruleId: string, reference = new Date()) {
+    const rule = await this.prisma.overviewAutomaticImportRule.findUnique({
+      where: { id: ruleId },
+    });
+
+    if (!rule || !rule.enabled) {
+      return;
+    }
+
     const timeZone = await this.readAppTimeZone();
     const range = buildPreviousClosedDayRange(reference, timeZone);
+
+    try {
+      const instances = await this.resolveInstancesForAutomaticImportRule(rule);
+      let jobCount = 0;
+      let skippedCount = 0;
+
+      for (const instance of instances) {
+        const result = await this.createAutomaticImportJobForInstance(rule, instance, range);
+
+        if (result.created) {
+          jobCount += 1;
+        } else {
+          skippedCount += 1;
+        }
+      }
+
+      const status: OverviewAutomaticImportRunStatus =
+        jobCount > 0 ? "SUCCESS" : skippedCount > 0 || instances.length === 0 ? "SKIPPED" : "FAILURE";
+      const message = instances.length === 0 ? "No target instances are available." : null;
+
+      await this.updateAutomaticImportRuleLastRun(rule.id, {
+        status,
+        jobCount,
+        skippedCount,
+        errorMessage: message,
+      });
+
+      if (jobCount > 0) {
+        this.scheduleQueueDrain();
+      }
+    } catch (error) {
+      await this.updateAutomaticImportRuleLastRun(rule.id, {
+        status: "FAILURE",
+        jobCount: 0,
+        skippedCount: 0,
+        errorMessage: stringifyFailure(error),
+      });
+      this.logger.error(`Automatic overview import rule ${rule.id} failed: ${stringifyFailure(error)}`);
+    }
+  }
+
+  private async resolveInstancesForAutomaticImportRule(rule: OverviewAutomaticImportRuleRecord) {
+    if (rule.scope === "instance") {
+      if (!rule.instanceId) {
+        throw new BadRequestException("The configured instance is no longer available.");
+      }
+
+      return [await this.instanceSessions.getInstanceSummary(rule.instanceId, DEFAULT_API_LOCALE)];
+    }
+
+    return this.instanceSessions.listInstanceSummaries();
+  }
+
+  private async createAutomaticImportJobForInstance(
+    rule: OverviewAutomaticImportRuleRecord,
+    instance: PiholeManagedInstanceSummary,
+    range: HistoryRange,
+  ) {
     const existing = await this.prisma.overviewHistoryJob.findFirst({
       where: {
-        kind: "AUTOMATIC_IMPORT",
-        requestedFrom: range.from,
-        requestedUntil: range.until,
-        status: {
-          in: ["PENDING", "RUNNING"],
+        kind: {
+          in: ["AUTOMATIC_IMPORT", "MANUAL_IMPORT"],
         },
+        requestedFrom: {
+          lte: range.from,
+        },
+        requestedUntil: {
+          gte: new Date(range.until.getTime() - 999),
+        },
+        status: {
+          in: [...AUTOMATIC_IMPORT_DEDUPLICATED_STATUSES],
+        },
+        OR: [
+          {
+            scope: "instance",
+            instanceId: instance.id,
+          },
+          {
+            scope: "all",
+            instanceId: null,
+          },
+        ],
       },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     });
 
     if (existing) {
       this.logger.debug(
-        `Skipping automatic overview import for ${range.from.toISOString()} because a job already exists.`,
+        `Skipping automatic overview import rule ${rule.id} for ${instance.name} and ${range.from.toISOString()} because a matching job already exists.`,
       );
-      this.scheduleQueueDrain();
-      return;
+
+      return {
+        job: existing,
+        created: false,
+      };
     }
 
-    await this.createJob({
-      kind: "AUTOMATIC_IMPORT",
-      scope: "all",
-      instanceId: null,
-      instanceNameSnapshot: null,
-      requestedFrom: range.from,
-      requestedUntil: range.until,
-      trigger: "cron",
-      requestedBy: null,
+    const job = await this.prisma.overviewHistoryJob.create({
+      data: {
+        kind: "AUTOMATIC_IMPORT",
+        scope: "instance",
+        instanceId: instance.id,
+        instanceNameSnapshot: instance.name,
+        requestedFrom: range.from,
+        requestedUntil: range.until,
+        trigger: "cron",
+        requestedBy: null,
+      },
     });
 
-    this.scheduleQueueDrain();
+    return {
+      job,
+      created: true,
+    };
+  }
+
+  private async updateAutomaticImportRuleLastRun(
+    ruleId: string,
+    input: {
+      status: OverviewAutomaticImportRunStatus;
+      jobCount: number;
+      skippedCount: number;
+      errorMessage: string | null;
+    },
+  ) {
+    await this.prisma.overviewAutomaticImportRule.update({
+      where: { id: ruleId },
+      data: {
+        lastRunAt: new Date(),
+        lastRunStatus: input.status,
+        lastRunJobCount: input.jobCount,
+        lastRunSkippedCount: input.skippedCount,
+        lastRunErrorMessage: input.errorMessage,
+      },
+    });
+  }
+
+  private async refreshAutomaticImportSchedules() {
+    const [rules, timeZone] = await Promise.all([
+      this.prisma.overviewAutomaticImportRule.findMany({
+        where: { enabled: true },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      }),
+      this.readAppTimeZone(),
+    ]);
+
+    this.clearAutomaticImportSchedules();
+
+    for (const rule of rules) {
+      try {
+        const name = this.getAutomaticImportScheduleName(rule.id);
+        const job = CronJob.from({
+          cronTime: rule.cronExpression,
+          onTick: () => {
+            void this.runAutomaticImportRule(rule.id);
+          },
+          start: false,
+          timeZone,
+          waitForCompletion: true,
+          name,
+        });
+
+        this.schedulerRegistry.addCronJob(name, job);
+        job.start();
+      } catch (error) {
+        this.logger.error(`Could not register overview automatic import rule ${rule.id}: ${stringifyFailure(error)}`);
+      }
+    }
+  }
+
+  private clearAutomaticImportSchedules() {
+    for (const [name, job] of this.schedulerRegistry.getCronJobs()) {
+      if (!name.startsWith(AUTOMATIC_IMPORT_SCHEDULE_PREFIX)) {
+        continue;
+      }
+
+      job.stop();
+      this.schedulerRegistry.deleteCronJob(name);
+    }
+  }
+
+  private getAutomaticImportScheduleName(ruleId: string) {
+    return `${AUTOMATIC_IMPORT_SCHEDULE_PREFIX}${ruleId}`;
+  }
+
+  private async buildAutomaticImportRuleData(
+    body: CreateOverviewAutomaticImportRuleDto | UpdateOverviewAutomaticImportRuleDto,
+    timeZone: string,
+    existing?: OverviewAutomaticImportRuleRecord,
+  ) {
+    const name = normalizeAutomaticImportText(body.name, existing?.name);
+
+    if (!name) {
+      throw new BadRequestException("Automatic overview import rule name is required.");
+    }
+
+    const cronExpression = normalizeCronExpression(body.cronExpression ?? existing?.cronExpression);
+
+    if (!cronExpression) {
+      throw new BadRequestException("Automatic overview import cron expression is required.");
+    }
+
+    validateCronExpression(cronExpression, timeZone);
+
+    const scope = body.scope ?? (existing?.scope as "all" | "instance" | undefined) ?? "all";
+
+    if (scope !== "all" && scope !== "instance") {
+      throw new BadRequestException("Automatic overview import scope is invalid.");
+    }
+
+    let instanceId: string | null = null;
+
+    if (scope === "instance") {
+      instanceId = normalizeAutomaticImportText(body.instanceId, existing?.instanceId ?? "") || null;
+
+      if (!instanceId) {
+        throw new BadRequestException('"instanceId" is required when scope="instance".');
+      }
+
+      await this.instanceSessions.getInstanceSummary(instanceId, DEFAULT_API_LOCALE);
+    }
+
+    return {
+      name,
+      enabled: body.enabled ?? existing?.enabled ?? true,
+      cronExpression,
+      scope,
+      instanceId,
+    };
+  }
+
+  private async loadAutomaticImportRules() {
+    return this.prisma.overviewAutomaticImportRule.findMany({
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      include: {
+        instance: {
+          select: { name: true },
+        },
+      },
+    });
+  }
+
+  private getNextAutomaticImportRunAt(rule: OverviewAutomaticImportRuleRecord, timeZone: string) {
+    if (!rule.enabled) {
+      return null;
+    }
+
+    try {
+      return new CronTime(rule.cronExpression, timeZone).sendAt().toUTC().toISO();
+    } catch {
+      return null;
+    }
+  }
+
+  private mapAutomaticImportRule(
+    rule: OverviewAutomaticImportRuleWithInstance,
+    timeZone: string,
+  ): OverviewAutomaticImportRuleItem {
+    const status = rule.lastRunStatus;
+
+    return {
+      id: rule.id,
+      name: rule.name,
+      enabled: rule.enabled,
+      cronExpression: rule.cronExpression,
+      scope: rule.scope === "instance" ? "instance" : "all",
+      instanceId: rule.instanceId ?? null,
+      instanceName: rule.instance?.name ?? null,
+      timeZone,
+      nextRunAt: this.getNextAutomaticImportRunAt(rule, timeZone),
+      lastRun: {
+        at: toIso(rule.lastRunAt),
+        status: status === "SUCCESS" || status === "SKIPPED" || status === "FAILURE" ? status : null,
+        jobCount: rule.lastRunJobCount,
+        skippedCount: rule.lastRunSkippedCount,
+        errorMessage: rule.lastRunErrorMessage ?? null,
+      },
+      createdAt: rule.createdAt.toISOString(),
+      updatedAt: rule.updatedAt.toISOString(),
+    };
   }
 
   private scheduleQueueDrain() {

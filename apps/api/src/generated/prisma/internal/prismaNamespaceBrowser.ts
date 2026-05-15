@@ -72,6 +72,7 @@ export const ModelName = {
   HistoricalQuery: 'HistoricalQuery',
   OverviewHistoryJob: 'OverviewHistoryJob',
   OverviewCoverageWindow: 'OverviewCoverageWindow',
+  OverviewAutomaticImportRule: 'OverviewAutomaticImportRule',
   PushSubscription: 'PushSubscription'
 } as const
 
@@ -426,6 +427,25 @@ export const OverviewCoverageWindowScalarFieldEnum = {
 } as const
 
 export type OverviewCoverageWindowScalarFieldEnum = (typeof OverviewCoverageWindowScalarFieldEnum)[keyof typeof OverviewCoverageWindowScalarFieldEnum]
+
+
+export const OverviewAutomaticImportRuleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  enabled: 'enabled',
+  cronExpression: 'cronExpression',
+  scope: 'scope',
+  instanceId: 'instanceId',
+  lastRunAt: 'lastRunAt',
+  lastRunStatus: 'lastRunStatus',
+  lastRunJobCount: 'lastRunJobCount',
+  lastRunSkippedCount: 'lastRunSkippedCount',
+  lastRunErrorMessage: 'lastRunErrorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OverviewAutomaticImportRuleScalarFieldEnum = (typeof OverviewAutomaticImportRuleScalarFieldEnum)[keyof typeof OverviewAutomaticImportRuleScalarFieldEnum]
 
 
 export const PushSubscriptionScalarFieldEnum = {

@@ -6,6 +6,7 @@ import { ApiUnavailableScreen } from "@/components/yapd/api-unavailable-screen";
 import {
   getInstances,
   getOverview,
+  getOverviewAutomaticImports,
   getOverviewJobs,
   isYapdApiResponseError,
   isYapdApiUnavailableError,
@@ -26,11 +27,12 @@ export default async function OverviewPage({
   const { locale } = await getServerI18n();
 
   try {
-    const [instances, cookieStore, timeZone, resolvedSearchParams] = await Promise.all([
+    const [instances, cookieStore, timeZone, resolvedSearchParams, initialAutomaticImports] = await Promise.all([
       getInstances({ operationalOnly: true }),
       cookies(),
       getServerTimeZone(),
       searchParams,
+      getOverviewAutomaticImports(),
     ]);
     const selectedScope = resolveDashboardScope(
       parseDashboardScope(cookieStore.get(DASHBOARD_SCOPE_COOKIE)?.value),
@@ -57,6 +59,8 @@ export default async function OverviewPage({
       <OverviewWorkspace
         initialFilters={filters}
         initialJobs={initialJobs}
+        initialAutomaticImports={initialAutomaticImports}
+        instances={instances.items}
         initialOverview={initialOverview}
         initialTab={activeTab}
         scope={selectedScope}

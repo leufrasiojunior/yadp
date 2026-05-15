@@ -405,6 +405,7 @@ export const ModelName = {
   HistoricalQuery: 'HistoricalQuery',
   OverviewHistoryJob: 'OverviewHistoryJob',
   OverviewCoverageWindow: 'OverviewCoverageWindow',
+  OverviewAutomaticImportRule: 'OverviewAutomaticImportRule',
   PushSubscription: 'PushSubscription'
 } as const
 
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "productTourCompletion" | "historicalQuery" | "overviewHistoryJob" | "overviewCoverageWindow" | "pushSubscription"
+    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "productTourCompletion" | "historicalQuery" | "overviewHistoryJob" | "overviewCoverageWindow" | "overviewAutomaticImportRule" | "pushSubscription"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1979,6 +1980,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OverviewAutomaticImportRule: {
+      payload: Prisma.$OverviewAutomaticImportRulePayload<ExtArgs>
+      fields: Prisma.OverviewAutomaticImportRuleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OverviewAutomaticImportRuleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OverviewAutomaticImportRuleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>
+        }
+        findFirst: {
+          args: Prisma.OverviewAutomaticImportRuleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OverviewAutomaticImportRuleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>
+        }
+        findMany: {
+          args: Prisma.OverviewAutomaticImportRuleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>[]
+        }
+        create: {
+          args: Prisma.OverviewAutomaticImportRuleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>
+        }
+        createMany: {
+          args: Prisma.OverviewAutomaticImportRuleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OverviewAutomaticImportRuleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>[]
+        }
+        delete: {
+          args: Prisma.OverviewAutomaticImportRuleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>
+        }
+        update: {
+          args: Prisma.OverviewAutomaticImportRuleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>
+        }
+        deleteMany: {
+          args: Prisma.OverviewAutomaticImportRuleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OverviewAutomaticImportRuleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OverviewAutomaticImportRuleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>[]
+        }
+        upsert: {
+          args: Prisma.OverviewAutomaticImportRuleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OverviewAutomaticImportRulePayload>
+        }
+        aggregate: {
+          args: Prisma.OverviewAutomaticImportRuleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOverviewAutomaticImportRule>
+        }
+        groupBy: {
+          args: Prisma.OverviewAutomaticImportRuleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OverviewAutomaticImportRuleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OverviewAutomaticImportRuleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OverviewAutomaticImportRuleCountAggregateOutputType> | number
+        }
+      }
+    }
     PushSubscription: {
       payload: Prisma.$PushSubscriptionPayload<ExtArgs>
       fields: Prisma.PushSubscriptionFieldRefs
@@ -2429,6 +2504,25 @@ export const OverviewCoverageWindowScalarFieldEnum = {
 export type OverviewCoverageWindowScalarFieldEnum = (typeof OverviewCoverageWindowScalarFieldEnum)[keyof typeof OverviewCoverageWindowScalarFieldEnum]
 
 
+export const OverviewAutomaticImportRuleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  enabled: 'enabled',
+  cronExpression: 'cronExpression',
+  scope: 'scope',
+  instanceId: 'instanceId',
+  lastRunAt: 'lastRunAt',
+  lastRunStatus: 'lastRunStatus',
+  lastRunJobCount: 'lastRunJobCount',
+  lastRunSkippedCount: 'lastRunSkippedCount',
+  lastRunErrorMessage: 'lastRunErrorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OverviewAutomaticImportRuleScalarFieldEnum = (typeof OverviewAutomaticImportRuleScalarFieldEnum)[keyof typeof OverviewAutomaticImportRuleScalarFieldEnum]
+
+
 export const PushSubscriptionScalarFieldEnum = {
   id: 'id',
   endpoint: 'endpoint',
@@ -2818,6 +2912,7 @@ export type GlobalOmitConfig = {
   historicalQuery?: Prisma.HistoricalQueryOmit
   overviewHistoryJob?: Prisma.OverviewHistoryJobOmit
   overviewCoverageWindow?: Prisma.OverviewCoverageWindowOmit
+  overviewAutomaticImportRule?: Prisma.OverviewAutomaticImportRuleOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
 }
 
