@@ -668,7 +668,7 @@ export const ptBRMessages: WebMessages = {
         "As datas salvas e os filtros do Ranking controlam o universo usado nos gráficos e tabelas abaixo.",
       rankingResults:
         "Os rankings e gráficos são clicáveis quando faz sentido; clicar em domínios ou clientes aplica o filtro e recarrega o período.",
-      jobs: "A lista de jobs mostra coletas, exclusões, progresso e detalhes operacionais para investigar falhas ou retomar execuções. Também existe uma coleta automática todos os dias às 03:00 da manhã, no horário do servidor.",
+      jobs: "A lista de jobs mostra coletas, exclusões, progresso e detalhes operacionais para investigar falhas ou retomar execuções. Também existe uma coleta automática todos os dias às 03:00 no timezone configurado na aplicação.",
     },
     tabs: {
       request: "Período e cobertura",
@@ -950,7 +950,7 @@ export const ptBRMessages: WebMessages = {
     },
     settings: {
       formTitle: "Regra de importação automática",
-      formDescription: (timeZone) => `Agendamento avaliado no horário do servidor: ${timeZone}.`,
+      formDescription: (timeZone) => `Agendamento avaliado no timezone configurado na aplicação: ${timeZone}.`,
       rulesTitle: "Importações automáticas",
       rulesDescription: "Regras salvas no banco para enfileirar coletas históricas.",
       name: "Nome",
@@ -979,7 +979,7 @@ export const ptBRMessages: WebMessages = {
       applyBuilder: "Aplicar",
       cronExpression: "Cron",
       fixedWindowNotice: (timeZone) =>
-        `O cron define quando roda; a coleta automática continua importando o d-1 completo em ${timeZone}.`,
+        `O cron define quando roda; a coleta automática continua importando o d-1 completo no timezone visual ${timeZone}.`,
       create: "Criar regra",
       update: "Salvar regra",
       saving: "Salvando...",

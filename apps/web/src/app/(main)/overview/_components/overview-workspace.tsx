@@ -111,6 +111,7 @@ import {
   buildOverviewRankingRangeFilters,
   buildOverviewSavedDateRangeFilters,
   buildOverviewSingleDayFilters,
+  buildOverviewUtcRangeFilters,
   clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
   type OverviewFilters,
@@ -429,13 +430,6 @@ function canOpenJobPeriod(job: OverviewJobsResponse["jobs"][number]) {
   }
 
   return job.status === "SUCCESS" || job.status === "PARTIAL";
-}
-
-function getJobPeriodSeconds(job: OverviewJobsResponse["jobs"][number]) {
-  return {
-    from: Math.floor(new Date(job.requestedFrom).getTime() / 1000),
-    until: Math.floor(new Date(job.requestedUntil).getTime() / 1000),
-  };
 }
 
 function getJobRowClassName(status: OverviewJobsResponse["jobs"][number]["status"]) {
@@ -876,6 +870,7 @@ function OverviewWorkspaceContent({
     null,
   );
   const [pendingRankingAction, setPendingRankingAction] = useState<RankingPendingAction | null>(null);
+  const [pendingOpenPeriodJobId, setPendingOpenPeriodJobId] = useState<string | null>(null);
   const [isDeletePeriodDialogOpen, setIsDeletePeriodDialogOpen] = useState(false);
   const [deleteJobDialogJobId, setDeleteJobDialogJobId] = useState<string | null>(null);
   const [deleteAutomaticImportRuleId, setDeleteAutomaticImportRuleId] = useState<string | null>(null);
@@ -1096,6 +1091,7 @@ function OverviewWorkspaceContent({
     if (!isPending) {
       setPendingRankingDrillDownSource(null);
       setPendingRankingAction(null);
+      setPendingOpenPeriodJobId(null);
     }
   }, [isPending]);
 
@@ -1781,29 +1777,22 @@ function OverviewWorkspaceContent({
     (job: OverviewJobsResponse["jobs"][number], historyMode: "push" | "replace" = "push") => {
       const nextScope: DashboardScope =
         job.scope === "instance" && job.instanceId ? { kind: "instance", instanceId: job.instanceId } : { kind: "all" };
-      const { from, until } = getJobPeriodSeconds(job);
+      const nextFilters = buildOverviewUtcRangeFilters(filters, job.requestedFrom, job.requestedUntil, timeZone);
+
+      if (!nextFilters) {
+        toast.error(messages.overview.toasts.invalidPeriod);
+        return;
+      }
 
       setClientCookie(DASHBOARD_SCOPE_COOKIE, serializeDashboardScope(nextScope));
+      setActiveTab("ranking");
+      setFilters(nextFilters);
+      setRankingReturnFilters(null);
+      setPendingRankingAction("apply");
+      setPendingOpenPeriodJobId(job.id);
 
       startTransition(() => {
-        const searchParams = new URLSearchParams({
-          tab: "ranking",
-          from: `${from}`,
-          until: `${until}`,
-          groupBy: "hour",
-        });
-        const domain = filters.domain.trim();
-        const clientIp = filters.client_ip.trim();
-
-        if (domain.length > 0) {
-          searchParams.set("domain", domain);
-        }
-
-        if (clientIp.length > 0) {
-          searchParams.set("client_ip", clientIp);
-        }
-
-        const href = `/overview?${searchParams.toString()}`;
+        const href = buildOverviewHref(nextFilters, timeZone, "ranking");
 
         if (historyMode === "replace") {
           router.replace(href);
@@ -1813,7 +1802,7 @@ function OverviewWorkspaceContent({
         router.push(href);
       });
     },
-    [filters.client_ip, filters.domain, router],
+    [filters, messages, router, timeZone],
   );
 
   const renewCoverage = async (coverageWindowId: string) => {
@@ -3532,9 +3521,11 @@ function OverviewWorkspaceContent({
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="gap-2"
                                 onClick={() => openJobPeriod(job)}
-                                disabled={busyJobAction !== null}
+                                disabled={busyJobAction !== null || pendingOpenPeriodJobId !== null}
                               >
+                                {pendingOpenPeriodJobId === job.id ? <Loader2 className="size-4 animate-spin" /> : null}
                                 {messages.overview.jobs.openPeriod}
                               </Button>
                             ) : job.status === "RUNNING" || job.status === "PENDING" ? (

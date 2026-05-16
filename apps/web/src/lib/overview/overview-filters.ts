@@ -288,6 +288,36 @@ export function buildOverviewHourBucketFilters(
   };
 }
 
+export function buildOverviewUtcRangeFilters(
+  filters: OverviewFilters,
+  from: string | Date,
+  until: string | Date,
+  timeZone: string,
+): OverviewFilters | null {
+  const fromMs = typeof from === "string" ? new Date(from).getTime() : from.getTime();
+  const untilMs = typeof until === "string" ? new Date(until).getTime() : until.getTime();
+
+  if (!Number.isFinite(fromMs) || !Number.isFinite(untilMs)) {
+    return null;
+  }
+
+  const normalizedFromMs = Math.min(fromMs, untilMs);
+  const normalizedUntilMs = Math.max(fromMs, untilMs);
+  const fromValue = unixSecondsToDatetimeLocal(Math.floor(normalizedFromMs / 1000), timeZone);
+  const untilValue = unixSecondsToDatetimeLocal(Math.floor(normalizedUntilMs / 1000), timeZone);
+
+  if (!fromValue || !untilValue) {
+    return null;
+  }
+
+  return {
+    ...filters,
+    from: fromValue,
+    until: untilValue,
+    groupBy: "hour",
+  };
+}
+
 export function normalizeOverviewTab(searchParams: Record<string, string | string[] | undefined>): OverviewTab {
   const tab = searchParams.tab;
   const value = Array.isArray(tab) ? (tab[0] ?? "") : (tab ?? "");

@@ -662,7 +662,7 @@ export const enUSMessages: WebMessages = {
       rankingFilters: "Saved dates and Ranking filters control the universe used by the charts and tables below.",
       rankingResults:
         "Rankings and charts are clickable where useful; clicking domains or clients applies the filter and reloads the period.",
-      jobs: "The jobs list shows imports, deletions, progress, and operational details for investigating failures or resuming runs. An automatic import also runs every day at 03:00 in the server timezone.",
+      jobs: "The jobs list shows imports, deletions, progress, and operational details for investigating failures or resuming runs. An automatic import also runs every day at 03:00 in the application-configured time zone.",
     },
     tabs: {
       request: "Period and coverage",
@@ -944,7 +944,7 @@ export const enUSMessages: WebMessages = {
     },
     settings: {
       formTitle: "Automatic import rule",
-      formDescription: (timeZone) => `Schedules are evaluated in the server timezone: ${timeZone}.`,
+      formDescription: (timeZone) => `Schedules are evaluated in the application-configured time zone: ${timeZone}.`,
       rulesTitle: "Automatic imports",
       rulesDescription: "Database-backed rules that queue historical collection jobs.",
       name: "Name",
@@ -973,7 +973,7 @@ export const enUSMessages: WebMessages = {
       applyBuilder: "Apply",
       cronExpression: "Cron",
       fixedWindowNotice: (timeZone) =>
-        `The cron controls when the rule runs; automatic collection still imports the complete d-1 day in ${timeZone}.`,
+        `The cron controls when the rule runs; automatic collection still imports the complete d-1 day in the ${timeZone} visual time zone.`,
       create: "Create rule",
       update: "Save rule",
       saving: "Saving...",
