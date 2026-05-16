@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.11.0...yapd-v0.11.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* **overview:** preserve visual timezone for job periods ([3b4c4c2](https://github.com/leufrasiojunior/yadp/commit/3b4c4c2bc93e57ef17b1236d862dc2f09dbc6802))
+
 ## [0.11.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.10.1...yapd-v0.11.0) (2026-05-15)
 
 
