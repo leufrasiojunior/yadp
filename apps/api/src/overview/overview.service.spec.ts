@@ -1,6 +1,6 @@
 import { OverviewService } from "./overview.service";
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { mock } from "node:test";
 
 type OverviewJobRecord = {
   id: string;
@@ -741,6 +741,30 @@ test("runAutomaticImportRule expands all-instance rules into d-1 per-instance jo
   assert.equal(prisma.state.automaticImportRules[0].lastRunJobCount, 2);
 });
 
+test("runAutomaticImportRule keeps d-1 in the visual timezone when UTC is already the next day", async () => {
+  const { service, prisma } = createService(makeJob(), {
+    timeZone: "America/Sao_Paulo",
+    instances: [{ id: "instance-1", name: "Pi-hole A" }],
+    automaticImportRules: [
+      makeAutomaticImportRule({ id: "rule-instance", scope: "instance", instanceId: "instance-1" }),
+    ],
+  });
+
+  await (
+    service as unknown as {
+      runAutomaticImportRule(ruleId: string, reference: Date): Promise<void>;
+    }
+  ).runAutomaticImportRule("rule-instance", new Date("2026-05-16T01:45:00.000Z"));
+
+  const createdJobData = prisma.state.createdJobData as {
+    requestedFrom: Date;
+    requestedUntil: Date;
+  };
+
+  assert.equal(createdJobData.requestedFrom.toISOString(), "2026-05-14T03:00:00.000Z");
+  assert.equal(createdJobData.requestedUntil.toISOString(), "2026-05-15T02:59:59.999Z");
+});
+
 test("runAutomaticImportRule skips an instance when an import job already covers the d-1 window", async () => {
   const existingJob = makeJob({
     id: "job-existing-import",
@@ -1020,6 +1044,60 @@ test("onModuleInit preserves pending jobs and marks only running jobs as interru
     prisma.state.jobs.find((job) => job.id === "job-running")?.errorMessage,
     "Interrupted by application restart.",
   );
+});
+
+test("getOverview fallback range uses the application timezone instead of the container timezone", async () => {
+  mock.timers.enable({
+    apis: ["Date"],
+    now: new Date("2026-05-16T01:45:00.000Z"),
+  });
+
+  try {
+    const context = createService(makeJob(), {
+      instances: [{ id: "instance-1", name: "Pi-hole A" }],
+      timeZone: "America/Sao_Paulo",
+      queryRawResults: [
+        [
+          {
+            totalQueries: 0,
+            blockedQueries: 0,
+            cachedQueries: 0,
+            forwardedQueries: 0,
+            uniqueDomains: 0,
+            uniqueClients: 0,
+          },
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+      ],
+    });
+
+    const result = await context.service.getOverview(
+      {
+        scope: "all",
+        groupBy: "hour",
+      } as never,
+      {
+        headers: {
+          "accept-language": "en-US",
+        },
+      } as never,
+    );
+
+    assert.equal(result.filters.from, "2026-05-08T03:00:00.000Z");
+    assert.equal(result.filters.until, "2026-05-15T02:59:59.999Z");
+    assert.equal(result.coverage.requestedFrom, "2026-05-08T03:00:00.000Z");
+    assert.equal(result.coverage.requestedUntil, "2026-05-15T02:59:59.999Z");
+  } finally {
+    mock.timers.reset();
+  }
 });
 
 test("getOverview exposes saved dates grouped by stored historical query day", async () => {

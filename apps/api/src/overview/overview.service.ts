@@ -190,14 +190,6 @@ function toIso(value: Date | null | undefined) {
   return value ? value.toISOString() : null;
 }
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-}
-
-function endOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
-}
-
 type DateTimeParts = {
   year: number;
   month: number;
@@ -350,26 +342,45 @@ function dateTimePartsInTimeZoneToDate(parts: DateTimeParts, timeZone: string) {
   return new Date(candidate);
 }
 
-function buildPreviousClosedDayRange(reference: Date, timeZone: string): HistoryRange {
-  const previousDateKey = shiftDateKey(getDateKeyInTimeZone(reference, timeZone), -1);
-  const parts = parseDateKey(previousDateKey);
+function buildClosedDayRange(reference: Date, timeZone: string, lookbackDays: number): HistoryRange {
+  const closedDateKey = shiftDateKey(getDateKeyInTimeZone(reference, timeZone), -1);
+  const startDateKey = shiftDateKey(closedDateKey, -(Math.max(1, lookbackDays) - 1));
+  const startParts = parseDateKey(startDateKey);
+  const endParts = parseDateKey(closedDateKey);
 
-  if (!parts) {
-    const previousDay = new Date(reference.getFullYear(), reference.getMonth(), reference.getDate() - 1);
+  if (!startParts || !endParts) {
+    const closedUtcDay = new Date(
+      Date.UTC(reference.getUTCFullYear(), reference.getUTCMonth(), reference.getUTCDate() - 1),
+    );
+    const startUtcDay = new Date(
+      Date.UTC(
+        closedUtcDay.getUTCFullYear(),
+        closedUtcDay.getUTCMonth(),
+        closedUtcDay.getUTCDate() - (Math.max(1, lookbackDays) - 1),
+      ),
+    );
 
     return {
-      from: startOfDay(previousDay),
-      until: endOfDay(previousDay),
+      from: new Date(
+        Date.UTC(startUtcDay.getUTCFullYear(), startUtcDay.getUTCMonth(), startUtcDay.getUTCDate(), 0, 0, 0, 0),
+      ),
+      until: new Date(
+        Date.UTC(closedUtcDay.getUTCFullYear(), closedUtcDay.getUTCMonth(), closedUtcDay.getUTCDate(), 23, 59, 59, 999),
+      ),
     };
   }
 
   return {
-    from: dateTimePartsInTimeZoneToDate({ ...parts, hour: 0, minute: 0, second: 0, millisecond: 0 }, timeZone),
-    until: dateTimePartsInTimeZoneToDate({ ...parts, hour: 23, minute: 59, second: 59, millisecond: 999 }, timeZone),
+    from: dateTimePartsInTimeZoneToDate({ ...startParts, hour: 0, minute: 0, second: 0, millisecond: 0 }, timeZone),
+    until: dateTimePartsInTimeZoneToDate({ ...endParts, hour: 23, minute: 59, second: 59, millisecond: 999 }, timeZone),
   };
 }
 
-function normalizeHistoryRange(from?: number, until?: number): HistoryRange {
+function buildPreviousClosedDayRange(reference: Date, timeZone: string): HistoryRange {
+  return buildClosedDayRange(reference, timeZone, 1);
+}
+
+function normalizeHistoryRange(from?: number, until?: number, timeZone = DEFAULT_API_TIME_ZONE): HistoryRange {
   if (from !== undefined && until !== undefined) {
     const normalizedFrom = new Date(from * 1000);
     const normalizedUntil = new Date(until * 1000);
@@ -384,17 +395,7 @@ function normalizeHistoryRange(from?: number, until?: number): HistoryRange {
     };
   }
 
-  const now = new Date();
-  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-  const rangeEnd = endOfDay(yesterday);
-  const rangeStart = startOfDay(
-    new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate() - (DEFAULT_HISTORY_LOOKBACK_DAYS - 1)),
-  );
-
-  return {
-    from: rangeStart,
-    until: rangeEnd,
-  };
+  return buildClosedDayRange(new Date(), timeZone, DEFAULT_HISTORY_LOOKBACK_DAYS);
 }
 
 function buildHistoryExpiry(reference: Date) {
@@ -521,7 +522,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       this.resolveScope(query.scope, query.instanceId, locale),
       this.readAppTimeZone(),
     ]);
-    const range = normalizeHistoryRange(query.from, query.until);
+    const range = normalizeHistoryRange(query.from, query.until, timeZone);
     const filters = this.buildQueryFilters(
       range,
       scope.instances.map((item) => item.id),
@@ -954,9 +955,12 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
 
   async enqueueManualImport(body: CreateOverviewHistoryJobDto, request: Request): Promise<OverviewMutationResponse> {
     const locale = getRequestLocale(request);
-    const scope = await this.resolveScope(body.scope, body.instanceId, locale);
-    const range = normalizeHistoryRange(body.from, body.until);
-    await this.assertManualImportSingleDay(range);
+    const [scope, timeZone] = await Promise.all([
+      this.resolveScope(body.scope, body.instanceId, locale),
+      this.readAppTimeZone(),
+    ]);
+    const range = normalizeHistoryRange(body.from, body.until, timeZone);
+    this.assertManualImportSingleDay(range, timeZone);
     const job = await this.createJob({
       kind: "MANUAL_IMPORT",
       scope: scope.mode,
@@ -974,8 +978,11 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
 
   async enqueueManualDelete(body: CreateOverviewHistoryJobDto, request: Request): Promise<OverviewMutationResponse> {
     const locale = getRequestLocale(request);
-    const scope = await this.resolveScope(body.scope, body.instanceId, locale);
-    const range = normalizeHistoryRange(body.from, body.until);
+    const [scope, timeZone] = await Promise.all([
+      this.resolveScope(body.scope, body.instanceId, locale),
+      this.readAppTimeZone(),
+    ]);
+    const range = normalizeHistoryRange(body.from, body.until, timeZone);
     const job = await this.createJob({
       kind: "MANUAL_DELETE",
       scope: scope.mode,
@@ -2308,9 +2315,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     return normalizeApiTimeZone(appConfig?.timeZone, DEFAULT_API_TIME_ZONE);
   }
 
-  private async assertManualImportSingleDay(range: HistoryRange) {
-    const timeZone = await this.readAppTimeZone();
-
+  private assertManualImportSingleDay(range: HistoryRange, timeZone: string) {
     if (getDateKeyInTimeZone(range.from, timeZone) !== getDateKeyInTimeZone(range.until, timeZone)) {
       throw new BadRequestException("Manual overview import is limited to a single calendar day.");
     }

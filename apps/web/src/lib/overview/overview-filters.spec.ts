@@ -33,6 +33,12 @@ const overviewFilters = require("./overview-filters.ts") as {
     fromDate: string,
     untilDate: string,
   ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" };
+  buildOverviewUtcRangeFilters: (
+    filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
+    from: string | Date,
+    until: string | Date,
+    timeZone: string,
+  ) => { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" } | null;
   buildOverviewRankingRangeFilters: (
     filters: { from: string; until: string; domain: string; client_ip: string; groupBy: "hour" | "day" },
     fromDate: string,
@@ -68,6 +74,7 @@ const {
   buildOverviewRankingRangeFilters,
   buildOverviewSavedDateRangeFilters,
   buildOverviewSingleDayFilters,
+  buildOverviewUtcRangeFilters,
   clampOverviewRequestFiltersToSingleDay,
   getOverviewMaxSelectableDateTime,
   normalizeOverviewFilters,
@@ -124,6 +131,24 @@ test("default overview filters use closed days in the app timezone", () => {
   assert.equal(defaults.domain, "");
   assert.equal(defaults.client_ip, "");
   assert.equal(defaults.groupBy, "hour");
+});
+
+test("default overview filters use the visual closed day even when UTC is already the next day", () => {
+  const originalNow = Date.now;
+
+  Date.now = () => Date.parse("2026-05-16T01:45:00.000Z");
+
+  try {
+    const defaults = buildDefaultOverviewFilters("America/Sao_Paulo");
+    const query = buildOverviewQueryFromFilters(defaults, "America/Sao_Paulo");
+
+    assert.equal(defaults.from, "2026-05-14T00:00");
+    assert.equal(defaults.until, "2026-05-14T23:59");
+    assert.equal(query.from, Date.parse("2026-05-14T03:00:00.000Z") / 1000);
+    assert.equal(query.until, Date.parse("2026-05-15T02:59:59.000Z") / 1000);
+  } finally {
+    Date.now = originalNow;
+  }
 });
 
 test("normalizeOverviewFilters keeps ranking filters and validates groupBy", () => {
@@ -398,6 +423,28 @@ test("buildOverviewHourBucketFilters builds the exact clicked hourly interval", 
   assert.ok(filters);
   assert.equal(filters.from, "2026-05-02T09:00");
   assert.equal(filters.until, "2026-05-02T09:59");
+  assert.equal(filters.domain, "example.com");
+  assert.equal(filters.client_ip, "192.168.1.10");
+  assert.equal(filters.groupBy, "hour");
+});
+
+test("buildOverviewUtcRangeFilters converts stored job UTC bounds into the visual timezone", () => {
+  const filters = buildOverviewUtcRangeFilters(
+    {
+      from: "2026-04-27T00:00",
+      until: "2026-04-27T23:59",
+      domain: "example.com",
+      client_ip: "192.168.1.10",
+      groupBy: "day",
+    },
+    "2026-04-28T03:00:00.000Z",
+    "2026-04-29T02:59:59.000Z",
+    "America/Sao_Paulo",
+  );
+
+  assert.ok(filters);
+  assert.equal(filters.from, "2026-04-28T00:00");
+  assert.equal(filters.until, "2026-04-28T23:59");
   assert.equal(filters.domain, "example.com");
   assert.equal(filters.client_ip, "192.168.1.10");
   assert.equal(filters.groupBy, "hour");
