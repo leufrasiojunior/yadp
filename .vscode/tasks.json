@@ -13,7 +13,9 @@
         "owner": "custom",
         "pattern": [
           {
-            "regexp": "."
+            "regexp": "^__yapd_no_problem_match__([^:]+):\\s+(.*)$",
+            "file": 1,
+            "message": 2
           }
         ],
         "background": {
@@ -40,7 +42,9 @@
         "owner": "custom",
         "pattern": [
           {
-            "regexp": "."
+            "regexp": "^__yapd_no_problem_match__([^:]+):\\s+(.*)$",
+            "file": 1,
+            "message": 2
           }
         ],
         "background": {
