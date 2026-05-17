@@ -6,6 +6,8 @@
 
 **Yet Another Pi-hole Dashboard** é uma central auto-hospedada para quem usa mais de uma instância do Pi-hole e quer uma forma mais clara e segura de acompanhar a rede.
 
+O YAPD é um projeto independente de terceiros. Ele não é afiliado, endossado nem patrocinado pela Pi-hole, LLC; "Pi-hole" é mencionado apenas para identificar compatibilidade com instalações Pi-hole.
+
 O YAPD foi pensado para reunir ambientes Pi-hole v6+ em um único lugar: painéis, saúde das instâncias, consultas DNS, gerenciamento de configuração, sincronização, detecção de divergências, histórico de auditoria e futuros controles parentais. Em vez de abrir cada Pi-hole separadamente, o YAPD busca ser a superfície operacional confiável para todo o seu ambiente de filtragem DNS.
 
 Se você usa Pi-hole em casa, em um homelab ou em uma pequena rede, o YAPD é o tipo de ferramenta que vale testar cedo, quebrar com honestidade e ajudar a melhorar. Relatos de bug, feedback de usabilidade, ideias de funcionalidades e observações de deploy real vão ajudar a moldar o projeto.

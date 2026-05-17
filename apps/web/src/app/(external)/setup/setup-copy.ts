@@ -147,7 +147,7 @@ const setupCopy: Record<AppLocale, SetupCopy> = {
       allowSelfSigned: "Permitir certificado autoassinado explicitamente",
       allowSelfSignedDescription: "Use apenas quando você confiar no certificado local dessa instância.",
       masterTitle: "Pi-hole master",
-      masterDescription: "Selecione qual URL será usada como baseline oficial do YAPD.",
+      masterDescription: "Selecione qual URL será usada como baseline principal do YAPD.",
       masterPlaceholder: "Selecione o Pi-hole master",
       rowTitle: (index, name) => (name && name.trim().length > 0 ? name : `Pi-hole ${index + 1}`),
       addInstance: "Adicionar URL",
@@ -169,7 +169,7 @@ const setupCopy: Record<AppLocale, SetupCopy> = {
         "Esse passo define como os operadores humanos vão entrar no painel depois que o setup for concluído.",
       piholeMasterTitle: "Entrar com a senha do Pi-hole master",
       piholeMasterDescription:
-        "Mantém o fluxo oficial do Pi-hole v6. O backend abrirá a sessão proxy a partir do Pi-hole master.",
+        "Mantém o fluxo nativo do Pi-hole v6. O backend abrirá a sessão proxy a partir do Pi-hole master.",
       yapdPasswordTitle: "Criar uma senha própria do YAPD",
       yapdPasswordDescription:
         "Cria uma senha única do produto para o primeiro operador. O login humano deixa de depender da senha do Pi-hole.",
@@ -250,7 +250,7 @@ const setupCopy: Record<AppLocale, SetupCopy> = {
       allowSelfSigned: "Explicitly allow a self-signed certificate",
       allowSelfSignedDescription: "Use this only when you trust this instance's local certificate.",
       masterTitle: "Master Pi-hole",
-      masterDescription: "Select which URL becomes the official YAPD baseline.",
+      masterDescription: "Select which URL becomes the primary YAPD baseline.",
       masterPlaceholder: "Select the master Pi-hole",
       rowTitle: (index, name) => (name && name.trim().length > 0 ? name : `Pi-hole ${index + 1}`),
       addInstance: "Add URL",
@@ -271,7 +271,7 @@ const setupCopy: Record<AppLocale, SetupCopy> = {
       description: "This step defines how human operators will sign in to the panel after setup is complete.",
       piholeMasterTitle: "Sign in with the master Pi-hole password",
       piholeMasterDescription:
-        "Keeps the official Pi-hole v6 flow. The backend will open the proxy session through the master Pi-hole.",
+        "Keeps the native Pi-hole v6 flow. The backend will open the proxy session through the master Pi-hole.",
       yapdPasswordTitle: "Create a dedicated YAPD password",
       yapdPasswordDescription:
         "Creates a single product password for the first operator. Human login no longer depends on the Pi-hole password.",
