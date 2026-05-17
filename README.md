@@ -8,6 +8,8 @@ Leia em Português do Brasil: [README.pt-BR](docs/README.pt-BR.md)
 
 **Yet Another Pi-hole Dashboard** is a self-hosted control center for people who run more than one Pi-hole instance and want a clearer, safer way to see what is happening across their network.
 
+YAPD is an independent third-party project. It is not affiliated with, endorsed by, or sponsored by Pi-hole, LLC; "Pi-hole" is referenced only to identify compatibility with Pi-hole installations.
+
 YAPD is designed to bring your Pi-hole v6+ environments into one place: dashboards, instance health, query visibility, configuration management, synchronization, drift detection, audit history, and future parental controls. Instead of checking each Pi-hole separately, YAPD aims to become the trusted operational surface for your whole DNS filtering setup.
 
 If you run Pi-hole at home, in a lab, or for a small network, YAPD is the kind of tool you can try early, break honestly, and help improve. Bug reports, usability feedback, feature ideas, and real deployment notes are part of what will shape the project.
@@ -117,6 +119,15 @@ The v1 direction includes:
 - audit logs for critical operations;
 - reauthentication for dangerous actions;
 - no static default admin account or hardcoded bootstrap password.
+
+## Official Documentation
+
+The official YAPD documentation is available at [yapd.gitbook.io/yapd-docs](https://yapd.gitbook.io/yapd-docs).
+
+Useful administration guides:
+
+- [Install with Docker Compose](https://yapd.gitbook.io/yapd-docs/installation-and-administration/install-with-docker-compose)
+- [Reverse Proxy and HTTPS](https://yapd.gitbook.io/yapd-docs/installation-and-administration/reverse-proxy-and-https)
 
 ## Production Deployment
 

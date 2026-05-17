@@ -39,15 +39,14 @@ export const ptBRMessages: WebMessages = {
       technicalSecret:
         "O backend valida a conectividade e guarda apenas a credencial técnica da baseline de forma criptografada.",
       interactiveLogin:
-        "O login humano do painel vai usar o fluxo oficial do Pi-hole v6 para gerar o SID da sessão proxy.",
+        "O login humano do painel vai usar o fluxo nativo do Pi-hole v6 para gerar o SID da sessão proxy.",
       formTitle: "Configurar baseline",
       formDescription: "Preencha a instância principal do ambiente para liberar o login do produto.",
     },
     login: {
       badge: "Login da baseline",
       title: "Entre usando o Pi-hole principal",
-      description:
-        "O YAPD usa o endpoint oficial de login do Pi-hole v6 para obter um SID e criar a sessão segura do painel.",
+      description: "O YAPD usa o endpoint de login do Pi-hole v6 para obter um SID e criar a sessão segura do painel.",
       ephemeralPassword: "Senha e TOTP são enviados apenas para a baseline e não ficam gravados no banco do YAPD.",
       serviceSecrets:
         "As outras instâncias seguem com segredos técnicos próprios para testes, import e operações futuras.",
@@ -359,8 +358,10 @@ export const ptBRMessages: WebMessages = {
       label: "BETA",
       openLabel: "Abrir aviso da versão BETA",
       title: "YAPD em desenvolvimento",
-      description: "O YAPD - Yet Another PiHole Dashboard está em fase de desenvolvimento.",
-      disclaimer: "Não sou responsável por problemas que possam ser causados em suas instâncias PiHole de produção.",
+      description:
+        "O YAPD - Yet Another Pi-hole Dashboard é um projeto independente de terceiros em fase de desenvolvimento.",
+      disclaimer:
+        "O YAPD não é afiliado, endossado nem patrocinado pela Pi-hole, LLC. Não sou responsável por problemas que possam ser causados em suas instâncias Pi-hole de produção.",
       close: "Entendi",
     },
   },

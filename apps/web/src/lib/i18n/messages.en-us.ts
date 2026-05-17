@@ -38,7 +38,7 @@ export const enUSMessages: WebMessages = {
         "This first step registers the Pi-hole instance that will authenticate the interface and act as the product's primary authority.",
       technicalSecret:
         "The backend validates connectivity and stores only the baseline technical credential in encrypted form.",
-      interactiveLogin: "Human login uses the official Pi-hole v6 flow to generate the SID for the proxy session.",
+      interactiveLogin: "Human login uses the native Pi-hole v6 flow to generate the SID for the proxy session.",
       formTitle: "Configure baseline",
       formDescription: "Fill in the main environment instance to unlock product login.",
     },
@@ -46,7 +46,7 @@ export const enUSMessages: WebMessages = {
       badge: "Baseline login",
       title: "Sign in with the primary Pi-hole",
       description:
-        "YAPD uses the official Pi-hole v6 login endpoint to obtain an SID and create the dashboard's secure session.",
+        "YAPD uses the Pi-hole v6 login endpoint to obtain an SID and create the dashboard's secure session.",
       ephemeralPassword: "Password and TOTP are sent only to the baseline and are never stored in the YAPD database.",
       serviceSecrets: "Other instances keep their own technical secrets for tests, imports, and future operations.",
     },
@@ -356,8 +356,10 @@ export const enUSMessages: WebMessages = {
       label: "BETA",
       openLabel: "Open the BETA notice",
       title: "YAPD is in development",
-      description: "YAPD - Yet Another PiHole Dashboard is currently in development.",
-      disclaimer: "I am not responsible for problems that may be caused in your production PiHole instances.",
+      description:
+        "YAPD - Yet Another Pi-hole Dashboard is an independent third-party project under active development.",
+      disclaimer:
+        "YAPD is not affiliated with, endorsed by, or sponsored by Pi-hole, LLC. I am not responsible for problems that may be caused in your production Pi-hole instances.",
       close: "Got it",
     },
   },

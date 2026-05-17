@@ -1,6 +1,10 @@
 MIT License
 
+Copyright (c) 2026 Leufrasiojunior
 Copyright (c) 2024 Mohammed Arham Khan
+
+Portions of the dashboard UI are derived from next-shadcn-admin-dashboard:
+https://github.com/arhamkhnz/next-shadcn-admin-dashboard
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

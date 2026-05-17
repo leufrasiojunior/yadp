@@ -34,7 +34,7 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
         badge: "Login da baseline",
         title: "Entre usando o Pi-hole master",
         description:
-          "O YAPD usa o login oficial do Pi-hole master para criar a sessão inicial da baseline e sincronizar as sessões gerenciadas das instâncias.",
+          "O YAPD usa o login nativo do Pi-hole master para criar a sessão inicial da baseline e sincronizar as sessões gerenciadas das instâncias.",
         primaryNote:
           "As credenciais das instâncias foram definidas no setup. O login humano da baseline reaproveita o SID obtido agora, sem abrir uma segunda sessão logo em seguida.",
         secondaryNote:
@@ -83,7 +83,7 @@ const loginCopy: Record<AppLocale, LoginCopy> = {
         badge: "Baseline login",
         title: "Sign in with the master Pi-hole",
         description:
-          "YAPD uses the official master Pi-hole login to seed the baseline session and synchronize the managed sessions of the instances.",
+          "YAPD uses the native master Pi-hole login to seed the baseline session and synchronize the managed sessions of the instances.",
         primaryNote:
           "Instance credentials were defined during setup. The baseline human login reuses the SID obtained now instead of opening a second session right after login.",
         secondaryNote: "Other instances keep their own stored credentials and backend-managed sessions.",
