@@ -131,19 +131,19 @@ Useful administration guides:
 
 ## Production Deployment
 
-For production environments, use the `compose.yml` file, which is optimized for stability and security.
+For production environments, use the `compose.yml` file, which is optimized for stability, security, and copyable deployment.
 
 1.  **Download the configuration**:
     ```bash
     curl -O https://raw.githubusercontent.com/leufrasiojunior/yadp/main/compose.yml
     ```
-2.  **Edit the secrets**: Open the file and change the values in the `x-yapd-config` section, especially `postgres_password`, `session_secret`, and `app_encryption_key`.
+2.  **Edit the placeholders**: Open the file and change `POSTGRES_PASSWORD`, `YAPD_POSTGRES_PASSWORD`, `SESSION_SECRET`, `APP_ENCRYPTION_KEY`, and `WEB_ORIGIN`. The two Postgres password values must match.
 3.  **Start the application**:
     ```bash
     docker compose up -d
     ```
 
-With the production compose file, the application is published on `http://<your-ip>:48080` and `https://<your-ip>:48443`. If you expose YAPD through an external reverse proxy, point the proxy to the HTTP endpoint and let the external proxy terminate the public TLS certificate.
+With the production compose file, the application is published on `http://<your-ip>:48080` and `https://<your-ip>:48443`. Postgres and the internal API port stay private to the Compose network. If you expose YAPD through an external reverse proxy, point the proxy to the HTTP endpoint and let the external proxy terminate the public TLS certificate.
 
 ## HTTPS and Reverse Proxy
 

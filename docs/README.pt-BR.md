@@ -120,19 +120,19 @@ A direção da v1 inclui:
 
 ## Deploy em Produção
 
-Para ambientes de produção, use o arquivo `compose.yml`, que é otimizado para estabilidade e segurança.
+Para ambientes de produção, use o arquivo `compose.yml`, que é otimizado para estabilidade, segurança e instalação copiável.
 
 1.  **Baixe a configuração**:
     ```bash
     curl -O https://raw.githubusercontent.com/leufrasiojunior/yadp/main/compose.yml
     ```
-2.  **Edite os segredos**: Abra o arquivo e altere os valores na seção `x-yapd-config`, especialmente `postgres_password`, `session_secret` e `app_encryption_key`.
+2.  **Edite os placeholders**: Abra o arquivo e altere `POSTGRES_PASSWORD`, `YAPD_POSTGRES_PASSWORD`, `SESSION_SECRET`, `APP_ENCRYPTION_KEY` e `WEB_ORIGIN`. Os dois valores de senha do Postgres devem ser iguais.
 3.  **Inicie a aplicação**:
     ```bash
     docker compose up -d
     ```
 
-Com o compose de produção, a aplicação é publicada em `http://<seu-ip>:48080` e `https://<seu-ip>:48443`. Se você expuser o YAPD por um proxy reverso externo, aponte o proxy para o endpoint HTTP e deixe o proxy externo terminar o certificado TLS público.
+Com o compose de produção, a aplicação é publicada em `http://<seu-ip>:48080` e `https://<seu-ip>:48443`. O Postgres e a porta interna da API ficam privados na rede do Compose. Se você expuser o YAPD por um proxy reverso externo, aponte o proxy para o endpoint HTTP e deixe o proxy externo terminar o certificado TLS público.
 
 ## HTTPS e Proxy Reverso
 
