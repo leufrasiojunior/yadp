@@ -684,6 +684,7 @@ export const ptBRMessages: WebMessages = {
       until: "Até",
       closedDayHint:
         "A coleta manual aceita somente um dia fechado por solicitação. A data atual fica bloqueada, mas você pode ajustar a hora dentro do dia selecionado.",
+      timeZoneHint: (timeZone) => `Período avaliado no timezone configurado da aplicação: ${timeZone}.`,
       apply: "Aplicar filtros",
       applying: "Aplicando...",
       reload: "Recarregar",
@@ -1036,7 +1037,10 @@ export const ptBRMessages: WebMessages = {
       rankingPeriodWithoutCoverage: "Nenhuma data salva cruza o período escolhido.",
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       jobsRefreshFailed: "Não foi possível atualizar os jobs do overview.",
-      backfillQueued: "Job de coleta enfileirado.",
+      backfillQueued: (count) =>
+        count === 1
+          ? "1 job de coleta enfileirado ou reaproveitado."
+          : `${count} jobs de coleta enfileirados ou reaproveitados.`,
       deleteQueued: "Job de exclusão enfileirado.",
       backfillFailed: "Não foi possível solicitar a coleta histórica.",
       deleteFailed: "Não foi possível solicitar a exclusão do período.",

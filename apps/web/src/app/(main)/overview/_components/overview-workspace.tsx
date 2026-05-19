@@ -83,6 +83,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppSession } from "@/components/yapd/app-session-provider";
+import { getApiErrorMessage } from "@/lib/api/error-message";
 import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   InstanceItem,
@@ -302,6 +303,20 @@ function buildOverviewHref(filters: OverviewFilters, timeZone: string, activeTab
 
   const queryString = searchParams.toString();
   return queryString.length > 0 ? `/overview?${queryString}` : "/overview";
+}
+
+function upsertOverviewJobSummary(
+  current: OverviewJobsResponse,
+  job: OverviewJobsResponse["jobs"][number],
+): OverviewJobsResponse {
+  const jobs = [job, ...current.jobs.filter((item) => item.id !== job.id)];
+
+  jobs.sort((left, right) => {
+    const createdAtDiff = Date.parse(right.createdAt) - Date.parse(left.createdAt);
+    return createdAtDiff !== 0 ? createdAtDiff : right.id.localeCompare(left.id);
+  });
+
+  return { jobs };
 }
 
 function buildDefaultAutomaticImportForm(): AutomaticImportFormState {
@@ -887,6 +902,16 @@ function OverviewWorkspaceContent({
   const detailsRequestInFlightRef = useRef<string | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
   const maxSelectableDateTime = useMemo(() => getOverviewMaxSelectableDateTime(timeZone), [timeZone]);
+  const replaceOverviewHistory = useCallback(
+    (nextFilters: OverviewFilters, nextTab: OverviewTab = activeTabRef.current) => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      window.history.replaceState(null, "", buildOverviewHref(nextFilters, timeZone, nextTab));
+    },
+    [timeZone],
+  );
   const percentageFormatter = useMemo(
     () =>
       new Intl.NumberFormat(locale, {
@@ -1104,8 +1129,8 @@ function OverviewWorkspaceContent({
       return;
     }
 
-    window.history.replaceState(null, "", `/overview?tab=${activeTab}`);
-  }, [activeTab]);
+    window.history.replaceState(null, "", buildOverviewHref(filters, timeZone, activeTab));
+  }, [activeTab, filters, timeZone]);
 
   const showTourTab = useCallback((tab: OverviewTab) => {
     setActiveTab(tab);
@@ -1604,39 +1629,39 @@ function OverviewWorkspaceContent({
   };
 
   const updateRequestDateFilter = (value: string) => {
-    setFilters((current) =>
-      buildOverviewSingleDayFilters(
-        current,
-        value,
-        current.from.slice(11, 16),
-        current.until.slice(11, 16),
-        maxSelectableDateTime,
-      ),
+    const nextFilters = buildOverviewSingleDayFilters(
+      filters,
+      value,
+      filters.from.slice(11, 16),
+      filters.until.slice(11, 16),
+      maxSelectableDateTime,
     );
+    setFilters(nextFilters);
+    replaceOverviewHistory(nextFilters, "request");
   };
 
   const updateRequestFromTimeFilter = (value: string) => {
-    setFilters((current) =>
-      buildOverviewSingleDayFilters(
-        current,
-        current.from.slice(0, 10),
-        value,
-        current.until.slice(11, 16),
-        maxSelectableDateTime,
-      ),
+    const nextFilters = buildOverviewSingleDayFilters(
+      filters,
+      filters.from.slice(0, 10),
+      value,
+      filters.until.slice(11, 16),
+      maxSelectableDateTime,
     );
+    setFilters(nextFilters);
+    replaceOverviewHistory(nextFilters, "request");
   };
 
   const updateRequestUntilTimeFilter = (value: string) => {
-    setFilters((current) =>
-      buildOverviewSingleDayFilters(
-        current,
-        current.from.slice(0, 10),
-        current.from.slice(11, 16),
-        value,
-        maxSelectableDateTime,
-      ),
+    const nextFilters = buildOverviewSingleDayFilters(
+      filters,
+      filters.from.slice(0, 10),
+      filters.from.slice(11, 16),
+      value,
+      maxSelectableDateTime,
     );
+    setFilters(nextFilters);
+    replaceOverviewHistory(nextFilters, "request");
   };
 
   const handleTabChange = (nextTab: string) => {
@@ -1651,9 +1676,7 @@ function OverviewWorkspaceContent({
     setActiveTab(nextTab);
 
     if (nextTab === "jobs" || nextTab === "settings") {
-      if (typeof window !== "undefined") {
-        window.history.replaceState(null, "", `/overview?tab=${nextTab}`);
-      }
+      replaceOverviewHistory(filters, nextTab);
       return;
     }
 
@@ -1686,6 +1709,7 @@ function OverviewWorkspaceContent({
       setIsMutating(true);
       if (path === "/overview/backfill" && !overrides) {
         setFilters(requestFilters);
+        replaceOverviewHistory(requestFilters, "request");
       }
 
       try {
@@ -1702,23 +1726,25 @@ function OverviewWorkspaceContent({
         });
 
         if (!response.ok || !data) {
-          toast.error(
-            path === "/overview/backfill"
-              ? messages.overview.toasts.backfillFailed
-              : messages.overview.toasts.deleteFailed,
-          );
+          toast.error(await getApiErrorMessage(response));
           return null;
+        }
+
+        setJobs((current) => upsertOverviewJobSummary(current, data.job));
+        if (path === "/overview/backfill") {
+          setJobStatusFilter("all");
         }
 
         toast.success(
           path === "/overview/backfill"
-            ? messages.overview.toasts.backfillQueued
+            ? messages.overview.toasts.backfillQueued(1)
             : messages.overview.toasts.deleteQueued,
         );
-        await refreshJobs();
-        startTransition(() => {
-          router.refresh();
-        });
+        if (path === "/overview/delete") {
+          startTransition(() => {
+            router.refresh();
+          });
+        }
         return data.job;
       } finally {
         setIsMutating(false);
@@ -1731,7 +1757,7 @@ function OverviewWorkspaceContent({
       filters,
       maxSelectableDateTime,
       messages,
-      refreshJobs,
+      replaceOverviewHistory,
       router,
       scope,
       timeZone,
@@ -2609,7 +2635,10 @@ function OverviewWorkspaceContent({
                 </div>
               </div>
 
-              <p className="text-muted-foreground text-xs">{messages.overview.filters.closedDayHint}</p>
+              <div className="space-y-1 text-muted-foreground text-xs">
+                <p>{messages.overview.filters.timeZoneHint(timeZone)}</p>
+                <p>{messages.overview.filters.closedDayHint}</p>
+              </div>
 
               <div className="flex flex-wrap gap-2">
                 <Button variant="secondary" onClick={() => void triggerJob("/overview/backfill")} disabled={isMutating}>

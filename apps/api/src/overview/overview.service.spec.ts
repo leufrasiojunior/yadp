@@ -872,6 +872,29 @@ test("enqueueManualImport accepts only one app-timezone calendar day", async () 
   assert.equal(sameDayContext.prisma.state.job.requestedFrom.toISOString(), "2026-04-28T03:00:00.000Z");
   assert.equal(sameDayContext.prisma.state.job.requestedUntil.toISOString(), "2026-04-29T02:59:59.000Z");
 
+  const observedPayloadContext = createService(makeJob(), {
+    instances: [{ id: "instance-1", name: "Pi-hole A" }],
+    timeZone: "America/Sao_Paulo",
+  });
+
+  const observedPayloadResult = await observedPayloadContext.service.enqueueManualImport(
+    {
+      scope: "all",
+      from: 1777863600,
+      until: 1777949999,
+    } as never,
+    {
+      ip: "10.0.0.9",
+      headers: {
+        "accept-language": "en-US",
+      },
+    } as never,
+  );
+
+  assert.equal(observedPayloadResult.job.status, "PENDING");
+  assert.equal(observedPayloadContext.prisma.state.job.requestedFrom.toISOString(), "2026-05-04T03:00:00.000Z");
+  assert.equal(observedPayloadContext.prisma.state.job.requestedUntil.toISOString(), "2026-05-05T02:59:59.000Z");
+
   const crossDayContext = createService(makeJob(), {
     instances: [{ id: "instance-1", name: "Pi-hole A" }],
     timeZone: "America/Sao_Paulo",
@@ -892,7 +915,7 @@ test("enqueueManualImport accepts only one app-timezone calendar day", async () 
           },
         } as never,
       ),
-    /single calendar day/,
+    /single calendar day in America\/Sao_Paulo.*2026-04-28.*2026-04-29/,
   );
 });
 

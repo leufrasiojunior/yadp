@@ -619,6 +619,7 @@ export type WebMessages = {
       from: string;
       until: string;
       closedDayHint: string;
+      timeZoneHint: (timeZone: string) => string;
       apply: string;
       applying: string;
       reload: string;
@@ -951,7 +952,7 @@ export type WebMessages = {
       rankingPeriodWithoutCoverage: string;
       instanceFailure: (instanceName: string, message: string) => string;
       jobsRefreshFailed: string;
-      backfillQueued: string;
+      backfillQueued: (count: number) => string;
       deleteQueued: string;
       backfillFailed: string;
       deleteFailed: string;

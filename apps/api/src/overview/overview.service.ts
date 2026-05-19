@@ -2316,8 +2316,13 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
   }
 
   private assertManualImportSingleDay(range: HistoryRange, timeZone: string) {
-    if (getDateKeyInTimeZone(range.from, timeZone) !== getDateKeyInTimeZone(range.until, timeZone)) {
-      throw new BadRequestException("Manual overview import is limited to a single calendar day.");
+    const fromDateKey = getDateKeyInTimeZone(range.from, timeZone);
+    const untilDateKey = getDateKeyInTimeZone(range.until, timeZone);
+
+    if (fromDateKey !== untilDateKey) {
+      throw new BadRequestException(
+        `Manual overview import is limited to a single calendar day in ${timeZone}. Received ${range.from.toISOString()} to ${range.until.toISOString()}, which resolves to ${fromDateKey} through ${untilDateKey}.`,
+      );
     }
   }
 

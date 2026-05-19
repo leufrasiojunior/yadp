@@ -679,6 +679,7 @@ export const enUSMessages: WebMessages = {
       until: "Until",
       closedDayHint:
         "Manual import accepts only one closed day per request. The current date is blocked, but you can adjust the time within the selected day.",
+      timeZoneHint: (timeZone) => `Period evaluated in the application-configured time zone: ${timeZone}.`,
       apply: "Apply filters",
       applying: "Applying...",
       reload: "Reload",
@@ -1031,7 +1032,8 @@ export const enUSMessages: WebMessages = {
       rankingPeriodWithoutCoverage: "No saved date overlaps the selected period.",
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       jobsRefreshFailed: "Could not refresh overview jobs.",
-      backfillQueued: "Import job queued.",
+      backfillQueued: (count) =>
+        count === 1 ? "1 import job queued or reused." : `${count} import jobs queued or reused.`,
       deleteQueued: "Deletion job queued.",
       backfillFailed: "Could not request the historical import.",
       deleteFailed: "Could not request the period deletion.",
