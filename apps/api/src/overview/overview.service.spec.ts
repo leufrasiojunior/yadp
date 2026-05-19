@@ -141,6 +141,7 @@ function createPrismaStub(
   job: OverviewJobRecord,
   coverageWindow = makeCoverageWindow(),
   options: {
+    instances?: InstanceSummary[];
     jobs?: OverviewJobRecord[];
     enableQueueFind?: boolean;
     coverageWindows?: CoverageWindowRecord[];
@@ -158,6 +159,7 @@ function createPrismaStub(
     automaticImportRules: initialAutomaticImportRules.map((item) => structuredClone(item)),
     createdAutomaticImportRuleData: null as unknown,
     createdJobData: null as unknown,
+    createdJobDataList: [] as unknown[],
     coverageWindow: structuredClone(coverageWindow),
     coverageWindows: structuredClone(options.coverageWindows ?? []),
     coverageStats: structuredClone(options.coverageStats ?? []),
@@ -302,9 +304,11 @@ function createPrismaStub(
       },
       create: async ({ data }: { data: Partial<OverviewJobRecord> }) => {
         state.createdJobData = data;
+        state.createdJobDataList.push(data);
+        const jobIndex = state.createdJobDataList.length;
         state.job = makeJob({
           ...data,
-          id: "job-created",
+          id: jobIndex === 1 ? "job-created" : `job-created-${jobIndex}`,
           status: "PENDING",
           createdAt: new Date("2026-04-29T12:05:00.000Z"),
           updatedAt: new Date("2026-04-29T12:05:00.000Z"),
@@ -670,7 +674,7 @@ test("deleteJob allows failed jobs but rejects non-terminal import jobs", async 
   );
 });
 
-test("cancelJob marks only pending jobs as cancelled and keeps an audit timeline", async () => {
+test("cancelJob marks pending jobs as cancelled and keeps an audit timeline", async () => {
   const { service, prisma } = createService(
     makeJob({
       id: "job-cancel",
@@ -680,10 +684,16 @@ test("cancelJob marks only pending jobs as cancelled and keeps an audit timeline
 
   const result = await service.cancelJob("job-cancel");
 
-  assert.equal(result.job.id, "job-cancel");
-  assert.equal(result.job.status, "CANCELLED");
-  assert.ok(result.job.finishedAt);
-  assert.equal(result.job.errorMessage, null);
+  assert.equal(result.job?.id, "job-cancel");
+  assert.equal(result.job?.status, "CANCELLED");
+  assert.ok(result.job?.finishedAt);
+  assert.equal(result.job?.errorMessage, null);
+  assert.deepEqual(result.summary, {
+    requestedCount: 1,
+    createdCount: 0,
+    reusedCount: 1,
+    skippedCount: 0,
+  });
   assert.equal(prisma.state.job.status, "CANCELLED");
 
   const summary = prisma.state.job.summary as { timeline: Array<{ type: string; message: string }> };
@@ -691,8 +701,106 @@ test("cancelJob marks only pending jobs as cancelled and keeps an audit timeline
   assert.match(summary.timeline.at(-1)?.message ?? "", /cancelled/);
 });
 
-test("cancelJob rejects jobs that already started or finished", async () => {
-  for (const status of ["RUNNING", "SUCCESS", "PARTIAL", "FAILURE", "PAUSED"] as const) {
+test("cancelJob records a cancellation request for running jobs", async () => {
+  const { service, prisma } = createService(
+    makeJob({
+      id: "job-running-cancel",
+      status: "RUNNING",
+    }),
+  );
+
+  const result = await service.cancelJob("job-running-cancel");
+
+  assert.equal(result.job?.id, "job-running-cancel");
+  assert.equal(result.job?.status, "RUNNING");
+  assert.deepEqual(result.summary, {
+    requestedCount: 1,
+    createdCount: 0,
+    reusedCount: 1,
+    skippedCount: 0,
+  });
+
+  const summary = prisma.state.job.summary as {
+    cancelRequestedAt: string | null;
+    cancelReason: string | null;
+    timeline: Array<{ type: string; message: string }>;
+  };
+  assert.ok(summary.cancelRequestedAt);
+  assert.equal(summary.cancelReason, "User requested cancellation.");
+  assert.equal(summary.timeline.at(-1)?.type, "job_cancel_requested");
+});
+
+test("running import cancellation cleanup removes job-linked data and zeroes counts", async () => {
+  const job = makeJob({
+    id: "job-running-cleanup",
+    status: "RUNNING",
+    queryCount: 48,
+    coverageCount: 1,
+    summary: {
+      version: 1,
+      attempts: 1,
+      cancelRequestedAt: "2026-04-29T12:04:00.000Z",
+      cancelReason: "User requested cancellation.",
+      instanceProgress: [
+        {
+          instanceId: "instance-1",
+          instanceName: "Pi-hole A",
+          status: "RUNNING",
+          expectedRecords: 100,
+          fetchedRecords: 48,
+          insertedRecords: 48,
+          totalPages: 1,
+          completedPages: 1,
+          currentPage: 1,
+          currentStart: 48,
+          storedFrom: "2026-04-28T03:00:00.000Z",
+          storedUntil: "2026-04-28T04:00:00.000Z",
+          consecutiveFailures: 0,
+          lastErrorMessage: null,
+          lastFailureReason: null,
+          lastSuccessfulAt: "2026-04-29T12:03:00.000Z",
+          updatedAt: "2026-04-29T12:03:00.000Z",
+        },
+      ],
+      timeline: [],
+    },
+  });
+  const { service, prisma } = createService(job);
+  const serviceInternals = service as unknown as {
+    readRuntimeSummary(value: unknown): unknown;
+    cancelImportJobIfRequested(
+      jobId: string,
+      runtime: unknown,
+      context: { message: string; instance: InstanceSummary; page: number; start: number },
+    ): Promise<{ runtime: unknown; cancelled: boolean }>;
+  };
+  const runtime = serviceInternals.readRuntimeSummary(job.summary);
+
+  const result = await serviceInternals.cancelImportJobIfRequested("job-running-cleanup", runtime, {
+    message: "Job cancelled after saving the latest page.",
+    instance: { id: "instance-1", name: "Pi-hole A" },
+    page: 1,
+    start: 48,
+  });
+
+  assert.equal(result.cancelled, true);
+  assert.equal(prisma.state.job.status, "CANCELLED");
+  assert.equal(prisma.state.job.queryCount, 0);
+  assert.equal(prisma.state.job.coverageCount, 0);
+  assert.deepEqual(prisma.state.deletedQueryWhere, { jobId: "job-running-cleanup" });
+  assert.deepEqual(prisma.state.deletedCoverageWhere, { jobId: "job-running-cleanup" });
+
+  const summary = prisma.state.job.summary as {
+    instanceProgress: Array<{ status: string; insertedRecords: number }>;
+    timeline: Array<{ type: string; message: string }>;
+  };
+  assert.equal(summary.instanceProgress[0]?.status, "CANCELLED");
+  assert.equal(summary.instanceProgress[0]?.insertedRecords, 0);
+  assert.equal(summary.timeline.at(-1)?.type, "job_cancelled");
+});
+
+test("cancelJob rejects jobs that already finished or paused", async () => {
+  for (const status of ["SUCCESS", "PARTIAL", "FAILURE", "PAUSED"] as const) {
     const { service } = createService(
       makeJob({
         id: `job-${status.toLowerCase()}`,
@@ -700,7 +808,10 @@ test("cancelJob rejects jobs that already started or finished", async () => {
       }),
     );
 
-    await assert.rejects(() => service.cancelJob(`job-${status.toLowerCase()}`), /Only queued overview jobs/);
+    await assert.rejects(
+      () => service.cancelJob(`job-${status.toLowerCase()}`),
+      /Only queued or running overview jobs/,
+    );
   }
 });
 
@@ -720,7 +831,7 @@ test("runAutomaticImportRule expands all-instance rules into d-1 per-instance jo
     }
   ).runAutomaticImportRule("rule-all", new Date("2026-04-29T12:00:00.000Z"));
 
-  const createdJobs = prisma.state.jobs.filter((job) => job.id === "job-created");
+  const createdJobs = prisma.state.jobs.filter((job) => job.id.startsWith("job-created"));
   const createdJobData = prisma.state.createdJobData as {
     kind: string;
     scope: string;
@@ -868,7 +979,16 @@ test("enqueueManualImport accepts only one app-timezone calendar day", async () 
     } as never,
   );
 
-  assert.equal(sameDayResult.job.status, "PENDING");
+  assert.equal(sameDayResult.jobs.length, 1);
+  assert.equal(sameDayResult.job?.status, "PENDING");
+  assert.equal(sameDayResult.job?.scope, "instance");
+  assert.equal(sameDayResult.job?.instanceId, "instance-1");
+  assert.deepEqual(sameDayResult.summary, {
+    requestedCount: 1,
+    createdCount: 1,
+    reusedCount: 0,
+    skippedCount: 0,
+  });
   assert.equal(sameDayContext.prisma.state.job.requestedFrom.toISOString(), "2026-04-28T03:00:00.000Z");
   assert.equal(sameDayContext.prisma.state.job.requestedUntil.toISOString(), "2026-04-29T02:59:59.000Z");
 
@@ -891,7 +1011,7 @@ test("enqueueManualImport accepts only one app-timezone calendar day", async () 
     } as never,
   );
 
-  assert.equal(observedPayloadResult.job.status, "PENDING");
+  assert.equal(observedPayloadResult.job?.status, "PENDING");
   assert.equal(observedPayloadContext.prisma.state.job.requestedFrom.toISOString(), "2026-05-04T03:00:00.000Z");
   assert.equal(observedPayloadContext.prisma.state.job.requestedUntil.toISOString(), "2026-05-05T02:59:59.000Z");
 
@@ -919,10 +1039,56 @@ test("enqueueManualImport accepts only one app-timezone calendar day", async () 
   );
 });
 
+test("enqueueManualImport expands an all-instance request into one job per instance", async () => {
+  const { service, prisma } = createService(makeJob(), {
+    instances: [
+      { id: "instance-1", name: "Pi-hole A" },
+      { id: "instance-2", name: "Pi-hole B" },
+    ],
+    timeZone: "America/Sao_Paulo",
+  });
+
+  const result = await service.enqueueManualImport(
+    {
+      scope: "all",
+      from: Date.parse("2026-04-28T03:00:00.000Z") / 1000,
+      until: Date.parse("2026-04-29T02:59:59.000Z") / 1000,
+    } as never,
+    {
+      ip: "10.0.0.9",
+      headers: {
+        "accept-language": "en-US",
+      },
+    } as never,
+  );
+
+  assert.equal(result.jobs.length, 2);
+  assert.deepEqual(
+    result.jobs.map((job) => [job.scope, job.instanceId, job.instanceName]),
+    [
+      ["instance", "instance-1", "Pi-hole A"],
+      ["instance", "instance-2", "Pi-hole B"],
+    ],
+  );
+  assert.deepEqual(result.summary, {
+    requestedCount: 2,
+    createdCount: 2,
+    reusedCount: 0,
+    skippedCount: 0,
+  });
+  assert.deepEqual(
+    prisma.state.createdJobDataList.map((item) => (item as { instanceId: string }).instanceId),
+    ["instance-1", "instance-2"],
+  );
+});
+
 test("enqueueManualImport reuses an identical pending or running job", async () => {
   const existingJob = makeJob({
     id: "job-existing",
     status: "RUNNING",
+    scope: "instance",
+    instanceId: "instance-1",
+    instanceNameSnapshot: "Pi-hole A",
     requestedFrom: new Date("2026-04-28T03:00:00.000Z"),
     requestedUntil: new Date("2026-04-29T02:59:59.000Z"),
   });
@@ -945,8 +1111,14 @@ test("enqueueManualImport reuses an identical pending or running job", async () 
     } as never,
   );
 
-  assert.equal(result.job.id, "job-existing");
-  assert.equal(result.job.status, "RUNNING");
+  assert.equal(result.job?.id, "job-existing");
+  assert.equal(result.job?.status, "RUNNING");
+  assert.deepEqual(result.summary, {
+    requestedCount: 1,
+    createdCount: 0,
+    reusedCount: 1,
+    skippedCount: 0,
+  });
   assert.equal(prisma.state.createdJobData, null);
 });
 
@@ -1221,9 +1393,9 @@ test("retryJob reuses the same paused job and preserves checkpoint summary", asy
     },
   } as never);
 
-  assert.equal(result.job.id, "job-paused");
-  assert.equal(result.job.status, "PENDING");
-  assert.equal(result.job.progress.checkpoint?.start, 1000);
+  assert.equal(result.job?.id, "job-paused");
+  assert.equal(result.job?.status, "PENDING");
+  assert.equal(result.job?.progress.checkpoint?.start, 1000);
   assert.equal(prisma.state.job.id, "job-paused");
   assert.equal(prisma.state.job.status, "PENDING");
   assert.deepEqual(prisma.state.job.summary, summary);
@@ -1245,10 +1417,10 @@ test("retryJob can requeue a cancelled job", async () => {
     },
   } as never);
 
-  assert.equal(result.job.id, "job-cancelled-retry");
-  assert.equal(result.job.status, "PENDING");
-  assert.equal(result.job.startedAt, null);
-  assert.equal(result.job.finishedAt, null);
+  assert.equal(result.job?.id, "job-cancelled-retry");
+  assert.equal(result.job?.status, "PENDING");
+  assert.equal(result.job?.startedAt, null);
+  assert.equal(result.job?.finishedAt, null);
   assert.equal(prisma.state.job.status, "PENDING");
 });
 

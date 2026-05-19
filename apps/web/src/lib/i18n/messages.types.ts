@@ -615,6 +615,8 @@ export type WebMessages = {
     };
     filters: {
       title: string;
+      target: string;
+      allInstancesTarget: string;
       date: string;
       from: string;
       until: string;
@@ -777,6 +779,7 @@ export type WebMessages = {
       };
       status: string;
       type: string;
+      instance: string;
       period: string;
       rows: string;
       progress: string;
@@ -786,6 +789,10 @@ export type WebMessages = {
       retry: string;
       cancel: string;
       delete: string;
+      cancelJobDialogTitle: string;
+      cancelJobDialogDescription: (kind: string, status: string, period: string) => string;
+      cancelJobDialogConfirm: string;
+      cancelJobDialogCancel: string;
       deleteJobDialogTitle: string;
       deleteJobDialogDescription: (kind: string, status: string, period: string) => string;
       deleteJobDialogConfirm: string;

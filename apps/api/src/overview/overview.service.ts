@@ -159,6 +159,8 @@ type JobRuntimeSummary = {
   totalInsertedRecords: number;
   totalPages: number;
   completedPages: number;
+  cancelRequestedAt: string | null;
+  cancelReason: string | null;
   checkpoint: JobRuntimeCheckpoint | null;
   lastFailureMessage: string | null;
   lastFailureReason: OverviewJobFailureReason | null;
@@ -480,6 +482,8 @@ function buildEmptyRuntimeSummary(): JobRuntimeSummary {
     totalInsertedRecords: 0,
     totalPages: 0,
     completedPages: 0,
+    cancelRequestedAt: null,
+    cancelReason: null,
     checkpoint: null,
     lastFailureMessage: null,
     lastFailureReason: null,
@@ -861,7 +865,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.scheduleQueueDrain();
-    return { job: this.mapJob(retried) };
+    return this.buildMutationResponse([{ job: retried, created: true }]);
   }
 
   async cancelJob(jobId: string): Promise<OverviewMutationResponse> {
@@ -873,8 +877,13 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       throw new BadRequestException("Overview job not found.");
     }
 
-    if (existing.status !== "PENDING") {
-      throw new BadRequestException("Only queued overview jobs can be cancelled.");
+    if (existing.status !== "PENDING" && existing.status !== "RUNNING") {
+      throw new BadRequestException("Only queued or running overview jobs can be cancelled.");
+    }
+
+    if (existing.status === "RUNNING") {
+      const requested = await this.requestRunningJobCancellation(existing);
+      return this.buildMutationResponse([{ job: requested, created: false }]);
     }
 
     const cancelledAt = new Date();
@@ -905,7 +914,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     });
 
     if (result.count === 0) {
-      throw new BadRequestException("Only queued overview jobs can be cancelled.");
+      throw new BadRequestException("Only queued or running overview jobs can be cancelled.");
     }
 
     const cancelled = await this.prisma.overviewHistoryJob.findUnique({
@@ -916,7 +925,52 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       throw new BadRequestException("Overview job not found.");
     }
 
-    return { job: this.mapJob(cancelled) };
+    return this.buildMutationResponse([{ job: cancelled, created: false }]);
+  }
+
+  private async requestRunningJobCancellation(existing: OverviewJobRecord) {
+    const requestedAt = new Date();
+    let runtime = this.readRuntimeSummary(existing.summary);
+
+    if (!runtime.cancelRequestedAt) {
+      runtime.cancelRequestedAt = requestedAt.toISOString();
+      runtime.cancelReason = "User requested cancellation.";
+      runtime = this.pushEvent(runtime, {
+        level: "info",
+        type: "job_cancel_requested",
+        message: "Cancellation requested for a running job.",
+        instanceId: null,
+        instanceName: null,
+        page: null,
+        start: null,
+        failureReason: null,
+      });
+    }
+
+    const result = await this.prisma.overviewHistoryJob.updateMany({
+      where: {
+        id: existing.id,
+        status: "RUNNING",
+      },
+      data: {
+        summary: this.serializeRuntimeSummary(runtime),
+        errorMessage: null,
+      },
+    });
+
+    if (result.count === 0) {
+      throw new BadRequestException("Only queued or running overview jobs can be cancelled.");
+    }
+
+    const requested = await this.prisma.overviewHistoryJob.findUnique({
+      where: { id: existing.id },
+    });
+
+    if (!requested) {
+      throw new BadRequestException("Overview job not found.");
+    }
+
+    return requested;
   }
 
   async deleteJob(jobId: string): Promise<OverviewJobDeleteResponse> {
@@ -961,19 +1015,23 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     ]);
     const range = normalizeHistoryRange(body.from, body.until, timeZone);
     this.assertManualImportSingleDay(range, timeZone);
-    const job = await this.createJob({
-      kind: "MANUAL_IMPORT",
-      scope: scope.mode,
-      instanceId: scope.instance?.id ?? null,
-      instanceNameSnapshot: scope.instance?.name ?? null,
-      requestedFrom: range.from,
-      requestedUntil: range.until,
-      trigger: "user",
-      requestedBy: request.ip ?? null,
-    });
+    const results = await Promise.all(
+      scope.instances.map((instance) =>
+        this.createJob({
+          kind: "MANUAL_IMPORT",
+          scope: "instance",
+          instanceId: instance.id,
+          instanceNameSnapshot: instance.name,
+          requestedFrom: range.from,
+          requestedUntil: range.until,
+          trigger: "user",
+          requestedBy: request.ip ?? null,
+        }),
+      ),
+    );
 
     this.scheduleQueueDrain();
-    return { job: this.mapJob(job) };
+    return this.buildMutationResponse(results, scope.instances.length);
   }
 
   async enqueueManualDelete(body: CreateOverviewHistoryJobDto, request: Request): Promise<OverviewMutationResponse> {
@@ -983,7 +1041,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       this.readAppTimeZone(),
     ]);
     const range = normalizeHistoryRange(body.from, body.until, timeZone);
-    const job = await this.createJob({
+    const result = await this.createJob({
       kind: "MANUAL_DELETE",
       scope: scope.mode,
       instanceId: scope.instance?.id ?? null,
@@ -995,7 +1053,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.scheduleQueueDrain();
-    return { job: this.mapJob(job) };
+    return this.buildMutationResponse([result]);
   }
 
   private async runAutomaticImportRule(ruleId: string, reference = new Date()) {
@@ -1377,6 +1435,112 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  private async cancelImportJobIfRequested(
+    jobId: string,
+    runtime: JobRuntimeSummary,
+    context: {
+      message: string;
+      instance?: PiholeManagedInstanceSummary | null;
+      page?: number | null;
+      start?: number | null;
+    },
+  ) {
+    const current = await this.prisma.overviewHistoryJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!current) {
+      return { runtime, cancelled: false };
+    }
+
+    if (current.status === "CANCELLED") {
+      return { runtime: this.readRuntimeSummary(current.summary), cancelled: true };
+    }
+
+    const storedRuntime = this.readRuntimeSummary(current.summary);
+
+    if (storedRuntime.cancelRequestedAt && !runtime.cancelRequestedAt) {
+      runtime.cancelRequestedAt = storedRuntime.cancelRequestedAt;
+      runtime.cancelReason = storedRuntime.cancelReason;
+    }
+
+    if (!runtime.cancelRequestedAt || current.status !== "RUNNING") {
+      return { runtime, cancelled: false };
+    }
+
+    const cancelledAt = new Date();
+    const cancelledRuntime = this.buildCancelledRuntime(runtime, context);
+    const cancelled = await this.prisma.$transaction(async (tx) => {
+      await tx.historicalQuery.deleteMany({
+        where: { jobId },
+      });
+      await tx.overviewCoverageWindow.deleteMany({
+        where: { jobId },
+      });
+
+      return tx.overviewHistoryJob.update({
+        where: { id: jobId },
+        data: {
+          status: "CANCELLED",
+          queryCount: 0,
+          coverageCount: 0,
+          errorMessage: null,
+          finishedAt: cancelledAt,
+          expiresAt: buildHistoryExpiry(cancelledAt),
+          summary: this.serializeRuntimeSummary(cancelledRuntime),
+        },
+      });
+    });
+
+    return { runtime: this.readRuntimeSummary(cancelled.summary), cancelled: true };
+  }
+
+  private buildCancelledRuntime(
+    runtime: JobRuntimeSummary,
+    context: {
+      message: string;
+      instance?: PiholeManagedInstanceSummary | null;
+      page?: number | null;
+      start?: number | null;
+    },
+  ) {
+    const cancelled = structuredClone(runtime);
+    const updatedAt = new Date().toISOString();
+
+    cancelled.checkpoint = null;
+    cancelled.lastFailureMessage = null;
+    cancelled.lastFailureReason = null;
+    cancelled.instanceProgress = cancelled.instanceProgress.map((progress) => ({
+      ...progress,
+      status: "CANCELLED",
+      expectedRecords: null,
+      fetchedRecords: 0,
+      insertedRecords: 0,
+      totalPages: null,
+      completedPages: 0,
+      currentPage: null,
+      currentStart: 0,
+      storedFrom: null,
+      storedUntil: null,
+      consecutiveFailures: 0,
+      lastErrorMessage: null,
+      lastFailureReason: null,
+      lastSuccessfulAt: null,
+      updatedAt,
+    }));
+
+    return this.pushEvent(this.recalculateRuntime(cancelled), {
+      level: "info",
+      type: "job_cancelled",
+      message: context.message,
+      instanceId: context.instance?.id ?? null,
+      instanceName: context.instance?.name ?? null,
+      page: context.page ?? null,
+      start: context.start ?? null,
+      failureReason: null,
+    });
+  }
+
   private async runImportJob(job: OverviewJobRecord) {
     const instances = await this.resolveInstancesForJob(job);
     let runtime = this.prepareRuntimeForExecution(this.readRuntimeSummary(job.summary), instances);
@@ -1418,6 +1582,18 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     const expiresAt = buildHistoryExpiry(new Date());
 
     for (const instance of instances) {
+      const cancellationBeforeInstance = await this.cancelImportJobIfRequested(job.id, runtime, {
+        message: "Job cancelled before starting the next instance.",
+        instance,
+        page: null,
+        start: null,
+      });
+      runtime = cancellationBeforeInstance.runtime;
+
+      if (cancellationBeforeInstance.cancelled) {
+        return;
+      }
+
       const progress = this.getOrCreateInstanceProgress(runtime, instance);
 
       if (progress.status === "SUCCESS") {
@@ -1430,6 +1606,22 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       if (outcome.paused) {
         return;
       }
+
+      if (outcome.cancelled) {
+        return;
+      }
+    }
+
+    const cancellationBeforeCompletion = await this.cancelImportJobIfRequested(job.id, runtime, {
+      message: "Job cancelled before the import job finished.",
+      instance: null,
+      page: null,
+      start: null,
+    });
+    runtime = cancellationBeforeCompletion.runtime;
+
+    if (cancellationBeforeCompletion.cancelled) {
+      return;
     }
 
     runtime = this.recalculateRuntime(runtime);
@@ -1482,6 +1674,21 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     while (true) {
       progress = this.getOrCreateInstanceProgress(runtime, instance);
       const currentPage = Math.floor(progress.currentStart / DEFAULT_CHUNK_SIZE) + 1;
+      const cancellationBeforeFetch = await this.cancelImportJobIfRequested(job.id, runtime, {
+        message: "Job cancelled before fetching another page.",
+        instance,
+        page: currentPage,
+        start: progress.currentStart,
+      });
+      runtime = cancellationBeforeFetch.runtime;
+
+      if (cancellationBeforeFetch.cancelled) {
+        return {
+          runtime,
+          paused: false,
+          cancelled: true,
+        };
+      }
 
       runtime.checkpoint = this.buildCheckpoint(progress, instance);
       runtime = this.pushEvent(runtime, {
@@ -1569,6 +1776,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
           return {
             runtime,
             paused: true,
+            cancelled: false,
           };
         }
 
@@ -1648,11 +1856,28 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
         return {
           runtime,
           paused: true,
+          cancelled: false,
         };
       }
 
       if (batchSignature.length > 0) {
         seenBatchSignatures.add(batchSignature);
+      }
+
+      const cancellationBeforeSave = await this.cancelImportJobIfRequested(job.id, runtime, {
+        message: "Job cancelled before saving fetched page data.",
+        instance,
+        page: currentPage,
+        start: progress.currentStart,
+      });
+      runtime = cancellationBeforeSave.runtime;
+
+      if (cancellationBeforeSave.cancelled) {
+        return {
+          runtime,
+          paused: false,
+          cancelled: true,
+        };
       }
 
       let inserted = 0;
@@ -1735,6 +1960,22 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       });
       await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "RUNNING");
 
+      const cancellationAfterSave = await this.cancelImportJobIfRequested(job.id, runtime, {
+        message: "Job cancelled after saving the latest page.",
+        instance,
+        page: currentPage,
+        start: progress.currentStart,
+      });
+      runtime = cancellationAfterSave.runtime;
+
+      if (cancellationAfterSave.cancelled) {
+        return {
+          runtime,
+          paused: false,
+          cancelled: true,
+        };
+      }
+
       if (
         progress.expectedRecords === 0 ||
         progress.currentStart >= progress.expectedRecords ||
@@ -1781,6 +2022,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       return {
         runtime,
         paused: true,
+        cancelled: false,
       };
     }
 
@@ -1807,9 +2049,26 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     });
     await this.upsertCoverageWindow(job.id, instance, range, expiresAt, progress, "SUCCESS");
 
+    const cancellationAfterInstance = await this.cancelImportJobIfRequested(job.id, runtime, {
+      message: "Job cancelled before moving to the next instance.",
+      instance,
+      page: null,
+      start: null,
+    });
+    runtime = cancellationAfterInstance.runtime;
+
+    if (cancellationAfterInstance.cancelled) {
+      return {
+        runtime,
+        paused: false,
+        cancelled: true,
+      };
+    }
+
     return {
       runtime,
       paused: false,
+      cancelled: false,
     };
   }
 
@@ -2273,7 +2532,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     requestedUntil: Date;
     trigger: string | null;
     requestedBy: string | null;
-  }) {
+  }): Promise<{ job: OverviewJobRecord; created: boolean }> {
     const existing = await this.prisma.overviewHistoryJob.findFirst({
       where: {
         kind: input.kind,
@@ -2289,10 +2548,10 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     });
 
     if (existing) {
-      return existing;
+      return { job: existing, created: false };
     }
 
-    return this.prisma.overviewHistoryJob.create({
+    const job = await this.prisma.overviewHistoryJob.create({
       data: {
         kind: input.kind,
         scope: input.scope,
@@ -2304,6 +2563,8 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
         requestedBy: input.requestedBy,
       },
     });
+
+    return { job, created: true };
   }
 
   private async readAppTimeZone() {
@@ -2349,6 +2610,28 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       errorMessage: job.errorMessage ?? null,
       failureReason: runtime.lastFailureReason,
       progress: this.toJobProgress(runtime),
+    };
+  }
+
+  private buildMutationResponse(
+    results: Array<{ job: OverviewJobRecord; created: boolean; skipped?: boolean }>,
+    requestedCount = results.length,
+  ): OverviewMutationResponse {
+    const activeResults = results.filter((result) => !result.skipped);
+    const createdCount = activeResults.filter((result) => result.created).length;
+    const reusedCount = activeResults.filter((result) => !result.created).length;
+    const skippedCount = Math.max(0, requestedCount - activeResults.length);
+    const jobs = activeResults.map((result) => this.mapJob(result.job));
+
+    return {
+      jobs,
+      job: jobs[0] ?? null,
+      summary: {
+        requestedCount,
+        createdCount,
+        reusedCount,
+        skippedCount,
+      },
     };
   }
 
@@ -2469,6 +2752,8 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     runtime.totalInsertedRecords = typeof summary.totalInsertedRecords === "number" ? summary.totalInsertedRecords : 0;
     runtime.totalPages = typeof summary.totalPages === "number" ? summary.totalPages : 0;
     runtime.completedPages = typeof summary.completedPages === "number" ? summary.completedPages : 0;
+    runtime.cancelRequestedAt = typeof summary.cancelRequestedAt === "string" ? summary.cancelRequestedAt : null;
+    runtime.cancelReason = typeof summary.cancelReason === "string" ? summary.cancelReason : null;
     runtime.lastFailureMessage = typeof summary.lastFailureMessage === "string" ? summary.lastFailureMessage : null;
     runtime.lastFailureReason = summary.lastFailureReason ?? null;
     runtime.checkpoint =
@@ -2648,6 +2933,8 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
       totalInsertedRecords: runtime.totalInsertedRecords,
       totalPages: runtime.totalPages,
       completedPages: runtime.completedPages,
+      cancelRequestedAt: runtime.cancelRequestedAt,
+      cancelReason: runtime.cancelReason,
       checkpoint: runtime.checkpoint,
       lastFailureMessage: runtime.lastFailureMessage,
       lastFailureReason: runtime.lastFailureReason,
@@ -2700,6 +2987,23 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     runtime: JobRuntimeSummary,
     data: Partial<Prisma.OverviewHistoryJobUpdateInput> = {},
   ) {
+    const current = await this.prisma.overviewHistoryJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (current?.status === "CANCELLED") {
+      return current;
+    }
+
+    if (current?.summary) {
+      const currentRuntime = this.readRuntimeSummary(current.summary);
+
+      if (currentRuntime.cancelRequestedAt && !runtime.cancelRequestedAt) {
+        runtime.cancelRequestedAt = currentRuntime.cancelRequestedAt;
+        runtime.cancelReason = currentRuntime.cancelReason;
+      }
+    }
+
     return this.prisma.overviewHistoryJob.update({
       where: { id: jobId },
       data: {

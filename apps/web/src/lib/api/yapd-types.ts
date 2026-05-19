@@ -722,7 +722,14 @@ export type OverviewJobDetailsResponse = {
 };
 
 export type OverviewMutationResponse = {
-  job: OverviewJobsResponse["jobs"][number];
+  jobs: Array<OverviewJobsResponse["jobs"][number]>;
+  job: OverviewJobsResponse["jobs"][number] | null;
+  summary: {
+    requestedCount: number;
+    createdCount: number;
+    reusedCount: number;
+    skippedCount: number;
+  };
 };
 
 export type OverviewJobDeleteResponse = {

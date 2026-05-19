@@ -5951,7 +5951,320 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Recent overview history jobs."
+            "description": "Recent overview history jobs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                          },
+                          "scope": {
+                            "type": "string",
+                            "enum": ["all", "instance"]
+                          },
+                          "instanceId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "instanceName": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedFrom": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "requestedUntil": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                          },
+                          "trigger": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedBy": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "queryCount": {
+                            "type": "number"
+                          },
+                          "deletedCount": {
+                            "type": "number"
+                          },
+                          "coverageCount": {
+                            "type": "number"
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "finishedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "errorMessage": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "failureReason": {
+                            "type": "string",
+                            "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                            "nullable": true
+                          },
+                          "progress": {
+                            "type": "object",
+                            "properties": {
+                              "attempts": {
+                                "type": "number"
+                              },
+                              "totalExpectedRecords": {
+                                "type": "number"
+                              },
+                              "totalFetchedRecords": {
+                                "type": "number"
+                              },
+                              "totalInsertedRecords": {
+                                "type": "number"
+                              },
+                              "totalPages": {
+                                "type": "number"
+                              },
+                              "completedPages": {
+                                "type": "number"
+                              },
+                              "checkpoint": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "instanceName": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "page": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "start": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastSuccessfulPage": {
+                                    "type": "number"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "page",
+                                  "start",
+                                  "totalPages",
+                                  "expectedRecords",
+                                  "consecutiveFailures",
+                                  "lastSuccessfulPage",
+                                  "updatedAt"
+                                ]
+                              },
+                              "lastFailureMessage": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "lastFailureReason": {
+                                "type": "string",
+                                "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                                "nullable": true
+                              },
+                              "instanceProgress": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "PENDING",
+                                        "RUNNING",
+                                        "PAUSED",
+                                        "CANCELLED",
+                                        "SUCCESS",
+                                        "PARTIAL",
+                                        "FAILURE"
+                                      ]
+                                    },
+                                    "expectedRecords": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "fetchedRecords": {
+                                      "type": "number"
+                                    },
+                                    "insertedRecords": {
+                                      "type": "number"
+                                    },
+                                    "totalPages": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "completedPages": {
+                                      "type": "number"
+                                    },
+                                    "currentPage": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "currentStart": {
+                                      "type": "number"
+                                    },
+                                    "storedFrom": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "storedUntil": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "consecutiveFailures": {
+                                      "type": "number"
+                                    },
+                                    "lastErrorMessage": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "lastFailureReason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "timeout",
+                                        "session",
+                                        "server_unavailable",
+                                        "count_mismatch",
+                                        "unexpected"
+                                      ],
+                                      "nullable": true
+                                    },
+                                    "lastSuccessfulAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "updatedAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    }
+                                  },
+                                  "required": [
+                                    "instanceId",
+                                    "instanceName",
+                                    "status",
+                                    "expectedRecords",
+                                    "fetchedRecords",
+                                    "insertedRecords",
+                                    "totalPages",
+                                    "completedPages",
+                                    "currentPage",
+                                    "currentStart",
+                                    "storedFrom",
+                                    "storedUntil",
+                                    "consecutiveFailures",
+                                    "lastErrorMessage",
+                                    "lastFailureReason",
+                                    "lastSuccessfulAt",
+                                    "updatedAt"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "attempts",
+                              "totalExpectedRecords",
+                              "totalFetchedRecords",
+                              "totalInsertedRecords",
+                              "totalPages",
+                              "completedPages",
+                              "checkpoint",
+                              "lastFailureMessage",
+                              "lastFailureReason",
+                              "instanceProgress"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "scope",
+                          "instanceId",
+                          "instanceName",
+                          "requestedFrom",
+                          "requestedUntil",
+                          "status",
+                          "trigger",
+                          "requestedBy",
+                          "queryCount",
+                          "deletedCount",
+                          "coverageCount",
+                          "startedAt",
+                          "finishedAt",
+                          "createdAt",
+                          "errorMessage",
+                          "failureReason",
+                          "progress"
+                        ]
+                      }
+                    }
+                  },
+                  "required": ["jobs"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6435,7 +6748,639 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Enqueued overview history job."
+            "description": "Mutated overview history job queue.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                          },
+                          "scope": {
+                            "type": "string",
+                            "enum": ["all", "instance"]
+                          },
+                          "instanceId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "instanceName": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedFrom": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "requestedUntil": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                          },
+                          "trigger": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedBy": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "queryCount": {
+                            "type": "number"
+                          },
+                          "deletedCount": {
+                            "type": "number"
+                          },
+                          "coverageCount": {
+                            "type": "number"
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "finishedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "errorMessage": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "failureReason": {
+                            "type": "string",
+                            "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                            "nullable": true
+                          },
+                          "progress": {
+                            "type": "object",
+                            "properties": {
+                              "attempts": {
+                                "type": "number"
+                              },
+                              "totalExpectedRecords": {
+                                "type": "number"
+                              },
+                              "totalFetchedRecords": {
+                                "type": "number"
+                              },
+                              "totalInsertedRecords": {
+                                "type": "number"
+                              },
+                              "totalPages": {
+                                "type": "number"
+                              },
+                              "completedPages": {
+                                "type": "number"
+                              },
+                              "checkpoint": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "instanceName": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "page": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "start": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastSuccessfulPage": {
+                                    "type": "number"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "page",
+                                  "start",
+                                  "totalPages",
+                                  "expectedRecords",
+                                  "consecutiveFailures",
+                                  "lastSuccessfulPage",
+                                  "updatedAt"
+                                ]
+                              },
+                              "lastFailureMessage": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "lastFailureReason": {
+                                "type": "string",
+                                "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                                "nullable": true
+                              },
+                              "instanceProgress": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "PENDING",
+                                        "RUNNING",
+                                        "PAUSED",
+                                        "CANCELLED",
+                                        "SUCCESS",
+                                        "PARTIAL",
+                                        "FAILURE"
+                                      ]
+                                    },
+                                    "expectedRecords": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "fetchedRecords": {
+                                      "type": "number"
+                                    },
+                                    "insertedRecords": {
+                                      "type": "number"
+                                    },
+                                    "totalPages": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "completedPages": {
+                                      "type": "number"
+                                    },
+                                    "currentPage": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "currentStart": {
+                                      "type": "number"
+                                    },
+                                    "storedFrom": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "storedUntil": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "consecutiveFailures": {
+                                      "type": "number"
+                                    },
+                                    "lastErrorMessage": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "lastFailureReason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "timeout",
+                                        "session",
+                                        "server_unavailable",
+                                        "count_mismatch",
+                                        "unexpected"
+                                      ],
+                                      "nullable": true
+                                    },
+                                    "lastSuccessfulAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "updatedAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    }
+                                  },
+                                  "required": [
+                                    "instanceId",
+                                    "instanceName",
+                                    "status",
+                                    "expectedRecords",
+                                    "fetchedRecords",
+                                    "insertedRecords",
+                                    "totalPages",
+                                    "completedPages",
+                                    "currentPage",
+                                    "currentStart",
+                                    "storedFrom",
+                                    "storedUntil",
+                                    "consecutiveFailures",
+                                    "lastErrorMessage",
+                                    "lastFailureReason",
+                                    "lastSuccessfulAt",
+                                    "updatedAt"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "attempts",
+                              "totalExpectedRecords",
+                              "totalFetchedRecords",
+                              "totalInsertedRecords",
+                              "totalPages",
+                              "completedPages",
+                              "checkpoint",
+                              "lastFailureMessage",
+                              "lastFailureReason",
+                              "instanceProgress"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "scope",
+                          "instanceId",
+                          "instanceName",
+                          "requestedFrom",
+                          "requestedUntil",
+                          "status",
+                          "trigger",
+                          "requestedBy",
+                          "queryCount",
+                          "deletedCount",
+                          "coverageCount",
+                          "startedAt",
+                          "finishedAt",
+                          "createdAt",
+                          "errorMessage",
+                          "failureReason",
+                          "progress"
+                        ]
+                      }
+                    },
+                    "job": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedFrom": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "requestedUntil": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                        },
+                        "trigger": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedBy": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "queryCount": {
+                          "type": "number"
+                        },
+                        "deletedCount": {
+                          "type": "number"
+                        },
+                        "coverageCount": {
+                          "type": "number"
+                        },
+                        "startedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "finishedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "errorMessage": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "failureReason": {
+                          "type": "string",
+                          "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                          "nullable": true
+                        },
+                        "progress": {
+                          "type": "object",
+                          "properties": {
+                            "attempts": {
+                              "type": "number"
+                            },
+                            "totalExpectedRecords": {
+                              "type": "number"
+                            },
+                            "totalFetchedRecords": {
+                              "type": "number"
+                            },
+                            "totalInsertedRecords": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "completedPages": {
+                              "type": "number"
+                            },
+                            "checkpoint": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "instanceId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "instanceName": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "page": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "start": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "totalPages": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "expectedRecords": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "consecutiveFailures": {
+                                  "type": "number"
+                                },
+                                "lastSuccessfulPage": {
+                                  "type": "number"
+                                },
+                                "updatedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "instanceId",
+                                "instanceName",
+                                "page",
+                                "start",
+                                "totalPages",
+                                "expectedRecords",
+                                "consecutiveFailures",
+                                "lastSuccessfulPage",
+                                "updatedAt"
+                              ]
+                            },
+                            "lastFailureMessage": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "lastFailureReason": {
+                              "type": "string",
+                              "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                              "nullable": true
+                            },
+                            "instanceProgress": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string"
+                                  },
+                                  "instanceName": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "PENDING",
+                                      "RUNNING",
+                                      "PAUSED",
+                                      "CANCELLED",
+                                      "SUCCESS",
+                                      "PARTIAL",
+                                      "FAILURE"
+                                    ]
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "fetchedRecords": {
+                                    "type": "number"
+                                  },
+                                  "insertedRecords": {
+                                    "type": "number"
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "completedPages": {
+                                    "type": "number"
+                                  },
+                                  "currentPage": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "currentStart": {
+                                    "type": "number"
+                                  },
+                                  "storedFrom": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "storedUntil": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastErrorMessage": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "lastFailureReason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "timeout",
+                                      "session",
+                                      "server_unavailable",
+                                      "count_mismatch",
+                                      "unexpected"
+                                    ],
+                                    "nullable": true
+                                  },
+                                  "lastSuccessfulAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "status",
+                                  "expectedRecords",
+                                  "fetchedRecords",
+                                  "insertedRecords",
+                                  "totalPages",
+                                  "completedPages",
+                                  "currentPage",
+                                  "currentStart",
+                                  "storedFrom",
+                                  "storedUntil",
+                                  "consecutiveFailures",
+                                  "lastErrorMessage",
+                                  "lastFailureReason",
+                                  "lastSuccessfulAt",
+                                  "updatedAt"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "attempts",
+                            "totalExpectedRecords",
+                            "totalFetchedRecords",
+                            "totalInsertedRecords",
+                            "totalPages",
+                            "completedPages",
+                            "checkpoint",
+                            "lastFailureMessage",
+                            "lastFailureReason",
+                            "instanceProgress"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "kind",
+                        "scope",
+                        "instanceId",
+                        "instanceName",
+                        "requestedFrom",
+                        "requestedUntil",
+                        "status",
+                        "trigger",
+                        "requestedBy",
+                        "queryCount",
+                        "deletedCount",
+                        "coverageCount",
+                        "startedAt",
+                        "finishedAt",
+                        "createdAt",
+                        "errorMessage",
+                        "failureReason",
+                        "progress"
+                      ],
+                      "nullable": true
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "requestedCount": {
+                          "type": "number"
+                        },
+                        "createdCount": {
+                          "type": "number"
+                        },
+                        "reusedCount": {
+                          "type": "number"
+                        },
+                        "skippedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["requestedCount", "createdCount", "reusedCount", "skippedCount"]
+                    }
+                  },
+                  "required": ["jobs", "job", "summary"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6452,7 +7397,639 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Enqueued overview history job."
+            "description": "Mutated overview history job queue.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                          },
+                          "scope": {
+                            "type": "string",
+                            "enum": ["all", "instance"]
+                          },
+                          "instanceId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "instanceName": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedFrom": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "requestedUntil": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                          },
+                          "trigger": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedBy": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "queryCount": {
+                            "type": "number"
+                          },
+                          "deletedCount": {
+                            "type": "number"
+                          },
+                          "coverageCount": {
+                            "type": "number"
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "finishedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "errorMessage": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "failureReason": {
+                            "type": "string",
+                            "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                            "nullable": true
+                          },
+                          "progress": {
+                            "type": "object",
+                            "properties": {
+                              "attempts": {
+                                "type": "number"
+                              },
+                              "totalExpectedRecords": {
+                                "type": "number"
+                              },
+                              "totalFetchedRecords": {
+                                "type": "number"
+                              },
+                              "totalInsertedRecords": {
+                                "type": "number"
+                              },
+                              "totalPages": {
+                                "type": "number"
+                              },
+                              "completedPages": {
+                                "type": "number"
+                              },
+                              "checkpoint": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "instanceName": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "page": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "start": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastSuccessfulPage": {
+                                    "type": "number"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "page",
+                                  "start",
+                                  "totalPages",
+                                  "expectedRecords",
+                                  "consecutiveFailures",
+                                  "lastSuccessfulPage",
+                                  "updatedAt"
+                                ]
+                              },
+                              "lastFailureMessage": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "lastFailureReason": {
+                                "type": "string",
+                                "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                                "nullable": true
+                              },
+                              "instanceProgress": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "PENDING",
+                                        "RUNNING",
+                                        "PAUSED",
+                                        "CANCELLED",
+                                        "SUCCESS",
+                                        "PARTIAL",
+                                        "FAILURE"
+                                      ]
+                                    },
+                                    "expectedRecords": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "fetchedRecords": {
+                                      "type": "number"
+                                    },
+                                    "insertedRecords": {
+                                      "type": "number"
+                                    },
+                                    "totalPages": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "completedPages": {
+                                      "type": "number"
+                                    },
+                                    "currentPage": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "currentStart": {
+                                      "type": "number"
+                                    },
+                                    "storedFrom": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "storedUntil": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "consecutiveFailures": {
+                                      "type": "number"
+                                    },
+                                    "lastErrorMessage": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "lastFailureReason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "timeout",
+                                        "session",
+                                        "server_unavailable",
+                                        "count_mismatch",
+                                        "unexpected"
+                                      ],
+                                      "nullable": true
+                                    },
+                                    "lastSuccessfulAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "updatedAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    }
+                                  },
+                                  "required": [
+                                    "instanceId",
+                                    "instanceName",
+                                    "status",
+                                    "expectedRecords",
+                                    "fetchedRecords",
+                                    "insertedRecords",
+                                    "totalPages",
+                                    "completedPages",
+                                    "currentPage",
+                                    "currentStart",
+                                    "storedFrom",
+                                    "storedUntil",
+                                    "consecutiveFailures",
+                                    "lastErrorMessage",
+                                    "lastFailureReason",
+                                    "lastSuccessfulAt",
+                                    "updatedAt"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "attempts",
+                              "totalExpectedRecords",
+                              "totalFetchedRecords",
+                              "totalInsertedRecords",
+                              "totalPages",
+                              "completedPages",
+                              "checkpoint",
+                              "lastFailureMessage",
+                              "lastFailureReason",
+                              "instanceProgress"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "scope",
+                          "instanceId",
+                          "instanceName",
+                          "requestedFrom",
+                          "requestedUntil",
+                          "status",
+                          "trigger",
+                          "requestedBy",
+                          "queryCount",
+                          "deletedCount",
+                          "coverageCount",
+                          "startedAt",
+                          "finishedAt",
+                          "createdAt",
+                          "errorMessage",
+                          "failureReason",
+                          "progress"
+                        ]
+                      }
+                    },
+                    "job": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedFrom": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "requestedUntil": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                        },
+                        "trigger": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedBy": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "queryCount": {
+                          "type": "number"
+                        },
+                        "deletedCount": {
+                          "type": "number"
+                        },
+                        "coverageCount": {
+                          "type": "number"
+                        },
+                        "startedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "finishedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "errorMessage": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "failureReason": {
+                          "type": "string",
+                          "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                          "nullable": true
+                        },
+                        "progress": {
+                          "type": "object",
+                          "properties": {
+                            "attempts": {
+                              "type": "number"
+                            },
+                            "totalExpectedRecords": {
+                              "type": "number"
+                            },
+                            "totalFetchedRecords": {
+                              "type": "number"
+                            },
+                            "totalInsertedRecords": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "completedPages": {
+                              "type": "number"
+                            },
+                            "checkpoint": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "instanceId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "instanceName": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "page": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "start": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "totalPages": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "expectedRecords": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "consecutiveFailures": {
+                                  "type": "number"
+                                },
+                                "lastSuccessfulPage": {
+                                  "type": "number"
+                                },
+                                "updatedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "instanceId",
+                                "instanceName",
+                                "page",
+                                "start",
+                                "totalPages",
+                                "expectedRecords",
+                                "consecutiveFailures",
+                                "lastSuccessfulPage",
+                                "updatedAt"
+                              ]
+                            },
+                            "lastFailureMessage": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "lastFailureReason": {
+                              "type": "string",
+                              "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                              "nullable": true
+                            },
+                            "instanceProgress": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string"
+                                  },
+                                  "instanceName": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "PENDING",
+                                      "RUNNING",
+                                      "PAUSED",
+                                      "CANCELLED",
+                                      "SUCCESS",
+                                      "PARTIAL",
+                                      "FAILURE"
+                                    ]
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "fetchedRecords": {
+                                    "type": "number"
+                                  },
+                                  "insertedRecords": {
+                                    "type": "number"
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "completedPages": {
+                                    "type": "number"
+                                  },
+                                  "currentPage": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "currentStart": {
+                                    "type": "number"
+                                  },
+                                  "storedFrom": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "storedUntil": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastErrorMessage": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "lastFailureReason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "timeout",
+                                      "session",
+                                      "server_unavailable",
+                                      "count_mismatch",
+                                      "unexpected"
+                                    ],
+                                    "nullable": true
+                                  },
+                                  "lastSuccessfulAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "status",
+                                  "expectedRecords",
+                                  "fetchedRecords",
+                                  "insertedRecords",
+                                  "totalPages",
+                                  "completedPages",
+                                  "currentPage",
+                                  "currentStart",
+                                  "storedFrom",
+                                  "storedUntil",
+                                  "consecutiveFailures",
+                                  "lastErrorMessage",
+                                  "lastFailureReason",
+                                  "lastSuccessfulAt",
+                                  "updatedAt"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "attempts",
+                            "totalExpectedRecords",
+                            "totalFetchedRecords",
+                            "totalInsertedRecords",
+                            "totalPages",
+                            "completedPages",
+                            "checkpoint",
+                            "lastFailureMessage",
+                            "lastFailureReason",
+                            "instanceProgress"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "kind",
+                        "scope",
+                        "instanceId",
+                        "instanceName",
+                        "requestedFrom",
+                        "requestedUntil",
+                        "status",
+                        "trigger",
+                        "requestedBy",
+                        "queryCount",
+                        "deletedCount",
+                        "coverageCount",
+                        "startedAt",
+                        "finishedAt",
+                        "createdAt",
+                        "errorMessage",
+                        "failureReason",
+                        "progress"
+                      ],
+                      "nullable": true
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "requestedCount": {
+                          "type": "number"
+                        },
+                        "createdCount": {
+                          "type": "number"
+                        },
+                        "reusedCount": {
+                          "type": "number"
+                        },
+                        "skippedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["requestedCount", "createdCount", "reusedCount", "skippedCount"]
+                    }
+                  },
+                  "required": ["jobs", "job", "summary"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6486,7 +8063,639 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Enqueued overview history job."
+            "description": "Mutated overview history job queue.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                          },
+                          "scope": {
+                            "type": "string",
+                            "enum": ["all", "instance"]
+                          },
+                          "instanceId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "instanceName": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedFrom": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "requestedUntil": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                          },
+                          "trigger": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedBy": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "queryCount": {
+                            "type": "number"
+                          },
+                          "deletedCount": {
+                            "type": "number"
+                          },
+                          "coverageCount": {
+                            "type": "number"
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "finishedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "errorMessage": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "failureReason": {
+                            "type": "string",
+                            "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                            "nullable": true
+                          },
+                          "progress": {
+                            "type": "object",
+                            "properties": {
+                              "attempts": {
+                                "type": "number"
+                              },
+                              "totalExpectedRecords": {
+                                "type": "number"
+                              },
+                              "totalFetchedRecords": {
+                                "type": "number"
+                              },
+                              "totalInsertedRecords": {
+                                "type": "number"
+                              },
+                              "totalPages": {
+                                "type": "number"
+                              },
+                              "completedPages": {
+                                "type": "number"
+                              },
+                              "checkpoint": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "instanceName": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "page": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "start": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastSuccessfulPage": {
+                                    "type": "number"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "page",
+                                  "start",
+                                  "totalPages",
+                                  "expectedRecords",
+                                  "consecutiveFailures",
+                                  "lastSuccessfulPage",
+                                  "updatedAt"
+                                ]
+                              },
+                              "lastFailureMessage": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "lastFailureReason": {
+                                "type": "string",
+                                "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                                "nullable": true
+                              },
+                              "instanceProgress": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "PENDING",
+                                        "RUNNING",
+                                        "PAUSED",
+                                        "CANCELLED",
+                                        "SUCCESS",
+                                        "PARTIAL",
+                                        "FAILURE"
+                                      ]
+                                    },
+                                    "expectedRecords": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "fetchedRecords": {
+                                      "type": "number"
+                                    },
+                                    "insertedRecords": {
+                                      "type": "number"
+                                    },
+                                    "totalPages": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "completedPages": {
+                                      "type": "number"
+                                    },
+                                    "currentPage": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "currentStart": {
+                                      "type": "number"
+                                    },
+                                    "storedFrom": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "storedUntil": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "consecutiveFailures": {
+                                      "type": "number"
+                                    },
+                                    "lastErrorMessage": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "lastFailureReason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "timeout",
+                                        "session",
+                                        "server_unavailable",
+                                        "count_mismatch",
+                                        "unexpected"
+                                      ],
+                                      "nullable": true
+                                    },
+                                    "lastSuccessfulAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "updatedAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    }
+                                  },
+                                  "required": [
+                                    "instanceId",
+                                    "instanceName",
+                                    "status",
+                                    "expectedRecords",
+                                    "fetchedRecords",
+                                    "insertedRecords",
+                                    "totalPages",
+                                    "completedPages",
+                                    "currentPage",
+                                    "currentStart",
+                                    "storedFrom",
+                                    "storedUntil",
+                                    "consecutiveFailures",
+                                    "lastErrorMessage",
+                                    "lastFailureReason",
+                                    "lastSuccessfulAt",
+                                    "updatedAt"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "attempts",
+                              "totalExpectedRecords",
+                              "totalFetchedRecords",
+                              "totalInsertedRecords",
+                              "totalPages",
+                              "completedPages",
+                              "checkpoint",
+                              "lastFailureMessage",
+                              "lastFailureReason",
+                              "instanceProgress"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "scope",
+                          "instanceId",
+                          "instanceName",
+                          "requestedFrom",
+                          "requestedUntil",
+                          "status",
+                          "trigger",
+                          "requestedBy",
+                          "queryCount",
+                          "deletedCount",
+                          "coverageCount",
+                          "startedAt",
+                          "finishedAt",
+                          "createdAt",
+                          "errorMessage",
+                          "failureReason",
+                          "progress"
+                        ]
+                      }
+                    },
+                    "job": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedFrom": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "requestedUntil": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                        },
+                        "trigger": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedBy": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "queryCount": {
+                          "type": "number"
+                        },
+                        "deletedCount": {
+                          "type": "number"
+                        },
+                        "coverageCount": {
+                          "type": "number"
+                        },
+                        "startedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "finishedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "errorMessage": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "failureReason": {
+                          "type": "string",
+                          "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                          "nullable": true
+                        },
+                        "progress": {
+                          "type": "object",
+                          "properties": {
+                            "attempts": {
+                              "type": "number"
+                            },
+                            "totalExpectedRecords": {
+                              "type": "number"
+                            },
+                            "totalFetchedRecords": {
+                              "type": "number"
+                            },
+                            "totalInsertedRecords": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "completedPages": {
+                              "type": "number"
+                            },
+                            "checkpoint": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "instanceId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "instanceName": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "page": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "start": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "totalPages": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "expectedRecords": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "consecutiveFailures": {
+                                  "type": "number"
+                                },
+                                "lastSuccessfulPage": {
+                                  "type": "number"
+                                },
+                                "updatedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "instanceId",
+                                "instanceName",
+                                "page",
+                                "start",
+                                "totalPages",
+                                "expectedRecords",
+                                "consecutiveFailures",
+                                "lastSuccessfulPage",
+                                "updatedAt"
+                              ]
+                            },
+                            "lastFailureMessage": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "lastFailureReason": {
+                              "type": "string",
+                              "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                              "nullable": true
+                            },
+                            "instanceProgress": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string"
+                                  },
+                                  "instanceName": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "PENDING",
+                                      "RUNNING",
+                                      "PAUSED",
+                                      "CANCELLED",
+                                      "SUCCESS",
+                                      "PARTIAL",
+                                      "FAILURE"
+                                    ]
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "fetchedRecords": {
+                                    "type": "number"
+                                  },
+                                  "insertedRecords": {
+                                    "type": "number"
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "completedPages": {
+                                    "type": "number"
+                                  },
+                                  "currentPage": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "currentStart": {
+                                    "type": "number"
+                                  },
+                                  "storedFrom": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "storedUntil": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastErrorMessage": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "lastFailureReason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "timeout",
+                                      "session",
+                                      "server_unavailable",
+                                      "count_mismatch",
+                                      "unexpected"
+                                    ],
+                                    "nullable": true
+                                  },
+                                  "lastSuccessfulAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "status",
+                                  "expectedRecords",
+                                  "fetchedRecords",
+                                  "insertedRecords",
+                                  "totalPages",
+                                  "completedPages",
+                                  "currentPage",
+                                  "currentStart",
+                                  "storedFrom",
+                                  "storedUntil",
+                                  "consecutiveFailures",
+                                  "lastErrorMessage",
+                                  "lastFailureReason",
+                                  "lastSuccessfulAt",
+                                  "updatedAt"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "attempts",
+                            "totalExpectedRecords",
+                            "totalFetchedRecords",
+                            "totalInsertedRecords",
+                            "totalPages",
+                            "completedPages",
+                            "checkpoint",
+                            "lastFailureMessage",
+                            "lastFailureReason",
+                            "instanceProgress"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "kind",
+                        "scope",
+                        "instanceId",
+                        "instanceName",
+                        "requestedFrom",
+                        "requestedUntil",
+                        "status",
+                        "trigger",
+                        "requestedBy",
+                        "queryCount",
+                        "deletedCount",
+                        "coverageCount",
+                        "startedAt",
+                        "finishedAt",
+                        "createdAt",
+                        "errorMessage",
+                        "failureReason",
+                        "progress"
+                      ],
+                      "nullable": true
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "requestedCount": {
+                          "type": "number"
+                        },
+                        "createdCount": {
+                          "type": "number"
+                        },
+                        "reusedCount": {
+                          "type": "number"
+                        },
+                        "skippedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["requestedCount", "createdCount", "reusedCount", "skippedCount"]
+                    }
+                  },
+                  "required": ["jobs", "job", "summary"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6503,7 +8712,639 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Enqueued overview history job."
+            "description": "Mutated overview history job queue.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                          },
+                          "scope": {
+                            "type": "string",
+                            "enum": ["all", "instance"]
+                          },
+                          "instanceId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "instanceName": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedFrom": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "requestedUntil": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                          },
+                          "trigger": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "requestedBy": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "queryCount": {
+                            "type": "number"
+                          },
+                          "deletedCount": {
+                            "type": "number"
+                          },
+                          "coverageCount": {
+                            "type": "number"
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "finishedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "errorMessage": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "failureReason": {
+                            "type": "string",
+                            "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                            "nullable": true
+                          },
+                          "progress": {
+                            "type": "object",
+                            "properties": {
+                              "attempts": {
+                                "type": "number"
+                              },
+                              "totalExpectedRecords": {
+                                "type": "number"
+                              },
+                              "totalFetchedRecords": {
+                                "type": "number"
+                              },
+                              "totalInsertedRecords": {
+                                "type": "number"
+                              },
+                              "totalPages": {
+                                "type": "number"
+                              },
+                              "completedPages": {
+                                "type": "number"
+                              },
+                              "checkpoint": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "instanceName": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "page": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "start": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastSuccessfulPage": {
+                                    "type": "number"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "page",
+                                  "start",
+                                  "totalPages",
+                                  "expectedRecords",
+                                  "consecutiveFailures",
+                                  "lastSuccessfulPage",
+                                  "updatedAt"
+                                ]
+                              },
+                              "lastFailureMessage": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "lastFailureReason": {
+                                "type": "string",
+                                "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                                "nullable": true
+                              },
+                              "instanceProgress": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "instanceId": {
+                                      "type": "string"
+                                    },
+                                    "instanceName": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "PENDING",
+                                        "RUNNING",
+                                        "PAUSED",
+                                        "CANCELLED",
+                                        "SUCCESS",
+                                        "PARTIAL",
+                                        "FAILURE"
+                                      ]
+                                    },
+                                    "expectedRecords": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "fetchedRecords": {
+                                      "type": "number"
+                                    },
+                                    "insertedRecords": {
+                                      "type": "number"
+                                    },
+                                    "totalPages": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "completedPages": {
+                                      "type": "number"
+                                    },
+                                    "currentPage": {
+                                      "type": "number",
+                                      "nullable": true
+                                    },
+                                    "currentStart": {
+                                      "type": "number"
+                                    },
+                                    "storedFrom": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "storedUntil": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "consecutiveFailures": {
+                                      "type": "number"
+                                    },
+                                    "lastErrorMessage": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "lastFailureReason": {
+                                      "type": "string",
+                                      "enum": [
+                                        "timeout",
+                                        "session",
+                                        "server_unavailable",
+                                        "count_mismatch",
+                                        "unexpected"
+                                      ],
+                                      "nullable": true
+                                    },
+                                    "lastSuccessfulAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "updatedAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    }
+                                  },
+                                  "required": [
+                                    "instanceId",
+                                    "instanceName",
+                                    "status",
+                                    "expectedRecords",
+                                    "fetchedRecords",
+                                    "insertedRecords",
+                                    "totalPages",
+                                    "completedPages",
+                                    "currentPage",
+                                    "currentStart",
+                                    "storedFrom",
+                                    "storedUntil",
+                                    "consecutiveFailures",
+                                    "lastErrorMessage",
+                                    "lastFailureReason",
+                                    "lastSuccessfulAt",
+                                    "updatedAt"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "attempts",
+                              "totalExpectedRecords",
+                              "totalFetchedRecords",
+                              "totalInsertedRecords",
+                              "totalPages",
+                              "completedPages",
+                              "checkpoint",
+                              "lastFailureMessage",
+                              "lastFailureReason",
+                              "instanceProgress"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "scope",
+                          "instanceId",
+                          "instanceName",
+                          "requestedFrom",
+                          "requestedUntil",
+                          "status",
+                          "trigger",
+                          "requestedBy",
+                          "queryCount",
+                          "deletedCount",
+                          "coverageCount",
+                          "startedAt",
+                          "finishedAt",
+                          "createdAt",
+                          "errorMessage",
+                          "failureReason",
+                          "progress"
+                        ]
+                      }
+                    },
+                    "job": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedFrom": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "requestedUntil": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                        },
+                        "trigger": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedBy": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "queryCount": {
+                          "type": "number"
+                        },
+                        "deletedCount": {
+                          "type": "number"
+                        },
+                        "coverageCount": {
+                          "type": "number"
+                        },
+                        "startedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "finishedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "errorMessage": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "failureReason": {
+                          "type": "string",
+                          "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                          "nullable": true
+                        },
+                        "progress": {
+                          "type": "object",
+                          "properties": {
+                            "attempts": {
+                              "type": "number"
+                            },
+                            "totalExpectedRecords": {
+                              "type": "number"
+                            },
+                            "totalFetchedRecords": {
+                              "type": "number"
+                            },
+                            "totalInsertedRecords": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "completedPages": {
+                              "type": "number"
+                            },
+                            "checkpoint": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "instanceId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "instanceName": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "page": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "start": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "totalPages": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "expectedRecords": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "consecutiveFailures": {
+                                  "type": "number"
+                                },
+                                "lastSuccessfulPage": {
+                                  "type": "number"
+                                },
+                                "updatedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "instanceId",
+                                "instanceName",
+                                "page",
+                                "start",
+                                "totalPages",
+                                "expectedRecords",
+                                "consecutiveFailures",
+                                "lastSuccessfulPage",
+                                "updatedAt"
+                              ]
+                            },
+                            "lastFailureMessage": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "lastFailureReason": {
+                              "type": "string",
+                              "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                              "nullable": true
+                            },
+                            "instanceProgress": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string"
+                                  },
+                                  "instanceName": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "PENDING",
+                                      "RUNNING",
+                                      "PAUSED",
+                                      "CANCELLED",
+                                      "SUCCESS",
+                                      "PARTIAL",
+                                      "FAILURE"
+                                    ]
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "fetchedRecords": {
+                                    "type": "number"
+                                  },
+                                  "insertedRecords": {
+                                    "type": "number"
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "completedPages": {
+                                    "type": "number"
+                                  },
+                                  "currentPage": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "currentStart": {
+                                    "type": "number"
+                                  },
+                                  "storedFrom": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "storedUntil": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastErrorMessage": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "lastFailureReason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "timeout",
+                                      "session",
+                                      "server_unavailable",
+                                      "count_mismatch",
+                                      "unexpected"
+                                    ],
+                                    "nullable": true
+                                  },
+                                  "lastSuccessfulAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "status",
+                                  "expectedRecords",
+                                  "fetchedRecords",
+                                  "insertedRecords",
+                                  "totalPages",
+                                  "completedPages",
+                                  "currentPage",
+                                  "currentStart",
+                                  "storedFrom",
+                                  "storedUntil",
+                                  "consecutiveFailures",
+                                  "lastErrorMessage",
+                                  "lastFailureReason",
+                                  "lastSuccessfulAt",
+                                  "updatedAt"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "attempts",
+                            "totalExpectedRecords",
+                            "totalFetchedRecords",
+                            "totalInsertedRecords",
+                            "totalPages",
+                            "completedPages",
+                            "checkpoint",
+                            "lastFailureMessage",
+                            "lastFailureReason",
+                            "instanceProgress"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "kind",
+                        "scope",
+                        "instanceId",
+                        "instanceName",
+                        "requestedFrom",
+                        "requestedUntil",
+                        "status",
+                        "trigger",
+                        "requestedBy",
+                        "queryCount",
+                        "deletedCount",
+                        "coverageCount",
+                        "startedAt",
+                        "finishedAt",
+                        "createdAt",
+                        "errorMessage",
+                        "failureReason",
+                        "progress"
+                      ],
+                      "nullable": true
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "requestedCount": {
+                          "type": "number"
+                        },
+                        "createdCount": {
+                          "type": "number"
+                        },
+                        "reusedCount": {
+                          "type": "number"
+                        },
+                        "skippedCount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["requestedCount", "createdCount", "reusedCount", "skippedCount"]
+                    }
+                  },
+                  "required": ["jobs", "job", "summary"]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6520,7 +9361,317 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Enqueued overview history job."
+            "description": "Deleted overview history job.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": ["AUTOMATIC_IMPORT", "MANUAL_IMPORT", "MANUAL_DELETE"]
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["all", "instance"]
+                        },
+                        "instanceId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "instanceName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedFrom": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "requestedUntil": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["PENDING", "RUNNING", "PAUSED", "CANCELLED", "SUCCESS", "PARTIAL", "FAILURE"]
+                        },
+                        "trigger": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "requestedBy": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "queryCount": {
+                          "type": "number"
+                        },
+                        "deletedCount": {
+                          "type": "number"
+                        },
+                        "coverageCount": {
+                          "type": "number"
+                        },
+                        "startedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "finishedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "errorMessage": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "failureReason": {
+                          "type": "string",
+                          "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                          "nullable": true
+                        },
+                        "progress": {
+                          "type": "object",
+                          "properties": {
+                            "attempts": {
+                              "type": "number"
+                            },
+                            "totalExpectedRecords": {
+                              "type": "number"
+                            },
+                            "totalFetchedRecords": {
+                              "type": "number"
+                            },
+                            "totalInsertedRecords": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "completedPages": {
+                              "type": "number"
+                            },
+                            "checkpoint": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "instanceId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "instanceName": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "page": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "start": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "totalPages": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "expectedRecords": {
+                                  "type": "number",
+                                  "nullable": true
+                                },
+                                "consecutiveFailures": {
+                                  "type": "number"
+                                },
+                                "lastSuccessfulPage": {
+                                  "type": "number"
+                                },
+                                "updatedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "instanceId",
+                                "instanceName",
+                                "page",
+                                "start",
+                                "totalPages",
+                                "expectedRecords",
+                                "consecutiveFailures",
+                                "lastSuccessfulPage",
+                                "updatedAt"
+                              ]
+                            },
+                            "lastFailureMessage": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "lastFailureReason": {
+                              "type": "string",
+                              "enum": ["timeout", "session", "server_unavailable", "count_mismatch", "unexpected"],
+                              "nullable": true
+                            },
+                            "instanceProgress": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "instanceId": {
+                                    "type": "string"
+                                  },
+                                  "instanceName": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "PENDING",
+                                      "RUNNING",
+                                      "PAUSED",
+                                      "CANCELLED",
+                                      "SUCCESS",
+                                      "PARTIAL",
+                                      "FAILURE"
+                                    ]
+                                  },
+                                  "expectedRecords": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "fetchedRecords": {
+                                    "type": "number"
+                                  },
+                                  "insertedRecords": {
+                                    "type": "number"
+                                  },
+                                  "totalPages": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "completedPages": {
+                                    "type": "number"
+                                  },
+                                  "currentPage": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "currentStart": {
+                                    "type": "number"
+                                  },
+                                  "storedFrom": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "storedUntil": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "consecutiveFailures": {
+                                    "type": "number"
+                                  },
+                                  "lastErrorMessage": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "lastFailureReason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "timeout",
+                                      "session",
+                                      "server_unavailable",
+                                      "count_mismatch",
+                                      "unexpected"
+                                    ],
+                                    "nullable": true
+                                  },
+                                  "lastSuccessfulAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "instanceId",
+                                  "instanceName",
+                                  "status",
+                                  "expectedRecords",
+                                  "fetchedRecords",
+                                  "insertedRecords",
+                                  "totalPages",
+                                  "completedPages",
+                                  "currentPage",
+                                  "currentStart",
+                                  "storedFrom",
+                                  "storedUntil",
+                                  "consecutiveFailures",
+                                  "lastErrorMessage",
+                                  "lastFailureReason",
+                                  "lastSuccessfulAt",
+                                  "updatedAt"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "attempts",
+                            "totalExpectedRecords",
+                            "totalFetchedRecords",
+                            "totalInsertedRecords",
+                            "totalPages",
+                            "completedPages",
+                            "checkpoint",
+                            "lastFailureMessage",
+                            "lastFailureReason",
+                            "instanceProgress"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "kind",
+                        "scope",
+                        "instanceId",
+                        "instanceName",
+                        "requestedFrom",
+                        "requestedUntil",
+                        "status",
+                        "trigger",
+                        "requestedBy",
+                        "queryCount",
+                        "deletedCount",
+                        "coverageCount",
+                        "startedAt",
+                        "finishedAt",
+                        "createdAt",
+                        "errorMessage",
+                        "failureReason",
+                        "progress"
+                      ]
+                    }
+                  },
+                  "required": ["job"]
+                }
+              }
+            }
           }
         },
         "security": [

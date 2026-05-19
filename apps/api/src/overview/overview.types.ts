@@ -185,8 +185,17 @@ export type OverviewJobDetailsResponse = {
   job: OverviewJobDetails;
 };
 
+export type OverviewJobMutationSummary = {
+  requestedCount: number;
+  createdCount: number;
+  reusedCount: number;
+  skippedCount: number;
+};
+
 export type OverviewMutationResponse = {
-  job: OverviewJobSummary;
+  jobs: OverviewJobSummary[];
+  job: OverviewJobSummary | null;
+  summary: OverviewJobMutationSummary;
 };
 
 export type OverviewJobDeleteResponse = {

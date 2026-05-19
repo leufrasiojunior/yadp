@@ -129,6 +129,7 @@ const QUERY_CHART_HOUR_BUCKET_WIDTH_PX = 34;
 const DETAILS_POLL_INTERVAL_MS = 2000;
 const JOBS_POLL_INTERVAL_MS = 5000;
 const COVERAGE_PAGE_SIZE = 6;
+const OVERVIEW_REQUEST_TARGET_ALL_VALUE = "__all_instances__";
 const AUTOMATIC_IMPORT_SCOPE_ALL_VALUE = "__all_instances__";
 const AUTOMATIC_IMPORT_PRESETS = [
   { value: "0 03 * * *", labelKey: "daily3" },
@@ -185,6 +186,7 @@ type QueryChartPoint = OverviewResponse["charts"]["queries"]["points"][number];
 type RankingDrillDownSource = "volume" | "hourly";
 type OverviewJobStatus = OverviewJobsResponse["jobs"][number]["status"];
 type OverviewJobFilterGroup = (typeof JOB_STATUS_FILTER_VALUES)[number];
+type OverviewRequestTargetValue = typeof OVERVIEW_REQUEST_TARGET_ALL_VALUE | string;
 type OverviewSavedDate = OverviewResponse["coverage"]["savedDates"][number];
 type RankingShareRow = RankingRow & {
   fill: string;
@@ -305,11 +307,16 @@ function buildOverviewHref(filters: OverviewFilters, timeZone: string, activeTab
   return queryString.length > 0 ? `/overview?${queryString}` : "/overview";
 }
 
-function upsertOverviewJobSummary(
+function upsertOverviewJobSummaries(
   current: OverviewJobsResponse,
-  job: OverviewJobsResponse["jobs"][number],
+  incomingJobs: Array<OverviewJobsResponse["jobs"][number]>,
 ): OverviewJobsResponse {
-  const jobs = [job, ...current.jobs.filter((item) => item.id !== job.id)];
+  if (incomingJobs.length === 0) {
+    return current;
+  }
+
+  const incomingJobIds = new Set(incomingJobs.map((job) => job.id));
+  const jobs = [...incomingJobs, ...current.jobs.filter((item) => !incomingJobIds.has(item.id))];
 
   jobs.sort((left, right) => {
     const createdAtDiff = Date.parse(right.createdAt) - Date.parse(left.createdAt);
@@ -488,6 +495,10 @@ function matchesJobStatusFilter(status: OverviewJobStatus, filter: OverviewJobFi
 
 function isLiveOverviewJobStatus(status: OverviewJobStatus) {
   return status === "PENDING" || status === "RUNNING";
+}
+
+function canCancelJob(job: OverviewJobsResponse["jobs"][number]) {
+  return job.status === "PENDING" || job.status === "RUNNING";
 }
 
 function canDeleteJob(job: OverviewJobsResponse["jobs"][number]) {
@@ -865,6 +876,9 @@ function OverviewWorkspaceContent({
   const [overview, setOverview] = useState(initialOverview);
   const [jobs, setJobs] = useState(initialJobs);
   const [activeTab, setActiveTab] = useState<OverviewTab>(initialTab);
+  const [manualCollectionTarget, setManualCollectionTarget] = useState<OverviewRequestTargetValue>(() =>
+    scope.kind === "instance" ? scope.instanceId : OVERVIEW_REQUEST_TARGET_ALL_VALUE,
+  );
   const { setCurrentStep, setIsOpen, setSteps } = useTour();
   const [isPending, startTransition] = useTransition();
   const [isMutating, setIsMutating] = useState(false);
@@ -887,6 +901,7 @@ function OverviewWorkspaceContent({
   const [pendingRankingAction, setPendingRankingAction] = useState<RankingPendingAction | null>(null);
   const [pendingOpenPeriodJobId, setPendingOpenPeriodJobId] = useState<string | null>(null);
   const [isDeletePeriodDialogOpen, setIsDeletePeriodDialogOpen] = useState(false);
+  const [cancelJobDialogJobId, setCancelJobDialogJobId] = useState<string | null>(null);
   const [deleteJobDialogJobId, setDeleteJobDialogJobId] = useState<string | null>(null);
   const [deleteAutomaticImportRuleId, setDeleteAutomaticImportRuleId] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -1107,6 +1122,15 @@ function OverviewWorkspaceContent({
   useEffect(() => {
     setAutomaticImports(initialAutomaticImports);
   }, [initialAutomaticImports]);
+
+  useEffect(() => {
+    if (
+      manualCollectionTarget !== OVERVIEW_REQUEST_TARGET_ALL_VALUE &&
+      !instances.some((instance) => instance.id === manualCollectionTarget)
+    ) {
+      setManualCollectionTarget(OVERVIEW_REQUEST_TARGET_ALL_VALUE);
+    }
+  }, [instances, manualCollectionTarget]);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -1706,6 +1730,19 @@ function OverviewWorkspaceContent({
         return null;
       }
 
+      const requestScope =
+        path === "/overview/backfill"
+          ? {
+              scope: manualCollectionTarget === OVERVIEW_REQUEST_TARGET_ALL_VALUE ? "all" : "instance",
+              ...(manualCollectionTarget === OVERVIEW_REQUEST_TARGET_ALL_VALUE
+                ? {}
+                : { instanceId: manualCollectionTarget }),
+            }
+          : {
+              scope: scope.kind === "all" ? "all" : "instance",
+              ...(scope.kind === "instance" ? { instanceId: scope.instanceId } : {}),
+            };
+
       setIsMutating(true);
       if (path === "/overview/backfill" && !overrides) {
         setFilters(requestFilters);
@@ -1718,8 +1755,7 @@ function OverviewWorkspaceContent({
             "x-yapd-csrf": csrfToken,
           },
           body: {
-            scope: scope.kind === "all" ? "all" : "instance",
-            ...(scope.kind === "instance" ? { instanceId: scope.instanceId } : {}),
+            ...requestScope,
             from: query.from,
             until: query.until,
           },
@@ -1730,14 +1766,14 @@ function OverviewWorkspaceContent({
           return null;
         }
 
-        setJobs((current) => upsertOverviewJobSummary(current, data.job));
+        setJobs((current) => upsertOverviewJobSummaries(current, data.jobs));
         if (path === "/overview/backfill") {
           setJobStatusFilter("all");
         }
 
         toast.success(
           path === "/overview/backfill"
-            ? messages.overview.toasts.backfillQueued(1)
+            ? messages.overview.toasts.backfillQueued(data.summary.createdCount + data.summary.reusedCount)
             : messages.overview.toasts.deleteQueued,
         );
         if (path === "/overview/delete") {
@@ -1756,6 +1792,7 @@ function OverviewWorkspaceContent({
       csrfToken,
       filters,
       maxSelectableDateTime,
+      manualCollectionTarget,
       messages,
       replaceOverviewHistory,
       router,
@@ -1875,6 +1912,7 @@ function OverviewWorkspaceContent({
         return;
       }
 
+      setJobs((current) => upsertOverviewJobSummaries(current, data.jobs));
       toast.success(messages.overview.toasts.retryQueued);
       await refreshJobs();
       if (detailsJobId === jobId) {
@@ -1904,14 +1942,13 @@ function OverviewWorkspaceContent({
         return;
       }
 
-      setJobs((current) => ({
-        jobs: current.jobs.map((item) => (item.id === jobId ? data.job : item)),
-      }));
+      setJobs((current) => upsertOverviewJobSummaries(current, data.jobs));
       if (detailsJobId === jobId) {
         setDetailsJobId(null);
         setDetails(null);
         setDetailsLastUpdatedAt(null);
       }
+      setCancelJobDialogJobId(null);
       toast.success(messages.overview.toasts.cancelled);
     } finally {
       setBusyJobAction(null);
@@ -2519,9 +2556,13 @@ function OverviewWorkspaceContent({
   );
 
   const selectedJobSummary = jobs.jobs.find((job) => job.id === detailsJobId) ?? null;
+  const cancelJobDialogJob = jobs.jobs.find((job) => job.id === cancelJobDialogJobId) ?? null;
   const deleteJobDialogJob = jobs.jobs.find((job) => job.id === deleteJobDialogJobId) ?? null;
   const deleteAutomaticImportRuleTarget =
     automaticImports.rules.find((rule) => rule.id === deleteAutomaticImportRuleId) ?? null;
+  const cancelJobDialogPeriod = cancelJobDialogJob
+    ? `${formatDateTime(cancelJobDialogJob.requestedFrom)} - ${formatDateTime(cancelJobDialogJob.requestedUntil)}`
+    : "";
   const deleteJobDialogPeriod = deleteJobDialogJob
     ? `${formatDateTime(deleteJobDialogJob.requestedFrom)} - ${formatDateTime(deleteJobDialogJob.requestedUntil)}`
     : "";
@@ -2596,7 +2637,7 @@ function OverviewWorkspaceContent({
               <CardTitle>{messages.overview.filters.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(8rem,0.4fr)_minmax(8rem,0.4fr)]">
+              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(8rem,0.4fr)_minmax(8rem,0.4fr)]">
                 <div className="space-y-1">
                   <label htmlFor="overview-date" className="font-medium text-sm">
                     {messages.overview.filters.date}
@@ -2608,6 +2649,26 @@ function OverviewWorkspaceContent({
                     value={filters.from.slice(0, 10)}
                     onChange={(event) => updateRequestDateFilter(event.target.value)}
                   />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="overview-target" className="font-medium text-sm">
+                    {messages.overview.filters.target}
+                  </label>
+                  <Select value={manualCollectionTarget} onValueChange={setManualCollectionTarget}>
+                    <SelectTrigger id="overview-target" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={OVERVIEW_REQUEST_TARGET_ALL_VALUE}>
+                        {messages.overview.filters.allInstancesTarget}
+                      </SelectItem>
+                      {instances.map((instance) => (
+                        <SelectItem key={instance.id} value={instance.id}>
+                          {instance.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1">
                   <label htmlFor="overview-from-time" className="font-medium text-sm">
@@ -3457,6 +3518,7 @@ function OverviewWorkspaceContent({
                     <TableRow>
                       <TableHead>{messages.overview.jobs.status}</TableHead>
                       <TableHead>{messages.overview.jobs.type}</TableHead>
+                      <TableHead>{messages.overview.jobs.instance}</TableHead>
                       <TableHead>{messages.overview.jobs.period}</TableHead>
                       <TableHead>{messages.overview.jobs.progress}</TableHead>
                       <TableHead className="text-right">{messages.overview.jobs.actions}</TableHead>
@@ -3479,6 +3541,11 @@ function OverviewWorkspaceContent({
                           </div>
                         </TableCell>
                         <TableCell className="align-top">{messages.overview.jobs.kindValues[job.kind]}</TableCell>
+                        <TableCell className="align-top text-sm">
+                          {job.scope === "all"
+                            ? messages.overview.filters.allInstancesTarget
+                            : (job.instanceName ?? messages.overview.jobs.detailsUnavailable)}
+                        </TableCell>
                         <TableCell className="align-top text-muted-foreground text-sm">
                           <div>{formatDateTime(job.requestedFrom)}</div>
                           <div>{formatDateTime(job.requestedUntil)}</div>
@@ -3536,11 +3603,11 @@ function OverviewWorkspaceContent({
                             >
                               {messages.overview.jobs.viewDetails}
                             </Button>
-                            {job.status === "PENDING" ? (
+                            {canCancelJob(job) ? (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => void cancelJob(job.id)}
+                                onClick={() => setCancelJobDialogJobId(job.id)}
                                 disabled={busyJobAction !== null}
                               >
                                 {messages.overview.jobs.cancel}
@@ -4040,6 +4107,75 @@ function OverviewWorkspaceContent({
                 <Trash2 />
               )}
               {messages.overview.settings.deleteDialogConfirm}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={cancelJobDialogJob !== null}
+        onOpenChange={(open) => {
+          if (!open && busyJobAction !== `cancel:${cancelJobDialogJobId}`) {
+            setCancelJobDialogJobId(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{messages.overview.jobs.cancelJobDialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {cancelJobDialogJob
+                ? messages.overview.jobs.cancelJobDialogDescription(
+                    messages.overview.jobs.kindValues[cancelJobDialogJob.kind],
+                    messages.overview.jobs.statusValues[cancelJobDialogJob.status],
+                    cancelJobDialogPeriod,
+                  )
+                : messages.overview.jobs.cancelJobDialogDescription("", "", "")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {cancelJobDialogJob ? (
+            <div className="grid gap-2 rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.type}</span>
+                <span className="font-medium">{messages.overview.jobs.kindValues[cancelJobDialogJob.kind]}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.status}</span>
+                <span className="font-medium">{messages.overview.jobs.statusValues[cancelJobDialogJob.status]}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.instance}</span>
+                <span className="text-right font-medium">
+                  {cancelJobDialogJob.scope === "all"
+                    ? messages.overview.filters.allInstancesTarget
+                    : (cancelJobDialogJob.instanceName ?? messages.overview.jobs.detailsUnavailable)}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.period}</span>
+                <span className="text-right font-medium">{cancelJobDialogPeriod}</span>
+              </div>
+            </div>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busyJobAction === `cancel:${cancelJobDialogJobId}`}>
+              {messages.overview.jobs.cancelJobDialogCancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={!cancelJobDialogJob || busyJobAction !== null}
+              onClick={(event) => {
+                event.preventDefault();
+
+                if (!cancelJobDialogJob) {
+                  return;
+                }
+
+                void cancelJob(cancelJobDialogJob.id);
+              }}
+            >
+              {busyJobAction === `cancel:${cancelJobDialogJobId}` ? <Loader2 className="animate-spin" /> : <X />}
+              {messages.overview.jobs.cancelJobDialogConfirm}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

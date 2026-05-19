@@ -674,6 +674,8 @@ export const enUSMessages: WebMessages = {
     },
     filters: {
       title: "Period request",
+      target: "Instance",
+      allInstancesTarget: "All instances",
       date: "Date",
       from: "From",
       until: "Until",
@@ -843,6 +845,7 @@ export const enUSMessages: WebMessages = {
       },
       status: "Status",
       type: "Type",
+      instance: "Instance",
       period: "Period",
       rows: "Rows",
       progress: "Progress",
@@ -852,6 +855,11 @@ export const enUSMessages: WebMessages = {
       retry: "Retry",
       cancel: "Cancel",
       delete: "Delete job",
+      cancelJobDialogTitle: "Cancel this job?",
+      cancelJobDialogDescription: (kind, status, period) =>
+        `This requests cancellation for the ${kind} job with status ${status} in ${period}. If it is already running, processing stops at the next safe point and partial data from this job is removed.`,
+      cancelJobDialogConfirm: "Cancel job",
+      cancelJobDialogCancel: "Back",
       deleteJobDialogTitle: "Delete this job?",
       deleteJobDialogDescription: (kind, status, period) =>
         `This deletes the ${kind} job with status ${status} and removes historical data linked to ${period}.`,
@@ -934,7 +942,7 @@ export const enUSMessages: WebMessages = {
         PENDING: "Waiting in the queue.",
         RUNNING: "Import is running with partial progress already saved.",
         PAUSED: "Execution paused after repeated failures.",
-        CANCELLED: "Cancelled before it started.",
+        CANCELLED: "Cancelled before or during execution.",
         SUCCESS: "The period completed with usable results.",
         PARTIAL: "The period completed with gaps in part of the instances.",
         FAILURE: "Execution finished without usable results.",

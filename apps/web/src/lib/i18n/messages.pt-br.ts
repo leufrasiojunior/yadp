@@ -679,6 +679,8 @@ export const ptBRMessages: WebMessages = {
     },
     filters: {
       title: "Solicitação de período",
+      target: "Instância",
+      allInstancesTarget: "Todas as instâncias",
       date: "Data",
       from: "De",
       until: "Até",
@@ -848,6 +850,7 @@ export const ptBRMessages: WebMessages = {
       },
       status: "Status",
       type: "Tipo",
+      instance: "Instância",
       period: "Período",
       rows: "Linhas",
       progress: "Progresso",
@@ -857,6 +860,11 @@ export const ptBRMessages: WebMessages = {
       retry: "Tentar novamente",
       cancel: "Cancelar",
       delete: "Apagar job",
+      cancelJobDialogTitle: "Cancelar este job?",
+      cancelJobDialogDescription: (kind, status, period) =>
+        `Esta ação solicita o cancelamento do job ${kind} com status ${status} no período ${period}. Se ele já estiver em execução, o processamento será interrompido no próximo ponto seguro e os dados parciais desse job serão removidos.`,
+      cancelJobDialogConfirm: "Cancelar job",
+      cancelJobDialogCancel: "Voltar",
       deleteJobDialogTitle: "Apagar este job?",
       deleteJobDialogDescription: (kind, status, period) =>
         `Esta ação apaga o job ${kind} com status ${status} e remove os dados históricos vinculados ao período ${period}.`,
@@ -939,7 +947,7 @@ export const ptBRMessages: WebMessages = {
         PENDING: "Aguardando na fila.",
         RUNNING: "Coleta em andamento com progresso parcial salvo.",
         PAUSED: "Execução pausada após falhas consecutivas.",
-        CANCELLED: "Cancelado antes de iniciar.",
+        CANCELLED: "Cancelado antes ou durante a execução.",
         SUCCESS: "Período concluído com resultado utilizável.",
         PARTIAL: "Período concluído com lacunas em parte das instâncias.",
         FAILURE: "Execução encerrada sem resultado utilizável.",

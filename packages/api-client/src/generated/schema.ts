@@ -3732,7 +3732,99 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            jobs: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            }[];
+          };
+        };
       };
     };
   };
@@ -3952,12 +4044,199 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Enqueued overview history job. */
+      /** @description Mutated overview history job queue. */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            jobs: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            }[];
+            job: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            } | null;
+            summary: {
+              requestedCount: number;
+              createdCount: number;
+              reusedCount: number;
+              skippedCount: number;
+            };
+          };
+        };
       };
     };
   };
@@ -3970,12 +4249,199 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Enqueued overview history job. */
+      /** @description Mutated overview history job queue. */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            jobs: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            }[];
+            job: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            } | null;
+            summary: {
+              requestedCount: number;
+              createdCount: number;
+              reusedCount: number;
+              skippedCount: number;
+            };
+          };
+        };
       };
     };
   };
@@ -4006,12 +4472,199 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Enqueued overview history job. */
+      /** @description Mutated overview history job queue. */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            jobs: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            }[];
+            job: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            } | null;
+            summary: {
+              requestedCount: number;
+              createdCount: number;
+              reusedCount: number;
+              skippedCount: number;
+            };
+          };
+        };
       };
     };
   };
@@ -4024,12 +4677,199 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Enqueued overview history job. */
+      /** @description Mutated overview history job queue. */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            jobs: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            }[];
+            job: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            } | null;
+            summary: {
+              requestedCount: number;
+              createdCount: number;
+              reusedCount: number;
+              skippedCount: number;
+            };
+          };
+        };
       };
     };
   };
@@ -4042,12 +4882,104 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Enqueued overview history job. */
+      /** @description Deleted overview history job. */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          "application/json": {
+            job: {
+              id: string;
+              /** @enum {string} */
+              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+              /** @enum {string} */
+              scope: "all" | "instance";
+              instanceId: string | null;
+              instanceName: string | null;
+              /** Format: date-time */
+              requestedFrom: string;
+              /** Format: date-time */
+              requestedUntil: string;
+              /** @enum {string} */
+              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+              trigger: string | null;
+              requestedBy: string | null;
+              queryCount: number;
+              deletedCount: number;
+              coverageCount: number;
+              /** Format: date-time */
+              startedAt: string | null;
+              /** Format: date-time */
+              finishedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              errorMessage: string | null;
+              /** @enum {string|null} */
+              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+              progress: {
+                attempts: number;
+                totalExpectedRecords: number;
+                totalFetchedRecords: number;
+                totalInsertedRecords: number;
+                totalPages: number;
+                completedPages: number;
+                checkpoint: {
+                  instanceId: string | null;
+                  instanceName: string | null;
+                  page: number | null;
+                  start: number | null;
+                  totalPages: number | null;
+                  expectedRecords: number | null;
+                  consecutiveFailures: number;
+                  lastSuccessfulPage: number;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                } | null;
+                lastFailureMessage: string | null;
+                /** @enum {string|null} */
+                lastFailureReason:
+                  | "timeout"
+                  | "session"
+                  | "server_unavailable"
+                  | "count_mismatch"
+                  | "unexpected"
+                  | null;
+                instanceProgress: {
+                  instanceId: string;
+                  instanceName: string;
+                  /** @enum {string} */
+                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                  expectedRecords: number | null;
+                  fetchedRecords: number;
+                  insertedRecords: number;
+                  totalPages: number | null;
+                  completedPages: number;
+                  currentPage: number | null;
+                  currentStart: number;
+                  /** Format: date-time */
+                  storedFrom: string | null;
+                  /** Format: date-time */
+                  storedUntil: string | null;
+                  consecutiveFailures: number;
+                  lastErrorMessage: string | null;
+                  /** @enum {string|null} */
+                  lastFailureReason:
+                    | "timeout"
+                    | "session"
+                    | "server_unavailable"
+                    | "count_mismatch"
+                    | "unexpected"
+                    | null;
+                  /** Format: date-time */
+                  lastSuccessfulAt: string | null;
+                  /** Format: date-time */
+                  updatedAt: string | null;
+                }[];
+              };
+            };
+          };
+        };
       };
     };
   };
