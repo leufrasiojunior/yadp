@@ -11,7 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { SetupCredentialMode } from "@/lib/api/yapd-types";
 import { cn } from "@/lib/utils";
 
-import { INITIAL_INSTANCE_COUNT, normalizeHostPath, normalizeText } from "./setup-form.helpers";
+import {
+  INITIAL_INSTANCE_COUNT,
+  normalizeHostPath,
+  normalizeSetupHostInput,
+  normalizeText,
+} from "./setup-form.helpers";
 import type { SetupWizardValues } from "./setup-form.types";
 
 export function SetupPiholesStep({
@@ -36,6 +41,25 @@ export function SetupPiholesStep({
   const sharedPasswordField = form.register("sharedPassword", {
     setValueAs: (value) => normalizeText(value),
   });
+
+  const applyHostPathInput = (index: number, value: string, shouldValidate: boolean) => {
+    const normalized = normalizeSetupHostInput(value);
+    const hostPath = normalized?.hostPath ?? normalizeHostPath(value);
+
+    if (normalized?.scheme) {
+      form.setValue(`instances.${index}.scheme`, normalized.scheme, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate,
+      });
+    }
+
+    form.setValue(`instances.${index}.hostPath`, hostPath, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -91,12 +115,7 @@ export function SetupPiholesStep({
           const hostPathField = form.register(`instances.${index}.hostPath`, {
             setValueAs: (value) => normalizeHostPath(value),
             onBlur: (event) => {
-              const nextValue = normalizeHostPath(event.target.value);
-              form.setValue(`instances.${index}.hostPath`, nextValue, {
-                shouldDirty: true,
-                shouldTouch: true,
-                shouldValidate: true,
-              });
+              applyHostPathInput(index, event.target.value, true);
             },
           });
           const passwordField = form.register(`instances.${index}.password`, {
@@ -163,6 +182,17 @@ export function SetupPiholesStep({
                     placeholder={copy.urlPlaceholder}
                     aria-invalid={Boolean(hostPathError)}
                     autoComplete="off"
+                    onPaste={(event) => {
+                      const pastedValue = event.clipboardData.getData("text");
+                      const normalized = normalizeSetupHostInput(pastedValue);
+
+                      if (!normalized) {
+                        return;
+                      }
+
+                      event.preventDefault();
+                      applyHostPathInput(index, pastedValue, true);
+                    }}
                     {...hostPathField}
                   />
                   <FieldDescription>{copy.urlDescription}</FieldDescription>
