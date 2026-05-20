@@ -83,7 +83,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppSession } from "@/components/yapd/app-session-provider";
-import { getApiErrorMessage } from "@/lib/api/error-message";
+import { showApiErrorToast } from "@/lib/api/error-toast";
 import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   InstanceItem,
@@ -103,6 +103,11 @@ import { DASHBOARD_SCOPE_COOKIE, type DashboardScope, serializeDashboardScope } 
 import { useWebI18n } from "@/lib/i18n/client";
 import { formatFullDateTime as formatFullDateTimeInZone } from "@/lib/i18n/config";
 import type { WebMessages } from "@/lib/i18n/messages.types";
+import {
+  type AutomaticImportFieldErrors,
+  type AutomaticImportFieldKey,
+  getAutomaticImportApiFieldErrors,
+} from "@/lib/overview/overview-error-fields";
 import {
   buildDefaultOverviewFilters,
   buildOverviewChartBucketTimestamp,
@@ -874,6 +879,7 @@ function OverviewWorkspaceContent({
   const [automaticImportForm, setAutomaticImportForm] = useState<AutomaticImportFormState>(() =>
     buildDefaultAutomaticImportForm(),
   );
+  const [automaticImportFieldErrors, setAutomaticImportFieldErrors] = useState<AutomaticImportFieldErrors>({});
   const [overview, setOverview] = useState(initialOverview);
   const [jobs, setJobs] = useState(initialJobs);
   const [activeTab, setActiveTab] = useState<OverviewTab>(initialTab);
@@ -1314,7 +1320,7 @@ function OverviewWorkspaceContent({
 
         if (!response.ok || !data) {
           if (!silent) {
-            toast.error(messages.overview.toasts.jobsRefreshFailed);
+            await showApiErrorToast(response, messages.overview.toasts.jobsRefreshFailed);
           }
           return;
         }
@@ -1335,7 +1341,7 @@ function OverviewWorkspaceContent({
 
       if (!response.ok || !data) {
         if (!silent) {
-          toast.error(messages.overview.toasts.automaticImportsRefreshFailed);
+          await showApiErrorToast(response, messages.overview.toasts.automaticImportsRefreshFailed);
         }
         return;
       }
@@ -1355,10 +1361,24 @@ function OverviewWorkspaceContent({
 
   const resetAutomaticImportForm = () => {
     setAutomaticImportForm(buildDefaultAutomaticImportForm());
+    setAutomaticImportFieldErrors({});
+  };
+
+  const clearAutomaticImportFieldError = (field: AutomaticImportFieldKey) => {
+    setAutomaticImportFieldErrors((current) => {
+      if (!current[field]) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
   };
 
   const submitAutomaticImportRule = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAutomaticImportFieldErrors({});
     const body = {
       name: automaticImportForm.name,
       enabled: automaticImportForm.enabled,
@@ -1389,7 +1409,8 @@ function OverviewWorkspaceContent({
       const { data, response } = await request;
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.automaticImportSaveFailed);
+        const message = await showApiErrorToast(response, messages.overview.toasts.automaticImportSaveFailed);
+        setAutomaticImportFieldErrors(getAutomaticImportApiFieldErrors(message));
         return;
       }
 
@@ -1415,6 +1436,7 @@ function OverviewWorkspaceContent({
 
   const editAutomaticImportRule = (rule: OverviewAutomaticImportRule) => {
     setAutomaticImportForm(buildAutomaticImportFormFromRule(rule));
+    setAutomaticImportFieldErrors({});
   };
 
   const toggleAutomaticImportRule = async (rule: OverviewAutomaticImportRule, enabled: boolean) => {
@@ -1434,7 +1456,7 @@ function OverviewWorkspaceContent({
       );
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.automaticImportSaveFailed);
+        await showApiErrorToast(response, messages.overview.toasts.automaticImportSaveFailed);
         return;
       }
 
@@ -1462,7 +1484,7 @@ function OverviewWorkspaceContent({
       );
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.automaticImportDeleteFailed);
+        await showApiErrorToast(response, messages.overview.toasts.automaticImportDeleteFailed);
         return;
       }
 
@@ -1480,6 +1502,7 @@ function OverviewWorkspaceContent({
   const applyAutomaticImportBuilder = () => {
     const minute = normalizeClockPart(automaticImportForm.builderMinute, 59);
     const hour = normalizeClockPart(automaticImportForm.builderHour, 23);
+    clearAutomaticImportFieldError("cronExpression");
 
     setAutomaticImportForm((current) => ({
       ...current,
@@ -1771,7 +1794,12 @@ function OverviewWorkspaceContent({
         });
 
         if (!response.ok || !data) {
-          toast.error(await getApiErrorMessage(response));
+          await showApiErrorToast(
+            response,
+            path === "/overview/backfill"
+              ? messages.overview.toasts.backfillFailed
+              : messages.overview.toasts.deleteFailed,
+          );
           return null;
         }
 
@@ -1891,7 +1919,7 @@ function OverviewWorkspaceContent({
       });
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.coverageRenewFailed);
+        await showApiErrorToast(response, messages.overview.toasts.coverageRenewFailed);
         return;
       }
 
@@ -1917,7 +1945,7 @@ function OverviewWorkspaceContent({
       });
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.retryFailed);
+        await showApiErrorToast(response, messages.overview.toasts.retryFailed);
         return;
       }
 
@@ -1947,7 +1975,7 @@ function OverviewWorkspaceContent({
       });
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.cancelFailed);
+        await showApiErrorToast(response, messages.overview.toasts.cancelFailed);
         return;
       }
 
@@ -1975,7 +2003,7 @@ function OverviewWorkspaceContent({
       });
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.jobDeleteFailed);
+        await showApiErrorToast(response, messages.overview.toasts.jobDeleteFailed);
         return;
       }
 
@@ -2012,7 +2040,7 @@ function OverviewWorkspaceContent({
 
         if (!response.ok || !data) {
           if (!options.silent) {
-            toast.error(messages.overview.toasts.jobDetailsFailed);
+            await showApiErrorToast(response, messages.overview.toasts.jobDetailsFailed);
           }
           return;
         }
@@ -3693,11 +3721,17 @@ function OverviewWorkspaceContent({
                           id="overview-auto-name"
                           value={automaticImportForm.name}
                           maxLength={120}
-                          onChange={(event) =>
-                            setAutomaticImportForm((current) => ({ ...current, name: event.target.value }))
-                          }
+                          aria-invalid={Boolean(automaticImportFieldErrors.name)}
+                          className={cn(automaticImportFieldErrors.name && "border-destructive")}
+                          onChange={(event) => {
+                            clearAutomaticImportFieldError("name");
+                            setAutomaticImportForm((current) => ({ ...current, name: event.target.value }));
+                          }}
                           placeholder={messages.overview.settings.namePlaceholder}
                         />
+                        {automaticImportFieldErrors.name ? (
+                          <p className="text-destructive text-xs">{automaticImportFieldErrors.name}</p>
+                        ) : null}
                       </div>
                       <div className="flex min-h-20 items-center justify-between gap-3 rounded-md border bg-background/70 p-3">
                         <div className="min-w-0 space-y-1">
@@ -3727,15 +3761,20 @@ function OverviewWorkspaceContent({
                               ? AUTOMATIC_IMPORT_SCOPE_ALL_VALUE
                               : automaticImportForm.instanceId
                           }
-                          onValueChange={(value) =>
+                          onValueChange={(value) => {
+                            clearAutomaticImportFieldError("target");
                             setAutomaticImportForm((current) =>
                               value === AUTOMATIC_IMPORT_SCOPE_ALL_VALUE
                                 ? { ...current, scope: "all", instanceId: "" }
                                 : { ...current, scope: "instance", instanceId: value },
-                            )
-                          }
+                            );
+                          }}
                         >
-                          <SelectTrigger id="overview-auto-scope" className="w-full">
+                          <SelectTrigger
+                            id="overview-auto-scope"
+                            aria-invalid={Boolean(automaticImportFieldErrors.target)}
+                            className={cn("w-full", automaticImportFieldErrors.target && "border-destructive")}
+                          >
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -3749,6 +3788,9 @@ function OverviewWorkspaceContent({
                             ))}
                           </SelectContent>
                         </Select>
+                        {automaticImportFieldErrors.target ? (
+                          <p className="text-destructive text-xs">{automaticImportFieldErrors.target}</p>
+                        ) : null}
                       </div>
                       <div className="space-y-1.5">
                         <label htmlFor="overview-auto-preset" className="font-medium text-sm">
@@ -3767,6 +3809,7 @@ function OverviewWorkspaceContent({
                               return;
                             }
 
+                            clearAutomaticImportFieldError("cronExpression");
                             setAutomaticImportForm((current) => ({ ...current, cronExpression: value }));
                           }}
                         >
@@ -3862,12 +3905,20 @@ function OverviewWorkspaceContent({
                       <Input
                         id="overview-auto-cron"
                         value={automaticImportForm.cronExpression}
-                        className="font-mono"
-                        onChange={(event) =>
-                          setAutomaticImportForm((current) => ({ ...current, cronExpression: event.target.value }))
-                        }
+                        aria-invalid={Boolean(automaticImportFieldErrors.cronExpression)}
+                        className={cn("font-mono", automaticImportFieldErrors.cronExpression && "border-destructive")}
+                        onChange={(event) => {
+                          clearAutomaticImportFieldError("cronExpression");
+                          setAutomaticImportForm((current) => ({
+                            ...current,
+                            cronExpression: event.target.value,
+                          }));
+                        }}
                         placeholder="0 03 * * *"
                       />
+                      {automaticImportFieldErrors.cronExpression ? (
+                        <p className="text-destructive text-xs">{automaticImportFieldErrors.cronExpression}</p>
+                      ) : null}
                       <p className="text-muted-foreground text-xs">
                         {messages.overview.settings.fixedWindowNotice(automaticImports.timeZone)}
                       </p>

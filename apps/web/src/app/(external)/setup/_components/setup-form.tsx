@@ -15,7 +15,7 @@ import { SetupWizardProgress } from "@/app/(external)/setup/_components/setup-wi
 import { getSetupCopy } from "@/app/(external)/setup/setup-copy";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { getApiErrorMessage } from "@/lib/api/error-message";
+import { showApiErrorToast } from "@/lib/api/error-toast";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import type { SetupBaselineRequest, SetupBaselineResponse } from "@/lib/api/yapd-types";
 import { useWebI18n } from "@/lib/i18n/client";
@@ -209,6 +209,204 @@ export function SetupForm() {
     return isValid;
   };
 
+  const normalizeApiMessageForMatch = (value: string) =>
+    value
+      .normalize("NFD")
+      .replaceAll(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+  const findInstanceIndexInApiMessage = (message: string, values: SetupWizardValues) => {
+    const normalizedMessage = normalizeApiMessageForMatch(message);
+
+    for (const [index, instance] of values.instances.entries()) {
+      const name = normalizeText(instance.name);
+      const labels = [name, copy.piholes.rowTitle(index, name || undefined), copy.piholes.rowTitle(index)]
+        .map((item) => normalizeApiMessageForMatch(item))
+        .filter((item) => item.length > 0);
+
+      if (labels.some((label) => normalizedMessage.includes(label))) {
+        return index;
+      }
+    }
+
+    return -1;
+  };
+
+  const getFallbackInstanceIndex = (values: SetupWizardValues) => {
+    if (values.masterIndex >= 0 && values.masterIndex < values.instances.length) {
+      return values.masterIndex;
+    }
+
+    const firstFilledIndex = values.instances.findIndex(
+      (instance, index) => index === values.masterIndex || !isBlankInstance(instance, values.credentialsMode),
+    );
+
+    return firstFilledIndex >= 0 ? firstFilledIndex : 0;
+  };
+
+  const getHostFieldMessage = (message: string) => {
+    const hint =
+      locale === "en-US"
+        ? "If you pasted a full URL, use only host/IP and port for now; pasted URLs will be normalized automatically in the next setup improvement."
+        : "Se voce colou uma URL completa, use apenas host/IP e porta por enquanto; URLs coladas serao normalizadas automaticamente na proxima melhoria do setup.";
+
+    return `${message} ${hint}`;
+  };
+
+  const markSetupInstanceFields = (index: number, message: string) => {
+    const values = form.getValues();
+    const instance = values.instances[index];
+
+    if (!instance) {
+      return false;
+    }
+
+    let marked = false;
+    const alias = normalizeText(instance.name);
+    const hostPath = normalizeHostPath(instance.hostPath);
+
+    if (alias.length === 0) {
+      form.setError(`instances.${index}.name`, {
+        type: "server",
+        message,
+      });
+      marked = true;
+    }
+
+    if (hostPath.length === 0 || !isValidHostPath(instance.scheme, hostPath)) {
+      form.setError(`instances.${index}.hostPath`, {
+        type: "server",
+        message,
+      });
+      marked = true;
+    }
+
+    if (!marked) {
+      form.setError(`instances.${index}.name`, {
+        type: "server",
+        message,
+      });
+      form.setError(`instances.${index}.hostPath`, {
+        type: "server",
+        message,
+      });
+    }
+
+    return true;
+  };
+
+  const markSetupInstancePassword = (index: number, message: string) => {
+    if (!form.getValues().instances[index]) {
+      return false;
+    }
+
+    form.setError(`instances.${index}.password`, {
+      type: "server",
+      message,
+    });
+    return true;
+  };
+
+  const applySetupApiFieldError = (message: string) => {
+    const values = form.getValues();
+    const normalized = normalizeApiMessageForMatch(message);
+    const messageInstanceIndex = findInstanceIndexInApiMessage(message, values);
+    const fallbackInstanceIndex = getFallbackInstanceIndex(values);
+    const targetInstanceIndex = messageInstanceIndex >= 0 ? messageInstanceIndex : fallbackInstanceIndex;
+
+    if (normalized.includes("select exactly 1") || normalized.includes("selecione exatamente 1")) {
+      form.setError("masterIndex", {
+        type: "server",
+        message,
+      });
+      setCurrentStep(2);
+      return true;
+    }
+
+    if (normalized.includes("master")) {
+      form.setError("masterIndex", {
+        type: "server",
+        message,
+      });
+      markSetupInstanceFields(targetInstanceIndex, message);
+      setCurrentStep(2);
+      return true;
+    }
+
+    if (normalized.includes("complete alias") || normalized.includes("alias e url")) {
+      markSetupInstanceFields(targetInstanceIndex, message);
+      setCurrentStep(2);
+      return true;
+    }
+
+    if (normalized.includes("base url") || normalized.includes("url valida") || normalized.includes("url valid")) {
+      form.setError(`instances.${targetInstanceIndex}.hostPath`, {
+        type: "server",
+        message: getHostFieldMessage(message),
+      });
+      setCurrentStep(2);
+      return true;
+    }
+
+    if (normalized.includes("shared password") || normalized.includes("senha compartilhada")) {
+      form.setError("sharedPassword", {
+        type: "server",
+        message,
+      });
+      setCurrentStep(2);
+      return true;
+    }
+
+    if (normalized.includes("provide the password for") || normalized.includes("preencha a senha de")) {
+      if (markSetupInstancePassword(targetInstanceIndex, message)) {
+        setCurrentStep(2);
+        return true;
+      }
+    }
+
+    if (normalized.includes("credential") || normalized.includes("credenciais")) {
+      if (values.credentialsMode === "shared") {
+        form.setError("sharedPassword", {
+          type: "server",
+          message,
+        });
+      } else {
+        markSetupInstancePassword(targetInstanceIndex, message);
+      }
+      setCurrentStep(2);
+      return true;
+    }
+
+    if (normalized.includes("human login") || normalized.includes("login humano")) {
+      form.setError("loginMode", {
+        type: "server",
+        message,
+      });
+      setCurrentStep(3);
+      return true;
+    }
+
+    if (normalized.includes("yapd password") || normalized.includes("senha propria do yapd")) {
+      form.setError("yapdPassword", {
+        type: "server",
+        message,
+      });
+      setCurrentStep(3);
+      return true;
+    }
+
+    if (normalized.includes("time zone") || normalized.includes("timezone")) {
+      form.setError("applicationTimeZone", {
+        type: "server",
+        message,
+      });
+      setCurrentStep(4);
+      return true;
+    }
+
+    return false;
+  };
+
   const goToNextStep = () => {
     setSubmitError(null);
 
@@ -313,9 +511,9 @@ export function SetupForm() {
     });
 
     if (!response.ok) {
-      const message = typeof data?.message === "string" ? data.message : await getApiErrorMessage(response);
+      const message = await showApiErrorToast(response, copy.submit.errorTitle);
       setSubmitError(message);
-      toast.error(message);
+      applySetupApiFieldError(message);
       return;
     }
 
