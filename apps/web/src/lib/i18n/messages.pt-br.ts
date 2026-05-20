@@ -1003,7 +1003,9 @@ export const ptBRMessages: WebMessages = {
       enabledStatus: "Ativa",
       disabledStatus: "Inativa",
       nextRun: "Próxima execução",
+      nextRunDisabled: "Regra desativada; sem próxima execução.",
       lastRun: "Última execução",
+      effectiveTimeZone: "Timezone efetivo",
       neverRun: "Ainda não executou",
       lastRunSummary: (status, at, jobCount, skippedCount) =>
         `${status} em ${at}; ${jobCount} job(s), ${skippedCount} pulado(s).`,

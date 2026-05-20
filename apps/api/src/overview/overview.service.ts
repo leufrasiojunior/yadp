@@ -10,6 +10,7 @@ import { Cron, CronExpression, SchedulerRegistry } from "@nestjs/schedule";
 import { CronJob, CronTime } from "cron";
 import type { Request } from "express";
 
+import { AppConfigEventsService } from "../common/app-config/app-config-events.service";
 import { DEFAULT_API_LOCALE, getRequestLocale } from "../common/i18n/locale";
 import { DEFAULT_API_TIME_ZONE, normalizeApiTimeZone } from "../common/i18n/time-zone";
 import { PrismaService } from "../common/prisma/prisma.service";
@@ -382,6 +383,12 @@ function buildPreviousClosedDayRange(reference: Date, timeZone: string): History
   return buildClosedDayRange(reference, timeZone, 1);
 }
 
+function formatDateTimeInTimeZone(value: Date, timeZone: string) {
+  const parts = getDateTimePartsInTimeZone(value, timeZone);
+
+  return `${`${parts.year}`.padStart(4, "0")}-${`${parts.month}`.padStart(2, "0")}-${`${parts.day}`.padStart(2, "0")} ${`${parts.hour}`.padStart(2, "0")}:${`${parts.minute}`.padStart(2, "0")}:${`${parts.second}`.padStart(2, "0")}.${`${parts.millisecond}`.padStart(3, "0")} ${timeZone}`;
+}
+
 function normalizeHistoryRange(from?: number, until?: number, timeZone = DEFAULT_API_TIME_ZONE): HistoryRange {
   if (from !== undefined && until !== undefined) {
     const normalizedFrom = new Date(from * 1000);
@@ -496,6 +503,7 @@ function buildEmptyRuntimeSummary(): JobRuntimeSummary {
 export class OverviewService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(OverviewService.name);
   private isOverviewQueueDraining = false;
+  private unsubscribeTimeZoneChanged: (() => void) | null = null;
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
@@ -503,15 +511,26 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     @Inject(PiholeService) private readonly pihole: PiholeService,
     @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(SchedulerRegistry) private readonly schedulerRegistry: SchedulerRegistry,
+    @Inject(AppConfigEventsService) private readonly appConfigEvents: AppConfigEventsService,
   ) {}
 
   async onModuleInit() {
+    this.unsubscribeTimeZoneChanged?.();
+    this.unsubscribeTimeZoneChanged = this.appConfigEvents.onTimeZoneChanged(async (event) => {
+      this.logger.log(
+        `App timezone changed from ${event.previousTimeZone} to ${event.timeZone}; refreshing overview automatic import schedules.`,
+      );
+      await this.refreshAutomaticImportSchedules();
+    });
+
     await this.markInterruptedJobsAsFailed();
     await this.refreshAutomaticImportSchedules();
     this.scheduleQueueDrain();
   }
 
   onModuleDestroy() {
+    this.unsubscribeTimeZoneChanged?.();
+    this.unsubscribeTimeZoneChanged = null;
     this.clearAutomaticImportSchedules();
   }
 
@@ -1056,7 +1075,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     return this.buildMutationResponse([result]);
   }
 
-  private async runAutomaticImportRule(ruleId: string, reference = new Date()) {
+  private async runAutomaticImportRule(ruleId: string, reference = new Date(), scheduleTimeZone?: string) {
     const rule = await this.prisma.overviewAutomaticImportRule.findUnique({
       where: { id: ruleId },
     });
@@ -1067,6 +1086,10 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
 
     const timeZone = await this.readAppTimeZone();
     const range = buildPreviousClosedDayRange(reference, timeZone);
+
+    this.logger.log(
+      `Running overview automatic import rule ${rule.id}: triggeredAtUtc=${reference.toISOString()}, triggeredAtLocal=${formatDateTimeInTimeZone(reference, timeZone)}, scheduleTimeZone=${scheduleTimeZone ?? timeZone}, appTimeZone=${timeZone}, windowFrom=${range.from.toISOString()}, windowUntil=${range.until.toISOString()}.`,
+    );
 
     try {
       const instances = await this.resolveInstancesForAutomaticImportRule(rule);
@@ -1204,7 +1227,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  private async refreshAutomaticImportSchedules() {
+  async refreshAutomaticImportSchedules() {
     const [rules, timeZone] = await Promise.all([
       this.prisma.overviewAutomaticImportRule.findMany({
         where: { enabled: true },
@@ -1214,6 +1237,9 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
     ]);
 
     this.clearAutomaticImportSchedules();
+    this.logger.log(
+      `Refreshing overview automatic import schedules with timezone ${timeZone}; enabledRules=${rules.length}.`,
+    );
 
     for (const rule of rules) {
       try {
@@ -1221,7 +1247,7 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
         const job = CronJob.from({
           cronTime: rule.cronExpression,
           onTick: () => {
-            void this.runAutomaticImportRule(rule.id);
+            void this.runAutomaticImportRule(rule.id, new Date(), timeZone);
           },
           start: false,
           timeZone,
@@ -1231,6 +1257,12 @@ export class OverviewService implements OnModuleInit, OnModuleDestroy {
 
         this.schedulerRegistry.addCronJob(name, job);
         job.start();
+
+        const nextRunAt = this.getNextAutomaticImportRunAt(rule, timeZone);
+        const nextRunLocal = nextRunAt ? formatDateTimeInTimeZone(new Date(nextRunAt), timeZone) : "unavailable";
+        this.logger.log(
+          `Registered overview automatic import rule ${rule.id}: cron="${rule.cronExpression}", timezone=${timeZone}, nextRunAtUtc=${nextRunAt ?? "unavailable"}, nextRunAtLocal=${nextRunLocal}.`,
+        );
       } catch (error) {
         this.logger.error(`Could not register overview automatic import rule ${rule.id}: ${stringifyFailure(error)}`);
       }

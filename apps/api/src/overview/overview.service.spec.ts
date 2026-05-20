@@ -1,3 +1,4 @@
+import { AppConfigEventsService } from "../common/app-config/app-config-events.service";
 import { OverviewService } from "./overview.service";
 import assert from "node:assert/strict";
 import test, { mock } from "node:test";
@@ -169,6 +170,7 @@ function createPrismaStub(
     renewedQueryWhere: null as unknown,
     renewedQueryData: null as unknown,
     coverageWindowCount: 1,
+    timeZone: options.timeZone ?? "UTC",
   };
   const syncCurrentJob = (updated: OverviewJobRecord) => {
     const index = state.jobs.findIndex((item) => item.id === updated.id);
@@ -509,7 +511,7 @@ function createPrismaStub(
       },
     },
     appConfig: {
-      findUnique: async () => ({ timeZone: options.timeZone ?? "UTC" }),
+      findUnique: async () => ({ timeZone: state.timeZone }),
     },
     $queryRaw: async () => structuredClone(state.queryRawResults.shift() ?? []),
     $transaction: async <T>(callback: (tx: Record<string, unknown>) => Promise<T>) =>
@@ -577,7 +579,8 @@ function createService(
   } = {},
 ) {
   const prisma = createPrismaStub(job, makeCoverageWindow(), options);
-  const cronJobs = new Map<string, { stop: () => void }>();
+  const cronJobs = new Map<string, { stop: () => void } & Record<string, unknown>>();
+  const appConfigEvents = new AppConfigEventsService();
   const service = new OverviewService(
     prisma as never,
     {
@@ -594,16 +597,17 @@ function createService(
     } as never,
     {
       getCronJobs: () => cronJobs,
-      addCronJob: (name: string, cronJob: { stop: () => void }) => {
+      addCronJob: (name: string, cronJob: { stop: () => void } & Record<string, unknown>) => {
         cronJobs.set(name, cronJob);
       },
       deleteCronJob: (name: string) => {
         cronJobs.delete(name);
       },
     } as never,
+    appConfigEvents,
   );
 
-  return { service, prisma };
+  return { service, prisma, cronJobs, appConfigEvents };
 }
 
 test("deleteJob removes linked historical queries, coverage windows, and the job itself", async () => {
@@ -874,6 +878,59 @@ test("runAutomaticImportRule keeps d-1 in the visual timezone when UTC is alread
 
   assert.equal(createdJobData.requestedFrom.toISOString(), "2026-05-14T03:00:00.000Z");
   assert.equal(createdJobData.requestedUntil.toISOString(), "2026-05-15T02:59:59.999Z");
+});
+
+test("automatic import preview calculates next run in the configured timezone", async () => {
+  mock.timers.enable({
+    apis: ["Date"],
+    now: new Date("2026-05-16T01:45:00.000Z"),
+  });
+
+  try {
+    const { service } = createService(makeJob(), {
+      timeZone: "America/Sao_Paulo",
+      automaticImportRules: [makeAutomaticImportRule({ id: "rule-preview", cronExpression: "0 03 * * *" })],
+    });
+
+    const result = await service.listAutomaticImportRules();
+
+    assert.equal(result.timeZone, "America/Sao_Paulo");
+    assert.equal(result.rules[0]?.nextRunAt, "2026-05-16T06:00:00.000Z");
+  } finally {
+    mock.timers.reset();
+  }
+});
+
+test("refreshAutomaticImportSchedules registers cron jobs with the saved timezone and reloads after config changes", async () => {
+  const { service, prisma, cronJobs, appConfigEvents } = createService(makeJob(), {
+    timeZone: "UTC",
+    automaticImportRules: [makeAutomaticImportRule({ id: "rule-schedule", cronExpression: "0 03 * * *" })],
+  });
+  const getRegisteredTimeZone = () => {
+    const cronJob = cronJobs.get("overview:automatic-import:rule-schedule") as
+      | { cronTime?: { timeZone?: string } }
+      | undefined;
+
+    assert.ok(cronJob);
+    return cronJob.cronTime?.timeZone;
+  };
+
+  await service.onModuleInit();
+
+  try {
+    assert.equal(getRegisteredTimeZone(), "UTC");
+
+    prisma.state.timeZone = "America/Sao_Paulo";
+    await appConfigEvents.notifyTimeZoneChanged({
+      previousTimeZone: "UTC",
+      timeZone: "America/Sao_Paulo",
+    });
+
+    assert.equal(cronJobs.size, 1);
+    assert.equal(getRegisteredTimeZone(), "America/Sao_Paulo");
+  } finally {
+    service.onModuleDestroy();
+  }
 });
 
 test("runAutomaticImportRule skips an instance when an import job already covers the d-1 window", async () => {

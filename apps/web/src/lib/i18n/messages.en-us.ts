@@ -998,7 +998,9 @@ export const enUSMessages: WebMessages = {
       enabledStatus: "Enabled",
       disabledStatus: "Disabled",
       nextRun: "Next run",
+      nextRunDisabled: "Rule disabled; no next run.",
       lastRun: "Last run",
+      effectiveTimeZone: "Effective time zone",
       neverRun: "Never run",
       lastRunSummary: (status, at, jobCount, skippedCount) =>
         `${status} at ${at}; ${jobCount} job(s), ${skippedCount} skipped.`,

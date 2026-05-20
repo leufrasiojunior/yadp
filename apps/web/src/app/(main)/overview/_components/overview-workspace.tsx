@@ -101,6 +101,7 @@ import type {
 import { setClientCookie } from "@/lib/cookie.client";
 import { DASHBOARD_SCOPE_COOKIE, type DashboardScope, serializeDashboardScope } from "@/lib/dashboard/dashboard-scope";
 import { useWebI18n } from "@/lib/i18n/client";
+import { formatFullDateTime as formatFullDateTimeInZone } from "@/lib/i18n/config";
 import type { WebMessages } from "@/lib/i18n/messages.types";
 import {
   buildDefaultOverviewFilters,
@@ -1343,6 +1344,14 @@ function OverviewWorkspaceContent({
     },
     [client, messages],
   );
+
+  useEffect(() => {
+    if (automaticImports.timeZone === timeZone) {
+      return;
+    }
+
+    void refreshAutomaticImports({ silent: true });
+  }, [automaticImports.timeZone, refreshAutomaticImports, timeZone]);
 
   const resetAutomaticImportForm = () => {
     setAutomaticImportForm(buildDefaultAutomaticImportForm());
@@ -3925,13 +3934,16 @@ function OverviewWorkspaceContent({
                         rule.scope === "all"
                           ? messages.overview.settings.allInstances
                           : rule.instanceName || messages.overview.settings.missingInstance;
-                      const ruleNextRunLabel = rule.nextRunAt
-                        ? formatFullDateTime(rule.nextRunAt)
-                        : messages.overview.coverage.unavailable;
+                      const ruleEffectiveTimeZone = rule.timeZone || automaticImports.timeZone;
+                      const ruleNextRunLabel = !rule.enabled
+                        ? messages.overview.settings.nextRunDisabled
+                        : rule.nextRunAt
+                          ? formatFullDateTimeInZone(rule.nextRunAt, ruleEffectiveTimeZone)
+                          : messages.overview.coverage.unavailable;
                       const ruleLastRunLabel = rule.lastRun.at
                         ? messages.overview.settings.lastRunSummary(
                             messages.overview.settings.runStatus[rule.lastRun.status ?? "SKIPPED"],
-                            formatFullDateTime(rule.lastRun.at),
+                            formatFullDateTimeInZone(rule.lastRun.at, ruleEffectiveTimeZone),
                             formatCount(rule.lastRun.jobCount),
                             formatCount(rule.lastRun.skippedCount),
                           )
@@ -4003,6 +4015,12 @@ function OverviewWorkspaceContent({
                                 {messages.overview.settings.cronExpression}
                               </p>
                               <p className="mt-1 break-all font-mono text-foreground text-sm">{rule.cronExpression}</p>
+                            </div>
+                            <div className="min-w-0 rounded-md border bg-muted/20 p-3">
+                              <p className="font-medium text-muted-foreground text-xs">
+                                {messages.overview.settings.effectiveTimeZone}
+                              </p>
+                              <p className="mt-1 break-words text-foreground text-sm">{ruleEffectiveTimeZone}</p>
                             </div>
                             <div className="min-w-0 rounded-md border bg-muted/20 p-3">
                               <p className="font-medium text-muted-foreground text-xs">

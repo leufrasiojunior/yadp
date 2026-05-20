@@ -928,7 +928,9 @@ export type WebMessages = {
       enabledStatus: string;
       disabledStatus: string;
       nextRun: string;
+      nextRunDisabled: string;
       lastRun: string;
+      effectiveTimeZone: string;
       neverRun: string;
       lastRunSummary: (status: string, at: string, jobCount: string, skippedCount: string) => string;
       runStatus: {
