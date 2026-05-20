@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.0.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.11.1...yapd-v1.0.0) (2026-05-20)
+
+
+### Features
+
+* add AppConfigEvents module and service for timezone management ([652caa6](https://github.com/leufrasiojunior/yadp/commit/652caa604e452ed1a1f249a77f63ac585e74c6f7))
+* implement error handling improvements for login and setup forms ([4906c3d](https://github.com/leufrasiojunior/yadp/commit/4906c3d85e9c54ee6b6977dbbf0d61c62514577c))
+* improve base URL validation and normalization logic across components ([25cb200](https://github.com/leufrasiojunior/yadp/commit/25cb2001d2b6ffb1b9e88071dd6dfb58bdffdacd))
+* **overview:** queue manual imports per instance ([05d382d](https://github.com/leufrasiojunior/yadp/commit/05d382dbc34a59745dcacfe9c858efd87b968b3c))
+* prepare YAPD 1.0.0 final release ([b7449e7](https://github.com/leufrasiojunior/yadp/commit/b7449e788ab4911995acf1781cface30fb285cd6))
+
+
+### Bug Fixes
+
+* **overview:** preserve manual collection period ([65251c1](https://github.com/leufrasiojunior/yadp/commit/65251c10be84d042149af52ad71cb121a7fb22fa))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0 ([5b38454](https://github.com/leufrasiojunior/yadp/commit/5b3845476eaa63a97aec1affcc73e87eaf5aa3c2))
+
 ## [0.11.1](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.11.0...yapd-v0.11.1) (2026-05-16)
 
 
