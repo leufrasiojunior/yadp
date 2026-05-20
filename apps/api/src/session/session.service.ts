@@ -8,6 +8,7 @@ import {
 import type { Request, Response } from "express";
 
 import { AuditService } from "../audit/audit.service";
+import { AppConfigEventsService } from "../common/app-config/app-config-events.service";
 import { fromDbLoginMode } from "../common/auth/login-mode";
 import { CryptoService } from "../common/crypto/crypto.service";
 import { getRequestIp } from "../common/http/request-context";
@@ -35,6 +36,7 @@ export class SessionService {
     @Inject(PiholeService) private readonly pihole: PiholeService,
     @Inject(PiholeWorkCoordinatorService) private readonly coordinator: PiholeWorkCoordinatorService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(AppConfigEventsService) private readonly appConfigEvents: AppConfigEventsService,
   ) {}
 
   async login(dto: LoginDto, request: Request, response: Response) {
@@ -267,6 +269,8 @@ export class SessionService {
     const baseline = await this.prisma.instance.findUnique({
       where: { id: session.baselineInstanceId },
     });
+    const currentConfig = await this.readAppConfigOrNull();
+    const previousTimeZone = this.resolveAppTimeZone(currentConfig);
     const timeZone = normalizeApiTimeZone(dto.timeZone, "");
 
     if (timeZone.length === 0) {
@@ -296,6 +300,13 @@ export class SessionService {
         timeZone,
       } satisfies Prisma.InputJsonObject,
     });
+
+    if (previousTimeZone !== timeZone) {
+      await this.appConfigEvents.notifyTimeZoneChanged({
+        previousTimeZone,
+        timeZone,
+      });
+    }
 
     return {
       timeZone,

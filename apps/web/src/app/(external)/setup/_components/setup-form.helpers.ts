@@ -3,6 +3,7 @@ import type { AppLocale } from "@/lib/i18n/config";
 import {
   buildManagedInstanceBaseUrl,
   isValidManagedInstanceHostPath,
+  type ManagedInstanceScheme,
   normalizeManagedInstanceHostPath,
   normalizeManagedInstanceText,
 } from "@/lib/instances/managed-instance-base-url";
@@ -12,6 +13,11 @@ import type { SetupInstanceFormValue, SetupWizardValues } from "./setup-form.typ
 
 export const INITIAL_INSTANCE_COUNT = 1;
 export const TOTAL_STEPS = 4;
+
+export type NormalizedSetupHostInput = {
+  scheme?: ManagedInstanceScheme;
+  hostPath: string;
+};
 
 export function createEmptyInstance(): SetupInstanceFormValue {
   return {
@@ -48,8 +54,70 @@ export function normalizeText(value: string | null | undefined) {
   return normalizeManagedInstanceText(value);
 }
 
+function getHostPathSegment(value: string) {
+  return value.split(/[/?#]/u)[0] ?? "";
+}
+
+export function normalizeSetupHostInput(value: string | null | undefined): NormalizedSetupHostInput | null {
+  const normalized = normalizeText(value);
+
+  if (normalized.length === 0) {
+    return {
+      hostPath: "",
+    };
+  }
+
+  if (/\s/u.test(normalized)) {
+    return null;
+  }
+
+  if (/^[a-z][a-z0-9+.-]*:\/\//iu.test(normalized)) {
+    let parsed: URL;
+
+    try {
+      parsed = new URL(normalized);
+    } catch {
+      return null;
+    }
+
+    const scheme = parsed.protocol.replace(/:$/u, "").toLowerCase();
+
+    if (
+      (scheme !== "http" && scheme !== "https") ||
+      parsed.host.length === 0 ||
+      parsed.username.length > 0 ||
+      parsed.password.length > 0
+    ) {
+      return null;
+    }
+
+    return {
+      scheme,
+      hostPath: normalizeManagedInstanceHostPath(parsed.host),
+    };
+  }
+
+  if (normalized.includes("://")) {
+    return null;
+  }
+
+  const hostPath = normalizeManagedInstanceHostPath(getHostPathSegment(normalized));
+
+  if (hostPath.length === 0 && normalized.length > 0) {
+    return null;
+  }
+
+  if (hostPath.includes("@")) {
+    return null;
+  }
+
+  return {
+    hostPath,
+  };
+}
+
 export function normalizeHostPath(value: string | null | undefined) {
-  return normalizeManagedInstanceHostPath(value);
+  return normalizeSetupHostInput(value)?.hostPath ?? normalizeManagedInstanceHostPath(value);
 }
 
 export function buildBaseUrl(scheme: SetupInstanceFormValue["scheme"], hostPath: string | null | undefined) {
@@ -57,7 +125,9 @@ export function buildBaseUrl(scheme: SetupInstanceFormValue["scheme"], hostPath:
 }
 
 export function isValidHostPath(scheme: SetupInstanceFormValue["scheme"], hostPath: string | null | undefined) {
-  return isValidManagedInstanceHostPath(scheme, hostPath);
+  const normalized = normalizeHostPath(hostPath);
+
+  return !normalized.includes("/") && isValidManagedInstanceHostPath(scheme, normalized);
 }
 
 export function isBlankInstance(instance: SetupInstanceFormValue, mode: SetupCredentialMode) {

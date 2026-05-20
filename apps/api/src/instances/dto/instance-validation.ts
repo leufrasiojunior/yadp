@@ -128,7 +128,7 @@ class ManagedInstanceBaseUrlConstraint {
   }
 
   defaultMessage() {
-    return "baseUrl must be a valid http:// or https:// URL with host and optional path.";
+    return "baseUrl must be a valid http:// or https:// URL with host, optional port, and no credentials, query string, or hash.";
   }
 }
 

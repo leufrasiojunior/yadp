@@ -1,6 +1,6 @@
 export class InvalidManagedInstanceBaseUrlError extends Error {
   constructor(
-    message = "Provide a valid http:// or https:// base URL with host and optional path, without duplicate protocol.",
+    message = "Provide a valid http:// or https:// base URL with host, optional port, and optional path, without credentials, query string, hash, or duplicate protocol.",
   ) {
     super(message);
     this.name = "InvalidManagedInstanceBaseUrlError";
@@ -42,7 +42,9 @@ export function normalizeManagedInstanceBaseUrl(baseUrl: string) {
     parsed.protocol !== `${scheme}:` ||
     parsed.hostname.trim().length === 0 ||
     parsed.username.length > 0 ||
-    parsed.password.length > 0
+    parsed.password.length > 0 ||
+    parsed.search.length > 0 ||
+    parsed.hash.length > 0
   ) {
     throw new InvalidManagedInstanceBaseUrlError();
   }
@@ -56,6 +58,14 @@ export function normalizeManagedInstanceBaseUrl(baseUrl: string) {
     normalizedPath.length > 1 && normalizedPath.endsWith("/") ? normalizedPath.slice(0, -1) : normalizedPath;
   parsed.search = "";
   parsed.hash = "";
+
+  return parsed.toString().replace(/\/$/u, "");
+}
+
+export function normalizeManagedInstanceOriginUrl(baseUrl: string) {
+  const parsed = new URL(normalizeManagedInstanceBaseUrl(baseUrl));
+
+  parsed.pathname = "";
 
   return parsed.toString().replace(/\/$/u, "");
 }

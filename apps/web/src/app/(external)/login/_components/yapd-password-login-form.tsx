@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type { AppSession } from "@/components/yapd/app-session-provider";
-import { getApiErrorMessage } from "@/lib/api/error-message";
+import { showApiErrorToast } from "@/lib/api/error-toast";
+import { isCredentialPasswordError } from "@/lib/api/login-error-fields";
 import { getBrowserApiClient } from "@/lib/api/yapd-client";
 import { useWebI18n } from "@/lib/i18n/client";
 
@@ -54,7 +55,15 @@ export function YapdPasswordLoginForm({
     });
 
     if (!response.ok) {
-      toast.error(await getApiErrorMessage(response));
+      const message = await showApiErrorToast(response, copy.validationPassword);
+
+      if (isCredentialPasswordError(message)) {
+        form.setError("password", {
+          type: "server",
+          message,
+        });
+      }
+
       return;
     }
 

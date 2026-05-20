@@ -679,11 +679,14 @@ export const ptBRMessages: WebMessages = {
     },
     filters: {
       title: "Solicitação de período",
+      target: "Instância",
+      allInstancesTarget: "Todas as instâncias",
       date: "Data",
       from: "De",
       until: "Até",
       closedDayHint:
         "A coleta manual aceita somente um dia fechado por solicitação. A data atual fica bloqueada, mas você pode ajustar a hora dentro do dia selecionado.",
+      timeZoneHint: (timeZone) => `Período avaliado no timezone configurado da aplicação: ${timeZone}.`,
       apply: "Aplicar filtros",
       applying: "Aplicando...",
       reload: "Recarregar",
@@ -847,6 +850,7 @@ export const ptBRMessages: WebMessages = {
       },
       status: "Status",
       type: "Tipo",
+      instance: "Instância",
       period: "Período",
       rows: "Linhas",
       progress: "Progresso",
@@ -856,6 +860,11 @@ export const ptBRMessages: WebMessages = {
       retry: "Tentar novamente",
       cancel: "Cancelar",
       delete: "Apagar job",
+      cancelJobDialogTitle: "Cancelar este job?",
+      cancelJobDialogDescription: (kind, status, period) =>
+        `Esta ação solicita o cancelamento do job ${kind} com status ${status} no período ${period}. Se ele já estiver em execução, o processamento será interrompido no próximo ponto seguro e os dados parciais desse job serão removidos.`,
+      cancelJobDialogConfirm: "Cancelar job",
+      cancelJobDialogCancel: "Voltar",
       deleteJobDialogTitle: "Apagar este job?",
       deleteJobDialogDescription: (kind, status, period) =>
         `Esta ação apaga o job ${kind} com status ${status} e remove os dados históricos vinculados ao período ${period}.`,
@@ -938,7 +947,7 @@ export const ptBRMessages: WebMessages = {
         PENDING: "Aguardando na fila.",
         RUNNING: "Coleta em andamento com progresso parcial salvo.",
         PAUSED: "Execução pausada após falhas consecutivas.",
-        CANCELLED: "Cancelado antes de iniciar.",
+        CANCELLED: "Cancelado antes ou durante a execução.",
         SUCCESS: "Período concluído com resultado utilizável.",
         PARTIAL: "Período concluído com lacunas em parte das instâncias.",
         FAILURE: "Execução encerrada sem resultado utilizável.",
@@ -994,7 +1003,9 @@ export const ptBRMessages: WebMessages = {
       enabledStatus: "Ativa",
       disabledStatus: "Inativa",
       nextRun: "Próxima execução",
+      nextRunDisabled: "Regra desativada; sem próxima execução.",
       lastRun: "Última execução",
+      effectiveTimeZone: "Timezone efetivo",
       neverRun: "Ainda não executou",
       lastRunSummary: (status, at, jobCount, skippedCount) =>
         `${status} em ${at}; ${jobCount} job(s), ${skippedCount} pulado(s).`,
@@ -1036,7 +1047,10 @@ export const ptBRMessages: WebMessages = {
       rankingPeriodWithoutCoverage: "Nenhuma data salva cruza o período escolhido.",
       instanceFailure: (instanceName, message) => `${instanceName}: ${message}`,
       jobsRefreshFailed: "Não foi possível atualizar os jobs do overview.",
-      backfillQueued: "Job de coleta enfileirado.",
+      backfillQueued: (count) =>
+        count === 1
+          ? "1 job de coleta enfileirado ou reaproveitado."
+          : `${count} jobs de coleta enfileirados ou reaproveitados.`,
       deleteQueued: "Job de exclusão enfileirado.",
       backfillFailed: "Não foi possível solicitar a coleta histórica.",
       deleteFailed: "Não foi possível solicitar a exclusão do período.",

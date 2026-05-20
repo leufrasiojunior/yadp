@@ -106,7 +106,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "instances.disabledForSync":
       "A instância selecionada está desativada para sync e não pode participar desta operação.",
     "instances.invalidBaseUrl":
-      "Use uma Base URL válida com http:// ou https://, host obrigatório e caminho opcional, sem protocolo duplicado.",
+      "Use uma Base URL válida com http:// ou https://, host obrigatório e porta opcional, sem credenciais, query string, hash ou protocolo duplicado.",
     "instances.invalidTrustConfiguration":
       "Use CA personalizada ou self-signed explícito, mas não os dois ao mesmo tempo.",
     "instances.invalidCredentials": "As credenciais do Pi-hole são inválidas.",
@@ -195,7 +195,7 @@ const messages: Record<ApiLocale, Record<ApiMessageKey, MessageValue>> = {
     "groups.operationRejected": ({ baseUrl }) => `The Pi-hole at ${baseUrl} rejected the group change.`,
     "instances.disabledForSync": "The selected instance is disabled for sync and cannot participate in this operation.",
     "instances.invalidBaseUrl":
-      "Use a valid Base URL with http:// or https://, a required host, and an optional path, without duplicate protocol.",
+      "Use a valid Base URL with http:// or https://, a required host, and an optional port, without credentials, query string, hash, or duplicate protocol.",
     "instances.invalidTrustConfiguration":
       "Use either a custom CA or explicit self-signed trust, but not both at the same time.",
     "instances.invalidCredentials": "The Pi-hole credentials are invalid.",

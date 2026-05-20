@@ -83,6 +83,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppSession } from "@/components/yapd/app-session-provider";
+import { showApiErrorToast } from "@/lib/api/error-toast";
 import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   InstanceItem,
@@ -100,7 +101,13 @@ import type {
 import { setClientCookie } from "@/lib/cookie.client";
 import { DASHBOARD_SCOPE_COOKIE, type DashboardScope, serializeDashboardScope } from "@/lib/dashboard/dashboard-scope";
 import { useWebI18n } from "@/lib/i18n/client";
+import { formatFullDateTime as formatFullDateTimeInZone } from "@/lib/i18n/config";
 import type { WebMessages } from "@/lib/i18n/messages.types";
+import {
+  type AutomaticImportFieldErrors,
+  type AutomaticImportFieldKey,
+  getAutomaticImportApiFieldErrors,
+} from "@/lib/overview/overview-error-fields";
 import {
   buildDefaultOverviewFilters,
   buildOverviewChartBucketTimestamp,
@@ -128,6 +135,7 @@ const QUERY_CHART_HOUR_BUCKET_WIDTH_PX = 34;
 const DETAILS_POLL_INTERVAL_MS = 2000;
 const JOBS_POLL_INTERVAL_MS = 5000;
 const COVERAGE_PAGE_SIZE = 6;
+const OVERVIEW_REQUEST_TARGET_ALL_VALUE = "__all_instances__";
 const AUTOMATIC_IMPORT_SCOPE_ALL_VALUE = "__all_instances__";
 const AUTOMATIC_IMPORT_PRESETS = [
   { value: "0 03 * * *", labelKey: "daily3" },
@@ -184,6 +192,7 @@ type QueryChartPoint = OverviewResponse["charts"]["queries"]["points"][number];
 type RankingDrillDownSource = "volume" | "hourly";
 type OverviewJobStatus = OverviewJobsResponse["jobs"][number]["status"];
 type OverviewJobFilterGroup = (typeof JOB_STATUS_FILTER_VALUES)[number];
+type OverviewRequestTargetValue = typeof OVERVIEW_REQUEST_TARGET_ALL_VALUE | string;
 type OverviewSavedDate = OverviewResponse["coverage"]["savedDates"][number];
 type RankingShareRow = RankingRow & {
   fill: string;
@@ -302,6 +311,25 @@ function buildOverviewHref(filters: OverviewFilters, timeZone: string, activeTab
 
   const queryString = searchParams.toString();
   return queryString.length > 0 ? `/overview?${queryString}` : "/overview";
+}
+
+function upsertOverviewJobSummaries(
+  current: OverviewJobsResponse,
+  incomingJobs: Array<OverviewJobsResponse["jobs"][number]>,
+): OverviewJobsResponse {
+  if (incomingJobs.length === 0) {
+    return current;
+  }
+
+  const incomingJobIds = new Set(incomingJobs.map((job) => job.id));
+  const jobs = [...incomingJobs, ...current.jobs.filter((item) => !incomingJobIds.has(item.id))];
+
+  jobs.sort((left, right) => {
+    const createdAtDiff = Date.parse(right.createdAt) - Date.parse(left.createdAt);
+    return createdAtDiff !== 0 ? createdAtDiff : right.id.localeCompare(left.id);
+  });
+
+  return { jobs };
 }
 
 function buildDefaultAutomaticImportForm(): AutomaticImportFormState {
@@ -473,6 +501,10 @@ function matchesJobStatusFilter(status: OverviewJobStatus, filter: OverviewJobFi
 
 function isLiveOverviewJobStatus(status: OverviewJobStatus) {
   return status === "PENDING" || status === "RUNNING";
+}
+
+function canCancelJob(job: OverviewJobsResponse["jobs"][number]) {
+  return job.status === "PENDING" || job.status === "RUNNING";
 }
 
 function canDeleteJob(job: OverviewJobsResponse["jobs"][number]) {
@@ -847,9 +879,13 @@ function OverviewWorkspaceContent({
   const [automaticImportForm, setAutomaticImportForm] = useState<AutomaticImportFormState>(() =>
     buildDefaultAutomaticImportForm(),
   );
+  const [automaticImportFieldErrors, setAutomaticImportFieldErrors] = useState<AutomaticImportFieldErrors>({});
   const [overview, setOverview] = useState(initialOverview);
   const [jobs, setJobs] = useState(initialJobs);
   const [activeTab, setActiveTab] = useState<OverviewTab>(initialTab);
+  const [manualCollectionTarget, setManualCollectionTarget] = useState<OverviewRequestTargetValue>(() =>
+    scope.kind === "instance" ? scope.instanceId : OVERVIEW_REQUEST_TARGET_ALL_VALUE,
+  );
   const { setCurrentStep, setIsOpen, setSteps } = useTour();
   const [isPending, startTransition] = useTransition();
   const [isMutating, setIsMutating] = useState(false);
@@ -872,6 +908,7 @@ function OverviewWorkspaceContent({
   const [pendingRankingAction, setPendingRankingAction] = useState<RankingPendingAction | null>(null);
   const [pendingOpenPeriodJobId, setPendingOpenPeriodJobId] = useState<string | null>(null);
   const [isDeletePeriodDialogOpen, setIsDeletePeriodDialogOpen] = useState(false);
+  const [cancelJobDialogJobId, setCancelJobDialogJobId] = useState<string | null>(null);
   const [deleteJobDialogJobId, setDeleteJobDialogJobId] = useState<string | null>(null);
   const [deleteAutomaticImportRuleId, setDeleteAutomaticImportRuleId] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -887,6 +924,16 @@ function OverviewWorkspaceContent({
   const detailsRequestInFlightRef = useRef<string | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
   const maxSelectableDateTime = useMemo(() => getOverviewMaxSelectableDateTime(timeZone), [timeZone]);
+  const replaceOverviewHistory = useCallback(
+    (nextFilters: OverviewFilters, nextTab: OverviewTab = activeTabRef.current) => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      window.history.replaceState(null, "", buildOverviewHref(nextFilters, timeZone, nextTab));
+    },
+    [timeZone],
+  );
   const percentageFormatter = useMemo(
     () =>
       new Intl.NumberFormat(locale, {
@@ -1084,6 +1131,15 @@ function OverviewWorkspaceContent({
   }, [initialAutomaticImports]);
 
   useEffect(() => {
+    if (
+      manualCollectionTarget !== OVERVIEW_REQUEST_TARGET_ALL_VALUE &&
+      !instances.some((instance) => instance.id === manualCollectionTarget)
+    ) {
+      setManualCollectionTarget(OVERVIEW_REQUEST_TARGET_ALL_VALUE);
+    }
+  }, [instances, manualCollectionTarget]);
+
+  useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
 
@@ -1104,8 +1160,8 @@ function OverviewWorkspaceContent({
       return;
     }
 
-    window.history.replaceState(null, "", `/overview?tab=${activeTab}`);
-  }, [activeTab]);
+    window.history.replaceState(null, "", buildOverviewHref(filters, timeZone, activeTab));
+  }, [activeTab, filters, timeZone]);
 
   const showTourTab = useCallback((tab: OverviewTab) => {
     setActiveTab(tab);
@@ -1264,7 +1320,7 @@ function OverviewWorkspaceContent({
 
         if (!response.ok || !data) {
           if (!silent) {
-            toast.error(messages.overview.toasts.jobsRefreshFailed);
+            await showApiErrorToast(response, messages.overview.toasts.jobsRefreshFailed);
           }
           return;
         }
@@ -1285,7 +1341,7 @@ function OverviewWorkspaceContent({
 
       if (!response.ok || !data) {
         if (!silent) {
-          toast.error(messages.overview.toasts.automaticImportsRefreshFailed);
+          await showApiErrorToast(response, messages.overview.toasts.automaticImportsRefreshFailed);
         }
         return;
       }
@@ -1295,12 +1351,34 @@ function OverviewWorkspaceContent({
     [client, messages],
   );
 
+  useEffect(() => {
+    if (automaticImports.timeZone === timeZone) {
+      return;
+    }
+
+    void refreshAutomaticImports({ silent: true });
+  }, [automaticImports.timeZone, refreshAutomaticImports, timeZone]);
+
   const resetAutomaticImportForm = () => {
     setAutomaticImportForm(buildDefaultAutomaticImportForm());
+    setAutomaticImportFieldErrors({});
+  };
+
+  const clearAutomaticImportFieldError = (field: AutomaticImportFieldKey) => {
+    setAutomaticImportFieldErrors((current) => {
+      if (!current[field]) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
   };
 
   const submitAutomaticImportRule = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAutomaticImportFieldErrors({});
     const body = {
       name: automaticImportForm.name,
       enabled: automaticImportForm.enabled,
@@ -1331,7 +1409,8 @@ function OverviewWorkspaceContent({
       const { data, response } = await request;
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.automaticImportSaveFailed);
+        const message = await showApiErrorToast(response, messages.overview.toasts.automaticImportSaveFailed);
+        setAutomaticImportFieldErrors(getAutomaticImportApiFieldErrors(message));
         return;
       }
 
@@ -1357,6 +1436,7 @@ function OverviewWorkspaceContent({
 
   const editAutomaticImportRule = (rule: OverviewAutomaticImportRule) => {
     setAutomaticImportForm(buildAutomaticImportFormFromRule(rule));
+    setAutomaticImportFieldErrors({});
   };
 
   const toggleAutomaticImportRule = async (rule: OverviewAutomaticImportRule, enabled: boolean) => {
@@ -1376,7 +1456,7 @@ function OverviewWorkspaceContent({
       );
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.automaticImportSaveFailed);
+        await showApiErrorToast(response, messages.overview.toasts.automaticImportSaveFailed);
         return;
       }
 
@@ -1404,7 +1484,7 @@ function OverviewWorkspaceContent({
       );
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.automaticImportDeleteFailed);
+        await showApiErrorToast(response, messages.overview.toasts.automaticImportDeleteFailed);
         return;
       }
 
@@ -1422,6 +1502,7 @@ function OverviewWorkspaceContent({
   const applyAutomaticImportBuilder = () => {
     const minute = normalizeClockPart(automaticImportForm.builderMinute, 59);
     const hour = normalizeClockPart(automaticImportForm.builderHour, 23);
+    clearAutomaticImportFieldError("cronExpression");
 
     setAutomaticImportForm((current) => ({
       ...current,
@@ -1604,39 +1685,39 @@ function OverviewWorkspaceContent({
   };
 
   const updateRequestDateFilter = (value: string) => {
-    setFilters((current) =>
-      buildOverviewSingleDayFilters(
-        current,
-        value,
-        current.from.slice(11, 16),
-        current.until.slice(11, 16),
-        maxSelectableDateTime,
-      ),
+    const nextFilters = buildOverviewSingleDayFilters(
+      filters,
+      value,
+      filters.from.slice(11, 16),
+      filters.until.slice(11, 16),
+      maxSelectableDateTime,
     );
+    setFilters(nextFilters);
+    replaceOverviewHistory(nextFilters, "request");
   };
 
   const updateRequestFromTimeFilter = (value: string) => {
-    setFilters((current) =>
-      buildOverviewSingleDayFilters(
-        current,
-        current.from.slice(0, 10),
-        value,
-        current.until.slice(11, 16),
-        maxSelectableDateTime,
-      ),
+    const nextFilters = buildOverviewSingleDayFilters(
+      filters,
+      filters.from.slice(0, 10),
+      value,
+      filters.until.slice(11, 16),
+      maxSelectableDateTime,
     );
+    setFilters(nextFilters);
+    replaceOverviewHistory(nextFilters, "request");
   };
 
   const updateRequestUntilTimeFilter = (value: string) => {
-    setFilters((current) =>
-      buildOverviewSingleDayFilters(
-        current,
-        current.from.slice(0, 10),
-        current.from.slice(11, 16),
-        value,
-        maxSelectableDateTime,
-      ),
+    const nextFilters = buildOverviewSingleDayFilters(
+      filters,
+      filters.from.slice(0, 10),
+      filters.from.slice(11, 16),
+      value,
+      maxSelectableDateTime,
     );
+    setFilters(nextFilters);
+    replaceOverviewHistory(nextFilters, "request");
   };
 
   const handleTabChange = (nextTab: string) => {
@@ -1651,9 +1732,7 @@ function OverviewWorkspaceContent({
     setActiveTab(nextTab);
 
     if (nextTab === "jobs" || nextTab === "settings") {
-      if (typeof window !== "undefined") {
-        window.history.replaceState(null, "", `/overview?tab=${nextTab}`);
-      }
+      replaceOverviewHistory(filters, nextTab);
       return;
     }
 
@@ -1683,9 +1762,23 @@ function OverviewWorkspaceContent({
         return null;
       }
 
+      const requestScope =
+        path === "/overview/backfill"
+          ? {
+              scope: manualCollectionTarget === OVERVIEW_REQUEST_TARGET_ALL_VALUE ? "all" : "instance",
+              ...(manualCollectionTarget === OVERVIEW_REQUEST_TARGET_ALL_VALUE
+                ? {}
+                : { instanceId: manualCollectionTarget }),
+            }
+          : {
+              scope: scope.kind === "all" ? "all" : "instance",
+              ...(scope.kind === "instance" ? { instanceId: scope.instanceId } : {}),
+            };
+
       setIsMutating(true);
       if (path === "/overview/backfill" && !overrides) {
         setFilters(requestFilters);
+        replaceOverviewHistory(requestFilters, "request");
       }
 
       try {
@@ -1694,15 +1787,15 @@ function OverviewWorkspaceContent({
             "x-yapd-csrf": csrfToken,
           },
           body: {
-            scope: scope.kind === "all" ? "all" : "instance",
-            ...(scope.kind === "instance" ? { instanceId: scope.instanceId } : {}),
+            ...requestScope,
             from: query.from,
             until: query.until,
           },
         });
 
         if (!response.ok || !data) {
-          toast.error(
+          await showApiErrorToast(
+            response,
             path === "/overview/backfill"
               ? messages.overview.toasts.backfillFailed
               : messages.overview.toasts.deleteFailed,
@@ -1710,15 +1803,21 @@ function OverviewWorkspaceContent({
           return null;
         }
 
+        setJobs((current) => upsertOverviewJobSummaries(current, data.jobs));
+        if (path === "/overview/backfill") {
+          setJobStatusFilter("all");
+        }
+
         toast.success(
           path === "/overview/backfill"
-            ? messages.overview.toasts.backfillQueued
+            ? messages.overview.toasts.backfillQueued(data.summary.createdCount + data.summary.reusedCount)
             : messages.overview.toasts.deleteQueued,
         );
-        await refreshJobs();
-        startTransition(() => {
-          router.refresh();
-        });
+        if (path === "/overview/delete") {
+          startTransition(() => {
+            router.refresh();
+          });
+        }
         return data.job;
       } finally {
         setIsMutating(false);
@@ -1730,8 +1829,9 @@ function OverviewWorkspaceContent({
       csrfToken,
       filters,
       maxSelectableDateTime,
+      manualCollectionTarget,
       messages,
-      refreshJobs,
+      replaceOverviewHistory,
       router,
       scope,
       timeZone,
@@ -1819,7 +1919,7 @@ function OverviewWorkspaceContent({
       });
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.coverageRenewFailed);
+        await showApiErrorToast(response, messages.overview.toasts.coverageRenewFailed);
         return;
       }
 
@@ -1845,10 +1945,11 @@ function OverviewWorkspaceContent({
       });
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.retryFailed);
+        await showApiErrorToast(response, messages.overview.toasts.retryFailed);
         return;
       }
 
+      setJobs((current) => upsertOverviewJobSummaries(current, data.jobs));
       toast.success(messages.overview.toasts.retryQueued);
       await refreshJobs();
       if (detailsJobId === jobId) {
@@ -1874,18 +1975,17 @@ function OverviewWorkspaceContent({
       });
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.cancelFailed);
+        await showApiErrorToast(response, messages.overview.toasts.cancelFailed);
         return;
       }
 
-      setJobs((current) => ({
-        jobs: current.jobs.map((item) => (item.id === jobId ? data.job : item)),
-      }));
+      setJobs((current) => upsertOverviewJobSummaries(current, data.jobs));
       if (detailsJobId === jobId) {
         setDetailsJobId(null);
         setDetails(null);
         setDetailsLastUpdatedAt(null);
       }
+      setCancelJobDialogJobId(null);
       toast.success(messages.overview.toasts.cancelled);
     } finally {
       setBusyJobAction(null);
@@ -1903,7 +2003,7 @@ function OverviewWorkspaceContent({
       });
 
       if (!response.ok || !data) {
-        toast.error(messages.overview.toasts.jobDeleteFailed);
+        await showApiErrorToast(response, messages.overview.toasts.jobDeleteFailed);
         return;
       }
 
@@ -1940,7 +2040,7 @@ function OverviewWorkspaceContent({
 
         if (!response.ok || !data) {
           if (!options.silent) {
-            toast.error(messages.overview.toasts.jobDetailsFailed);
+            await showApiErrorToast(response, messages.overview.toasts.jobDetailsFailed);
           }
           return;
         }
@@ -2493,9 +2593,13 @@ function OverviewWorkspaceContent({
   );
 
   const selectedJobSummary = jobs.jobs.find((job) => job.id === detailsJobId) ?? null;
+  const cancelJobDialogJob = jobs.jobs.find((job) => job.id === cancelJobDialogJobId) ?? null;
   const deleteJobDialogJob = jobs.jobs.find((job) => job.id === deleteJobDialogJobId) ?? null;
   const deleteAutomaticImportRuleTarget =
     automaticImports.rules.find((rule) => rule.id === deleteAutomaticImportRuleId) ?? null;
+  const cancelJobDialogPeriod = cancelJobDialogJob
+    ? `${formatDateTime(cancelJobDialogJob.requestedFrom)} - ${formatDateTime(cancelJobDialogJob.requestedUntil)}`
+    : "";
   const deleteJobDialogPeriod = deleteJobDialogJob
     ? `${formatDateTime(deleteJobDialogJob.requestedFrom)} - ${formatDateTime(deleteJobDialogJob.requestedUntil)}`
     : "";
@@ -2570,7 +2674,7 @@ function OverviewWorkspaceContent({
               <CardTitle>{messages.overview.filters.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(8rem,0.4fr)_minmax(8rem,0.4fr)]">
+              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(8rem,0.4fr)_minmax(8rem,0.4fr)]">
                 <div className="space-y-1">
                   <label htmlFor="overview-date" className="font-medium text-sm">
                     {messages.overview.filters.date}
@@ -2582,6 +2686,26 @@ function OverviewWorkspaceContent({
                     value={filters.from.slice(0, 10)}
                     onChange={(event) => updateRequestDateFilter(event.target.value)}
                   />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="overview-target" className="font-medium text-sm">
+                    {messages.overview.filters.target}
+                  </label>
+                  <Select value={manualCollectionTarget} onValueChange={setManualCollectionTarget}>
+                    <SelectTrigger id="overview-target" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={OVERVIEW_REQUEST_TARGET_ALL_VALUE}>
+                        {messages.overview.filters.allInstancesTarget}
+                      </SelectItem>
+                      {instances.map((instance) => (
+                        <SelectItem key={instance.id} value={instance.id}>
+                          {instance.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1">
                   <label htmlFor="overview-from-time" className="font-medium text-sm">
@@ -2609,7 +2733,10 @@ function OverviewWorkspaceContent({
                 </div>
               </div>
 
-              <p className="text-muted-foreground text-xs">{messages.overview.filters.closedDayHint}</p>
+              <div className="space-y-1 text-muted-foreground text-xs">
+                <p>{messages.overview.filters.timeZoneHint(timeZone)}</p>
+                <p>{messages.overview.filters.closedDayHint}</p>
+              </div>
 
               <div className="flex flex-wrap gap-2">
                 <Button variant="secondary" onClick={() => void triggerJob("/overview/backfill")} disabled={isMutating}>
@@ -3428,6 +3555,7 @@ function OverviewWorkspaceContent({
                     <TableRow>
                       <TableHead>{messages.overview.jobs.status}</TableHead>
                       <TableHead>{messages.overview.jobs.type}</TableHead>
+                      <TableHead>{messages.overview.jobs.instance}</TableHead>
                       <TableHead>{messages.overview.jobs.period}</TableHead>
                       <TableHead>{messages.overview.jobs.progress}</TableHead>
                       <TableHead className="text-right">{messages.overview.jobs.actions}</TableHead>
@@ -3450,6 +3578,11 @@ function OverviewWorkspaceContent({
                           </div>
                         </TableCell>
                         <TableCell className="align-top">{messages.overview.jobs.kindValues[job.kind]}</TableCell>
+                        <TableCell className="align-top text-sm">
+                          {job.scope === "all"
+                            ? messages.overview.filters.allInstancesTarget
+                            : (job.instanceName ?? messages.overview.jobs.detailsUnavailable)}
+                        </TableCell>
                         <TableCell className="align-top text-muted-foreground text-sm">
                           <div>{formatDateTime(job.requestedFrom)}</div>
                           <div>{formatDateTime(job.requestedUntil)}</div>
@@ -3507,11 +3640,11 @@ function OverviewWorkspaceContent({
                             >
                               {messages.overview.jobs.viewDetails}
                             </Button>
-                            {job.status === "PENDING" ? (
+                            {canCancelJob(job) ? (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => void cancelJob(job.id)}
+                                onClick={() => setCancelJobDialogJobId(job.id)}
                                 disabled={busyJobAction !== null}
                               >
                                 {messages.overview.jobs.cancel}
@@ -3588,11 +3721,17 @@ function OverviewWorkspaceContent({
                           id="overview-auto-name"
                           value={automaticImportForm.name}
                           maxLength={120}
-                          onChange={(event) =>
-                            setAutomaticImportForm((current) => ({ ...current, name: event.target.value }))
-                          }
+                          aria-invalid={Boolean(automaticImportFieldErrors.name)}
+                          className={cn(automaticImportFieldErrors.name && "border-destructive")}
+                          onChange={(event) => {
+                            clearAutomaticImportFieldError("name");
+                            setAutomaticImportForm((current) => ({ ...current, name: event.target.value }));
+                          }}
                           placeholder={messages.overview.settings.namePlaceholder}
                         />
+                        {automaticImportFieldErrors.name ? (
+                          <p className="text-destructive text-xs">{automaticImportFieldErrors.name}</p>
+                        ) : null}
                       </div>
                       <div className="flex min-h-20 items-center justify-between gap-3 rounded-md border bg-background/70 p-3">
                         <div className="min-w-0 space-y-1">
@@ -3622,15 +3761,20 @@ function OverviewWorkspaceContent({
                               ? AUTOMATIC_IMPORT_SCOPE_ALL_VALUE
                               : automaticImportForm.instanceId
                           }
-                          onValueChange={(value) =>
+                          onValueChange={(value) => {
+                            clearAutomaticImportFieldError("target");
                             setAutomaticImportForm((current) =>
                               value === AUTOMATIC_IMPORT_SCOPE_ALL_VALUE
                                 ? { ...current, scope: "all", instanceId: "" }
                                 : { ...current, scope: "instance", instanceId: value },
-                            )
-                          }
+                            );
+                          }}
                         >
-                          <SelectTrigger id="overview-auto-scope" className="w-full">
+                          <SelectTrigger
+                            id="overview-auto-scope"
+                            aria-invalid={Boolean(automaticImportFieldErrors.target)}
+                            className={cn("w-full", automaticImportFieldErrors.target && "border-destructive")}
+                          >
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -3644,6 +3788,9 @@ function OverviewWorkspaceContent({
                             ))}
                           </SelectContent>
                         </Select>
+                        {automaticImportFieldErrors.target ? (
+                          <p className="text-destructive text-xs">{automaticImportFieldErrors.target}</p>
+                        ) : null}
                       </div>
                       <div className="space-y-1.5">
                         <label htmlFor="overview-auto-preset" className="font-medium text-sm">
@@ -3662,6 +3809,7 @@ function OverviewWorkspaceContent({
                               return;
                             }
 
+                            clearAutomaticImportFieldError("cronExpression");
                             setAutomaticImportForm((current) => ({ ...current, cronExpression: value }));
                           }}
                         >
@@ -3757,12 +3905,20 @@ function OverviewWorkspaceContent({
                       <Input
                         id="overview-auto-cron"
                         value={automaticImportForm.cronExpression}
-                        className="font-mono"
-                        onChange={(event) =>
-                          setAutomaticImportForm((current) => ({ ...current, cronExpression: event.target.value }))
-                        }
+                        aria-invalid={Boolean(automaticImportFieldErrors.cronExpression)}
+                        className={cn("font-mono", automaticImportFieldErrors.cronExpression && "border-destructive")}
+                        onChange={(event) => {
+                          clearAutomaticImportFieldError("cronExpression");
+                          setAutomaticImportForm((current) => ({
+                            ...current,
+                            cronExpression: event.target.value,
+                          }));
+                        }}
                         placeholder="0 03 * * *"
                       />
+                      {automaticImportFieldErrors.cronExpression ? (
+                        <p className="text-destructive text-xs">{automaticImportFieldErrors.cronExpression}</p>
+                      ) : null}
                       <p className="text-muted-foreground text-xs">
                         {messages.overview.settings.fixedWindowNotice(automaticImports.timeZone)}
                       </p>
@@ -3829,13 +3985,16 @@ function OverviewWorkspaceContent({
                         rule.scope === "all"
                           ? messages.overview.settings.allInstances
                           : rule.instanceName || messages.overview.settings.missingInstance;
-                      const ruleNextRunLabel = rule.nextRunAt
-                        ? formatFullDateTime(rule.nextRunAt)
-                        : messages.overview.coverage.unavailable;
+                      const ruleEffectiveTimeZone = rule.timeZone || automaticImports.timeZone;
+                      const ruleNextRunLabel = !rule.enabled
+                        ? messages.overview.settings.nextRunDisabled
+                        : rule.nextRunAt
+                          ? formatFullDateTimeInZone(rule.nextRunAt, ruleEffectiveTimeZone)
+                          : messages.overview.coverage.unavailable;
                       const ruleLastRunLabel = rule.lastRun.at
                         ? messages.overview.settings.lastRunSummary(
                             messages.overview.settings.runStatus[rule.lastRun.status ?? "SKIPPED"],
-                            formatFullDateTime(rule.lastRun.at),
+                            formatFullDateTimeInZone(rule.lastRun.at, ruleEffectiveTimeZone),
                             formatCount(rule.lastRun.jobCount),
                             formatCount(rule.lastRun.skippedCount),
                           )
@@ -3907,6 +4066,12 @@ function OverviewWorkspaceContent({
                                 {messages.overview.settings.cronExpression}
                               </p>
                               <p className="mt-1 break-all font-mono text-foreground text-sm">{rule.cronExpression}</p>
+                            </div>
+                            <div className="min-w-0 rounded-md border bg-muted/20 p-3">
+                              <p className="font-medium text-muted-foreground text-xs">
+                                {messages.overview.settings.effectiveTimeZone}
+                              </p>
+                              <p className="mt-1 break-words text-foreground text-sm">{ruleEffectiveTimeZone}</p>
                             </div>
                             <div className="min-w-0 rounded-md border bg-muted/20 p-3">
                               <p className="font-medium text-muted-foreground text-xs">
@@ -4011,6 +4176,75 @@ function OverviewWorkspaceContent({
                 <Trash2 />
               )}
               {messages.overview.settings.deleteDialogConfirm}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={cancelJobDialogJob !== null}
+        onOpenChange={(open) => {
+          if (!open && busyJobAction !== `cancel:${cancelJobDialogJobId}`) {
+            setCancelJobDialogJobId(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{messages.overview.jobs.cancelJobDialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {cancelJobDialogJob
+                ? messages.overview.jobs.cancelJobDialogDescription(
+                    messages.overview.jobs.kindValues[cancelJobDialogJob.kind],
+                    messages.overview.jobs.statusValues[cancelJobDialogJob.status],
+                    cancelJobDialogPeriod,
+                  )
+                : messages.overview.jobs.cancelJobDialogDescription("", "", "")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {cancelJobDialogJob ? (
+            <div className="grid gap-2 rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.type}</span>
+                <span className="font-medium">{messages.overview.jobs.kindValues[cancelJobDialogJob.kind]}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.status}</span>
+                <span className="font-medium">{messages.overview.jobs.statusValues[cancelJobDialogJob.status]}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.instance}</span>
+                <span className="text-right font-medium">
+                  {cancelJobDialogJob.scope === "all"
+                    ? messages.overview.filters.allInstancesTarget
+                    : (cancelJobDialogJob.instanceName ?? messages.overview.jobs.detailsUnavailable)}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-muted-foreground">{messages.overview.jobs.period}</span>
+                <span className="text-right font-medium">{cancelJobDialogPeriod}</span>
+              </div>
+            </div>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busyJobAction === `cancel:${cancelJobDialogJobId}`}>
+              {messages.overview.jobs.cancelJobDialogCancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={!cancelJobDialogJob || busyJobAction !== null}
+              onClick={(event) => {
+                event.preventDefault();
+
+                if (!cancelJobDialogJob) {
+                  return;
+                }
+
+                void cancelJob(cancelJobDialogJob.id);
+              }}
+            >
+              {busyJobAction === `cancel:${cancelJobDialogJobId}` ? <Loader2 className="animate-spin" /> : <X />}
+              {messages.overview.jobs.cancelJobDialogConfirm}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

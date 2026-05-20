@@ -4,6 +4,8 @@ import {
   OVERVIEW_AUTOMATIC_IMPORT_RUN_STATUS_VALUES,
   OVERVIEW_FAILURE_KIND_VALUES,
   OVERVIEW_GROUP_BY_VALUES,
+  OVERVIEW_JOB_FAILURE_REASON_VALUES,
+  OVERVIEW_JOB_KIND_VALUES,
   OVERVIEW_JOB_STATUS_VALUES,
   OVERVIEW_SCOPE_VALUES,
 } from "./overview.types";
@@ -126,6 +128,149 @@ const automaticImportRuleSchema = {
     "lastRun",
     "createdAt",
     "updatedAt",
+  ],
+};
+
+const jobCheckpointSchema = {
+  type: "object",
+  nullable: true,
+  properties: {
+    instanceId: { type: "string", nullable: true },
+    instanceName: { type: "string", nullable: true },
+    page: { type: "number", nullable: true },
+    start: { type: "number", nullable: true },
+    totalPages: { type: "number", nullable: true },
+    expectedRecords: { type: "number", nullable: true },
+    consecutiveFailures: { type: "number" },
+    lastSuccessfulPage: { type: "number" },
+    updatedAt: { type: "string", format: "date-time", nullable: true },
+  },
+  required: [
+    "instanceId",
+    "instanceName",
+    "page",
+    "start",
+    "totalPages",
+    "expectedRecords",
+    "consecutiveFailures",
+    "lastSuccessfulPage",
+    "updatedAt",
+  ],
+};
+
+const jobInstanceProgressSchema = {
+  type: "object",
+  properties: {
+    instanceId: { type: "string" },
+    instanceName: { type: "string" },
+    status: { type: "string", enum: [...OVERVIEW_JOB_STATUS_VALUES] },
+    expectedRecords: { type: "number", nullable: true },
+    fetchedRecords: { type: "number" },
+    insertedRecords: { type: "number" },
+    totalPages: { type: "number", nullable: true },
+    completedPages: { type: "number" },
+    currentPage: { type: "number", nullable: true },
+    currentStart: { type: "number" },
+    storedFrom: { type: "string", format: "date-time", nullable: true },
+    storedUntil: { type: "string", format: "date-time", nullable: true },
+    consecutiveFailures: { type: "number" },
+    lastErrorMessage: { type: "string", nullable: true },
+    lastFailureReason: { type: "string", enum: [...OVERVIEW_JOB_FAILURE_REASON_VALUES], nullable: true },
+    lastSuccessfulAt: { type: "string", format: "date-time", nullable: true },
+    updatedAt: { type: "string", format: "date-time", nullable: true },
+  },
+  required: [
+    "instanceId",
+    "instanceName",
+    "status",
+    "expectedRecords",
+    "fetchedRecords",
+    "insertedRecords",
+    "totalPages",
+    "completedPages",
+    "currentPage",
+    "currentStart",
+    "storedFrom",
+    "storedUntil",
+    "consecutiveFailures",
+    "lastErrorMessage",
+    "lastFailureReason",
+    "lastSuccessfulAt",
+    "updatedAt",
+  ],
+};
+
+const jobProgressSchema = {
+  type: "object",
+  properties: {
+    attempts: { type: "number" },
+    totalExpectedRecords: { type: "number" },
+    totalFetchedRecords: { type: "number" },
+    totalInsertedRecords: { type: "number" },
+    totalPages: { type: "number" },
+    completedPages: { type: "number" },
+    checkpoint: jobCheckpointSchema,
+    lastFailureMessage: { type: "string", nullable: true },
+    lastFailureReason: { type: "string", enum: [...OVERVIEW_JOB_FAILURE_REASON_VALUES], nullable: true },
+    instanceProgress: { type: "array", items: jobInstanceProgressSchema },
+  },
+  required: [
+    "attempts",
+    "totalExpectedRecords",
+    "totalFetchedRecords",
+    "totalInsertedRecords",
+    "totalPages",
+    "completedPages",
+    "checkpoint",
+    "lastFailureMessage",
+    "lastFailureReason",
+    "instanceProgress",
+  ],
+};
+
+const overviewJobSummarySchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    kind: { type: "string", enum: [...OVERVIEW_JOB_KIND_VALUES] },
+    scope: { type: "string", enum: [...OVERVIEW_SCOPE_VALUES] },
+    instanceId: { type: "string", nullable: true },
+    instanceName: { type: "string", nullable: true },
+    requestedFrom: { type: "string", format: "date-time" },
+    requestedUntil: { type: "string", format: "date-time" },
+    status: { type: "string", enum: [...OVERVIEW_JOB_STATUS_VALUES] },
+    trigger: { type: "string", nullable: true },
+    requestedBy: { type: "string", nullable: true },
+    queryCount: { type: "number" },
+    deletedCount: { type: "number" },
+    coverageCount: { type: "number" },
+    startedAt: { type: "string", format: "date-time", nullable: true },
+    finishedAt: { type: "string", format: "date-time", nullable: true },
+    createdAt: { type: "string", format: "date-time" },
+    errorMessage: { type: "string", nullable: true },
+    failureReason: { type: "string", enum: [...OVERVIEW_JOB_FAILURE_REASON_VALUES], nullable: true },
+    progress: jobProgressSchema,
+  },
+  required: [
+    "id",
+    "kind",
+    "scope",
+    "instanceId",
+    "instanceName",
+    "requestedFrom",
+    "requestedUntil",
+    "status",
+    "trigger",
+    "requestedBy",
+    "queryCount",
+    "deletedCount",
+    "coverageCount",
+    "startedAt",
+    "finishedAt",
+    "createdAt",
+    "errorMessage",
+    "failureReason",
+    "progress",
   ],
 };
 
@@ -256,6 +401,13 @@ export const OVERVIEW_API_OK_RESPONSE = {
 
 export const OVERVIEW_JOBS_API_OK_RESPONSE = {
   description: "Recent overview history jobs.",
+  schema: {
+    type: "object",
+    properties: {
+      jobs: { type: "array", items: overviewJobSummarySchema },
+    },
+    required: ["jobs"],
+  },
 };
 
 export const OVERVIEW_JOB_DETAILS_API_OK_RESPONSE = {
@@ -263,7 +415,36 @@ export const OVERVIEW_JOB_DETAILS_API_OK_RESPONSE = {
 };
 
 export const OVERVIEW_JOB_MUTATION_API_OK_RESPONSE = {
-  description: "Enqueued overview history job.",
+  description: "Mutated overview history job queue.",
+  schema: {
+    type: "object",
+    properties: {
+      jobs: { type: "array", items: overviewJobSummarySchema },
+      job: { ...overviewJobSummarySchema, nullable: true },
+      summary: {
+        type: "object",
+        properties: {
+          requestedCount: { type: "number" },
+          createdCount: { type: "number" },
+          reusedCount: { type: "number" },
+          skippedCount: { type: "number" },
+        },
+        required: ["requestedCount", "createdCount", "reusedCount", "skippedCount"],
+      },
+    },
+    required: ["jobs", "job", "summary"],
+  },
+};
+
+export const OVERVIEW_JOB_DELETE_API_OK_RESPONSE = {
+  description: "Deleted overview history job.",
+  schema: {
+    type: "object",
+    properties: {
+      job: overviewJobSummarySchema,
+    },
+    required: ["job"],
+  },
 };
 
 export const OVERVIEW_COVERAGE_RENEW_API_OK_RESPONSE = {

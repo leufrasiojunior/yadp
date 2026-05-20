@@ -20,7 +20,7 @@ import type { CertificateTrustMode, Prisma } from "../common/prisma/prisma-clien
 import { isPrismaMissingModelTable } from "../common/prisma/prisma-errors";
 import {
   InvalidManagedInstanceBaseUrlError,
-  normalizeManagedInstanceBaseUrl,
+  normalizeManagedInstanceOriginUrl,
 } from "../common/url/managed-instance-base-url";
 import { PiholeRequestError, PiholeService } from "../pihole/pihole.service";
 import type { PiholeConnection, PiholeSession } from "../pihole/pihole.types";
@@ -457,7 +457,7 @@ export class SetupService {
 
   private normalizeConfiguredBaseUrl(baseUrl: string, locale: ReturnType<typeof getRequestLocale>) {
     try {
-      return normalizeManagedInstanceBaseUrl(baseUrl);
+      return normalizeManagedInstanceOriginUrl(baseUrl);
     } catch (error) {
       if (error instanceof InvalidManagedInstanceBaseUrlError) {
         throw new BadRequestException(translateApi(locale, "instances.invalidBaseUrl"));

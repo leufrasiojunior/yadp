@@ -615,10 +615,13 @@ export type WebMessages = {
     };
     filters: {
       title: string;
+      target: string;
+      allInstancesTarget: string;
       date: string;
       from: string;
       until: string;
       closedDayHint: string;
+      timeZoneHint: (timeZone: string) => string;
       apply: string;
       applying: string;
       reload: string;
@@ -776,6 +779,7 @@ export type WebMessages = {
       };
       status: string;
       type: string;
+      instance: string;
       period: string;
       rows: string;
       progress: string;
@@ -785,6 +789,10 @@ export type WebMessages = {
       retry: string;
       cancel: string;
       delete: string;
+      cancelJobDialogTitle: string;
+      cancelJobDialogDescription: (kind: string, status: string, period: string) => string;
+      cancelJobDialogConfirm: string;
+      cancelJobDialogCancel: string;
       deleteJobDialogTitle: string;
       deleteJobDialogDescription: (kind: string, status: string, period: string) => string;
       deleteJobDialogConfirm: string;
@@ -920,7 +928,9 @@ export type WebMessages = {
       enabledStatus: string;
       disabledStatus: string;
       nextRun: string;
+      nextRunDisabled: string;
       lastRun: string;
+      effectiveTimeZone: string;
       neverRun: string;
       lastRunSummary: (status: string, at: string, jobCount: string, skippedCount: string) => string;
       runStatus: {
@@ -951,7 +961,7 @@ export type WebMessages = {
       rankingPeriodWithoutCoverage: string;
       instanceFailure: (instanceName: string, message: string) => string;
       jobsRefreshFailed: string;
-      backfillQueued: string;
+      backfillQueued: (count: number) => string;
       deleteQueued: string;
       backfillFailed: string;
       deleteFailed: string;
