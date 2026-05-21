@@ -6,6 +6,8 @@ Leia em Português do Brasil: [README.pt-BR](docs/README.pt-BR.md)
 
 # YAPD
 
+[![CI](https://github.com/leufrasiojunior/yadp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/leufrasiojunior/yadp/actions/workflows/ci.yml)
+
 **Yet Another Pi-hole Dashboard** is a self-hosted control center for people who run more than one Pi-hole instance and want a clearer, safer way to see what is happening across their network.
 
 YAPD is an independent third-party project. It is not affiliated with, endorsed by, or sponsored by Pi-hole, LLC; "Pi-hole" is referenced only to identify compatibility with Pi-hole installations.
