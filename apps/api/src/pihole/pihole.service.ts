@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { Agent, fetch } from "undici";
+import { Agent, fetch, Headers } from "undici";
 
 import { DEFAULT_API_LOCALE } from "../common/i18n/locale";
 import { translateApi } from "../common/i18n/messages";
