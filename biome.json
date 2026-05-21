@@ -121,7 +121,7 @@
       }
     },
     {
-      "includes": ["apps/api/src/generated/**"],
+      "includes": ["apps/api/src/generated/**", "packages/api-client/src/generated/**"],
       "assist": {
         "enabled": false
       },

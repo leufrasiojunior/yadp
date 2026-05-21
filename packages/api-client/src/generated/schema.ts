@@ -4,5875 +4,5483 @@
  */
 
 export interface paths {
-  "/notifications": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["NotificationsController_listNotifications"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/notifications/preview": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["NotificationsController_getPreview"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/notifications/{id}/read": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["NotificationsController_markAsRead"];
-    trace?: never;
-  };
-  "/notifications/read-all": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["NotificationsController_markAllAsRead"];
-    trace?: never;
-  };
-  "/notifications/{id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: operations["NotificationsController_hideNotification"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/notifications/push/public-key": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["NotificationsController_getPushPublicKey"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/notifications/push/subscription": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: operations["NotificationsController_upsertPushSubscription"];
-    post?: never;
-    delete: operations["NotificationsController_deletePushSubscription"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/session/login": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["SessionController_login"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/session": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["SessionController_getCurrentSession"];
-    put?: never;
-    post?: never;
-    delete: operations["SessionController_logout"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/session/preferences": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["SessionController_updatePreferences"];
-    trace?: never;
-  };
-  "/clients": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["ClientsController_listClients"];
-    put?: never;
-    post: operations["ClientsController_saveClients"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/clients/{client}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: operations["ClientsController_updateClient"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/clients/sync": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["ClientsController_syncClients"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/dashboard/overview": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["DashboardController_getOverview"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/domains": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["DomainsController_listDomains"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/domains/export": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["DomainsController_exportDomains"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/domains/import": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["DomainsController_importDomains"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/domains/{domain}/{type}/{kind}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["DomainsController_getDomain"];
-    put: operations["DomainsController_updateDomain"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/domains/{type}/{kind}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["DomainsController_applyDomainOperation"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/domains/batchDelete": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["DomainsController_batchDelete"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/domains/sync": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["DomainsController_syncDomains"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/groups": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["GroupsController_listGroups"];
-    put?: never;
-    post: operations["GroupsController_createGroups"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/groups/{name}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: operations["GroupsController_updateGroup"];
-    post?: never;
-    delete: operations["GroupsController_deleteGroup"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/groups/{name}/status": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["GroupsController_updateGroupStatus"];
-    trace?: never;
-  };
-  "/groups/batchDelete": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["GroupsController_batchDeleteGroups"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/groups/sync": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["GroupsController_syncGroups"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/health": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["HealthController_getHealth"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/instances": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["InstancesController_listInstances"];
-    put?: never;
-    post: operations["InstancesController_createInstance"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/instances/{id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["InstancesController_getInstance"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["InstancesController_updateInstance"];
-    trace?: never;
-  };
-  "/instances/{id}/info": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["InstancesController_getInstanceInfo"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/instances/discover": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["InstancesController_discoverInstances"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/instances/{id}/test": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["InstancesController_testInstance"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/instances/{id}/reauthenticate": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["InstancesController_reauthenticateInstance"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/instances/{id}/sync": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["InstancesController_updateInstanceSync"];
-    trace?: never;
-  };
-  "/instances/{id}/primary": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["InstancesController_promotePrimaryInstance"];
-    trace?: never;
-  };
-  "/lists": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["ListsController_listLists"];
-    put?: never;
-    post: operations["ListsController_createList"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/lists/{type}/{address}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["ListsController_getList"];
-    put: operations["ListsController_updateList"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/lists/batchDelete": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["ListsController_batchDelete"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/lists/sync": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["ListsController_syncLists"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/navigation/summary": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["NavigationController_getSummary"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["OverviewController_getOverview"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/jobs": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["OverviewController_getJobs"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/automatic-imports": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["OverviewController_getAutomaticImports"];
-    put?: never;
-    post: operations["OverviewController_createAutomaticImport"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/automatic-imports/{id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: operations["OverviewController_deleteAutomaticImport"];
-    options?: never;
-    head?: never;
-    patch: operations["OverviewController_updateAutomaticImport"];
-    trace?: never;
-  };
-  "/overview/jobs/{id}/details": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["OverviewController_getJobDetails"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/backfill": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["OverviewController_createBackfill"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/delete": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["OverviewController_createDelete"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/coverage/renew": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["OverviewController_renewCoverage"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/jobs/{id}/retry": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["OverviewController_retryJob"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/jobs/{id}/cancel": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["OverviewController_cancelJob"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/overview/jobs/{id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: operations["OverviewController_deleteJob"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/config": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["PiholeConfigController_getOverview"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/config/ignored-fields": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["PiholeConfigController_createIgnoreRule"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/config/ignored-fields/delete": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["PiholeConfigController_deleteIgnoreRuleLegacy"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/config/ignored-fields/{topic}/{fieldPath}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: operations["PiholeConfigController_deleteIgnoreRule"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/config/teleporter/export": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["PiholeConfigController_exportTeleporter"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/config/{topic}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["PiholeConfigController_getTopic"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: operations["PiholeConfigController_updateTopic"];
-    trace?: never;
-  };
-  "/config/{topic}/sync": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["PiholeConfigController_syncTopic"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/queries": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["QueriesController_getQueries"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/queries/suggestions": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["QueriesController_getQuerySuggestions"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/queries/group-memberships/refresh": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["QueriesController_refreshGroupMemberships"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/setup/status": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["SetupController_getStatus"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/setup/baseline": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["SetupController_createBaseline"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/sync/operations/blocking": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["SyncController_getBlockingStatus"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/sync/operations/blocking/presets": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: operations["SyncController_updateBlockingPresets"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/sync/operations/blocking/preview": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["SyncController_previewBlocking"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/sync/operations/blocking/apply": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["SyncController_applyBlocking"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/tours/{tourKey}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["ToursController_getStatus"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/tours/{tourKey}/complete": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["ToursController_complete"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["NotificationsController_listNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["NotificationsController_getPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["NotificationsController_markAsRead"];
+        trace?: never;
+    };
+    "/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["NotificationsController_markAllAsRead"];
+        trace?: never;
+    };
+    "/notifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["NotificationsController_hideNotification"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/push/public-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["NotificationsController_getPushPublicKey"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/push/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["NotificationsController_upsertPushSubscription"];
+        post?: never;
+        delete: operations["NotificationsController_deletePushSubscription"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/session/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SessionController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SessionController_getCurrentSession"];
+        put?: never;
+        post?: never;
+        delete: operations["SessionController_logout"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/session/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["SessionController_updatePreferences"];
+        trace?: never;
+    };
+    "/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ClientsController_listClients"];
+        put?: never;
+        post: operations["ClientsController_saveClients"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{client}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ClientsController_updateClient"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ClientsController_syncClients"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dashboard/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DashboardController_getOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DomainsController_listDomains"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DomainsController_exportDomains"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DomainsController_importDomains"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains/{domain}/{type}/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DomainsController_getDomain"];
+        put: operations["DomainsController_updateDomain"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains/{type}/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DomainsController_applyDomainOperation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains/batchDelete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DomainsController_batchDelete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/domains/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DomainsController_syncDomains"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GroupsController_listGroups"];
+        put?: never;
+        post: operations["GroupsController_createGroups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/groups/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["GroupsController_updateGroup"];
+        post?: never;
+        delete: operations["GroupsController_deleteGroup"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/groups/{name}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["GroupsController_updateGroupStatus"];
+        trace?: never;
+    };
+    "/groups/batchDelete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["GroupsController_batchDeleteGroups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/groups/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["GroupsController_syncGroups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["HealthController_getHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InstancesController_listInstances"];
+        put?: never;
+        post: operations["InstancesController_createInstance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instances/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InstancesController_getInstance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["InstancesController_updateInstance"];
+        trace?: never;
+    };
+    "/instances/{id}/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InstancesController_getInstanceInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instances/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InstancesController_discoverInstances"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instances/{id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InstancesController_testInstance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instances/{id}/reauthenticate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InstancesController_reauthenticateInstance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instances/{id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["InstancesController_updateInstanceSync"];
+        trace?: never;
+    };
+    "/instances/{id}/primary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["InstancesController_promotePrimaryInstance"];
+        trace?: never;
+    };
+    "/lists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListsController_listLists"];
+        put?: never;
+        post: operations["ListsController_createList"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lists/{type}/{address}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListsController_getList"];
+        put: operations["ListsController_updateList"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lists/batchDelete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ListsController_batchDelete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lists/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ListsController_syncLists"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/navigation/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["NavigationController_getSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OverviewController_getOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OverviewController_getJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/automatic-imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OverviewController_getAutomaticImports"];
+        put?: never;
+        post: operations["OverviewController_createAutomaticImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/automatic-imports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["OverviewController_deleteAutomaticImport"];
+        options?: never;
+        head?: never;
+        patch: operations["OverviewController_updateAutomaticImport"];
+        trace?: never;
+    };
+    "/overview/jobs/{id}/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OverviewController_getJobDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/backfill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OverviewController_createBackfill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OverviewController_createDelete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/coverage/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OverviewController_renewCoverage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/jobs/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OverviewController_retryJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/jobs/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OverviewController_cancelJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overview/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["OverviewController_deleteJob"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PiholeConfigController_getOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config/ignored-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PiholeConfigController_createIgnoreRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config/ignored-fields/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PiholeConfigController_deleteIgnoreRuleLegacy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config/ignored-fields/{topic}/{fieldPath}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PiholeConfigController_deleteIgnoreRule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config/teleporter/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PiholeConfigController_exportTeleporter"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config/{topic}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PiholeConfigController_getTopic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["PiholeConfigController_updateTopic"];
+        trace?: never;
+    };
+    "/config/{topic}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PiholeConfigController_syncTopic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/queries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["QueriesController_getQueries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/queries/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["QueriesController_getQuerySuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/queries/group-memberships/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["QueriesController_refreshGroupMemberships"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/setup/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SetupController_getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/setup/baseline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SetupController_createBaseline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync/operations/blocking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SyncController_getBlockingStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync/operations/blocking/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["SyncController_updateBlockingPresets"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync/operations/blocking/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SyncController_previewBlocking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync/operations/blocking/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SyncController_applyBlocking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tours/{tourKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ToursController_getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tours/{tourKey}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ToursController_complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: never;
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    schemas: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  NotificationsController_listNotifications: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    NotificationsController_listNotifications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            items: {
-              id: string;
-              /** @enum {string} */
-              source: "PIHOLE" | "SYSTEM";
-              /** @enum {string} */
-              type:
-                | "CLIENTS_FAILURE"
-                | "DOMAINS_FAILURE"
-                | "GROUPS_FAILURE"
-                | "INSTANCES_FAILURE"
-                | "LISTS_FAILURE"
-                | "NOTIFICATION_SYNC_ERROR"
-                | "INSTANCE_SESSION_ERROR"
-                | "SYNC_FAILURE"
-                | "SYSTEM_FAILURE"
-                | "OVERVIEW_IMPORT_SUCCESS"
-                | "OVERVIEW_IMPORT_PARTIAL"
-                | "OVERVIEW_IMPORT_FAILURE"
-                | "OVERVIEW_DELETE_SUCCESS"
-                | "OVERVIEW_DELETE_FAILURE"
-                | "OVERVIEW_COVERAGE_RENEWED"
-                | "RATE_LIMIT"
-                | "CONNECTION_ERROR";
-              title: string;
-              instanceId: string | null;
-              instanceName: string | null;
-              message: string;
-              metadata: {
-                [key: string]: unknown;
-              } | null;
-              /** @enum {string} */
-              state: "ACTIVE" | "RESOLVED";
-              isRead: boolean;
-              /** Format: date-time */
-              readAt: string | null;
-              /** Format: date-time */
-              hiddenAt: string | null;
-              /** Format: date-time */
-              resolvedAt: string | null;
-              /** Format: date-time */
-              occurredAt: string;
-              /** Format: date-time */
-              lastSeenAt: string;
-              occurrenceCount: number;
-              canDeleteRemotely: boolean;
-            }[];
-            pagination: {
-              page: number;
-              pageSize: number;
-              totalItems: number;
-              totalPages: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            id: string;
+                            /** @enum {string} */
+                            source: "PIHOLE" | "SYSTEM";
+                            /** @enum {string} */
+                            type: "CLIENTS_FAILURE" | "DOMAINS_FAILURE" | "GROUPS_FAILURE" | "INSTANCES_FAILURE" | "LISTS_FAILURE" | "NOTIFICATION_SYNC_ERROR" | "INSTANCE_SESSION_ERROR" | "SYNC_FAILURE" | "SYSTEM_FAILURE" | "OVERVIEW_IMPORT_SUCCESS" | "OVERVIEW_IMPORT_PARTIAL" | "OVERVIEW_IMPORT_FAILURE" | "OVERVIEW_DELETE_SUCCESS" | "OVERVIEW_DELETE_FAILURE" | "OVERVIEW_COVERAGE_RENEWED" | "RATE_LIMIT" | "CONNECTION_ERROR";
+                            title: string;
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            message: string;
+                            metadata: {
+                                [key: string]: unknown;
+                            } | null;
+                            /** @enum {string} */
+                            state: "ACTIVE" | "RESOLVED";
+                            isRead: boolean;
+                            /** Format: date-time */
+                            readAt: string | null;
+                            /** Format: date-time */
+                            hiddenAt: string | null;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            occurredAt: string;
+                            /** Format: date-time */
+                            lastSeenAt: string;
+                            occurrenceCount: number;
+                            canDeleteRemotely: boolean;
+                        }[];
+                        pagination: {
+                            page: number;
+                            pageSize: number;
+                            totalItems: number;
+                            totalPages: number;
+                        };
+                        unreadCount: number;
+                        /** @enum {string} */
+                        readState: "unread" | "read";
+                    };
+                };
             };
-            unreadCount: number;
-            /** @enum {string} */
-            readState: "unread" | "read";
-          };
         };
-      };
     };
-  };
-  NotificationsController_getPreview: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    NotificationsController_getPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            items: {
-              id: string;
-              /** @enum {string} */
-              source: "PIHOLE" | "SYSTEM";
-              /** @enum {string} */
-              type:
-                | "CLIENTS_FAILURE"
-                | "DOMAINS_FAILURE"
-                | "GROUPS_FAILURE"
-                | "INSTANCES_FAILURE"
-                | "LISTS_FAILURE"
-                | "NOTIFICATION_SYNC_ERROR"
-                | "INSTANCE_SESSION_ERROR"
-                | "SYNC_FAILURE"
-                | "SYSTEM_FAILURE"
-                | "OVERVIEW_IMPORT_SUCCESS"
-                | "OVERVIEW_IMPORT_PARTIAL"
-                | "OVERVIEW_IMPORT_FAILURE"
-                | "OVERVIEW_DELETE_SUCCESS"
-                | "OVERVIEW_DELETE_FAILURE"
-                | "OVERVIEW_COVERAGE_RENEWED"
-                | "RATE_LIMIT"
-                | "CONNECTION_ERROR";
-              title: string;
-              instanceId: string | null;
-              instanceName: string | null;
-              message: string;
-              metadata: {
-                [key: string]: unknown;
-              } | null;
-              /** @enum {string} */
-              state: "ACTIVE" | "RESOLVED";
-              isRead: boolean;
-              /** Format: date-time */
-              readAt: string | null;
-              /** Format: date-time */
-              hiddenAt: string | null;
-              /** Format: date-time */
-              resolvedAt: string | null;
-              /** Format: date-time */
-              occurredAt: string;
-              /** Format: date-time */
-              lastSeenAt: string;
-              occurrenceCount: number;
-              canDeleteRemotely: boolean;
-            }[];
-            unreadCount: number;
-            push: {
-              available: boolean;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            id: string;
+                            /** @enum {string} */
+                            source: "PIHOLE" | "SYSTEM";
+                            /** @enum {string} */
+                            type: "CLIENTS_FAILURE" | "DOMAINS_FAILURE" | "GROUPS_FAILURE" | "INSTANCES_FAILURE" | "LISTS_FAILURE" | "NOTIFICATION_SYNC_ERROR" | "INSTANCE_SESSION_ERROR" | "SYNC_FAILURE" | "SYSTEM_FAILURE" | "OVERVIEW_IMPORT_SUCCESS" | "OVERVIEW_IMPORT_PARTIAL" | "OVERVIEW_IMPORT_FAILURE" | "OVERVIEW_DELETE_SUCCESS" | "OVERVIEW_DELETE_FAILURE" | "OVERVIEW_COVERAGE_RENEWED" | "RATE_LIMIT" | "CONNECTION_ERROR";
+                            title: string;
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            message: string;
+                            metadata: {
+                                [key: string]: unknown;
+                            } | null;
+                            /** @enum {string} */
+                            state: "ACTIVE" | "RESOLVED";
+                            isRead: boolean;
+                            /** Format: date-time */
+                            readAt: string | null;
+                            /** Format: date-time */
+                            hiddenAt: string | null;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            occurredAt: string;
+                            /** Format: date-time */
+                            lastSeenAt: string;
+                            occurrenceCount: number;
+                            canDeleteRemotely: boolean;
+                        }[];
+                        unreadCount: number;
+                        push: {
+                            available: boolean;
+                        };
+                    };
+                };
             };
-          };
         };
-      };
     };
-  };
-  NotificationsController_markAsRead: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    NotificationsController_markAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            notification: {
-              id: string;
-              /** @enum {string} */
-              source: "PIHOLE" | "SYSTEM";
-              /** @enum {string} */
-              type:
-                | "CLIENTS_FAILURE"
-                | "DOMAINS_FAILURE"
-                | "GROUPS_FAILURE"
-                | "INSTANCES_FAILURE"
-                | "LISTS_FAILURE"
-                | "NOTIFICATION_SYNC_ERROR"
-                | "INSTANCE_SESSION_ERROR"
-                | "SYNC_FAILURE"
-                | "SYSTEM_FAILURE"
-                | "OVERVIEW_IMPORT_SUCCESS"
-                | "OVERVIEW_IMPORT_PARTIAL"
-                | "OVERVIEW_IMPORT_FAILURE"
-                | "OVERVIEW_DELETE_SUCCESS"
-                | "OVERVIEW_DELETE_FAILURE"
-                | "OVERVIEW_COVERAGE_RENEWED"
-                | "RATE_LIMIT"
-                | "CONNECTION_ERROR";
-              title: string;
-              instanceId: string | null;
-              instanceName: string | null;
-              message: string;
-              metadata: {
-                [key: string]: unknown;
-              } | null;
-              /** @enum {string} */
-              state: "ACTIVE" | "RESOLVED";
-              isRead: boolean;
-              /** Format: date-time */
-              readAt: string | null;
-              /** Format: date-time */
-              hiddenAt: string | null;
-              /** Format: date-time */
-              resolvedAt: string | null;
-              /** Format: date-time */
-              occurredAt: string;
-              /** Format: date-time */
-              lastSeenAt: string;
-              occurrenceCount: number;
-              canDeleteRemotely: boolean;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        notification: {
+                            id: string;
+                            /** @enum {string} */
+                            source: "PIHOLE" | "SYSTEM";
+                            /** @enum {string} */
+                            type: "CLIENTS_FAILURE" | "DOMAINS_FAILURE" | "GROUPS_FAILURE" | "INSTANCES_FAILURE" | "LISTS_FAILURE" | "NOTIFICATION_SYNC_ERROR" | "INSTANCE_SESSION_ERROR" | "SYNC_FAILURE" | "SYSTEM_FAILURE" | "OVERVIEW_IMPORT_SUCCESS" | "OVERVIEW_IMPORT_PARTIAL" | "OVERVIEW_IMPORT_FAILURE" | "OVERVIEW_DELETE_SUCCESS" | "OVERVIEW_DELETE_FAILURE" | "OVERVIEW_COVERAGE_RENEWED" | "RATE_LIMIT" | "CONNECTION_ERROR";
+                            title: string;
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            message: string;
+                            metadata: {
+                                [key: string]: unknown;
+                            } | null;
+                            /** @enum {string} */
+                            state: "ACTIVE" | "RESOLVED";
+                            isRead: boolean;
+                            /** Format: date-time */
+                            readAt: string | null;
+                            /** Format: date-time */
+                            hiddenAt: string | null;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            occurredAt: string;
+                            /** Format: date-time */
+                            lastSeenAt: string;
+                            occurrenceCount: number;
+                            canDeleteRemotely: boolean;
+                        };
+                    };
+                };
             };
-          };
         };
-      };
     };
-  };
-  NotificationsController_markAllAsRead: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    NotificationsController_markAllAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            updatedCount: number;
-          };
-        };
-      };
-    };
-  };
-  NotificationsController_hideNotification: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            notification: {
-              id: string;
-              /** @enum {string} */
-              source: "PIHOLE" | "SYSTEM";
-              /** @enum {string} */
-              type:
-                | "CLIENTS_FAILURE"
-                | "DOMAINS_FAILURE"
-                | "GROUPS_FAILURE"
-                | "INSTANCES_FAILURE"
-                | "LISTS_FAILURE"
-                | "NOTIFICATION_SYNC_ERROR"
-                | "INSTANCE_SESSION_ERROR"
-                | "SYNC_FAILURE"
-                | "SYSTEM_FAILURE"
-                | "OVERVIEW_IMPORT_SUCCESS"
-                | "OVERVIEW_IMPORT_PARTIAL"
-                | "OVERVIEW_IMPORT_FAILURE"
-                | "OVERVIEW_DELETE_SUCCESS"
-                | "OVERVIEW_DELETE_FAILURE"
-                | "OVERVIEW_COVERAGE_RENEWED"
-                | "RATE_LIMIT"
-                | "CONNECTION_ERROR";
-              title: string;
-              instanceId: string | null;
-              instanceName: string | null;
-              message: string;
-              metadata: {
-                [key: string]: unknown;
-              } | null;
-              /** @enum {string} */
-              state: "ACTIVE" | "RESOLVED";
-              isRead: boolean;
-              /** Format: date-time */
-              readAt: string | null;
-              /** Format: date-time */
-              hiddenAt: string | null;
-              /** Format: date-time */
-              resolvedAt: string | null;
-              /** Format: date-time */
-              occurredAt: string;
-              /** Format: date-time */
-              lastSeenAt: string;
-              occurrenceCount: number;
-              canDeleteRemotely: boolean;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        updatedCount: number;
+                    };
+                };
             };
-          };
         };
-      };
     };
-  };
-  NotificationsController_getPushPublicKey: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    NotificationsController_hideNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            available: boolean;
-            publicKey: string | null;
-            /** @enum {string|null} */
-            source: "env" | "database" | null;
-          };
-        };
-      };
-    };
-  };
-  NotificationsController_upsertPushSubscription: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {boolean} */
-            ok: true;
-            available: boolean;
-            endpoint: string;
-          };
-        };
-      };
-    };
-  };
-  NotificationsController_deletePushSubscription: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {boolean} */
-            ok: true;
-            available: boolean;
-            endpoint: string;
-          };
-        };
-      };
-    };
-  };
-  SessionController_login: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SessionController_getCurrentSession: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SessionController_logout: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SessionController_updatePreferences: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  ClientsController_listClients: {
-    parameters: {
-      query?: {
-        sortDirection?: "asc" | "desc";
-        sortBy?: "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
-        excludedTags?: string[];
-        search?: unknown;
-        pageSize?: unknown;
-        page?: unknown;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            items: {
-              hwaddr: string;
-              alias: string | null;
-              macVendor: string | null;
-              ips: string[];
-              tags: string[];
-              instance: {
-                instanceId: string;
-                instanceName: string;
-              };
-              visibleInInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
-              instanceDetails: {
-                instanceId: string;
-                instanceName: string;
-                ips: string[];
-                /** Format: date-time */
-                firstSeen: string | null;
-                /** Format: date-time */
-                lastQuery: string | null;
-                numQueries: number;
-              }[];
-              /** Format: date-time */
-              firstSeen: string | null;
-              /** Format: date-time */
-              lastQuery: string | null;
-              numQueries: number;
-              comment: string | null;
-              groupIds: number[];
-              groupNames: string[];
-            }[];
-            availableTags: string[];
-            pagination: {
-              page: number;
-              pageSize: number;
-              totalItems: number;
-              totalPages: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        notification: {
+                            id: string;
+                            /** @enum {string} */
+                            source: "PIHOLE" | "SYSTEM";
+                            /** @enum {string} */
+                            type: "CLIENTS_FAILURE" | "DOMAINS_FAILURE" | "GROUPS_FAILURE" | "INSTANCES_FAILURE" | "LISTS_FAILURE" | "NOTIFICATION_SYNC_ERROR" | "INSTANCE_SESSION_ERROR" | "SYNC_FAILURE" | "SYSTEM_FAILURE" | "OVERVIEW_IMPORT_SUCCESS" | "OVERVIEW_IMPORT_PARTIAL" | "OVERVIEW_IMPORT_FAILURE" | "OVERVIEW_DELETE_SUCCESS" | "OVERVIEW_DELETE_FAILURE" | "OVERVIEW_COVERAGE_RENEWED" | "RATE_LIMIT" | "CONNECTION_ERROR";
+                            title: string;
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            message: string;
+                            metadata: {
+                                [key: string]: unknown;
+                            } | null;
+                            /** @enum {string} */
+                            state: "ACTIVE" | "RESOLVED";
+                            isRead: boolean;
+                            /** Format: date-time */
+                            readAt: string | null;
+                            /** Format: date-time */
+                            hiddenAt: string | null;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            occurredAt: string;
+                            /** Format: date-time */
+                            lastSeenAt: string;
+                            occurrenceCount: number;
+                            canDeleteRemotely: boolean;
+                        };
+                    };
+                };
             };
-            source: {
-              baselineInstanceId: string;
-              baselineInstanceName: string;
-              totalInstances: number;
-              availableInstanceCount: number;
-              unavailableInstanceCount: number;
+        };
+    };
+    NotificationsController_getPushPublicKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        available: boolean;
+                        publicKey: string | null;
+                        /** @enum {string|null} */
+                        source: "env" | "database" | null;
+                    };
+                };
             };
-            unavailableInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  ClientsController_saveClients: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /**
-           * @example [
-           *       "82:6D:06:2E:9D:DC"
-           *     ]
-           */
-          client: string[];
-          /** @example  */
-          comment?: string | null;
-          /** @example Notebook Sala */
-          alias?: string | null;
-          /**
-           * @example [
-           *       "IoT",
-           *       "Camera"
-           *     ]
-           */
-          tags?: string[];
-          /**
-           * @example [
-           *       3
-           *     ]
-           */
-          groups?: number[];
-          /**
-           * @example [
-           *       "clz-secondary-a"
-           *     ]
-           */
-          targetInstanceIds?: string[];
+    NotificationsController_upsertPushSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        ok: true;
+                        available: boolean;
+                        endpoint: string;
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  ClientsController_updateClient: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /**
-           * @example [
-           *       0
-           *     ]
-           */
-          groups?: number[];
+    NotificationsController_deletePushSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        ok: true;
+                        available: boolean;
+                        endpoint: string;
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  ClientsController_syncClients: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /**
-           * @example [
-           *       "clz-secondary-a",
-           *       "clz-secondary-b"
-           *     ]
-           */
-          targetInstanceIds?: string[];
+    SessionController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  DashboardController_getOverview: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    SessionController_getCurrentSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            scope: {
-              /** @enum {string} */
-              mode: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
-            summary: {
-              totalQueries: number;
-              queriesBlocked: number;
-              percentageBlocked: number;
-              domainsOnList: number;
+        };
+    };
+    SessionController_logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
-            charts: {
-              totalQueries: {
-                points: {
-                  /** Format: date-time */
-                  timestamp: string;
-                  totalQueries: number;
-                  cachedQueries: number;
-                  blockedQueries: number;
-                  forwardedQueries: number;
-                  percentageBlocked: number;
-                }[];
-              };
-              clientActivity: {
-                series: {
-                  key: string;
-                  label: string;
-                  totalQueries: number;
-                  points: {
-                    /** Format: date-time */
-                    timestamp: string;
-                    queries: number;
-                  }[];
-                }[];
-              };
+        };
+    };
+    SessionController_updatePreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
-            sources: {
-              totalInstances: number;
-              successfulInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
-              failedInstances: {
-                instanceId: string;
-                instanceName: string;
-                /** @enum {string} */
-                kind:
-                  | "invalid_credentials"
-                  | "tls_error"
-                  | "timeout"
-                  | "dns_error"
-                  | "connection_refused"
-                  | "pihole_response_error"
-                  | "unknown";
-                message: string;
-              }[];
+        };
+    };
+    ClientsController_listClients: {
+        parameters: {
+            query?: {
+                sortDirection?: "asc" | "desc";
+                sortBy?: "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
+                excludedTags?: string[];
+                search?: unknown;
+                pageSize?: unknown;
+                page?: unknown;
             };
-          };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  DomainsController_listDomains: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            items: {
-              domain: string;
-              unicode?: string | null;
-              /** @enum {string} */
-              type: "allow" | "deny";
-              /** @enum {string} */
-              kind: "exact" | "regex";
-              comment?: string | null;
-              enabled: boolean;
-              groups: number[];
-              id: number;
-              dateAdded?: number | null;
-              dateModified?: number | null;
-              origin: {
-                instanceId: string;
-                instanceName: string;
-              };
-              sync: {
-                isFullySynced: boolean;
-                sourceInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                }[];
-                missingInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                }[];
-              };
-            }[];
-            summary: {
-              totalItems: number;
-              allowTotal: number;
-              denyTotal: number;
-              allowExact: number;
-              allowRegex: number;
-              denyExact: number;
-              denyRegex: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            hwaddr: string;
+                            alias: string | null;
+                            macVendor: string | null;
+                            ips: string[];
+                            tags: string[];
+                            instance: {
+                                instanceId: string;
+                                instanceName: string;
+                            };
+                            visibleInInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            instanceDetails: {
+                                instanceId: string;
+                                instanceName: string;
+                                ips: string[];
+                                /** Format: date-time */
+                                firstSeen: string | null;
+                                /** Format: date-time */
+                                lastQuery: string | null;
+                                numQueries: number;
+                            }[];
+                            /** Format: date-time */
+                            firstSeen: string | null;
+                            /** Format: date-time */
+                            lastQuery: string | null;
+                            numQueries: number;
+                            comment: string | null;
+                            groupIds: number[];
+                            groupNames: string[];
+                        }[];
+                        availableTags: string[];
+                        pagination: {
+                            page: number;
+                            pageSize: number;
+                            totalItems: number;
+                            totalPages: number;
+                        };
+                        source: {
+                            baselineInstanceId: string;
+                            baselineInstanceName: string;
+                            totalInstances: number;
+                            availableInstanceCount: number;
+                            unavailableInstanceCount: number;
+                        };
+                        unavailableInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            source: {
-              baselineInstanceId: string;
-              baselineInstanceName: string;
-              totalInstances: number;
-              availableInstanceCount: number;
-              unavailableInstanceCount: number;
+        };
+    };
+    ClientsController_saveClients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @example [
+                     *       "82:6D:06:2E:9D:DC"
+                     *     ]
+                     */
+                    client: string[];
+                    /** @example  */
+                    comment?: string | null;
+                    /** @example Notebook Sala */
+                    alias?: string | null;
+                    /**
+                     * @example [
+                     *       "IoT",
+                     *       "Camera"
+                     *     ]
+                     */
+                    tags?: string[];
+                    /**
+                     * @example [
+                     *       3
+                     *     ]
+                     */
+                    groups?: number[];
+                    /**
+                     * @example [
+                     *       "clz-secondary-a"
+                     *     ]
+                     */
+                    targetInstanceIds?: string[];
+                };
             };
-            pagination: {
-              page: number;
-              pageSize: number;
-              totalItems: number;
-              totalPages: number;
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            unavailableInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  DomainsController_exportDomains: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    ClientsController_updateClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  DomainsController_importDomains: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": {
-          /**
-           * Format: binary
-           * @description CSV file containing domain rows to import.
-           */
-          file: string;
-        };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalRows: number;
-              createdCount: number;
-              updatedCount: number;
-              invalidCount: number;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @example [
+                     *       0
+                     *     ]
+                     */
+                    groups?: number[];
+                };
             };
-            errors: {
-              line: number;
-              message: string;
-            }[];
-          };
         };
-      };
-    };
-  };
-  DomainsController_getDomain: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            domain: string;
-            unicode?: string | null;
-            /** @enum {string} */
-            type: "allow" | "deny";
-            /** @enum {string} */
-            kind: "exact" | "regex";
-            comment?: string | null;
-            enabled: boolean;
-            groups: number[];
-            id: number;
-            dateAdded?: number | null;
-            dateModified?: number | null;
-            origin: {
-              instanceId: string;
-              instanceName: string;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            sync: {
-              isFullySynced: boolean;
-              sourceInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
-              missingInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
+        };
+    };
+    ClientsController_syncClients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @example [
+                     *       "clz-secondary-a",
+                     *       "clz-secondary-b"
+                     *     ]
+                     */
+                    targetInstanceIds?: string[];
+                };
             };
-          };
         };
-      };
-    };
-  };
-  DomainsController_updateDomain: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  DomainsController_applyDomainOperation: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        kind: "exact" | "regex";
-        type: "allow" | "deny";
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    DashboardController_getOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            request: {
-              /** @enum {string} */
-              type: "allow" | "deny";
-              /** @enum {string} */
-              kind: "exact" | "regex";
-              domain: string;
-              value: string;
-              comment: string;
-              /** @enum {string|null} */
-              patternMode: "exact" | "regex_specific" | "regex_any" | null;
-              scope: string;
-              instanceId: string | null;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        scope: {
+                            /** @enum {string} */
+                            mode: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                        };
+                        summary: {
+                            totalQueries: number;
+                            queriesBlocked: number;
+                            percentageBlocked: number;
+                            domainsOnList: number;
+                        };
+                        charts: {
+                            totalQueries: {
+                                points: {
+                                    /** Format: date-time */
+                                    timestamp: string;
+                                    totalQueries: number;
+                                    cachedQueries: number;
+                                    blockedQueries: number;
+                                    forwardedQueries: number;
+                                    percentageBlocked: number;
+                                }[];
+                            };
+                            clientActivity: {
+                                series: {
+                                    key: string;
+                                    label: string;
+                                    totalQueries: number;
+                                    points: {
+                                        /** Format: date-time */
+                                        timestamp: string;
+                                        queries: number;
+                                    }[];
+                                }[];
+                            };
+                        };
+                        sources: {
+                            totalInstances: number;
+                            successfulInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            failedInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                                /** @enum {string} */
+                                kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
             };
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        };
+    };
+    DomainsController_listDomains: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            domain: string;
+                            unicode?: string | null;
+                            /** @enum {string} */
+                            type: "allow" | "deny";
+                            /** @enum {string} */
+                            kind: "exact" | "regex";
+                            comment?: string | null;
+                            enabled: boolean;
+                            groups: number[];
+                            id: number;
+                            dateAdded?: number | null;
+                            dateModified?: number | null;
+                            origin: {
+                                instanceId: string;
+                                instanceName: string;
+                            };
+                            sync: {
+                                isFullySynced: boolean;
+                                sourceInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                }[];
+                                missingInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                }[];
+                            };
+                        }[];
+                        summary: {
+                            totalItems: number;
+                            allowTotal: number;
+                            denyTotal: number;
+                            allowExact: number;
+                            allowRegex: number;
+                            denyExact: number;
+                            denyRegex: number;
+                        };
+                        source: {
+                            baselineInstanceId: string;
+                            baselineInstanceName: string;
+                            totalInstances: number;
+                            availableInstanceCount: number;
+                            unavailableInstanceCount: number;
+                        };
+                        pagination: {
+                            page: number;
+                            pageSize: number;
+                            totalItems: number;
+                            totalPages: number;
+                        };
+                        unavailableInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-              took: number | null;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  DomainsController_batchDelete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    DomainsController_exportDomains: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  DomainsController_syncDomains: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    DomainsController_importDomains: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description CSV file containing domain rows to import.
+                     */
+                    file: string;
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
-    };
-  };
-  GroupsController_listGroups: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            items: {
-              name: string;
-              comment: string | null;
-              enabled: boolean;
-              id: number;
-              dateAdded: number | null;
-              dateModified: number | null;
-              origin: {
-                instanceId: string;
-                instanceName: string;
-              };
-              sync: {
-                isFullySynced: boolean;
-                sourceInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                }[];
-                missingInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                }[];
-              };
-            }[];
-            summary: {
-              totalItems: number;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalRows: number;
+                            createdCount: number;
+                            updatedCount: number;
+                            invalidCount: number;
+                        };
+                        errors: {
+                            line: number;
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            source: {
-              baselineInstanceId: string;
-              baselineInstanceName: string;
-              totalInstances: number;
-              availableInstanceCount: number;
-              unavailableInstanceCount: number;
+        };
+    };
+    DomainsController_getDomain: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        domain: string;
+                        unicode?: string | null;
+                        /** @enum {string} */
+                        type: "allow" | "deny";
+                        /** @enum {string} */
+                        kind: "exact" | "regex";
+                        comment?: string | null;
+                        enabled: boolean;
+                        groups: number[];
+                        id: number;
+                        dateAdded?: number | null;
+                        dateModified?: number | null;
+                        origin: {
+                            instanceId: string;
+                            instanceName: string;
+                        };
+                        sync: {
+                            isFullySynced: boolean;
+                            sourceInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            missingInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                        };
+                    };
+                };
             };
-            unavailableInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  GroupsController_createGroups: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @example group-one, "My New Group" */
-          name: string;
-          comment?: string | null;
-          /** @default true */
-          enabled?: boolean;
+    DomainsController_updateDomain: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  GroupsController_updateGroup: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        name: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @example Analytics Group */
-          name: string;
-          comment?: string | null;
-        };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+    DomainsController_applyDomainOperation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "exact" | "regex";
+                type: "allow" | "deny";
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
+            cookie?: never;
         };
-      };
-    };
-  };
-  GroupsController_deleteGroup: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        name: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        request: {
+                            /** @enum {string} */
+                            type: "allow" | "deny";
+                            /** @enum {string} */
+                            kind: "exact" | "regex";
+                            domain: string;
+                            value: string;
+                            comment: string;
+                            /** @enum {string|null} */
+                            patternMode: "exact" | "regex_specific" | "regex_any" | null;
+                            scope: string;
+                            instanceId: string | null;
+                        };
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            took: number | null;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  GroupsController_updateGroupStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        name: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          enabled: boolean;
+    DomainsController_batchDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  GroupsController_batchDeleteGroups: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /**
-           * @example [
-           *       "test_group",
-           *       "another_group"
-           *     ]
-           */
-          items: string[];
+    DomainsController_syncDomains: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  GroupsController_syncGroups: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /** @example Analytics Group */
-          groupName?: string;
-          /** @example clz-source-instance */
-          sourceInstanceId?: string;
-          /**
-           * @example [
-           *       "clz-secondary-a",
-           *       "clz-secondary-b"
-           *     ]
-           */
-          targetInstanceIds?: string[];
+    GroupsController_listGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            name: string;
+                            comment: string | null;
+                            enabled: boolean;
+                            id: number;
+                            dateAdded: number | null;
+                            dateModified: number | null;
+                            origin: {
+                                instanceId: string;
+                                instanceName: string;
+                            };
+                            sync: {
+                                isFullySynced: boolean;
+                                sourceInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                }[];
+                                missingInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                }[];
+                            };
+                        }[];
+                        summary: {
+                            totalItems: number;
+                        };
+                        source: {
+                            baselineInstanceId: string;
+                            baselineInstanceName: string;
+                            totalInstances: number;
+                            availableInstanceCount: number;
+                            unavailableInstanceCount: number;
+                        };
+                        unavailableInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  HealthController_getHealth: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    GroupsController_createGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": unknown;
-        };
-      };
-    };
-  };
-  InstancesController_listInstances: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            items: {
-              id: string;
-              name: string;
-              baseUrl: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
-              lastKnownVersion: string | null;
-              /** Format: date-time */
-              lastValidatedAt: string | null;
-              /** @enum {string} */
-              trustMode: "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
-              hasCustomCertificate: boolean;
-              /** Format: date-time */
-              createdAt: string;
-              /** Format: date-time */
-              updatedAt: string;
-              /** @enum {string} */
-              sessionStatus: "active" | "expired" | "missing" | "error";
-              /** @enum {string|null} */
-              sessionManagedBy: "human-master" | "stored-secret" | null;
-              /** Format: date-time */
-              sessionLoginAt: string | null;
-              /** Format: date-time */
-              sessionLastActiveAt: string | null;
-              /** Format: date-time */
-              sessionValidUntil: string | null;
-              /** @enum {string|null} */
-              sessionLastErrorKind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown"
-                | null;
-              sessionLastErrorMessage: string | null;
-            }[];
-          };
-        };
-      };
-    };
-  };
-  InstancesController_createInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @example Pi-hole Sala */
-          name: string;
-          /**
-           * Format: uri
-           * @example https://pihole.lan
-           */
-          baseUrl: string;
-          /** @example service-password */
-          servicePassword: string;
-          /** @default false */
-          allowSelfSigned?: boolean;
-          /** @example -----BEGIN CERTIFICATE----- */
-          certificatePem?: string;
-        };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            instance: {
-              id: string;
-              name: string;
-              baseUrl: string;
-              version: string;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @example group-one, "My New Group" */
+                    name: string;
+                    comment?: string | null;
+                    /** @default true */
+                    enabled?: boolean;
+                };
             };
-          };
         };
-      };
-    };
-  };
-  InstancesController_getInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            instance: {
-              id: string;
-              name: string;
-              baseUrl: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
-              /** @enum {string} */
-              trustMode: "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
-              hasCustomCertificate: boolean;
-              allowSelfSigned: boolean;
-              certificatePem: string | null;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-          };
         };
-      };
     };
-  };
-  InstancesController_updateInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @example Pi-hole Sala */
-          name?: string;
-          /**
-           * Format: uri
-           * @example https://pihole.lan
-           */
-          baseUrl?: string;
-          /** @example service-password */
-          servicePassword?: string;
-          /** @default false */
-          allowSelfSigned?: boolean;
-          /** @example -----BEGIN CERTIFICATE----- */
-          certificatePem?: string;
-        };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            instance: {
-              id: string;
-              name: string;
-              baseUrl: string;
-              version: string;
+    GroupsController_updateGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
             };
-          };
+            cookie?: never;
         };
-      };
-    };
-  };
-  InstancesController_getInstanceInfo: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            instanceId: string;
-            /** Format: date-time */
-            fetchedAt: string;
-            version: {
-              summary: string;
-              core: {
-                local: {
-                  version: string | null;
-                  branch: string | null;
-                  hash: string | null;
-                  date: string | null;
-                } | null;
-                remote: {
-                  version: string | null;
-                  branch: string | null;
-                  hash: string | null;
-                  date: string | null;
-                } | null;
-              } | null;
-              web: {
-                local: {
-                  version: string | null;
-                  branch: string | null;
-                  hash: string | null;
-                  date: string | null;
-                } | null;
-                remote: {
-                  version: string | null;
-                  branch: string | null;
-                  hash: string | null;
-                  date: string | null;
-                } | null;
-              } | null;
-              ftl: {
-                local: {
-                  version: string | null;
-                  branch: string | null;
-                  hash: string | null;
-                  date: string | null;
-                } | null;
-                remote: {
-                  version: string | null;
-                  branch: string | null;
-                  hash: string | null;
-                  date: string | null;
-                } | null;
-              } | null;
-              docker: {
-                local: {
-                  version: string | null;
-                  branch: string | null;
-                  hash: string | null;
-                  date: string | null;
-                } | null;
-                remote: {
-                  version: string | null;
-                  branch: string | null;
-                  hash: string | null;
-                  date: string | null;
-                } | null;
-              } | null;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @example Analytics Group */
+                    name: string;
+                    comment?: string | null;
+                };
             };
-            host: {
-              model: string | null;
-              nodename: string | null;
-              machine: string | null;
-              sysname: string | null;
-              release: string | null;
-              version: string | null;
-              domainname: string | null;
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            system: {
-              uptime: number | null;
-              memory: {
-                ram: {
-                  total: number | null;
-                  free: number | null;
-                  used: number | null;
-                  available: number | null;
-                  percentUsed: number | null;
-                } | null;
-                swap: {
-                  total: number | null;
-                  free: number | null;
-                  used: number | null;
-                  available: number | null;
-                  percentUsed: number | null;
-                } | null;
-              };
-              procs: number | null;
-              cpu: {
-                nprocs: number | null;
-                percentCpu: number | null;
-                load: {
-                  raw: number[] | null;
-                  percent: number[] | null;
-                } | null;
-              } | null;
-              ftl: {
-                percentMem: number | null;
-                percentCpu: number | null;
-              } | null;
+        };
+    };
+    GroupsController_deleteGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
             };
-          };
+            cookie?: never;
         };
-      };
-    };
-  };
-  InstancesController_discoverInstances: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /**
-           * @example [
-           *       "https://pi.hole",
-           *       "https://pihole.lan"
-           *     ]
-           */
-          candidates?: string[];
-        };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            items: {
-              baseUrl: string;
-              reachable: boolean;
-              authRequired: boolean;
-              error?: string;
-            }[];
-          };
-        };
-      };
-    };
-  };
-  InstancesController_testInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            ok: boolean;
-            version: string;
-            /** Format: date-time */
-            checkedAt: string;
-          };
-        };
-      };
-    };
-  };
-  InstancesController_reauthenticateInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            ok: boolean;
-            version: string;
-            /** Format: date-time */
-            checkedAt: string;
-            /** @enum {string} */
-            sessionStatus: "active" | "expired" | "missing" | "error";
-            /** Format: date-time */
-            sessionLoginAt: string | null;
-            /** Format: date-time */
-            sessionLastActiveAt: string | null;
-            /** Format: date-time */
-            sessionValidUntil: string | null;
-          };
-        };
-      };
-    };
-  };
-  InstancesController_updateInstanceSync: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @default true */
-          enabled: boolean;
-        };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            instance: {
-              id: string;
-              name: string;
-              syncEnabled: boolean;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-          };
         };
-      };
     };
-  };
-  InstancesController_promotePrimaryInstance: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            instance: {
-              id: string;
-              name: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
+    GroupsController_updateGroupStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
             };
-            previousBaselineId: string | null;
-          };
+            cookie?: never;
         };
-      };
-    };
-  };
-  ListsController_listLists: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": {
+                    enabled: boolean;
+                };
+            };
         };
-        content: {
-          "application/json": {
-            items: {
-              address: string;
-              comment: string | null;
-              enabled: boolean;
-              groups: number[];
-              id: number;
-              dateAdded: number | null;
-              dateModified: number | null;
-              /** @enum {string} */
-              type: "allow" | "block";
-              dateUpdated?: number | null;
-              number?: number | null;
-              invalidDomains?: number | null;
-              abpEntries?: number | null;
-              status?: number | null;
-              origin: {
-                instanceId: string;
-                instanceName: string;
-              };
-              sync: {
-                isFullySynced: boolean;
-                sourceInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                }[];
-                missingInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                }[];
-              };
-            }[];
-            summary: {
-              totalItems: number;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            source: {
-              baselineInstanceId: string;
-              baselineInstanceName: string;
-              totalInstances: number;
-              availableInstanceCount: number;
-              unavailableInstanceCount: number;
-            };
-            pagination: {
-              page: number;
-              pageSize: number;
-              totalItems: number;
-              totalPages: number;
-            };
-            unavailableInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  ListsController_createList: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    GroupsController_batchDeleteGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @example [
+                     *       "test_group",
+                     *       "another_group"
+                     *     ]
+                     */
+                    items: string[];
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
-    };
-  };
-  ListsController_getList: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        address: string;
-        type: "allow" | "block";
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
-        content: {
-          "application/json": {
-            address: string;
-            comment: string | null;
-            enabled: boolean;
-            groups: number[];
-            id: number;
-            dateAdded: number | null;
-            dateModified: number | null;
-            /** @enum {string} */
-            type: "allow" | "block";
-            dateUpdated?: number | null;
-            number?: number | null;
-            invalidDomains?: number | null;
-            abpEntries?: number | null;
-            status?: number | null;
-            origin: {
-              instanceId: string;
-              instanceName: string;
-            };
-            sync: {
-              isFullySynced: boolean;
-              sourceInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
-              missingInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
-            };
-          };
-        };
-      };
     };
-  };
-  ListsController_updateList: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        address: string;
-        type: "allow" | "block";
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          comment?: string | null;
-          groups: number[];
-          enabled: boolean;
+    GroupsController_syncGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @example Analytics Group */
+                    groupName?: string;
+                    /** @example clz-source-instance */
+                    sourceInstanceId?: string;
+                    /**
+                     * @example [
+                     *       "clz-secondary-a",
+                     *       "clz-secondary-b"
+                     *     ]
+                     */
+                    targetInstanceIds?: string[];
+                };
+            };
         };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  ListsController_batchDelete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    HealthController_getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  ListsController_syncLists: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    InstancesController_listInstances: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            id: string;
+                            name: string;
+                            baseUrl: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                            lastKnownVersion: string | null;
+                            /** Format: date-time */
+                            lastValidatedAt: string | null;
+                            /** @enum {string} */
+                            trustMode: "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
+                            hasCustomCertificate: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** @enum {string} */
+                            sessionStatus: "active" | "expired" | "missing" | "error";
+                            /** @enum {string|null} */
+                            sessionManagedBy: "human-master" | "stored-secret" | null;
+                            /** Format: date-time */
+                            sessionLoginAt: string | null;
+                            /** Format: date-time */
+                            sessionLastActiveAt: string | null;
+                            /** Format: date-time */
+                            sessionValidUntil: string | null;
+                            /** @enum {string|null} */
+                            sessionLastErrorKind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown" | null;
+                            sessionLastErrorMessage: string | null;
+                        }[];
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  NavigationController_getSummary: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    InstancesController_createInstance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            groups: {
-              total: number;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @example Pi-hole Sala */
+                    name: string;
+                    /**
+                     * Format: uri
+                     * @example https://pihole.lan
+                     */
+                    baseUrl: string;
+                    /** @example service-password */
+                    servicePassword: string;
+                    /** @default false */
+                    allowSelfSigned?: boolean;
+                    /** @example -----BEGIN CERTIFICATE----- */
+                    certificatePem?: string;
+                };
             };
-            lists: {
-              total: number;
-            };
-            domains: {
-              total: number;
-            };
-          };
         };
-      };
-    };
-  };
-  OverviewController_getOverview: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Historical overview for stored queries. */
-      200: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        instance: {
+                            id: string;
+                            name: string;
+                            baseUrl: string;
+                            version: string;
+                        };
+                    };
+                };
+            };
         };
-        content: {
-          "application/json": {
-            scope: {
-              /** @enum {string} */
-              mode: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-            };
-            filters: {
-              /** Format: date-time */
-              from: string;
-              /** Format: date-time */
-              until: string;
-              /** @enum {string} */
-              groupBy: "hour" | "day";
-            };
-            summary: {
-              totalQueries: number;
-              blockedQueries: number;
-              cachedQueries: number;
-              forwardedQueries: number;
-              uniqueDomains: number;
-              uniqueClients: number;
-              percentageBlocked: number;
-            };
-            charts: {
-              queries: {
-                /** @enum {string} */
-                groupBy: "hour" | "day";
-                points: {
-                  /** Format: date-time */
-                  timestamp: string;
-                  totalQueries: number;
-                  blockedQueries: number;
-                  cachedQueries: number;
-                  forwardedQueries: number;
-                  percentageBlocked: number;
-                }[];
-              };
-            };
-            rankings: {
-              domains: {
-                value: string;
-                count: number;
-              }[];
-              clients: {
-                value: string;
-                count: number;
-              }[];
-              upstreams: {
-                value: string;
-                count: number;
-              }[];
-              statuses: {
-                value: string;
-                count: number;
-              }[];
-            };
-            coverage: {
-              hasAnyData: boolean;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              totalStoredQueries: number;
-              /** Format: date-time */
-              earliestStoredAt: string | null;
-              /** Format: date-time */
-              latestStoredAt: string | null;
-              savedWindowCount: number;
-              expiringSoonCount: number;
-              windows: {
+    };
+    InstancesController_getInstance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
                 id: string;
-                jobId: string | null;
-                instanceId: string;
-                instanceName: string;
-                /** Format: date-time */
-                requestedFrom: string;
-                /** Format: date-time */
-                requestedUntil: string;
-                /** Format: date-time */
-                storedFrom: string | null;
-                /** Format: date-time */
-                storedUntil: string | null;
-                rowCount: number;
-                /** @enum {string} */
-                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                errorMessage: string | null;
-                /** Format: date-time */
-                expiresAt: string;
-                isExpiringSoon: boolean;
-                expiresInDays: number;
-              }[];
-              savedWindows: {
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        instance: {
+                            id: string;
+                            name: string;
+                            baseUrl: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                            /** @enum {string} */
+                            trustMode: "STRICT" | "CUSTOM_CA" | "ALLOW_SELF_SIGNED";
+                            hasCustomCertificate: boolean;
+                            allowSelfSigned: boolean;
+                            certificatePem: string | null;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    InstancesController_updateInstance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
                 id: string;
-                jobId: string | null;
-                instanceId: string;
-                instanceName: string;
-                /** Format: date-time */
-                requestedFrom: string;
-                /** Format: date-time */
-                requestedUntil: string;
-                /** Format: date-time */
-                storedFrom: string | null;
-                /** Format: date-time */
-                storedUntil: string | null;
-                rowCount: number;
-                /** @enum {string} */
-                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                errorMessage: string | null;
-                /** Format: date-time */
-                expiresAt: string;
-                isExpiringSoon: boolean;
-                expiresInDays: number;
-              }[];
-              savedDates: {
-                /** @example 2026-04-28 */
-                date: string;
-                rowCount: number;
-                instanceCount: number;
-                /** Format: date-time */
-                storedFrom: string | null;
-                /** Format: date-time */
-                storedUntil: string | null;
-              }[];
-              expiringWindows: {
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @example Pi-hole Sala */
+                    name?: string;
+                    /**
+                     * Format: uri
+                     * @example https://pihole.lan
+                     */
+                    baseUrl?: string;
+                    /** @example service-password */
+                    servicePassword?: string;
+                    /** @default false */
+                    allowSelfSigned?: boolean;
+                    /** @example -----BEGIN CERTIFICATE----- */
+                    certificatePem?: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        instance: {
+                            id: string;
+                            name: string;
+                            baseUrl: string;
+                            version: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    InstancesController_getInstanceInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
                 id: string;
-                jobId: string | null;
-                instanceId: string;
-                instanceName: string;
-                /** Format: date-time */
-                requestedFrom: string;
-                /** Format: date-time */
-                requestedUntil: string;
-                /** Format: date-time */
-                storedFrom: string | null;
-                /** Format: date-time */
-                storedUntil: string | null;
-                rowCount: number;
-                /** @enum {string} */
-                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                errorMessage: string | null;
-                /** Format: date-time */
-                expiresAt: string;
-                isExpiringSoon: boolean;
-                expiresInDays: number;
-              }[];
             };
-            sources: {
-              totalInstances: number;
-              availableInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
-              failedInstances: {
-                instanceId: string;
-                instanceName: string;
-                /** @enum {string} */
-                kind: "missing_data" | "import_failure";
-                message: string;
-              }[];
-            };
-          };
+            cookie?: never;
         };
-      };
-    };
-  };
-  OverviewController_getJobs: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Recent overview history jobs. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            jobs: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            }[];
-          };
-        };
-      };
-    };
-  };
-  OverviewController_getAutomaticImports: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Configured automatic overview import rules. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            timeZone: string;
-            rules: {
-              id: string;
-              name: string;
-              enabled: boolean;
-              cronExpression: string;
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              timeZone: string;
-              /** Format: date-time */
-              nextRunAt: string | null;
-              lastRun: {
-                /** Format: date-time */
-                at: string | null;
-                /** @enum {string|null} */
-                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
-                jobCount: number;
-                skippedCount: number;
-                errorMessage: string | null;
-              };
-              /** Format: date-time */
-              createdAt: string;
-              /** Format: date-time */
-              updatedAt: string;
-            }[];
-          };
-        };
-      };
-    };
-  };
-  OverviewController_createAutomaticImport: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Configured automatic overview import rule. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            rule: {
-              id: string;
-              name: string;
-              enabled: boolean;
-              cronExpression: string;
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              timeZone: string;
-              /** Format: date-time */
-              nextRunAt: string | null;
-              lastRun: {
-                /** Format: date-time */
-                at: string | null;
-                /** @enum {string|null} */
-                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
-                jobCount: number;
-                skippedCount: number;
-                errorMessage: string | null;
-              };
-              /** Format: date-time */
-              createdAt: string;
-              /** Format: date-time */
-              updatedAt: string;
-            };
-          };
-        };
-      };
-    };
-  };
-  OverviewController_deleteAutomaticImport: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Configured automatic overview import rule. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            rule: {
-              id: string;
-              name: string;
-              enabled: boolean;
-              cronExpression: string;
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              timeZone: string;
-              /** Format: date-time */
-              nextRunAt: string | null;
-              lastRun: {
-                /** Format: date-time */
-                at: string | null;
-                /** @enum {string|null} */
-                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
-                jobCount: number;
-                skippedCount: number;
-                errorMessage: string | null;
-              };
-              /** Format: date-time */
-              createdAt: string;
-              /** Format: date-time */
-              updatedAt: string;
-            };
-          };
-        };
-      };
-    };
-  };
-  OverviewController_updateAutomaticImport: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Configured automatic overview import rule. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            rule: {
-              id: string;
-              name: string;
-              enabled: boolean;
-              cronExpression: string;
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              timeZone: string;
-              /** Format: date-time */
-              nextRunAt: string | null;
-              lastRun: {
-                /** Format: date-time */
-                at: string | null;
-                /** @enum {string|null} */
-                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
-                jobCount: number;
-                skippedCount: number;
-                errorMessage: string | null;
-              };
-              /** Format: date-time */
-              createdAt: string;
-              /** Format: date-time */
-              updatedAt: string;
-            };
-          };
-        };
-      };
-    };
-  };
-  OverviewController_getJobDetails: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Detailed overview history job progress and timeline. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  OverviewController_createBackfill: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Mutated overview history job queue. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            jobs: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            }[];
-            job: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            } | null;
-            summary: {
-              requestedCount: number;
-              createdCount: number;
-              reusedCount: number;
-              skippedCount: number;
-            };
-          };
-        };
-      };
-    };
-  };
-  OverviewController_createDelete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Mutated overview history job queue. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            jobs: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            }[];
-            job: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            } | null;
-            summary: {
-              requestedCount: number;
-              createdCount: number;
-              reusedCount: number;
-              skippedCount: number;
-            };
-          };
-        };
-      };
-    };
-  };
-  OverviewController_renewCoverage: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Renewed overview coverage retention without refetching data. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  OverviewController_retryJob: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Mutated overview history job queue. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            jobs: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            }[];
-            job: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            } | null;
-            summary: {
-              requestedCount: number;
-              createdCount: number;
-              reusedCount: number;
-              skippedCount: number;
-            };
-          };
-        };
-      };
-    };
-  };
-  OverviewController_cancelJob: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Mutated overview history job queue. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            jobs: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            }[];
-            job: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            } | null;
-            summary: {
-              requestedCount: number;
-              createdCount: number;
-              reusedCount: number;
-              skippedCount: number;
-            };
-          };
-        };
-      };
-    };
-  };
-  OverviewController_deleteJob: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Deleted overview history job. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            job: {
-              id: string;
-              /** @enum {string} */
-              kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
-              /** @enum {string} */
-              scope: "all" | "instance";
-              instanceId: string | null;
-              instanceName: string | null;
-              /** Format: date-time */
-              requestedFrom: string;
-              /** Format: date-time */
-              requestedUntil: string;
-              /** @enum {string} */
-              status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-              trigger: string | null;
-              requestedBy: string | null;
-              queryCount: number;
-              deletedCount: number;
-              coverageCount: number;
-              /** Format: date-time */
-              startedAt: string | null;
-              /** Format: date-time */
-              finishedAt: string | null;
-              /** Format: date-time */
-              createdAt: string;
-              errorMessage: string | null;
-              /** @enum {string|null} */
-              failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
-              progress: {
-                attempts: number;
-                totalExpectedRecords: number;
-                totalFetchedRecords: number;
-                totalInsertedRecords: number;
-                totalPages: number;
-                completedPages: number;
-                checkpoint: {
-                  instanceId: string | null;
-                  instanceName: string | null;
-                  page: number | null;
-                  start: number | null;
-                  totalPages: number | null;
-                  expectedRecords: number | null;
-                  consecutiveFailures: number;
-                  lastSuccessfulPage: number;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                } | null;
-                lastFailureMessage: string | null;
-                /** @enum {string|null} */
-                lastFailureReason:
-                  | "timeout"
-                  | "session"
-                  | "server_unavailable"
-                  | "count_mismatch"
-                  | "unexpected"
-                  | null;
-                instanceProgress: {
-                  instanceId: string;
-                  instanceName: string;
-                  /** @enum {string} */
-                  status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
-                  expectedRecords: number | null;
-                  fetchedRecords: number;
-                  insertedRecords: number;
-                  totalPages: number | null;
-                  completedPages: number;
-                  currentPage: number | null;
-                  currentStart: number;
-                  /** Format: date-time */
-                  storedFrom: string | null;
-                  /** Format: date-time */
-                  storedUntil: string | null;
-                  consecutiveFailures: number;
-                  lastErrorMessage: string | null;
-                  /** @enum {string|null} */
-                  lastFailureReason:
-                    | "timeout"
-                    | "session"
-                    | "server_unavailable"
-                    | "count_mismatch"
-                    | "unexpected"
-                    | null;
-                  /** Format: date-time */
-                  lastSuccessfulAt: string | null;
-                  /** Format: date-time */
-                  updatedAt: string | null;
-                }[];
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  PiholeConfigController_getOverview: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            topics: {
-              /** @enum {string} */
-              name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
-              title: string;
-              description: string | null;
-              value: unknown;
-              detailed: {
-                [key: string]: unknown;
-              };
-              fields: {
-                path: string;
-                key: string;
-                groupPath: string | null;
-                description: string | null;
-                allowed: unknown;
-                type: string | null;
-                value: unknown;
-                defaultValue: unknown;
-                modified: boolean;
-                flags: {
-                  restart_dnsmasq: boolean;
-                  session_reset: boolean;
-                  env_var: boolean;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
                 };
-                isIgnored: boolean;
-                ignoreRuleId: string | null;
-                sync: {
-                  /** @enum {string} */
-                  status: "synced" | "drifted" | "partial";
-                  isFullySynced: boolean;
-                  sourceInstances: {
-                    instanceId: string;
-                    instanceName: string;
-                    isBaseline: boolean;
-                    syncEnabled: boolean;
-                  }[];
-                  missingInstances: {
-                    instanceId: string;
-                    instanceName: string;
-                    isBaseline: boolean;
-                    syncEnabled: boolean;
-                  }[];
+                content: {
+                    "application/json": {
+                        instanceId: string;
+                        /** Format: date-time */
+                        fetchedAt: string;
+                        version: {
+                            summary: string;
+                            core: {
+                                local: {
+                                    version: string | null;
+                                    branch: string | null;
+                                    hash: string | null;
+                                    date: string | null;
+                                } | null;
+                                remote: {
+                                    version: string | null;
+                                    branch: string | null;
+                                    hash: string | null;
+                                    date: string | null;
+                                } | null;
+                            } | null;
+                            web: {
+                                local: {
+                                    version: string | null;
+                                    branch: string | null;
+                                    hash: string | null;
+                                    date: string | null;
+                                } | null;
+                                remote: {
+                                    version: string | null;
+                                    branch: string | null;
+                                    hash: string | null;
+                                    date: string | null;
+                                } | null;
+                            } | null;
+                            ftl: {
+                                local: {
+                                    version: string | null;
+                                    branch: string | null;
+                                    hash: string | null;
+                                    date: string | null;
+                                } | null;
+                                remote: {
+                                    version: string | null;
+                                    branch: string | null;
+                                    hash: string | null;
+                                    date: string | null;
+                                } | null;
+                            } | null;
+                            docker: {
+                                local: {
+                                    version: string | null;
+                                    branch: string | null;
+                                    hash: string | null;
+                                    date: string | null;
+                                } | null;
+                                remote: {
+                                    version: string | null;
+                                    branch: string | null;
+                                    hash: string | null;
+                                    date: string | null;
+                                } | null;
+                            } | null;
+                        };
+                        host: {
+                            model: string | null;
+                            nodename: string | null;
+                            machine: string | null;
+                            sysname: string | null;
+                            release: string | null;
+                            version: string | null;
+                            domainname: string | null;
+                        };
+                        system: {
+                            uptime: number | null;
+                            memory: {
+                                ram: {
+                                    total: number | null;
+                                    free: number | null;
+                                    used: number | null;
+                                    available: number | null;
+                                    percentUsed: number | null;
+                                } | null;
+                                swap: {
+                                    total: number | null;
+                                    free: number | null;
+                                    used: number | null;
+                                    available: number | null;
+                                    percentUsed: number | null;
+                                } | null;
+                            };
+                            procs: number | null;
+                            cpu: {
+                                nprocs: number | null;
+                                percentCpu: number | null;
+                                load: {
+                                    raw: number[] | null;
+                                    percent: number[] | null;
+                                } | null;
+                            } | null;
+                            ftl: {
+                                percentMem: number | null;
+                                percentCpu: number | null;
+                            } | null;
+                        };
+                    };
                 };
-              }[];
-              sync: {
-                /** @enum {string} */
-                status: "synced" | "drifted" | "partial";
-                isFullySynced: boolean;
-                availableInstanceCount: number;
-                unavailableInstanceCount: number;
-                sourceInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                  isBaseline: boolean;
-                  syncEnabled: boolean;
-                }[];
-                missingInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                  isBaseline: boolean;
-                  syncEnabled: boolean;
-                }[];
-              };
-            }[];
-            driftItems: {
-              /** @enum {string} */
-              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
-              topicTitle: string;
-              fieldPath: string;
-              fieldKey: string;
-              groupPath: string | null;
-            }[];
-            ignoredFields: {
-              id: string;
-              /** @enum {string} */
-              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
-              fieldPath: string;
-            }[];
-            source: {
-              baselineInstanceId: string;
-              baselineInstanceName: string;
-              defaultSourceInstanceId: string;
-              defaultSourceInstanceName: string;
-              totalInstances: number;
-              availableInstanceCount: number;
-              unavailableInstanceCount: number;
             };
-            instances: {
-              instanceId: string;
-              instanceName: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
-            }[];
-            unavailableInstances: {
-              instanceId: string;
-              instanceName: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  PiholeConfigController_createIgnoreRule: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    InstancesController_discoverInstances: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            rule: {
-              id: string;
-              /** @enum {string} */
-              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
-              fieldPath: string;
-            };
-          };
-        };
-      };
-    };
-  };
-  PiholeConfigController_deleteIgnoreRuleLegacy: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            rule: {
-              id: string;
-              /** @enum {string} */
-              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
-              fieldPath: string;
-            };
-          };
-        };
-      };
-    };
-  };
-  PiholeConfigController_deleteIgnoreRule: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            rule: {
-              id: string;
-              /** @enum {string} */
-              topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
-              fieldPath: string;
-            };
-          };
-        };
-      };
-    };
-  };
-  PiholeConfigController_exportTeleporter: {
-    parameters: {
-      query?: {
-        instanceId?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  PiholeConfigController_getTopic: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            topic: {
-              /** @enum {string} */
-              name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
-              title: string;
-              description: string | null;
-              value: unknown;
-              detailed: {
-                [key: string]: unknown;
-              };
-              fields: {
-                path: string;
-                key: string;
-                groupPath: string | null;
-                description: string | null;
-                allowed: unknown;
-                type: string | null;
-                value: unknown;
-                defaultValue: unknown;
-                modified: boolean;
-                flags: {
-                  restart_dnsmasq: boolean;
-                  session_reset: boolean;
-                  env_var: boolean;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @example [
+                     *       "https://pi.hole",
+                     *       "https://pihole.lan"
+                     *     ]
+                     */
+                    candidates?: string[];
                 };
-                isIgnored: boolean;
-                ignoreRuleId: string | null;
-                sync: {
-                  /** @enum {string} */
-                  status: "synced" | "drifted" | "partial";
-                  isFullySynced: boolean;
-                  sourceInstances: {
-                    instanceId: string;
-                    instanceName: string;
-                    isBaseline: boolean;
-                    syncEnabled: boolean;
-                  }[];
-                  missingInstances: {
-                    instanceId: string;
-                    instanceName: string;
-                    isBaseline: boolean;
-                    syncEnabled: boolean;
-                  }[];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
                 };
-              }[];
-              sync: {
-                /** @enum {string} */
-                status: "synced" | "drifted" | "partial";
-                isFullySynced: boolean;
-                availableInstanceCount: number;
-                unavailableInstanceCount: number;
-                sourceInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                  isBaseline: boolean;
-                  syncEnabled: boolean;
-                }[];
-                missingInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                  isBaseline: boolean;
-                  syncEnabled: boolean;
-                }[];
-              };
-            };
-            sourceInstance: {
-              instanceId: string;
-              instanceName: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
-            };
-          };
-        };
-      };
-    };
-  };
-  PiholeConfigController_updateTopic: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            topic: {
-              /** @enum {string} */
-              name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
-              title: string;
-              description: string | null;
-              value: unknown;
-              detailed: {
-                [key: string]: unknown;
-              };
-              fields: {
-                path: string;
-                key: string;
-                groupPath: string | null;
-                description: string | null;
-                allowed: unknown;
-                type: string | null;
-                value: unknown;
-                defaultValue: unknown;
-                modified: boolean;
-                flags: {
-                  restart_dnsmasq: boolean;
-                  session_reset: boolean;
-                  env_var: boolean;
+                content: {
+                    "application/json": {
+                        items: {
+                            baseUrl: string;
+                            reachable: boolean;
+                            authRequired: boolean;
+                            error?: string;
+                        }[];
+                    };
                 };
-                isIgnored: boolean;
-                ignoreRuleId: string | null;
-                sync: {
-                  /** @enum {string} */
-                  status: "synced" | "drifted" | "partial";
-                  isFullySynced: boolean;
-                  sourceInstances: {
-                    instanceId: string;
-                    instanceName: string;
-                    isBaseline: boolean;
-                    syncEnabled: boolean;
-                  }[];
-                  missingInstances: {
-                    instanceId: string;
-                    instanceName: string;
-                    isBaseline: boolean;
-                    syncEnabled: boolean;
-                  }[];
+            };
+        };
+    };
+    InstancesController_testInstance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
                 };
-              }[];
-              sync: {
-                /** @enum {string} */
-                status: "synced" | "drifted" | "partial";
-                isFullySynced: boolean;
-                availableInstanceCount: number;
-                unavailableInstanceCount: number;
-                sourceInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                  isBaseline: boolean;
-                  syncEnabled: boolean;
-                }[];
-                missingInstances: {
-                  instanceId: string;
-                  instanceName: string;
-                  isBaseline: boolean;
-                  syncEnabled: boolean;
-                }[];
-              };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        version: string;
+                        /** Format: date-time */
+                        checkedAt: string;
+                    };
+                };
             };
-            sourceInstance: {
-              instanceId: string;
-              instanceName: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
+        };
+    };
+    InstancesController_reauthenticateInstance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
             };
-          };
+            cookie?: never;
         };
-      };
-    };
-  };
-  PiholeConfigController_syncTopic: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            status: "success" | "partial";
-            summary: {
-              totalInstances: number;
-              successfulCount: number;
-              failedCount: number;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        version: string;
+                        /** Format: date-time */
+                        checkedAt: string;
+                        /** @enum {string} */
+                        sessionStatus: "active" | "expired" | "missing" | "error";
+                        /** Format: date-time */
+                        sessionLoginAt: string | null;
+                        /** Format: date-time */
+                        sessionLastActiveAt: string | null;
+                        /** Format: date-time */
+                        sessionValidUntil: string | null;
+                    };
+                };
             };
-            successfulInstances: {
-              instanceId: string;
-              instanceName: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              isBaseline: boolean;
-              syncEnabled: boolean;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  QueriesController_getQueries: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            queries: {
-              instanceId: string;
-              instanceName: string;
-              id: number;
-              /** Format: date-time */
-              time: string;
-              type: string | null;
-              status: string | null;
-              dnssec: string | null;
-              domain: string | null;
-              upstream: string | null;
-              reply: {
-                type: string | null;
-                time: number | null;
-              } | null;
-              client: {
-                ip: string | null;
-                name: string | null;
-                alias: string | null;
-              } | null;
-              listId: number | null;
-              ede: {
-                code: number | null;
-                text: string | null;
-              } | null;
-              cname: string | null;
-            }[];
-            cursor: number | null;
-            recordsTotal: number;
-            recordsFiltered: number;
-            /** Format: date-time */
-            earliestTimestamp: string | null;
-            /** Format: date-time */
-            earliestTimestampDisk: string | null;
-            took: number;
-            sources: {
-              totalInstances: number;
-              successfulInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
-              failedInstances: {
-                instanceId: string;
-                instanceName: string;
-                /** @enum {string} */
-                kind:
-                  | "invalid_credentials"
-                  | "tls_error"
-                  | "timeout"
-                  | "dns_error"
-                  | "connection_refused"
-                  | "pihole_response_error"
-                  | "unknown";
-                message: string;
-              }[];
+    InstancesController_updateInstanceSync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
             };
-          };
+            cookie?: never;
         };
-      };
-    };
-  };
-  QueriesController_getQuerySuggestions: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            suggestions: {
-              domain: string[];
-              client_ip: string[];
-              client_name: string[];
-              upstream: string[];
-              type: string[];
-              status: string[];
-              reply: string[];
-              dnssec: string[];
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @default true */
+                    enabled: boolean;
+                };
             };
-            groupOptions: {
-              id: number;
-              name: string;
-            }[];
-            took: number;
-            sources: {
-              totalInstances: number;
-              successfulInstances: {
-                instanceId: string;
-                instanceName: string;
-              }[];
-              failedInstances: {
-                instanceId: string;
-                instanceName: string;
-                /** @enum {string} */
-                kind:
-                  | "invalid_credentials"
-                  | "tls_error"
-                  | "timeout"
-                  | "dns_error"
-                  | "connection_refused"
-                  | "pihole_response_error"
-                  | "unknown";
-                message: string;
-              }[];
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        instance: {
+                            id: string;
+                            name: string;
+                            syncEnabled: boolean;
+                        };
+                    };
+                };
             };
-          };
         };
-      };
     };
-  };
-  QueriesController_refreshGroupMemberships: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /** Format: date-time */
-            updatedAt: string | null;
-            summary: {
-              totalInstances: number;
-              refreshedInstances: number;
-              failedInstances: number;
-              groupsCached: number;
-              membershipsCached: number;
-              instancesNeedingReview: number;
+    InstancesController_promotePrimaryInstance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
             };
-            requiresGroupReview: boolean;
-            /** @enum {string} */
-            reviewPath: "/groups";
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
+            cookie?: never;
         };
-      };
-    };
-  };
-  SetupController_getStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SetupController_createBaseline: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  SyncController_getBlockingStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            aggregate: {
-              /** @enum {string} */
-              status: "enabled" | "disabled" | "mixed" | "partial";
-              timerSeconds: number | null;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        instance: {
+                            id: string;
+                            name: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                        };
+                        previousBaselineId: string | null;
+                    };
+                };
             };
-            instances: {
-              instanceId: string;
-              instanceName: string;
-              instanceAddress: string;
-              /** @enum {string|null} */
-              blocking: "enabled" | "disabled" | null;
-              timerSeconds: number | null;
-              reachable: boolean;
-              message?: string | null;
-            }[];
-            presets: {
-              id: string;
-              name: string;
-              timerSeconds: number;
-              sortOrder: number;
-            }[];
-          };
         };
-      };
     };
-  };
-  SyncController_updateBlockingPresets: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    ListsController_listLists: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            presets: {
-              id: string;
-              name: string;
-              timerSeconds: number;
-              sortOrder: number;
-            }[];
-          };
-        };
-      };
-    };
-  };
-  SyncController_previewBlocking: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            desiredConfig: {
-              blocking: boolean;
-              timerSeconds: number | null;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            address: string;
+                            comment: string | null;
+                            enabled: boolean;
+                            groups: number[];
+                            id: number;
+                            dateAdded: number | null;
+                            dateModified: number | null;
+                            /** @enum {string} */
+                            type: "allow" | "block";
+                            dateUpdated?: number | null;
+                            number?: number | null;
+                            invalidDomains?: number | null;
+                            abpEntries?: number | null;
+                            status?: number | null;
+                            origin: {
+                                instanceId: string;
+                                instanceName: string;
+                            };
+                            sync: {
+                                isFullySynced: boolean;
+                                sourceInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                }[];
+                                missingInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                }[];
+                            };
+                        }[];
+                        summary: {
+                            totalItems: number;
+                        };
+                        source: {
+                            baselineInstanceId: string;
+                            baselineInstanceName: string;
+                            totalInstances: number;
+                            availableInstanceCount: number;
+                            unavailableInstanceCount: number;
+                        };
+                        pagination: {
+                            page: number;
+                            pageSize: number;
+                            totalItems: number;
+                            totalPages: number;
+                        };
+                        unavailableInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            aggregate: {
-              /** @enum {string} */
-              status: "enabled" | "disabled" | "mixed" | "partial";
-              timerSeconds: number | null;
+        };
+    };
+    ListsController_createList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
             };
-            readyInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              blocking: "enabled" | "disabled";
-              timerSeconds: number | null;
-            }[];
-            noopInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              blocking: "enabled" | "disabled";
-              timerSeconds: number | null;
-            }[];
-            failedInstances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              kind:
-                | "invalid_credentials"
-                | "tls_error"
-                | "timeout"
-                | "dns_error"
-                | "connection_refused"
-                | "pihole_response_error"
-                | "unknown";
-              message: string;
-            }[];
-          };
         };
-      };
     };
-  };
-  SyncController_applyBlocking: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            job: {
-              id: string;
-              /** @enum {string} */
-              operationKey: "BLOCKING";
-              /** @enum {string} */
-              status: "SUCCESS" | "PARTIAL" | "FAILURE";
-              /** Format: date-time */
-              startedAt: string;
-              /** Format: date-time */
-              finishedAt: string | null;
+    ListsController_getList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                address: string;
+                type: "allow" | "block";
             };
-            summary: {
-              successfulCount: number;
-              failedCount: number;
-              noopCount: number;
-              skippedCount: number;
-              totalInstances: number;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        address: string;
+                        comment: string | null;
+                        enabled: boolean;
+                        groups: number[];
+                        id: number;
+                        dateAdded: number | null;
+                        dateModified: number | null;
+                        /** @enum {string} */
+                        type: "allow" | "block";
+                        dateUpdated?: number | null;
+                        number?: number | null;
+                        invalidDomains?: number | null;
+                        abpEntries?: number | null;
+                        status?: number | null;
+                        origin: {
+                            instanceId: string;
+                            instanceName: string;
+                        };
+                        sync: {
+                            isFullySynced: boolean;
+                            sourceInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            missingInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                        };
+                    };
+                };
             };
-            instances: {
-              instanceId: string;
-              instanceName: string;
-              /** @enum {string} */
-              status: "SUCCESS" | "FAILURE" | "NOOP" | "SKIPPED";
-              message: string | null;
-              /** @enum {string|null} */
-              blocking: "enabled" | "disabled" | null;
-              timerSeconds: number | null;
-            }[];
-          };
         };
-      };
     };
-  };
-  ToursController_getStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Product tour completion status for the current browser. */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    ListsController_updateList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                address: string;
+                type: "allow" | "block";
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": {
-            /** @example overview-v1 */
-            tourKey: string;
-            completed: boolean;
-            /** Format: date-time */
-            completedAt: string | null;
-          };
+        requestBody: {
+            content: {
+                "application/json": {
+                    comment?: string | null;
+                    groups: number[];
+                    enabled: boolean;
+                };
+            };
         };
-      };
-    };
-  };
-  ToursController_complete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Product tour completion status for the current browser. */
-      200: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
-        content: {
-          "application/json": {
-            /** @example overview-v1 */
-            tourKey: string;
-            completed: boolean;
-            /** Format: date-time */
-            completedAt: string | null;
-          };
-        };
-      };
     };
-  };
+    ListsController_batchDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ListsController_syncLists: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    NavigationController_getSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        groups: {
+                            total: number;
+                        };
+                        lists: {
+                            total: number;
+                        };
+                        domains: {
+                            total: number;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_getOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Historical overview for stored queries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        scope: {
+                            /** @enum {string} */
+                            mode: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                        };
+                        filters: {
+                            /** Format: date-time */
+                            from: string;
+                            /** Format: date-time */
+                            until: string;
+                            /** @enum {string} */
+                            groupBy: "hour" | "day";
+                        };
+                        summary: {
+                            totalQueries: number;
+                            blockedQueries: number;
+                            cachedQueries: number;
+                            forwardedQueries: number;
+                            uniqueDomains: number;
+                            uniqueClients: number;
+                            percentageBlocked: number;
+                        };
+                        charts: {
+                            queries: {
+                                /** @enum {string} */
+                                groupBy: "hour" | "day";
+                                points: {
+                                    /** Format: date-time */
+                                    timestamp: string;
+                                    totalQueries: number;
+                                    blockedQueries: number;
+                                    cachedQueries: number;
+                                    forwardedQueries: number;
+                                    percentageBlocked: number;
+                                }[];
+                            };
+                        };
+                        rankings: {
+                            domains: {
+                                value: string;
+                                count: number;
+                            }[];
+                            clients: {
+                                value: string;
+                                count: number;
+                            }[];
+                            upstreams: {
+                                value: string;
+                                count: number;
+                            }[];
+                            statuses: {
+                                value: string;
+                                count: number;
+                            }[];
+                        };
+                        coverage: {
+                            hasAnyData: boolean;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            totalStoredQueries: number;
+                            /** Format: date-time */
+                            earliestStoredAt: string | null;
+                            /** Format: date-time */
+                            latestStoredAt: string | null;
+                            savedWindowCount: number;
+                            expiringSoonCount: number;
+                            windows: {
+                                id: string;
+                                jobId: string | null;
+                                instanceId: string;
+                                instanceName: string;
+                                /** Format: date-time */
+                                requestedFrom: string;
+                                /** Format: date-time */
+                                requestedUntil: string;
+                                /** Format: date-time */
+                                storedFrom: string | null;
+                                /** Format: date-time */
+                                storedUntil: string | null;
+                                rowCount: number;
+                                /** @enum {string} */
+                                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                errorMessage: string | null;
+                                /** Format: date-time */
+                                expiresAt: string;
+                                isExpiringSoon: boolean;
+                                expiresInDays: number;
+                            }[];
+                            savedWindows: {
+                                id: string;
+                                jobId: string | null;
+                                instanceId: string;
+                                instanceName: string;
+                                /** Format: date-time */
+                                requestedFrom: string;
+                                /** Format: date-time */
+                                requestedUntil: string;
+                                /** Format: date-time */
+                                storedFrom: string | null;
+                                /** Format: date-time */
+                                storedUntil: string | null;
+                                rowCount: number;
+                                /** @enum {string} */
+                                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                errorMessage: string | null;
+                                /** Format: date-time */
+                                expiresAt: string;
+                                isExpiringSoon: boolean;
+                                expiresInDays: number;
+                            }[];
+                            savedDates: {
+                                /** @example 2026-04-28 */
+                                date: string;
+                                rowCount: number;
+                                instanceCount: number;
+                                /** Format: date-time */
+                                storedFrom: string | null;
+                                /** Format: date-time */
+                                storedUntil: string | null;
+                            }[];
+                            expiringWindows: {
+                                id: string;
+                                jobId: string | null;
+                                instanceId: string;
+                                instanceName: string;
+                                /** Format: date-time */
+                                requestedFrom: string;
+                                /** Format: date-time */
+                                requestedUntil: string;
+                                /** Format: date-time */
+                                storedFrom: string | null;
+                                /** Format: date-time */
+                                storedUntil: string | null;
+                                rowCount: number;
+                                /** @enum {string} */
+                                status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                errorMessage: string | null;
+                                /** Format: date-time */
+                                expiresAt: string;
+                                isExpiringSoon: boolean;
+                                expiresInDays: number;
+                            }[];
+                        };
+                        sources: {
+                            totalInstances: number;
+                            availableInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            failedInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                                /** @enum {string} */
+                                kind: "missing_data" | "import_failure";
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_getJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recent overview history jobs. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        jobs: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_getAutomaticImports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configured automatic overview import rules. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        timeZone: string;
+                        rules: {
+                            id: string;
+                            name: string;
+                            enabled: boolean;
+                            cronExpression: string;
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            timeZone: string;
+                            /** Format: date-time */
+                            nextRunAt: string | null;
+                            lastRun: {
+                                /** Format: date-time */
+                                at: string | null;
+                                /** @enum {string|null} */
+                                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+                                jobCount: number;
+                                skippedCount: number;
+                                errorMessage: string | null;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_createAutomaticImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configured automatic overview import rule. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rule: {
+                            id: string;
+                            name: string;
+                            enabled: boolean;
+                            cronExpression: string;
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            timeZone: string;
+                            /** Format: date-time */
+                            nextRunAt: string | null;
+                            lastRun: {
+                                /** Format: date-time */
+                                at: string | null;
+                                /** @enum {string|null} */
+                                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+                                jobCount: number;
+                                skippedCount: number;
+                                errorMessage: string | null;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_deleteAutomaticImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configured automatic overview import rule. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rule: {
+                            id: string;
+                            name: string;
+                            enabled: boolean;
+                            cronExpression: string;
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            timeZone: string;
+                            /** Format: date-time */
+                            nextRunAt: string | null;
+                            lastRun: {
+                                /** Format: date-time */
+                                at: string | null;
+                                /** @enum {string|null} */
+                                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+                                jobCount: number;
+                                skippedCount: number;
+                                errorMessage: string | null;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_updateAutomaticImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configured automatic overview import rule. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rule: {
+                            id: string;
+                            name: string;
+                            enabled: boolean;
+                            cronExpression: string;
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            timeZone: string;
+                            /** Format: date-time */
+                            nextRunAt: string | null;
+                            lastRun: {
+                                /** Format: date-time */
+                                at: string | null;
+                                /** @enum {string|null} */
+                                status: "SUCCESS" | "SKIPPED" | "FAILURE" | null;
+                                jobCount: number;
+                                skippedCount: number;
+                                errorMessage: string | null;
+                            };
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_getJobDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Detailed overview history job progress and timeline. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OverviewController_createBackfill: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mutated overview history job queue. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        jobs: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        }[];
+                        job: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        } | null;
+                        summary: {
+                            requestedCount: number;
+                            createdCount: number;
+                            reusedCount: number;
+                            skippedCount: number;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_createDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mutated overview history job queue. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        jobs: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        }[];
+                        job: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        } | null;
+                        summary: {
+                            requestedCount: number;
+                            createdCount: number;
+                            reusedCount: number;
+                            skippedCount: number;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_renewCoverage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Renewed overview coverage retention without refetching data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OverviewController_retryJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mutated overview history job queue. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        jobs: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        }[];
+                        job: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        } | null;
+                        summary: {
+                            requestedCount: number;
+                            createdCount: number;
+                            reusedCount: number;
+                            skippedCount: number;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_cancelJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mutated overview history job queue. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        jobs: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        }[];
+                        job: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        } | null;
+                        summary: {
+                            requestedCount: number;
+                            createdCount: number;
+                            reusedCount: number;
+                            skippedCount: number;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    OverviewController_deleteJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted overview history job. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        job: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "AUTOMATIC_IMPORT" | "MANUAL_IMPORT" | "MANUAL_DELETE";
+                            /** @enum {string} */
+                            scope: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                            /** Format: date-time */
+                            requestedFrom: string;
+                            /** Format: date-time */
+                            requestedUntil: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                            trigger: string | null;
+                            requestedBy: string | null;
+                            queryCount: number;
+                            deletedCount: number;
+                            coverageCount: number;
+                            /** Format: date-time */
+                            startedAt: string | null;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            errorMessage: string | null;
+                            /** @enum {string|null} */
+                            failureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                            progress: {
+                                attempts: number;
+                                totalExpectedRecords: number;
+                                totalFetchedRecords: number;
+                                totalInsertedRecords: number;
+                                totalPages: number;
+                                completedPages: number;
+                                checkpoint: {
+                                    instanceId: string | null;
+                                    instanceName: string | null;
+                                    page: number | null;
+                                    start: number | null;
+                                    totalPages: number | null;
+                                    expectedRecords: number | null;
+                                    consecutiveFailures: number;
+                                    lastSuccessfulPage: number;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                } | null;
+                                lastFailureMessage: string | null;
+                                /** @enum {string|null} */
+                                lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                instanceProgress: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    /** @enum {string} */
+                                    status: "PENDING" | "RUNNING" | "PAUSED" | "CANCELLED" | "SUCCESS" | "PARTIAL" | "FAILURE";
+                                    expectedRecords: number | null;
+                                    fetchedRecords: number;
+                                    insertedRecords: number;
+                                    totalPages: number | null;
+                                    completedPages: number;
+                                    currentPage: number | null;
+                                    currentStart: number;
+                                    /** Format: date-time */
+                                    storedFrom: string | null;
+                                    /** Format: date-time */
+                                    storedUntil: string | null;
+                                    consecutiveFailures: number;
+                                    lastErrorMessage: string | null;
+                                    /** @enum {string|null} */
+                                    lastFailureReason: "timeout" | "session" | "server_unavailable" | "count_mismatch" | "unexpected" | null;
+                                    /** Format: date-time */
+                                    lastSuccessfulAt: string | null;
+                                    /** Format: date-time */
+                                    updatedAt: string | null;
+                                }[];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PiholeConfigController_getOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        topics: {
+                            /** @enum {string} */
+                            name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+                            title: string;
+                            description: string | null;
+                            value: unknown;
+                            detailed: {
+                                [key: string]: unknown;
+                            };
+                            fields: {
+                                path: string;
+                                key: string;
+                                groupPath: string | null;
+                                description: string | null;
+                                allowed: unknown;
+                                type: string | null;
+                                value: unknown;
+                                defaultValue: unknown;
+                                modified: boolean;
+                                flags: {
+                                    restart_dnsmasq: boolean;
+                                    session_reset: boolean;
+                                    env_var: boolean;
+                                };
+                                isIgnored: boolean;
+                                ignoreRuleId: string | null;
+                                sync: {
+                                    /** @enum {string} */
+                                    status: "synced" | "drifted" | "partial";
+                                    isFullySynced: boolean;
+                                    sourceInstances: {
+                                        instanceId: string;
+                                        instanceName: string;
+                                        isBaseline: boolean;
+                                        syncEnabled: boolean;
+                                    }[];
+                                    missingInstances: {
+                                        instanceId: string;
+                                        instanceName: string;
+                                        isBaseline: boolean;
+                                        syncEnabled: boolean;
+                                    }[];
+                                };
+                            }[];
+                            sync: {
+                                /** @enum {string} */
+                                status: "synced" | "drifted" | "partial";
+                                isFullySynced: boolean;
+                                availableInstanceCount: number;
+                                unavailableInstanceCount: number;
+                                sourceInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    isBaseline: boolean;
+                                    syncEnabled: boolean;
+                                }[];
+                                missingInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    isBaseline: boolean;
+                                    syncEnabled: boolean;
+                                }[];
+                            };
+                        }[];
+                        driftItems: {
+                            /** @enum {string} */
+                            topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+                            topicTitle: string;
+                            fieldPath: string;
+                            fieldKey: string;
+                            groupPath: string | null;
+                        }[];
+                        ignoredFields: {
+                            id: string;
+                            /** @enum {string} */
+                            topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+                            fieldPath: string;
+                        }[];
+                        source: {
+                            baselineInstanceId: string;
+                            baselineInstanceName: string;
+                            defaultSourceInstanceId: string;
+                            defaultSourceInstanceName: string;
+                            totalInstances: number;
+                            availableInstanceCount: number;
+                            unavailableInstanceCount: number;
+                        };
+                        instances: {
+                            instanceId: string;
+                            instanceName: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                        }[];
+                        unavailableInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PiholeConfigController_createIgnoreRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rule: {
+                            id: string;
+                            /** @enum {string} */
+                            topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+                            fieldPath: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PiholeConfigController_deleteIgnoreRuleLegacy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rule: {
+                            id: string;
+                            /** @enum {string} */
+                            topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+                            fieldPath: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PiholeConfigController_deleteIgnoreRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rule: {
+                            id: string;
+                            /** @enum {string} */
+                            topic: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+                            fieldPath: string;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PiholeConfigController_exportTeleporter: {
+        parameters: {
+            query?: {
+                instanceId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PiholeConfigController_getTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        topic: {
+                            /** @enum {string} */
+                            name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+                            title: string;
+                            description: string | null;
+                            value: unknown;
+                            detailed: {
+                                [key: string]: unknown;
+                            };
+                            fields: {
+                                path: string;
+                                key: string;
+                                groupPath: string | null;
+                                description: string | null;
+                                allowed: unknown;
+                                type: string | null;
+                                value: unknown;
+                                defaultValue: unknown;
+                                modified: boolean;
+                                flags: {
+                                    restart_dnsmasq: boolean;
+                                    session_reset: boolean;
+                                    env_var: boolean;
+                                };
+                                isIgnored: boolean;
+                                ignoreRuleId: string | null;
+                                sync: {
+                                    /** @enum {string} */
+                                    status: "synced" | "drifted" | "partial";
+                                    isFullySynced: boolean;
+                                    sourceInstances: {
+                                        instanceId: string;
+                                        instanceName: string;
+                                        isBaseline: boolean;
+                                        syncEnabled: boolean;
+                                    }[];
+                                    missingInstances: {
+                                        instanceId: string;
+                                        instanceName: string;
+                                        isBaseline: boolean;
+                                        syncEnabled: boolean;
+                                    }[];
+                                };
+                            }[];
+                            sync: {
+                                /** @enum {string} */
+                                status: "synced" | "drifted" | "partial";
+                                isFullySynced: boolean;
+                                availableInstanceCount: number;
+                                unavailableInstanceCount: number;
+                                sourceInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    isBaseline: boolean;
+                                    syncEnabled: boolean;
+                                }[];
+                                missingInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    isBaseline: boolean;
+                                    syncEnabled: boolean;
+                                }[];
+                            };
+                        };
+                        sourceInstance: {
+                            instanceId: string;
+                            instanceName: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PiholeConfigController_updateTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        topic: {
+                            /** @enum {string} */
+                            name: "dns" | "dhcp" | "ntp" | "resolver" | "database" | "webserver" | "files" | "misc" | "debug";
+                            title: string;
+                            description: string | null;
+                            value: unknown;
+                            detailed: {
+                                [key: string]: unknown;
+                            };
+                            fields: {
+                                path: string;
+                                key: string;
+                                groupPath: string | null;
+                                description: string | null;
+                                allowed: unknown;
+                                type: string | null;
+                                value: unknown;
+                                defaultValue: unknown;
+                                modified: boolean;
+                                flags: {
+                                    restart_dnsmasq: boolean;
+                                    session_reset: boolean;
+                                    env_var: boolean;
+                                };
+                                isIgnored: boolean;
+                                ignoreRuleId: string | null;
+                                sync: {
+                                    /** @enum {string} */
+                                    status: "synced" | "drifted" | "partial";
+                                    isFullySynced: boolean;
+                                    sourceInstances: {
+                                        instanceId: string;
+                                        instanceName: string;
+                                        isBaseline: boolean;
+                                        syncEnabled: boolean;
+                                    }[];
+                                    missingInstances: {
+                                        instanceId: string;
+                                        instanceName: string;
+                                        isBaseline: boolean;
+                                        syncEnabled: boolean;
+                                    }[];
+                                };
+                            }[];
+                            sync: {
+                                /** @enum {string} */
+                                status: "synced" | "drifted" | "partial";
+                                isFullySynced: boolean;
+                                availableInstanceCount: number;
+                                unavailableInstanceCount: number;
+                                sourceInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    isBaseline: boolean;
+                                    syncEnabled: boolean;
+                                }[];
+                                missingInstances: {
+                                    instanceId: string;
+                                    instanceName: string;
+                                    isBaseline: boolean;
+                                    syncEnabled: boolean;
+                                }[];
+                            };
+                        };
+                        sourceInstance: {
+                            instanceId: string;
+                            instanceName: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PiholeConfigController_syncTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            isBaseline: boolean;
+                            syncEnabled: boolean;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    QueriesController_getQueries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        queries: {
+                            instanceId: string;
+                            instanceName: string;
+                            id: number;
+                            /** Format: date-time */
+                            time: string;
+                            type: string | null;
+                            status: string | null;
+                            dnssec: string | null;
+                            domain: string | null;
+                            upstream: string | null;
+                            reply: {
+                                type: string | null;
+                                time: number | null;
+                            } | null;
+                            client: {
+                                ip: string | null;
+                                name: string | null;
+                                alias: string | null;
+                            } | null;
+                            listId: number | null;
+                            ede: {
+                                code: number | null;
+                                text: string | null;
+                            } | null;
+                            cname: string | null;
+                        }[];
+                        cursor: number | null;
+                        recordsTotal: number;
+                        recordsFiltered: number;
+                        /** Format: date-time */
+                        earliestTimestamp: string | null;
+                        /** Format: date-time */
+                        earliestTimestampDisk: string | null;
+                        took: number;
+                        sources: {
+                            totalInstances: number;
+                            successfulInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            failedInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                                /** @enum {string} */
+                                kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    QueriesController_getQuerySuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        suggestions: {
+                            domain: string[];
+                            client_ip: string[];
+                            client_name: string[];
+                            upstream: string[];
+                            type: string[];
+                            status: string[];
+                            reply: string[];
+                            dnssec: string[];
+                        };
+                        groupOptions: {
+                            id: number;
+                            name: string;
+                        }[];
+                        took: number;
+                        sources: {
+                            totalInstances: number;
+                            successfulInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            failedInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                                /** @enum {string} */
+                                kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    QueriesController_refreshGroupMemberships: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: date-time */
+                        updatedAt: string | null;
+                        summary: {
+                            totalInstances: number;
+                            refreshedInstances: number;
+                            failedInstances: number;
+                            groupsCached: number;
+                            membershipsCached: number;
+                            instancesNeedingReview: number;
+                        };
+                        requiresGroupReview: boolean;
+                        /** @enum {string} */
+                        reviewPath: "/groups";
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    SetupController_getStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SetupController_createBaseline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SyncController_getBlockingStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        aggregate: {
+                            /** @enum {string} */
+                            status: "enabled" | "disabled" | "mixed" | "partial";
+                            timerSeconds: number | null;
+                        };
+                        instances: {
+                            instanceId: string;
+                            instanceName: string;
+                            instanceAddress: string;
+                            /** @enum {string|null} */
+                            blocking: "enabled" | "disabled" | null;
+                            timerSeconds: number | null;
+                            reachable: boolean;
+                            message?: string | null;
+                        }[];
+                        presets: {
+                            id: string;
+                            name: string;
+                            timerSeconds: number;
+                            sortOrder: number;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    SyncController_updateBlockingPresets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        presets: {
+                            id: string;
+                            name: string;
+                            timerSeconds: number;
+                            sortOrder: number;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    SyncController_previewBlocking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        desiredConfig: {
+                            blocking: boolean;
+                            timerSeconds: number | null;
+                        };
+                        aggregate: {
+                            /** @enum {string} */
+                            status: "enabled" | "disabled" | "mixed" | "partial";
+                            timerSeconds: number | null;
+                        };
+                        readyInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            blocking: "enabled" | "disabled";
+                            timerSeconds: number | null;
+                        }[];
+                        noopInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            blocking: "enabled" | "disabled";
+                            timerSeconds: number | null;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    SyncController_applyBlocking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        job: {
+                            id: string;
+                            /** @enum {string} */
+                            operationKey: "BLOCKING";
+                            /** @enum {string} */
+                            status: "SUCCESS" | "PARTIAL" | "FAILURE";
+                            /** Format: date-time */
+                            startedAt: string;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                        };
+                        summary: {
+                            successfulCount: number;
+                            failedCount: number;
+                            noopCount: number;
+                            skippedCount: number;
+                            totalInstances: number;
+                        };
+                        instances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            status: "SUCCESS" | "FAILURE" | "NOOP" | "SKIPPED";
+                            message: string | null;
+                            /** @enum {string|null} */
+                            blocking: "enabled" | "disabled" | null;
+                            timerSeconds: number | null;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ToursController_getStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Product tour completion status for the current browser. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example overview-v1 */
+                        tourKey: string;
+                        completed: boolean;
+                        /** Format: date-time */
+                        completedAt: string | null;
+                    };
+                };
+            };
+        };
+    };
+    ToursController_complete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Product tour completion status for the current browser. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example overview-v1 */
+                        tourKey: string;
+                        completed: boolean;
+                        /** Format: date-time */
+                        completedAt: string | null;
+                    };
+                };
+            };
+        };
+    };
 }

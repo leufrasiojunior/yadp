@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
-import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 
 import { AuditModule } from "./audit/audit.module";
 import { ClientsModule } from "./clients/clients.module";
@@ -8,6 +9,7 @@ import { CryptoModule } from "./common/crypto/crypto.module";
 import { ApiExceptionFilter } from "./common/http/api-exception.filter";
 import { ApiLoggingInterceptor } from "./common/http/api-logging.interceptor";
 import { PrismaModule } from "./common/prisma/prisma.module";
+import { AppEnvService } from "./config/app-env";
 import { AppEnvModule } from "./config/app-env.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { DomainsModule } from "./domains/domains.module";
@@ -30,6 +32,18 @@ import { ToursModule } from "./tours/tours.module";
   imports: [
     ScheduleModule.forRoot(),
     AppEnvModule,
+    ThrottlerModule.forRootAsync({
+      inject: [AppEnvService],
+      useFactory: (env: AppEnvService) => ({
+        throttlers: [
+          {
+            name: "default",
+            ttl: env.values.THROTTLER_TTL_MS,
+            limit: env.values.THROTTLER_LIMIT,
+          },
+        ],
+      }),
+    }),
     AuditModule,
     ClientsModule,
     CryptoModule,
@@ -52,6 +66,10 @@ import { ToursModule } from "./tours/tours.module";
     ToursModule,
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ApiLoggingInterceptor,
