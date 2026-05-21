@@ -156,6 +156,10 @@ model AuditLog {
   result     String
   details    Json?
   createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action, createdAt])
+  @@index([targetType, targetId])
 }
 
 model ClientDevice {

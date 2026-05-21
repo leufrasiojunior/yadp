@@ -130,6 +130,7 @@ Useful administration guides:
 
 - [Install with Docker Compose](https://yapd.gitbook.io/yapd-docs/installation-and-administration/install-with-docker-compose)
 - [Reverse Proxy and HTTPS](https://yapd.gitbook.io/yapd-docs/installation-and-administration/reverse-proxy-and-https)
+- [PostgreSQL Backup Guide](docs/backup.md)
 
 ## Production Deployment
 

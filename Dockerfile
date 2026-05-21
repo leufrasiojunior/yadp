@@ -12,6 +12,11 @@ COPY packages/api-client/package.json packages/api-client/package.json
 
 RUN npm ci
 
+FROM deps AS prod-deps
+WORKDIR /app
+
+RUN npm prune --omit=dev && npm cache clean --force
+
 FROM deps AS build
 WORKDIR /app
 
@@ -32,7 +37,7 @@ ENV NODE_ENV=production
 
 RUN apt-get update && apt-get install -y --no-install-recommends bash openssl ca-certificates wget nginx && rm -rf /var/lib/apt/lists/*
 
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/package-lock.json ./package-lock.json
 COPY --from=build /app/apps/api ./apps/api
@@ -42,6 +47,9 @@ COPY --from=build /app/docker/nginx.conf /etc/nginx/sites-enabled/default
 
 RUN mkdir -p /etc/nginx/ssl && chmod +x ./scripts/start-app-container.sh
 
-EXPOSE 80 443 3000 3001
+EXPOSE 80 443 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://127.0.0.1:3001/api/health || exit 1
 
 CMD ["bash", "./scripts/start-app-container.sh"]
