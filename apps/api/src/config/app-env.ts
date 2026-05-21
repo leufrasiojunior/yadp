@@ -36,6 +36,8 @@ const envSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((value) => value === "true"),
+  THROTTLER_TTL_MS: z.coerce.number().int().positive().default(60_000),
+  THROTTLER_LIMIT: z.coerce.number().int().positive().default(60),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

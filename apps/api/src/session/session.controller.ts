@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Inject, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { ApiCookieAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import type { Request, Response } from "express";
 
 import { CsrfGuard } from "./csrf.guard";
@@ -20,6 +21,7 @@ export class SessionController {
   }
 
   @Post("login")
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOkResponse()
   login(@Body() body: LoginDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {
     return this.sessionService.login(body, request, response);
