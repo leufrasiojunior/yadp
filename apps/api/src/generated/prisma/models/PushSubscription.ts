@@ -39,6 +39,7 @@ export type PushSubscriptionMinAggregateOutputType = {
   endpoint: string | null
   p256dh: string | null
   auth: string | null
+  authCipher: string | null
   userAgent: string | null
   lastSuccessAt: Date | null
   lastFailureAt: Date | null
@@ -53,6 +54,7 @@ export type PushSubscriptionMaxAggregateOutputType = {
   endpoint: string | null
   p256dh: string | null
   auth: string | null
+  authCipher: string | null
   userAgent: string | null
   lastSuccessAt: Date | null
   lastFailureAt: Date | null
@@ -67,6 +69,7 @@ export type PushSubscriptionCountAggregateOutputType = {
   endpoint: number
   p256dh: number
   auth: number
+  authCipher: number
   userAgent: number
   lastSuccessAt: number
   lastFailureAt: number
@@ -91,6 +94,7 @@ export type PushSubscriptionMinAggregateInputType = {
   endpoint?: true
   p256dh?: true
   auth?: true
+  authCipher?: true
   userAgent?: true
   lastSuccessAt?: true
   lastFailureAt?: true
@@ -105,6 +109,7 @@ export type PushSubscriptionMaxAggregateInputType = {
   endpoint?: true
   p256dh?: true
   auth?: true
+  authCipher?: true
   userAgent?: true
   lastSuccessAt?: true
   lastFailureAt?: true
@@ -119,6 +124,7 @@ export type PushSubscriptionCountAggregateInputType = {
   endpoint?: true
   p256dh?: true
   auth?: true
+  authCipher?: true
   userAgent?: true
   lastSuccessAt?: true
   lastFailureAt?: true
@@ -219,7 +225,8 @@ export type PushSubscriptionGroupByOutputType = {
   id: string
   endpoint: string
   p256dh: string
-  auth: string
+  auth: string | null
+  authCipher: string | null
   userAgent: string | null
   lastSuccessAt: Date | null
   lastFailureAt: Date | null
@@ -256,7 +263,8 @@ export type PushSubscriptionWhereInput = {
   id?: Prisma.StringFilter<"PushSubscription"> | string
   endpoint?: Prisma.StringFilter<"PushSubscription"> | string
   p256dh?: Prisma.StringFilter<"PushSubscription"> | string
-  auth?: Prisma.StringFilter<"PushSubscription"> | string
+  auth?: Prisma.StringNullableFilter<"PushSubscription"> | string | null
+  authCipher?: Prisma.StringNullableFilter<"PushSubscription"> | string | null
   userAgent?: Prisma.StringNullableFilter<"PushSubscription"> | string | null
   lastSuccessAt?: Prisma.DateTimeNullableFilter<"PushSubscription"> | Date | string | null
   lastFailureAt?: Prisma.DateTimeNullableFilter<"PushSubscription"> | Date | string | null
@@ -270,7 +278,8 @@ export type PushSubscriptionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   endpoint?: Prisma.SortOrder
   p256dh?: Prisma.SortOrder
-  auth?: Prisma.SortOrder
+  auth?: Prisma.SortOrderInput | Prisma.SortOrder
+  authCipher?: Prisma.SortOrderInput | Prisma.SortOrder
   userAgent?: Prisma.SortOrderInput | Prisma.SortOrder
   lastSuccessAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastFailureAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -287,7 +296,8 @@ export type PushSubscriptionWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.PushSubscriptionWhereInput[]
   NOT?: Prisma.PushSubscriptionWhereInput | Prisma.PushSubscriptionWhereInput[]
   p256dh?: Prisma.StringFilter<"PushSubscription"> | string
-  auth?: Prisma.StringFilter<"PushSubscription"> | string
+  auth?: Prisma.StringNullableFilter<"PushSubscription"> | string | null
+  authCipher?: Prisma.StringNullableFilter<"PushSubscription"> | string | null
   userAgent?: Prisma.StringNullableFilter<"PushSubscription"> | string | null
   lastSuccessAt?: Prisma.DateTimeNullableFilter<"PushSubscription"> | Date | string | null
   lastFailureAt?: Prisma.DateTimeNullableFilter<"PushSubscription"> | Date | string | null
@@ -301,7 +311,8 @@ export type PushSubscriptionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   endpoint?: Prisma.SortOrder
   p256dh?: Prisma.SortOrder
-  auth?: Prisma.SortOrder
+  auth?: Prisma.SortOrderInput | Prisma.SortOrder
+  authCipher?: Prisma.SortOrderInput | Prisma.SortOrder
   userAgent?: Prisma.SortOrderInput | Prisma.SortOrder
   lastSuccessAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastFailureAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -323,7 +334,8 @@ export type PushSubscriptionScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"PushSubscription"> | string
   endpoint?: Prisma.StringWithAggregatesFilter<"PushSubscription"> | string
   p256dh?: Prisma.StringWithAggregatesFilter<"PushSubscription"> | string
-  auth?: Prisma.StringWithAggregatesFilter<"PushSubscription"> | string
+  auth?: Prisma.StringNullableWithAggregatesFilter<"PushSubscription"> | string | null
+  authCipher?: Prisma.StringNullableWithAggregatesFilter<"PushSubscription"> | string | null
   userAgent?: Prisma.StringNullableWithAggregatesFilter<"PushSubscription"> | string | null
   lastSuccessAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PushSubscription"> | Date | string | null
   lastFailureAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PushSubscription"> | Date | string | null
@@ -337,7 +349,8 @@ export type PushSubscriptionCreateInput = {
   id?: string
   endpoint: string
   p256dh: string
-  auth: string
+  auth?: string | null
+  authCipher?: string | null
   userAgent?: string | null
   lastSuccessAt?: Date | string | null
   lastFailureAt?: Date | string | null
@@ -351,7 +364,8 @@ export type PushSubscriptionUncheckedCreateInput = {
   id?: string
   endpoint: string
   p256dh: string
-  auth: string
+  auth?: string | null
+  authCipher?: string | null
   userAgent?: string | null
   lastSuccessAt?: Date | string | null
   lastFailureAt?: Date | string | null
@@ -365,7 +379,8 @@ export type PushSubscriptionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   endpoint?: Prisma.StringFieldUpdateOperationsInput | string
   p256dh?: Prisma.StringFieldUpdateOperationsInput | string
-  auth?: Prisma.StringFieldUpdateOperationsInput | string
+  auth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authCipher?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastSuccessAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastFailureAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -379,7 +394,8 @@ export type PushSubscriptionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   endpoint?: Prisma.StringFieldUpdateOperationsInput | string
   p256dh?: Prisma.StringFieldUpdateOperationsInput | string
-  auth?: Prisma.StringFieldUpdateOperationsInput | string
+  auth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authCipher?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastSuccessAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastFailureAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -393,7 +409,8 @@ export type PushSubscriptionCreateManyInput = {
   id?: string
   endpoint: string
   p256dh: string
-  auth: string
+  auth?: string | null
+  authCipher?: string | null
   userAgent?: string | null
   lastSuccessAt?: Date | string | null
   lastFailureAt?: Date | string | null
@@ -407,7 +424,8 @@ export type PushSubscriptionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   endpoint?: Prisma.StringFieldUpdateOperationsInput | string
   p256dh?: Prisma.StringFieldUpdateOperationsInput | string
-  auth?: Prisma.StringFieldUpdateOperationsInput | string
+  auth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authCipher?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastSuccessAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastFailureAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -421,7 +439,8 @@ export type PushSubscriptionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   endpoint?: Prisma.StringFieldUpdateOperationsInput | string
   p256dh?: Prisma.StringFieldUpdateOperationsInput | string
-  auth?: Prisma.StringFieldUpdateOperationsInput | string
+  auth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authCipher?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   userAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastSuccessAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastFailureAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -436,6 +455,7 @@ export type PushSubscriptionCountOrderByAggregateInput = {
   endpoint?: Prisma.SortOrder
   p256dh?: Prisma.SortOrder
   auth?: Prisma.SortOrder
+  authCipher?: Prisma.SortOrder
   userAgent?: Prisma.SortOrder
   lastSuccessAt?: Prisma.SortOrder
   lastFailureAt?: Prisma.SortOrder
@@ -454,6 +474,7 @@ export type PushSubscriptionMaxOrderByAggregateInput = {
   endpoint?: Prisma.SortOrder
   p256dh?: Prisma.SortOrder
   auth?: Prisma.SortOrder
+  authCipher?: Prisma.SortOrder
   userAgent?: Prisma.SortOrder
   lastSuccessAt?: Prisma.SortOrder
   lastFailureAt?: Prisma.SortOrder
@@ -468,6 +489,7 @@ export type PushSubscriptionMinOrderByAggregateInput = {
   endpoint?: Prisma.SortOrder
   p256dh?: Prisma.SortOrder
   auth?: Prisma.SortOrder
+  authCipher?: Prisma.SortOrder
   userAgent?: Prisma.SortOrder
   lastSuccessAt?: Prisma.SortOrder
   lastFailureAt?: Prisma.SortOrder
@@ -488,6 +510,7 @@ export type PushSubscriptionSelect<ExtArgs extends runtime.Types.Extensions.Inte
   endpoint?: boolean
   p256dh?: boolean
   auth?: boolean
+  authCipher?: boolean
   userAgent?: boolean
   lastSuccessAt?: boolean
   lastFailureAt?: boolean
@@ -502,6 +525,7 @@ export type PushSubscriptionSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   endpoint?: boolean
   p256dh?: boolean
   auth?: boolean
+  authCipher?: boolean
   userAgent?: boolean
   lastSuccessAt?: boolean
   lastFailureAt?: boolean
@@ -516,6 +540,7 @@ export type PushSubscriptionSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   endpoint?: boolean
   p256dh?: boolean
   auth?: boolean
+  authCipher?: boolean
   userAgent?: boolean
   lastSuccessAt?: boolean
   lastFailureAt?: boolean
@@ -530,6 +555,7 @@ export type PushSubscriptionSelectScalar = {
   endpoint?: boolean
   p256dh?: boolean
   auth?: boolean
+  authCipher?: boolean
   userAgent?: boolean
   lastSuccessAt?: boolean
   lastFailureAt?: boolean
@@ -539,7 +565,7 @@ export type PushSubscriptionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PushSubscriptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "endpoint" | "p256dh" | "auth" | "userAgent" | "lastSuccessAt" | "lastFailureAt" | "failureCount" | "disabledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["pushSubscription"]>
+export type PushSubscriptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "endpoint" | "p256dh" | "auth" | "authCipher" | "userAgent" | "lastSuccessAt" | "lastFailureAt" | "failureCount" | "disabledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["pushSubscription"]>
 
 export type $PushSubscriptionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PushSubscription"
@@ -548,7 +574,8 @@ export type $PushSubscriptionPayload<ExtArgs extends runtime.Types.Extensions.In
     id: string
     endpoint: string
     p256dh: string
-    auth: string
+    auth: string | null
+    authCipher: string | null
     userAgent: string | null
     lastSuccessAt: Date | null
     lastFailureAt: Date | null
@@ -983,6 +1010,7 @@ export interface PushSubscriptionFieldRefs {
   readonly endpoint: Prisma.FieldRef<"PushSubscription", 'String'>
   readonly p256dh: Prisma.FieldRef<"PushSubscription", 'String'>
   readonly auth: Prisma.FieldRef<"PushSubscription", 'String'>
+  readonly authCipher: Prisma.FieldRef<"PushSubscription", 'String'>
   readonly userAgent: Prisma.FieldRef<"PushSubscription", 'String'>
   readonly lastSuccessAt: Prisma.FieldRef<"PushSubscription", 'DateTime'>
   readonly lastFailureAt: Prisma.FieldRef<"PushSubscription", 'DateTime'>

@@ -2528,6 +2528,7 @@ export const PushSubscriptionScalarFieldEnum = {
   endpoint: 'endpoint',
   p256dh: 'p256dh',
   auth: 'auth',
+  authCipher: 'authCipher',
   userAgent: 'userAgent',
   lastSuccessAt: 'lastSuccessAt',
   lastFailureAt: 'lastFailureAt',
