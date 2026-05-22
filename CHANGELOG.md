@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v1.0.0...yapd-v1.1.0) (2026-05-22)
+
+
+### Features
+
+* add throttling configuration and apply throttling to session and setup controllers ([3bbdf38](https://github.com/leufrasiojunior/yadp/commit/3bbdf38e5de88f02d8925e9c4dad6b62b434b973))
+* **infra:** plan 17 quick wins - dockerfile slim, healthcheck, audit indexes, backup docs ([#61](https://github.com/leufrasiojunior/yadp/issues/61)) ([e7f25aa](https://github.com/leufrasiojunior/yadp/commit/e7f25aa48fa63ce9fa1a8d73fd566ebee5b0205a))
+* rate limiting (Throttler) + CI pipeline (lint/typecheck/build) ([9985558](https://github.com/leufrasiojunior/yadp/commit/99855586eadb78c7c1f3c6e0fdc8efe4ebcec698))
+
+
+### Bug Fixes
+
+* **pihole:** import Headers from undici to align with fetch types ([#58](https://github.com/leufrasiojunior/yadp/issues/58)) ([3982ecd](https://github.com/leufrasiojunior/yadp/commit/3982ecd806773796c48c062acec277993ab41db8))
+
 ## [1.0.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v0.11.1...yapd-v1.0.0) (2026-05-20)
 
 
