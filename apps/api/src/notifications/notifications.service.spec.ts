@@ -33,7 +33,8 @@ type NotificationRecord = {
 type PushSubscriptionRecord = {
   endpoint: string;
   p256dh: string;
-  auth: string;
+  auth: string | null;
+  authCipher: string | null;
   userAgent: string | null;
   lastSuccessAt: Date | null;
   lastFailureAt: Date | null;
@@ -319,7 +320,8 @@ function createPrismaStub(
         const created: PushSubscriptionRecord = {
           endpoint: create.endpoint as string,
           p256dh: create.p256dh as string,
-          auth: create.auth as string,
+          auth: (create.auth as string | null | undefined) ?? null,
+          authCipher: (create.authCipher as string | null | undefined) ?? null,
           userAgent: (create.userAgent as string | null | undefined) ?? null,
           lastSuccessAt: null,
           lastFailureAt: null,
@@ -880,6 +882,7 @@ test("desabilita subscriptions 404/410 após falha de envio de push", async () =
             endpoint: "https://push.example/subscription-1",
             p256dh: "key",
             auth: "auth",
+            authCipher: null,
             userAgent: "test",
             lastSuccessAt: null,
             lastFailureAt: null,
@@ -1054,6 +1057,7 @@ test("usa notification.title no payload de push", async () => {
             endpoint: "https://push.example/subscription-1",
             p256dh: "key",
             auth: "auth",
+            authCipher: null,
             userAgent: "test",
             lastSuccessAt: null,
             lastFailureAt: null,
@@ -1111,6 +1115,7 @@ test("usa rótulo amigável no payload de push quando title não é explícito",
             endpoint: "https://push.example/subscription-1",
             p256dh: "key",
             auth: "auth",
+            authCipher: null,
             userAgent: "test",
             lastSuccessAt: null,
             lastFailureAt: null,

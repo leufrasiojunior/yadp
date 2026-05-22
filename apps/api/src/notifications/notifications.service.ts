@@ -260,7 +260,43 @@ export class NotificationsService implements OnModuleInit {
 
   async onModuleInit() {
     await this.ensureVapidConfig();
+    await this.encryptLegacyPushSubscriptions();
     void this.runScheduledSync("startup");
+  }
+
+  private async encryptLegacyPushSubscriptions() {
+    const legacy = await this.prisma.pushSubscription.findMany({
+      where: { authCipher: null, auth: { not: null } },
+      select: { endpoint: true, auth: true },
+    });
+
+    if (legacy.length === 0) {
+      return;
+    }
+
+    for (const row of legacy) {
+      if (!row.auth) {
+        continue;
+      }
+
+      try {
+        await this.prisma.pushSubscription.update({
+          where: { endpoint: row.endpoint },
+          data: {
+            authCipher: this.crypto.encryptSecret(row.auth),
+            auth: null,
+          },
+        });
+      } catch (error) {
+        this.logger.warn(
+          `Failed to encrypt legacy push subscription for ${this.buildEndpointDiagnostic(row.endpoint)}: ${
+            error instanceof Error ? error.message : "unknown error"
+          }`,
+        );
+      }
+    }
+
+    this.logger.log(`Encrypted ${legacy.length} legacy push subscription auth value(s) at boot.`);
   }
 
   @Interval(BACKEND_CONFIG.notifications.pollIntervalMs)
@@ -466,18 +502,21 @@ export class NotificationsService implements OnModuleInit {
       throw new BadRequestException(translateApi(DEFAULT_API_LOCALE, "notifications.pushEndpointRequired"));
     }
 
+    const authCipher = this.crypto.encryptSecret(body.keys.auth);
+
     await this.prisma.pushSubscription.upsert({
       where: { endpoint },
       update: {
         p256dh: body.keys.p256dh,
-        auth: body.keys.auth,
+        auth: null,
+        authCipher,
         userAgent: body.userAgent?.trim() || null,
         disabledAt: null,
       },
       create: {
         endpoint,
         p256dh: body.keys.p256dh,
-        auth: body.keys.auth,
+        authCipher,
         userAgent: body.userAgent?.trim() || null,
       },
     });
@@ -936,12 +975,21 @@ export class NotificationsService implements OnModuleInit {
 
     await Promise.all(
       subscriptions.map(async (subscription) => {
+        const auth = await this.resolveSubscriptionAuth(subscription);
+
+        if (!auth) {
+          this.logger.warn(
+            `Skipping push notification: subscription ${this.buildEndpointDiagnostic(subscription.endpoint)} has no usable auth key.`,
+          );
+          return;
+        }
+
         try {
           await webpush.sendNotification(
             {
               endpoint: subscription.endpoint,
               keys: {
-                auth: subscription.auth,
+                auth,
                 p256dh: subscription.p256dh,
               },
             },
@@ -991,6 +1039,50 @@ export class NotificationsService implements OnModuleInit {
   private buildEndpointDiagnostic(endpoint: string) {
     const hash = createHash("sha256").update(endpoint).digest("hex").slice(0, 12);
     return `subscription#${hash}`;
+  }
+
+  private async resolveSubscriptionAuth(subscription: {
+    endpoint: string;
+    auth: string | null;
+    authCipher: string | null;
+  }): Promise<string | null> {
+    if (subscription.authCipher) {
+      try {
+        return this.crypto.decryptSecret(subscription.authCipher);
+      } catch (error) {
+        this.logger.warn(
+          `Failed to decrypt push subscription auth for ${this.buildEndpointDiagnostic(subscription.endpoint)}: ${
+            error instanceof Error ? error.message : "unknown error"
+          }`,
+        );
+        return null;
+      }
+    }
+
+    if (!subscription.auth) {
+      return null;
+    }
+
+    // Legacy plaintext row that the boot-time backfill did not reach yet.
+    const plain = subscription.auth;
+
+    try {
+      await this.prisma.pushSubscription.update({
+        where: { endpoint: subscription.endpoint },
+        data: {
+          authCipher: this.crypto.encryptSecret(plain),
+          auth: null,
+        },
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to lazily encrypt push subscription auth for ${this.buildEndpointDiagnostic(subscription.endpoint)}: ${
+          error instanceof Error ? error.message : "unknown error"
+        }`,
+      );
+    }
+
+    return plain;
   }
 
   private mapNotificationItem(record: NotificationRecord): NotificationItem {
