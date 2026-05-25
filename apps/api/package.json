@@ -22,27 +22,27 @@
     "db:migrate:status": "prisma migrate status --config prisma.config.ts"
   },
   "dependencies": {
-    "@nestjs/common": "^11.1.8",
-    "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.1.8",
-    "@nestjs/platform-express": "^11.1.8",
-    "@nestjs/schedule": "^6.0.1",
-    "@nestjs/swagger": "^11.2.1",
+    "@nestjs/common": "^11.1.24",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.24",
+    "@nestjs/platform-express": "^11.1.24",
+    "@nestjs/schedule": "^6.1.3",
+    "@nestjs/swagger": "^11.4.4",
     "@nestjs/throttler": "^6.4.0",
-    "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
+    "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "cron": "^4.4.0",
     "dotenv": "^17.2.3",
-    "helmet": "^8.1.0",
-    "pg": "^8.16.3",
-    "prisma": "^7.5.0",
+    "helmet": "^8.2.0",
+    "pg": "^8.21.0",
+    "prisma": "^7.8.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "swagger-ui-express": "^5.0.1",
-    "undici": "^7.12.0",
+    "undici": "^7.25.0",
     "web-push": "^3.6.7",
     "zod": "^3.25.76"
   },
@@ -51,6 +51,6 @@
     "@types/pg": "^8.15.6",
     "@types/web-push": "^3.6.4",
     "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.16"
+    "tsc-alias": "^1.8.17"
   }
 }
