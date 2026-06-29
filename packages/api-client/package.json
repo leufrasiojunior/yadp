@@ -10,7 +10,7 @@
     "generate": "openapi-typescript ../../apps/api/openapi.json --output ./src/generated/schema.ts"
   },
   "dependencies": {
-    "openapi-fetch": "^0.13.8"
+    "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
     "openapi-typescript": "^7.7.0"
