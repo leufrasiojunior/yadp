@@ -1,9 +1,21 @@
+const parsedWebpackPollIntervalMs = Number.parseInt(process.env.NEXT_WEBPACK_POLL_INTERVAL_MS ?? "", 10);
+const webpackPollIntervalMs =
+  Number.isFinite(parsedWebpackPollIntervalMs) && parsedWebpackPollIntervalMs > 0 ? parsedWebpackPollIntervalMs : 1000;
+const useWebpackPolling = process.env.NEXT_WEBPACK_USEPOLLING === "true";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
+  ...(useWebpackPolling
+    ? {
+        watchOptions: {
+          pollIntervalMs: webpackPollIntervalMs,
+        },
+      }
+    : {}),
   async headers() {
     return [
       {

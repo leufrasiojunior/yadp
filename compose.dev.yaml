@@ -19,18 +19,19 @@ services:
       start_period: 10s
 
   app:
-    image: yapd-app:test
-    # image: leufrasiojunior/yapd:latest
+    image: yapd-app:dev
     build:
       context: .
       dockerfile: Dockerfile
+      target: deps
     container_name: yapd-app
     restart: unless-stopped
+    working_dir: /app
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       HOSTNAME: 0.0.0.0
       PORT: 3000
       API_HOST: 0.0.0.0
@@ -40,30 +41,40 @@ services:
       INTERNAL_API_BASE_URL: http://127.0.0.1:3001/api
       NEXT_PUBLIC_API_BASE_URL: /api
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/yapd?schema=public
-      SESSION_SECRET: replace-this-session-secret
-      APP_ENCRYPTION_KEY: replace-this-encryption-key
+      SESSION_SECRET: local-dev-session-secret-do-not-use-in-production
+      APP_ENCRYPTION_KEY: local-dev-encryption-key-do-not-use-in-production
       WEB_PUSH_VAPID_SUBJECT: mailto:admin@yapd.local
       # Optional managed override. When omitted, YAPD generates a VAPID key pair once
       # and stores it encrypted in AppConfig using APP_ENCRYPTION_KEY.
       # WEB_PUSH_VAPID_PUBLIC_KEY: ""
       # WEB_PUSH_VAPID_PRIVATE_KEY: ""
-      COOKIE_SECURE: "true"
+      COOKIE_SECURE: "false"
       SWAGGER_ENABLED: "true"
-      YAPD_DB_MIGRATION_MAX_ATTEMPTS: "30"
-      YAPD_DB_MIGRATION_RETRY_DELAY_SECONDS: "2"
-      YAPD_API_READY_MAX_ATTEMPTS: "30"
-      YAPD_API_READY_RETRY_DELAY_SECONDS: "1"
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      NEXT_WEBPACK_USEPOLLING: "true"
+      NEXT_WEBPACK_POLL_INTERVAL_MS: "1000"
     ports:
-      - "80:80"
-      - "443:443"
+      - "3000:3000"
       - "3001:3001"
+    volumes:
+      - .:/app
+      - yapd-node-modules:/app/node_modules
+    command:
+      - sh
+      - -c
+      - |
+        ./node_modules/.bin/concurrently -k -n api,web -c blue,magenta \
+          "npm run dev --workspace @yapd/api" \
+          "npm run dev --workspace @yapd/web -- --webpack --hostname 0.0.0.0 --port 3000"
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/healthz >/dev/null 2>&1 && wget -qO- http://127.0.0.1:3001/api/health >/dev/null 2>&1 || exit 1"]
+        ["CMD-SHELL", "node -e \"Promise.all([fetch('http://127.0.0.1:3000/healthz'), fetch('http://127.0.0.1:3001/api/health')]).then((responses) => process.exit(responses.every((response) => response.ok) ? 0 : 1)).catch(() => process.exit(1))\""]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
 volumes:
   yapd-postgres-data:
+  yapd-node-modules:
