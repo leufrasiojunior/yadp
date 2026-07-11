@@ -7,6 +7,10 @@ import { getServerApiBaseUrl } from "./base-url";
 import { getApiErrorMessage } from "./error-message";
 import { createYapdHttpClient, isYapdApiUnavailableResponse } from "./yapd-http";
 import type {
+  BrowserExtensionDetectionsResponse,
+  BrowserExtensionDevicesResponse,
+  BrowserExtensionDomainDetectionsResponse,
+  BrowserExtensionSettingsResponse,
   ClientsListResponse,
   ClientsSortDirection,
   ClientsSortField,
@@ -295,6 +299,121 @@ export async function getDomains(query?: {
 
   if (!data) {
     throw new YapdApiResponseError(baseUrl, 500, "Failed to load domains.");
+  }
+
+  return data;
+}
+
+export async function getBrowserExtensionSettings(): Promise<BrowserExtensionSettingsResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<BrowserExtensionSettingsResponse>("/browser-extension/settings");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load browser extension settings.");
+  }
+
+  return data;
+}
+
+export async function getBrowserExtensionDevices(): Promise<BrowserExtensionDevicesResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<BrowserExtensionDevicesResponse>("/browser-extension/devices");
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load browser extension devices.");
+  }
+
+  return data;
+}
+
+export async function getBrowserExtensionDetections(query?: {
+  page?: number;
+  pageSize?: number;
+  pageDomain?: string;
+  target?: string;
+  category?: string;
+  status?: string;
+}): Promise<BrowserExtensionDetectionsResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<BrowserExtensionDetectionsResponse>("/browser-extension/detections", {
+    params: {
+      query: {
+        ...(query?.page !== undefined ? { page: query.page } : {}),
+        ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+        ...(query?.pageDomain !== undefined ? { pageDomain: query.pageDomain } : {}),
+        ...(query?.target !== undefined ? { target: query.target } : {}),
+        ...(query?.category !== undefined ? { category: query.category } : {}),
+        ...(query?.status !== undefined ? { status: query.status } : {}),
+      },
+    },
+  });
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load browser extension detections.");
+  }
+
+  return data;
+}
+
+export async function getBrowserExtensionDomainDetections(query?: {
+  page?: number;
+  pageSize?: number;
+  pageDomain?: string;
+  target?: string;
+  category?: string;
+  status?: string;
+}): Promise<BrowserExtensionDomainDetectionsResponse> {
+  const { baseUrl, client } = await createServerApiClient();
+  const { data, response } = await client.GET<BrowserExtensionDomainDetectionsResponse>(
+    "/browser-extension/detections/domains",
+    {
+      params: {
+        query: {
+          ...(query?.page !== undefined ? { page: query.page } : {}),
+          ...(query?.pageSize !== undefined ? { pageSize: query.pageSize } : {}),
+          ...(query?.pageDomain !== undefined ? { pageDomain: query.pageDomain } : {}),
+          ...(query?.target !== undefined ? { target: query.target } : {}),
+          ...(query?.category !== undefined ? { category: query.category } : {}),
+          ...(query?.status !== undefined ? { status: query.status } : {}),
+        },
+      },
+    },
+  );
+
+  throwIfApiUnavailable(baseUrl, response);
+
+  if (response.status === 401) {
+    redirect("/login");
+  }
+
+  await throwIfApiResponseError(baseUrl, response);
+
+  if (!data) {
+    throw new YapdApiResponseError(baseUrl, 500, "Failed to load browser extension domain detections.");
   }
 
   return data;

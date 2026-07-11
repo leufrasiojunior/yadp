@@ -11,6 +11,7 @@
     "test:notifications": "node --import tsx --test src/notifications/notifications.service.spec.ts",
     "test:overview": "TSX_TSCONFIG_PATH=tsconfig.json node --import tsx --test src/overview/overview.service.spec.ts",
     "test:queries": "node --import tsx --test src/queries/*.spec.ts",
+    "test:browser-extension": "node --import tsx --test src/browser-extension/*.spec.ts",
     "test:runtime-metadata": "node --test test/controller-runtime-metadata.test.mjs",
     "test:tours": "node --import tsx --test src/tours/tours.service.spec.ts",
     "start": "sh ./scripts/start-with-migrations.sh",

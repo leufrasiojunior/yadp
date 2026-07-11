@@ -164,39 +164,7 @@ export interface paths {
         patch: operations["SessionController_updatePreferences"];
         trace?: never;
     };
-    "/clients": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ClientsController_listClients"];
-        put?: never;
-        post: operations["ClientsController_saveClients"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/clients/{client}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["ClientsController_updateClient"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/clients/sync": {
+    "/browser-extension/pairing-codes": {
         parameters: {
             query?: never;
             header?: never;
@@ -205,23 +173,167 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ClientsController_syncClients"];
+        post: operations["BrowserExtensionController_createPairingCode"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/dashboard/overview": {
+    "/browser-extension/pair": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["DashboardController_getOverview"];
+        get?: never;
+        put?: never;
+        post: operations["BrowserExtensionController_pairExtension"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/browser-extension/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BrowserExtensionController_getConfig"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/browser-extension/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BrowserExtensionController_getSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["BrowserExtensionController_updateSettings"];
+        trace?: never;
+    };
+    "/browser-extension/detections/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BrowserExtensionController_applyDetections"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/browser-extension/detections/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BrowserExtensionController_reportDetections"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/browser-extension/detections/undo-last": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BrowserExtensionController_undoLast"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/browser-extension/detections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BrowserExtensionController_listDetections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/browser-extension/detections/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BrowserExtensionController_listDomainDetections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/browser-extension/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BrowserExtensionController_listDevices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/browser-extension/devices/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BrowserExtensionController_revokeDevice"];
         delete?: never;
         options?: never;
         head?: never;
@@ -334,6 +446,70 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["DomainsController_syncDomains"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ClientsController_listClients"];
+        put?: never;
+        post: operations["ClientsController_saveClients"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{client}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ClientsController_updateClient"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ClientsController_syncClients"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dashboard/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DashboardController_getOverview"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1111,7 +1287,326 @@ export interface paths {
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        BrowserExtensionPairingCodeResponse: {
+            /** @example 123456 */
+            pairingCode: string;
+            /** @example 2026-07-02T15:00:00.000Z */
+            expiresAt: string;
+        };
+        BrowserExtensionSettingsResponse: {
+            /** @example false */
+            sendPageTitle: boolean;
+            hardBlockedUrlPatterns: string[];
+            sensitiveUrlPatterns: string[];
+        };
+        BrowserExtensionRuleCacheItemResponse: {
+            /** @example ads.example.com */
+            target: string;
+            /**
+             * @example exact
+             * @enum {string}
+             */
+            kind: "exact" | "regex";
+            /**
+             * @example managed_domain
+             * @enum {string}
+             */
+            source: "browser_extension_decision" | "managed_domain";
+        };
+        BrowserExtensionPairResponse: {
+            /** @example token */
+            accessToken: string;
+            /** @example clw-extension */
+            extensionId: string;
+            settings: components["schemas"]["BrowserExtensionSettingsResponse"];
+            allowlist: components["schemas"]["BrowserExtensionRuleCacheItemResponse"][];
+            blockedItems: components["schemas"]["BrowserExtensionRuleCacheItemResponse"][];
+        };
+        BrowserExtensionConfigResponseClass: {
+            settings: components["schemas"]["BrowserExtensionSettingsResponse"];
+            allowlist: components["schemas"]["BrowserExtensionRuleCacheItemResponse"][];
+            blockedItems: components["schemas"]["BrowserExtensionRuleCacheItemResponse"][];
+        };
+        BrowserExtensionApplySummaryResponse: {
+            /** @example 2 */
+            totalTargets: number;
+            /** @example 2 */
+            appliedCount: number;
+            /** @example 0 */
+            failedCount: number;
+            /** @example 0 */
+            skippedCount: number;
+        };
+        BrowserExtensionApplyResultItemResponse: {
+            /** @example ads.example.com */
+            target: string;
+            /**
+             * @example deny
+             * @enum {string}
+             */
+            type: "deny";
+            /**
+             * @example exact
+             * @enum {string}
+             */
+            kind: "exact" | "regex";
+            /**
+             * @example applied
+             * @enum {string}
+             */
+            status: "applied" | "skipped" | "failed";
+            /** @example Pi-hole rejected the domain. */
+            errorMessage?: string;
+        };
+        BrowserExtensionApplyResponse: {
+            /** @example clw-batch */
+            batchId: string;
+            /** @example undo-token */
+            undoToken: string;
+            /**
+             * @example applied
+             * @enum {string}
+             */
+            status: "applied" | "partial" | "failed";
+            summary: components["schemas"]["BrowserExtensionApplySummaryResponse"];
+            applied: components["schemas"]["BrowserExtensionApplyResultItemResponse"][];
+            skipped: components["schemas"]["BrowserExtensionApplyResultItemResponse"][];
+            failed: components["schemas"]["BrowserExtensionApplyResultItemResponse"][];
+        };
+        BrowserExtensionReportSummaryResponse: {
+            /** @example 12 */
+            totalTargets: number;
+            /** @example 9 */
+            detectedCount: number;
+            /** @example 2 */
+            blockedCount: number;
+            /** @example 1 */
+            allowedCount: number;
+        };
+        BrowserExtensionReportResponse: {
+            /** @example clw-batch */
+            batchId: string;
+            /**
+             * @example detected
+             * @enum {string}
+             */
+            status: "detected";
+            summary: components["schemas"]["BrowserExtensionReportSummaryResponse"];
+        };
+        BrowserExtensionUndoSummaryResponse: {
+            /** @example 2 */
+            totalTargets: number;
+            /** @example 2 */
+            removedCount: number;
+            /** @example 0 */
+            failedCount: number;
+        };
+        BrowserExtensionUndoResultItemResponse: {
+            /** @example ads.example.com */
+            target: string;
+            /**
+             * @example deny
+             * @enum {string}
+             */
+            type: "deny";
+            /**
+             * @example exact
+             * @enum {string}
+             */
+            kind: "exact" | "regex";
+            /** @example Pi-hole rejected the removal. */
+            errorMessage?: string;
+        };
+        BrowserExtensionUndoResponse: {
+            /** @example clw-batch */
+            batchId: string;
+            /**
+             * @example undone
+             * @enum {string}
+             */
+            status: "undone";
+            summary: components["schemas"]["BrowserExtensionUndoSummaryResponse"];
+            removed: components["schemas"]["BrowserExtensionUndoResultItemResponse"][];
+            failed: components["schemas"]["BrowserExtensionUndoResultItemResponse"][];
+        };
+        BrowserExtensionDetectionItemResponse: {
+            /** @example clw-item */
+            id: string;
+            /** @example candidate-1 */
+            candidateId: string;
+            /** @example ads.example.com */
+            target: string;
+            /** @example example.com */
+            targetMainDomain: string;
+            /**
+             * @example deny
+             * @enum {string}
+             */
+            type: "deny";
+            /**
+             * @example exact
+             * @enum {string}
+             */
+            kind: "exact" | "regex";
+            /** @example ads */
+            category: string;
+            /** @example 85 */
+            score: number;
+            /** @example high */
+            riskLevel: string;
+            reasons: string[];
+            evidence: {
+                [key: string]: unknown;
+            };
+            /** @example applied */
+            applyStatus: string;
+            errorMessage: string | null;
+        };
+        BrowserExtensionDetectionBatchResponse: {
+            /** @example clw-batch */
+            id: string;
+            /** @example clw-extension */
+            extensionId: string;
+            /** @example YAPD Inspector */
+            extensionName: string;
+            /** @example request-uuid */
+            clientRequestId: string;
+            /** @example example.com */
+            pageDomain: string;
+            /** @example example.com */
+            pageMainDomain: string;
+            pageUrl: string | null;
+            pageTitle: string | null;
+            /** @example applied */
+            status: string;
+            summary: {
+                [key: string]: unknown;
+            } | null;
+            /** @example 2026-07-02T15:00:00.000Z */
+            createdAt: string;
+            undoneAt: string | null;
+            items: components["schemas"]["BrowserExtensionDetectionItemResponse"][];
+        };
+        BrowserExtensionPaginationResponse: {
+            /** @example 1 */
+            page: number;
+            /** @example 10 */
+            pageSize: number;
+            /** @example 20 */
+            totalItems: number;
+            /** @example 2 */
+            totalPages: number;
+        };
+        BrowserExtensionDetectionsResponse: {
+            items: components["schemas"]["BrowserExtensionDetectionBatchResponse"][];
+            pagination: components["schemas"]["BrowserExtensionPaginationResponse"];
+        };
+        BrowserExtensionDomainDetectionItemResponse: {
+            /** @example clw-item */
+            id: string;
+            /** @example candidate-1 */
+            candidateId: string;
+            /** @example ads.example.com */
+            target: string;
+            /** @example example.com */
+            targetMainDomain: string;
+            /**
+             * @example deny
+             * @enum {string}
+             */
+            type: "deny";
+            /**
+             * @example exact
+             * @enum {string}
+             */
+            kind: "exact" | "regex";
+            /** @example ads */
+            category: string;
+            /** @example 85 */
+            score: number;
+            /** @example high */
+            riskLevel: string;
+            reasons: string[];
+            evidence: {
+                [key: string]: unknown;
+            };
+            /** @example applied */
+            applyStatus: string;
+            errorMessage: string | null;
+            /** @example clw-batch */
+            batchId: string;
+            /** @example example.com */
+            pageDomain: string;
+            pageUrl: string | null;
+            pageTitle: string | null;
+            /** @example 2026-07-02T15:00:00.000Z */
+            detectedAt: string;
+        };
+        BrowserExtensionTargetDomainGroupResponse: {
+            /** @example doubleclick.net */
+            targetMainDomain: string;
+            /** @example 4 */
+            totalDetected: number;
+            /** @example 2 */
+            blockedCount: number;
+            /** @example 2 */
+            notBlockedCount: number;
+            items: components["schemas"]["BrowserExtensionDomainDetectionItemResponse"][];
+        };
+        BrowserExtensionDomainDetectionGroupResponse: {
+            /** @example terra.com.br */
+            pageMainDomain: string;
+            /** @example terra.com.br */
+            latestPageDomain: string;
+            latestPageUrl: string | null;
+            latestPageTitle: string | null;
+            /** @example 2026-07-02T15:00:00.000Z */
+            lastDetectedAt: string;
+            /** @example 20 */
+            totalDetected: number;
+            /** @example 6 */
+            blockedCount: number;
+            /** @example 14 */
+            notBlockedCount: number;
+            /** @example partial */
+            status: string;
+            targetGroups: components["schemas"]["BrowserExtensionTargetDomainGroupResponse"][];
+        };
+        BrowserExtensionDomainDetectionsResponse: {
+            items: components["schemas"]["BrowserExtensionDomainDetectionGroupResponse"][];
+            pagination: components["schemas"]["BrowserExtensionPaginationResponse"];
+        };
+        BrowserExtensionDeviceResponse: {
+            /** @example clw-extension */
+            id: string;
+            /** @example YAPD Inspector */
+            name: string;
+            /** @example chrome-or-edge */
+            browser: string;
+            /** @example 3 */
+            manifestVersion: number;
+            /** @example 0.1.0 */
+            extensionVersion: string;
+            /** @example abcd1234 */
+            tokenPrefix: string;
+            /** @example 2026-07-02T15:00:00.000Z */
+            lastSeenAt: string | null;
+            /** @example 2026-07-02T15:00:00.000Z */
+            revokedAt: string | null;
+            /** @example 2026-07-02T15:00:00.000Z */
+            createdAt: string;
+        };
+        BrowserExtensionDevicesResponse: {
+            items: components["schemas"]["BrowserExtensionDeviceResponse"][];
+        };
+        BrowserExtensionDeviceRevokeResponse: {
+            /** @example clw-extension */
+            id: string;
+            /** @example 2026-07-02T15:00:00.000Z */
+            revokedAt: string;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -1490,259 +1985,7 @@ export interface operations {
             };
         };
     };
-    ClientsController_listClients: {
-        parameters: {
-            query?: {
-                sortDirection?: "asc" | "desc";
-                sortBy?: "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
-                excludedTags?: string[];
-                search?: unknown;
-                pageSize?: unknown;
-                page?: unknown;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        items: {
-                            hwaddr: string;
-                            alias: string | null;
-                            macVendor: string | null;
-                            ips: string[];
-                            tags: string[];
-                            instance: {
-                                instanceId: string;
-                                instanceName: string;
-                            };
-                            visibleInInstances: {
-                                instanceId: string;
-                                instanceName: string;
-                            }[];
-                            instanceDetails: {
-                                instanceId: string;
-                                instanceName: string;
-                                ips: string[];
-                                /** Format: date-time */
-                                firstSeen: string | null;
-                                /** Format: date-time */
-                                lastQuery: string | null;
-                                numQueries: number;
-                            }[];
-                            /** Format: date-time */
-                            firstSeen: string | null;
-                            /** Format: date-time */
-                            lastQuery: string | null;
-                            numQueries: number;
-                            comment: string | null;
-                            groupIds: number[];
-                            groupNames: string[];
-                        }[];
-                        availableTags: string[];
-                        pagination: {
-                            page: number;
-                            pageSize: number;
-                            totalItems: number;
-                            totalPages: number;
-                        };
-                        source: {
-                            baselineInstanceId: string;
-                            baselineInstanceName: string;
-                            totalInstances: number;
-                            availableInstanceCount: number;
-                            unavailableInstanceCount: number;
-                        };
-                        unavailableInstances: {
-                            instanceId: string;
-                            instanceName: string;
-                            /** @enum {string} */
-                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
-                            message: string;
-                        }[];
-                    };
-                };
-            };
-        };
-    };
-    ClientsController_saveClients: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /**
-                     * @example [
-                     *       "82:6D:06:2E:9D:DC"
-                     *     ]
-                     */
-                    client: string[];
-                    /** @example  */
-                    comment?: string | null;
-                    /** @example Notebook Sala */
-                    alias?: string | null;
-                    /**
-                     * @example [
-                     *       "IoT",
-                     *       "Camera"
-                     *     ]
-                     */
-                    tags?: string[];
-                    /**
-                     * @example [
-                     *       3
-                     *     ]
-                     */
-                    groups?: number[];
-                    /**
-                     * @example [
-                     *       "clz-secondary-a"
-                     *     ]
-                     */
-                    targetInstanceIds?: string[];
-                };
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        status: "success" | "partial";
-                        summary: {
-                            totalInstances: number;
-                            successfulCount: number;
-                            failedCount: number;
-                        };
-                        successfulInstances: {
-                            instanceId: string;
-                            instanceName: string;
-                        }[];
-                        failedInstances: {
-                            instanceId: string;
-                            instanceName: string;
-                            /** @enum {string} */
-                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
-                            message: string;
-                        }[];
-                    };
-                };
-            };
-        };
-    };
-    ClientsController_updateClient: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /**
-                     * @example [
-                     *       0
-                     *     ]
-                     */
-                    groups?: number[];
-                };
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        status: "success" | "partial";
-                        summary: {
-                            totalInstances: number;
-                            successfulCount: number;
-                            failedCount: number;
-                        };
-                        successfulInstances: {
-                            instanceId: string;
-                            instanceName: string;
-                        }[];
-                        failedInstances: {
-                            instanceId: string;
-                            instanceName: string;
-                            /** @enum {string} */
-                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
-                            message: string;
-                        }[];
-                    };
-                };
-            };
-        };
-    };
-    ClientsController_syncClients: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @example [
-                     *       "clz-secondary-a",
-                     *       "clz-secondary-b"
-                     *     ]
-                     */
-                    targetInstanceIds?: string[];
-                };
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        status: "success" | "partial";
-                        summary: {
-                            totalInstances: number;
-                            successfulCount: number;
-                            failedCount: number;
-                        };
-                        successfulInstances: {
-                            instanceId: string;
-                            instanceName: string;
-                        }[];
-                        failedInstances: {
-                            instanceId: string;
-                            instanceName: string;
-                            /** @enum {string} */
-                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
-                            message: string;
-                        }[];
-                    };
-                };
-            };
-        };
-    };
-    DashboardController_getOverview: {
+    BrowserExtensionController_createPairingCode: {
         parameters: {
             query?: never;
             header?: never;
@@ -1756,59 +1999,216 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        scope: {
-                            /** @enum {string} */
-                            mode: "all" | "instance";
-                            instanceId: string | null;
-                            instanceName: string | null;
-                        };
-                        summary: {
-                            totalQueries: number;
-                            queriesBlocked: number;
-                            percentageBlocked: number;
-                            domainsOnList: number;
-                        };
-                        charts: {
-                            totalQueries: {
-                                points: {
-                                    /** Format: date-time */
-                                    timestamp: string;
-                                    totalQueries: number;
-                                    cachedQueries: number;
-                                    blockedQueries: number;
-                                    forwardedQueries: number;
-                                    percentageBlocked: number;
-                                }[];
-                            };
-                            clientActivity: {
-                                series: {
-                                    key: string;
-                                    label: string;
-                                    totalQueries: number;
-                                    points: {
-                                        /** Format: date-time */
-                                        timestamp: string;
-                                        queries: number;
-                                    }[];
-                                }[];
-                            };
-                        };
-                        sources: {
-                            totalInstances: number;
-                            successfulInstances: {
-                                instanceId: string;
-                                instanceName: string;
-                            }[];
-                            failedInstances: {
-                                instanceId: string;
-                                instanceName: string;
-                                /** @enum {string} */
-                                kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
-                                message: string;
-                            }[];
-                        };
-                    };
+                    "application/json": components["schemas"]["BrowserExtensionPairingCodeResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_pairExtension: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionPairResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_getConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionConfigResponseClass"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_getSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionSettingsResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionSettingsResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_applyDetections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionApplyResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_reportDetections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionReportResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_undoLast: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionUndoResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_listDetections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionDetectionsResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_listDomainDetections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionDomainDetectionsResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_listDevices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionDevicesResponse"];
+                };
+            };
+        };
+    };
+    BrowserExtensionController_revokeDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowserExtensionDeviceRevokeResponse"];
                 };
             };
         };
@@ -2159,6 +2559,329 @@ export interface operations {
                             kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
                             message: string;
                         }[];
+                    };
+                };
+            };
+        };
+    };
+    ClientsController_listClients: {
+        parameters: {
+            query?: {
+                sortDirection?: "asc" | "desc";
+                sortBy?: "client" | "instance" | "group" | "firstSeen" | "lastQuery" | "numQueries" | "comment";
+                excludedTags?: string[];
+                search?: unknown;
+                pageSize?: unknown;
+                page?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            hwaddr: string;
+                            alias: string | null;
+                            macVendor: string | null;
+                            ips: string[];
+                            tags: string[];
+                            instance: {
+                                instanceId: string;
+                                instanceName: string;
+                            };
+                            visibleInInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            instanceDetails: {
+                                instanceId: string;
+                                instanceName: string;
+                                ips: string[];
+                                /** Format: date-time */
+                                firstSeen: string | null;
+                                /** Format: date-time */
+                                lastQuery: string | null;
+                                numQueries: number;
+                            }[];
+                            /** Format: date-time */
+                            firstSeen: string | null;
+                            /** Format: date-time */
+                            lastQuery: string | null;
+                            numQueries: number;
+                            comment: string | null;
+                            groupIds: number[];
+                            groupNames: string[];
+                        }[];
+                        availableTags: string[];
+                        pagination: {
+                            page: number;
+                            pageSize: number;
+                            totalItems: number;
+                            totalPages: number;
+                        };
+                        source: {
+                            baselineInstanceId: string;
+                            baselineInstanceName: string;
+                            totalInstances: number;
+                            availableInstanceCount: number;
+                            unavailableInstanceCount: number;
+                        };
+                        unavailableInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ClientsController_saveClients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @example [
+                     *       "82:6D:06:2E:9D:DC"
+                     *     ]
+                     */
+                    client: string[];
+                    /** @example  */
+                    comment?: string | null;
+                    /** @example Notebook Sala */
+                    alias?: string | null;
+                    /**
+                     * @example [
+                     *       "IoT",
+                     *       "Camera"
+                     *     ]
+                     */
+                    tags?: string[];
+                    /**
+                     * @example [
+                     *       3
+                     *     ]
+                     */
+                    groups?: number[];
+                    /**
+                     * @example [
+                     *       "clz-secondary-a"
+                     *     ]
+                     */
+                    targetInstanceIds?: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ClientsController_updateClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @example [
+                     *       0
+                     *     ]
+                     */
+                    groups?: number[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ClientsController_syncClients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @example [
+                     *       "clz-secondary-a",
+                     *       "clz-secondary-b"
+                     *     ]
+                     */
+                    targetInstanceIds?: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        summary: {
+                            totalInstances: number;
+                            successfulCount: number;
+                            failedCount: number;
+                        };
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    DashboardController_getOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        scope: {
+                            /** @enum {string} */
+                            mode: "all" | "instance";
+                            instanceId: string | null;
+                            instanceName: string | null;
+                        };
+                        summary: {
+                            totalQueries: number;
+                            queriesBlocked: number;
+                            percentageBlocked: number;
+                            domainsOnList: number;
+                        };
+                        charts: {
+                            totalQueries: {
+                                points: {
+                                    /** Format: date-time */
+                                    timestamp: string;
+                                    totalQueries: number;
+                                    cachedQueries: number;
+                                    blockedQueries: number;
+                                    forwardedQueries: number;
+                                    percentageBlocked: number;
+                                }[];
+                            };
+                            clientActivity: {
+                                series: {
+                                    key: string;
+                                    label: string;
+                                    totalQueries: number;
+                                    points: {
+                                        /** Format: date-time */
+                                        timestamp: string;
+                                        queries: number;
+                                    }[];
+                                }[];
+                            };
+                        };
+                        sources: {
+                            totalInstances: number;
+                            successfulInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                            }[];
+                            failedInstances: {
+                                instanceId: string;
+                                instanceName: string;
+                                /** @enum {string} */
+                                kind: "invalid_credentials" | "tls_error" | "timeout" | "dns_error" | "connection_refused" | "pihole_response_error" | "unknown";
+                                message: string;
+                            }[];
+                        };
                     };
                 };
             };

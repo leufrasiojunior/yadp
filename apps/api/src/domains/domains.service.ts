@@ -22,6 +22,7 @@ import {
   DEFAULT_DOMAINS_SORT_FIELD,
   type DomainFilterValue,
   type DomainItem,
+  type DomainOperationActorContext,
   type DomainOperationKind,
   type DomainOperationResponse,
   type DomainOperationType,
@@ -527,6 +528,57 @@ export class DomainsService implements OnModuleInit {
     };
   }
 
+  async applyDomainOperationForActor(
+    params: {
+      domain: string;
+      type: DomainOperationType;
+      kind: DomainOperationKind;
+      comment?: string | null;
+      patternMode?: DomainPatternMode | null;
+      groups?: number[];
+    },
+    context: DomainOperationActorContext,
+  ): Promise<DomainOperationResponse> {
+    const normalizedDomain = params.domain.trim().toLowerCase();
+    const comment = params.comment ?? DEFAULT_DOMAIN_OPERATION_COMMENT;
+    const patternMode = params.patternMode ?? null;
+    const value = params.kind === "regex" ? this.buildRegexPattern(normalizedDomain, patternMode) : normalizedDomain;
+    const instances = await this.resolveRequestedInstances("all", undefined, context.locale);
+    const groups = params.groups ?? [0];
+    const { successfulInstances, failedInstances } = await this.createDomainAcrossInstances(
+      {
+        domain: normalizedDomain,
+        value,
+        type: params.type,
+        kind: params.kind,
+        comment,
+        groups,
+      },
+      instances,
+      context.locale,
+    );
+
+    return {
+      request: {
+        type: params.type,
+        kind: params.kind,
+        domain: normalizedDomain,
+        value,
+        comment,
+        patternMode,
+        scope: "all",
+        instanceId: null,
+      },
+      summary: {
+        totalInstances: instances.length,
+        successfulCount: successfulInstances.length,
+        failedCount: failedInstances.length,
+      },
+      successfulInstances,
+      failedInstances,
+    };
+  }
+
   async updateDomain(
     domain: string,
     type: string,
@@ -621,7 +673,19 @@ export class DomainsService implements OnModuleInit {
   }
 
   async batchDelete(body: BatchDeleteDomainsDto, request: Request): Promise<DomainsMutationResponse> {
-    const locale = getRequestLocale(request);
+    return this.deleteDomainsForActor(body.items, {
+      locale: getRequestLocale(request),
+      ipAddress: getRequestIp(request),
+      actorType: "user",
+      actorLabel: "Admin",
+    });
+  }
+
+  async deleteDomainsForActor(
+    items: Array<{ item: string; type: DomainOperationType; kind: DomainOperationKind }>,
+    context: DomainOperationActorContext,
+  ): Promise<DomainsMutationResponse> {
+    const locale = context.locale;
     const instances = await this.resolveRequestedInstances("all", undefined, locale);
     const results: DomainsMutationResponse = {
       status: "success",
@@ -631,7 +695,7 @@ export class DomainsService implements OnModuleInit {
     };
 
     // Delete from local DB
-    for (const item of body.items) {
+    for (const item of items) {
       await this.prisma.managedDomain
         .delete({
           where: { domain_type_kind: { domain: item.item, type: item.type, kind: item.kind } },
@@ -644,7 +708,7 @@ export class DomainsService implements OnModuleInit {
     for (const instance of instances) {
       try {
         await this.instanceSessions.withActiveSession(instance.id, locale, async ({ connection, session }) => {
-          for (const item of body.items) {
+          for (const item of items) {
             await this.pihole.deleteDomain(connection, session, item.item, item.type, item.kind);
           }
         });

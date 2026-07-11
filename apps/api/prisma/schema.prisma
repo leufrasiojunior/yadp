@@ -269,6 +269,107 @@ model ManagedDomain {
   @@unique([domain, type, kind])
 }
 
+model BrowserExtensionDevice {
+  id               String   @id @default(cuid())
+  name             String
+  browser          String
+  manifestVersion  Int
+  extensionVersion String
+  tokenHash        String   @unique
+  tokenPrefix      String
+  lastSeenAt       DateTime?
+  revokedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  batches          BrowserExtensionDetectionBatch[]
+
+  @@index([revokedAt])
+  @@index([lastSeenAt])
+}
+
+model BrowserExtensionPairingCode {
+  id        String   @id @default(cuid())
+  codeHash  String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([usedAt])
+}
+
+model BrowserExtensionSettings {
+  id                    String   @id @default("singleton")
+  sendPageTitle         Boolean  @default(false)
+  hardBlockedUrlPatterns String[] @default([])
+  sensitiveUrlPatterns  String[] @default([])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model BrowserExtensionDecision {
+  id        String   @id @default(cuid())
+  target    String
+  kind      String   // exact | regex
+  decision  String   // allow | deny | ignore
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([target, kind, decision])
+  @@index([target])
+  @@index([decision])
+}
+
+model BrowserExtensionDetectionBatch {
+  id              String   @id @default(cuid())
+  extensionId     String
+  clientRequestId String   @unique
+  pageDomain      String
+  pageMainDomain  String
+  pageUrl         String?
+  pageTitle       String?
+  status          String   // detected | applied | partial | failed | undone
+  undoTokenHash   String?
+  summary         Json?
+  createdAt       DateTime @default(now())
+  undoneAt        DateTime?
+
+  extension       BrowserExtensionDevice @relation(fields: [extensionId], references: [id], onDelete: Cascade)
+  items           BrowserExtensionDetectionItem[]
+
+  @@index([extensionId, createdAt])
+  @@index([pageDomain, createdAt])
+  @@index([pageMainDomain, createdAt])
+  @@index([status])
+}
+
+model BrowserExtensionDetectionItem {
+  id           String   @id @default(cuid())
+  batchId      String
+  candidateId  String
+  target       String
+  targetMainDomain String
+  type         String   // deny
+  kind         String   // exact | regex
+  category     String
+  score        Int
+  riskLevel    String
+  reasons      Json
+  evidence     Json
+  applyStatus  String   // detected | blocked | allowed | applied | skipped | failed | undone
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  batch        BrowserExtensionDetectionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([target])
+  @@index([targetMainDomain])
+  @@index([category])
+  @@index([applyStatus])
+}
+
 model RegexFilter {
   id        String   @id @default(cuid())
   name      String   @unique

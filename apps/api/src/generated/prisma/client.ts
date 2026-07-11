@@ -115,6 +115,36 @@ export type ManagedList = Prisma.ManagedListModel
  */
 export type ManagedDomain = Prisma.ManagedDomainModel
 /**
+ * Model BrowserExtensionDevice
+ * 
+ */
+export type BrowserExtensionDevice = Prisma.BrowserExtensionDeviceModel
+/**
+ * Model BrowserExtensionPairingCode
+ * 
+ */
+export type BrowserExtensionPairingCode = Prisma.BrowserExtensionPairingCodeModel
+/**
+ * Model BrowserExtensionSettings
+ * 
+ */
+export type BrowserExtensionSettings = Prisma.BrowserExtensionSettingsModel
+/**
+ * Model BrowserExtensionDecision
+ * 
+ */
+export type BrowserExtensionDecision = Prisma.BrowserExtensionDecisionModel
+/**
+ * Model BrowserExtensionDetectionBatch
+ * 
+ */
+export type BrowserExtensionDetectionBatch = Prisma.BrowserExtensionDetectionBatchModel
+/**
+ * Model BrowserExtensionDetectionItem
+ * 
+ */
+export type BrowserExtensionDetectionItem = Prisma.BrowserExtensionDetectionItemModel
+/**
  * Model RegexFilter
  * 
  */

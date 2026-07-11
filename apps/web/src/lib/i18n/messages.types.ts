@@ -337,6 +337,7 @@ export type WebMessages = {
       groups: string;
       clients: string;
       domains: string;
+      browserExtension: string;
       lists: string;
       instances: string;
       config: string;
@@ -1630,6 +1631,78 @@ export type WebMessages = {
       importPartial: (createdCount: number, updatedCount: number, invalidCount: number) => string;
     };
     defaultComment: string;
+  };
+  browserExtension: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    pairing: {
+      title: string;
+      description: string;
+      generate: string;
+      generating: string;
+      code: string;
+      expiresAt: string;
+      empty: string;
+    };
+    devices: {
+      title: string;
+      description: string;
+      name: string;
+      browser: string;
+      version: string;
+      manifest: string;
+      lastSeen: string;
+      status: string;
+      actions: string;
+      active: string;
+      revoked: string;
+      revoke: string;
+      revoking: string;
+      empty: string;
+    };
+    settings: {
+      title: string;
+      description: string;
+      sendPageTitle: string;
+      hardBlocked: string;
+      sensitive: string;
+      patternsPlaceholder: string;
+      save: string;
+      saving: string;
+    };
+    history: {
+      title: string;
+      description: string;
+      date: string;
+      pageDomain: string;
+      count: string;
+      blocked: string;
+      notBlocked: string;
+      status: string;
+      items: string;
+      errors: string;
+      undone: string;
+      details: string;
+      hideDetails: string;
+      empty: string;
+      target: string;
+      type: string;
+      kind: string;
+      category: string;
+      score: string;
+      reasons: string;
+      evidence: string;
+    };
+    toasts: {
+      pairingCreated: string;
+      pairingFailed: string;
+      settingsSaved: string;
+      settingsFailed: string;
+      deviceRevoked: string;
+      revokeFailed: string;
+      refreshFailed: string;
+    };
   };
   config: {
     eyebrow: string;
