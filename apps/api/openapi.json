@@ -1067,6 +1067,30 @@
         "tags": ["browser-extension"]
       }
     },
+    "/browser-extension/detections/clear": {
+      "post": {
+        "operationId": "BrowserExtensionController_clearDetections",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserExtensionClearResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["browser-extension"]
+      }
+    },
     "/domains": {
       "get": {
         "operationId": "DomainsController_listDomains",
@@ -12952,6 +12976,24 @@
           }
         },
         "required": ["id", "revokedAt"]
+      },
+      "BrowserExtensionClearResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "batchesCount": {
+            "type": "number",
+            "example": 5
+          },
+          "itemsCount": {
+            "type": "number",
+            "example": 25
+          }
+        },
+        "required": ["success", "batchesCount", "itemsCount"]
       }
     }
   }

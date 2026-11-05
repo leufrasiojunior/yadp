@@ -502,6 +502,27 @@ export class BrowserExtensionService {
     };
   }
 
+  async clearDetections(request: Request) {
+    const deleted = await this.prisma.$transaction(async (tx) => {
+      const items = await tx.browserExtensionDetectionItem.deleteMany({});
+      const batches = await tx.browserExtensionDetectionBatch.deleteMany({});
+      return { batchesCount: batches.count, itemsCount: items.count };
+    });
+
+    await this.audit.record({
+      action: "browser_extension.detections.clear",
+      actorType: "user",
+      actorLabel: "Admin",
+      ipAddress: getRequestIp(request),
+      targetType: "browser_extension_detection_batch",
+      targetId: "all",
+      result: "SUCCESS",
+      details: deleted,
+    });
+
+    return { success: true, ...deleted };
+  }
+
   async undoLast(dto: UndoExtensionBatchDto, request: BrowserExtensionAuthenticatedRequest) {
     const device = this.requireAuthenticatedDevice(request);
     const batch = await this.prisma.browserExtensionDetectionBatch.findUnique({

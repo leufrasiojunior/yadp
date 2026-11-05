@@ -6,6 +6,7 @@ import { CsrfGuard } from "../session/csrf.guard";
 import { SessionGuard } from "../session/session.guard";
 import {
   BrowserExtensionApplyResponse,
+  BrowserExtensionClearResponse,
   BrowserExtensionConfigResponseClass,
   BrowserExtensionDetectionsResponse,
   BrowserExtensionDeviceRevokeResponse,
@@ -131,5 +132,13 @@ export class BrowserExtensionController {
   @ApiOkResponse({ type: BrowserExtensionDeviceRevokeResponse })
   revokeDevice(@Param("id") id: string, @Req() request: Request) {
     return this.service.revokeDevice(id, request);
+  }
+
+  @Post("detections/clear")
+  @UseGuards(SessionGuard, CsrfGuard)
+  @ApiCookieAuth()
+  @ApiOkResponse({ type: BrowserExtensionClearResponse })
+  clearDetections(@Req() request: Request) {
+    return this.service.clearDetections(request);
   }
 }

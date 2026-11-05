@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   ShieldOff,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,6 +57,7 @@ type BusyAction =
   | "pairing"
   | "settings"
   | "refresh"
+  | "clear"
   | `revoke:${string}`
   | `block:${string}`
   | `allow:${string}`
@@ -130,6 +132,7 @@ export function BrowserExtensionWorkspace({
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [selectedItemForModal, setSelectedItemForModal] = useState<FlattenedTargetItem | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
 
   const refreshData = async () => {
     setBusyAction("refresh");
@@ -297,6 +300,32 @@ export function BrowserExtensionWorkspace({
       await refreshData();
     } catch {
       toast.error(browserExtensionMessages.toasts.domainAllowFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    setBusyAction("clear");
+
+    try {
+      const { response } = await client.POST("/browser-extension/detections/clear", {
+        headers: { "x-yapd-csrf": csrfToken },
+      });
+
+      if (!response.ok) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      setDetections({
+        items: [],
+        pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 1 },
+      });
+      setClearConfirmOpen(false);
+      toast.success(browserExtensionMessages.toasts.historyCleared);
+    } catch {
+      toast.error(browserExtensionMessages.toasts.historyClearFailed);
     } finally {
       setBusyAction(null);
     }
@@ -538,6 +567,16 @@ export function BrowserExtensionWorkspace({
                 className="h-8 pl-8 text-xs"
               />
             </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive"
+              disabled={allTargetItems.length === 0 || busyAction !== null}
+              onClick={() => setClearConfirmOpen(true)}
+            >
+              <Trash2 className="size-3.5" />
+              {browserExtensionMessages.history.clearHistory}
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -761,6 +800,30 @@ export function BrowserExtensionWorkspace({
           <DialogFooter>
             <Button variant="outline" onClick={() => setSelectedItemForModal(null)}>
               {browserExtensionMessages.history.close}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmação de Limpeza de Histórico */}
+      <Dialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="size-5" />
+              <span>{browserExtensionMessages.history.clearConfirmTitle}</span>
+            </DialogTitle>
+            <DialogDescription>{browserExtensionMessages.history.clearConfirmDescription}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setClearConfirmOpen(false)} disabled={busyAction === "clear"}>
+              {browserExtensionMessages.history.cancel}
+            </Button>
+            <Button variant="destructive" onClick={handleClearHistory} disabled={busyAction === "clear"}>
+              <Trash2 className="mr-1.5 size-4" />
+              {busyAction === "clear"
+                ? browserExtensionMessages.history.clearing
+                : browserExtensionMessages.history.clearConfirmButton}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -402,3 +402,14 @@ export class BrowserExtensionDomainDetectionsResponse {
   @ApiProperty({ type: BrowserExtensionPaginationResponse })
   pagination!: BrowserExtensionPaginationResponse;
 }
+
+export class BrowserExtensionClearResponse {
+  @ApiProperty({ type: Boolean, example: true })
+  success!: boolean;
+
+  @ApiProperty({ type: Number, example: 5 })
+  batchesCount!: number;
+
+  @ApiProperty({ type: Number, example: 25 })
+  itemsCount!: number;
+}

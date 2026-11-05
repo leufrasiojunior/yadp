@@ -376,7 +376,7 @@ export const enUSMessages: WebMessages = {
       groups: "Groups",
       clients: "Clients",
       domains: "Domains",
-      browserExtension: "YAPD Inspector",
+      browserExtension: "YAPD Sentinel",
       lists: "Ad-lists",
       instances: "Instances",
       config: "Configuration",
@@ -1773,7 +1773,7 @@ export const enUSMessages: WebMessages = {
   },
   browserExtension: {
     eyebrow: "Extension",
-    title: "YAPD Inspector",
+    title: "YAPD Sentinel",
     description: "Manage extension pairing, devices, settings, and submission history.",
     pairing: {
       title: "Pairing",
@@ -1846,6 +1846,13 @@ export const enUSMessages: WebMessages = {
       close: "Close",
       filterAllPages: "All pages",
       searchPlaceholder: "Search target or domain...",
+      clearHistory: "Clear history",
+      clearing: "Clearing...",
+      clearConfirmTitle: "Clear all detection history?",
+      clearConfirmDescription:
+        "This will remove all batches and domain detections captured by the extension. Rules already applied in Pi-hole will remain untouched.",
+      clearConfirmButton: "Yes, clear history",
+      cancel: "Cancel",
     },
     toasts: {
       pairingCreated: "Pairing code created.",
@@ -1859,6 +1866,8 @@ export const enUSMessages: WebMessages = {
       domainBlockFailed: "Could not block domain in Pi-hole.",
       domainAllowed: "Domain added to Pi-hole allowlist.",
       domainAllowFailed: "Could not allow domain in Pi-hole.",
+      historyCleared: "Detection history cleared successfully.",
+      historyClearFailed: "Could not clear detection history.",
     },
   },
   config: {

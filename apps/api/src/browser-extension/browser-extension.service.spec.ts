@@ -537,3 +537,30 @@ test("BrowserExtensionAuthGuard rejects invalid bearer tokens", async () => {
 
   await assert.rejects(() => guard.canActivate(context as never), UnauthorizedException);
 });
+
+test("clearDetections deletes all items and batches and records audit log", async () => {
+  let auditRecorded = false;
+  const service = createService({
+    $transaction: async (cb: (tx: unknown) => unknown) => {
+      return cb({
+        browserExtensionDetectionItem: {
+          deleteMany: async () => ({ count: 12 }),
+        },
+        browserExtensionDetectionBatch: {
+          deleteMany: async () => ({ count: 3 }),
+        },
+      });
+    },
+  });
+  (service as unknown as { audit: { record: () => Promise<void> } }).audit = {
+    record: async () => {
+      auditRecorded = true;
+    },
+  };
+  const result = await service.clearDetections(createRequest() as never);
+
+  assert.equal(result.success, true);
+  assert.equal(result.batchesCount, 3);
+  assert.equal(result.itemsCount, 12);
+  assert.equal(auditRecorded, true);
+});

@@ -1707,6 +1707,12 @@ export type WebMessages = {
       close: string;
       filterAllPages: string;
       searchPlaceholder: string;
+      clearHistory: string;
+      clearing: string;
+      clearConfirmTitle: string;
+      clearConfirmDescription: string;
+      clearConfirmButton: string;
+      cancel: string;
     };
     toasts: {
       pairingCreated: string;
@@ -1720,6 +1726,8 @@ export type WebMessages = {
       domainBlockFailed: string;
       domainAllowed: string;
       domainAllowFailed: string;
+      historyCleared: string;
+      historyClearFailed: string;
     };
   };
   config: {

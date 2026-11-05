@@ -378,7 +378,7 @@ export const ptBRMessages: WebMessages = {
       groups: "Grupos",
       clients: "Clientes",
       domains: "Domínios",
-      browserExtension: "YAPD Inspector",
+      browserExtension: "YAPD Sentinel",
       lists: "Ad-lists",
       instances: "Instâncias",
       config: "Configurações",
@@ -1783,7 +1783,7 @@ export const ptBRMessages: WebMessages = {
   },
   browserExtension: {
     eyebrow: "Extensão",
-    title: "YAPD Inspector",
+    title: "YAPD Sentinel",
     description: "Gerencie pareamento, dispositivos, configurações e histórico da extensão.",
     pairing: {
       title: "Pareamento",
@@ -1856,6 +1856,13 @@ export const ptBRMessages: WebMessages = {
       close: "Fechar",
       filterAllPages: "Todas as páginas",
       searchPlaceholder: "Buscar target ou domínio...",
+      clearHistory: "Limpar histórico",
+      clearing: "Limpando...",
+      clearConfirmTitle: "Limpar todo o histórico de detecções?",
+      clearConfirmDescription:
+        "Esta ação removerá todos os lotes e domínios detectados pela extensão até o momento. O histórico de bloqueios já aplicados no Pi-hole não será afetado.",
+      clearConfirmButton: "Sim, limpar histórico",
+      cancel: "Cancelar",
     },
     toasts: {
       pairingCreated: "Código de pareamento criado.",
@@ -1869,6 +1876,8 @@ export const ptBRMessages: WebMessages = {
       domainBlockFailed: "Não foi possível bloquear o domínio no Pi-hole.",
       domainAllowed: "Domínio adicionado à whitelist do Pi-hole.",
       domainAllowFailed: "Não foi possível permitir o domínio no Pi-hole.",
+      historyCleared: "Histórico de detecções limpo com sucesso.",
+      historyClearFailed: "Não foi possível limpar o histórico de detecções.",
     },
   },
   config: {
