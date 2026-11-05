@@ -751,14 +751,25 @@ export class BrowserExtensionService {
           errorMessage: item.errorMessage,
         })),
       );
-      const targetGroups = new Map<string, typeof flatItems>();
 
+      // Deduplica os itens por alvo único (target) mantendo o de maior score / mais recente
+      const distinctTargetsMap = new Map<string, (typeof flatItems)[number]>();
       for (const item of flatItems) {
+        const existing = distinctTargetsMap.get(item.target);
+        if (!existing || item.score > existing.score) {
+          distinctTargetsMap.set(item.target, item);
+        }
+      }
+      const distinctItems = Array.from(distinctTargetsMap.values());
+
+      const targetGroups = new Map<string, typeof distinctItems>();
+
+      for (const item of distinctItems) {
         targetGroups.set(item.targetMainDomain, [...(targetGroups.get(item.targetMainDomain) ?? []), item]);
       }
 
-      const blockedCount = flatItems.filter((item) => blockedStatuses.has(item.applyStatus)).length;
-      const notBlockedCount = flatItems.length - blockedCount;
+      const blockedCount = distinctItems.filter((item) => blockedStatuses.has(item.applyStatus)).length;
+      const notBlockedCount = distinctItems.length - blockedCount;
 
       return {
         pageMainDomain,
@@ -766,7 +777,7 @@ export class BrowserExtensionService {
         latestPageUrl: latest.pageUrl,
         latestPageTitle: latest.pageTitle,
         lastDetectedAt: latest.createdAt.toISOString(),
-        totalDetected: flatItems.length,
+        totalDetected: distinctItems.length,
         blockedCount,
         notBlockedCount,
         status: blockedCount === 0 ? "detected" : notBlockedCount === 0 ? "blocked" : "partial",
