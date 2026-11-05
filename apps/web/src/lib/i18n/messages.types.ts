@@ -1693,6 +1693,10 @@ export type WebMessages = {
       score: string;
       reasons: string;
       evidence: string;
+      blockDomain: string;
+      allowDomain: string;
+      blocking: string;
+      allowing: string;
     };
     toasts: {
       pairingCreated: string;
@@ -1702,6 +1706,10 @@ export type WebMessages = {
       deviceRevoked: string;
       revokeFailed: string;
       refreshFailed: string;
+      domainBlocked: string;
+      domainBlockFailed: string;
+      domainAllowed: string;
+      domainAllowFailed: string;
     };
   };
   config: {

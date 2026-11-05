@@ -1842,6 +1842,10 @@ export const ptBRMessages: WebMessages = {
       score: "Score",
       reasons: "Motivos",
       evidence: "Evidência",
+      blockDomain: "Bloquear no Pi-hole",
+      allowDomain: "Permitir",
+      blocking: "Bloqueando...",
+      allowing: "Permitindo...",
     },
     toasts: {
       pairingCreated: "Código de pareamento criado.",
@@ -1851,6 +1855,10 @@ export const ptBRMessages: WebMessages = {
       deviceRevoked: "Dispositivo revogado.",
       revokeFailed: "Não foi possível revogar o dispositivo.",
       refreshFailed: "Não foi possível atualizar os dados do Inspector.",
+      domainBlocked: "Domínio bloqueado no Pi-hole com sucesso.",
+      domainBlockFailed: "Não foi possível bloquear o domínio no Pi-hole.",
+      domainAllowed: "Domínio adicionado à whitelist do Pi-hole.",
+      domainAllowFailed: "Não foi possível permitir o domínio no Pi-hole.",
     },
   },
   config: {

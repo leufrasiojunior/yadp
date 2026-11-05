@@ -1832,6 +1832,10 @@ export const enUSMessages: WebMessages = {
       score: "Score",
       reasons: "Reasons",
       evidence: "Evidence",
+      blockDomain: "Block in Pi-hole",
+      allowDomain: "Allow",
+      blocking: "Blocking...",
+      allowing: "Allowing...",
     },
     toasts: {
       pairingCreated: "Pairing code created.",
@@ -1841,6 +1845,10 @@ export const enUSMessages: WebMessages = {
       deviceRevoked: "Device revoked.",
       revokeFailed: "Could not revoke the device.",
       refreshFailed: "Could not refresh Inspector data.",
+      domainBlocked: "Domain successfully blocked in Pi-hole.",
+      domainBlockFailed: "Could not block domain in Pi-hole.",
+      domainAllowed: "Domain added to Pi-hole allowlist.",
+      domainAllowFailed: "Could not allow domain in Pi-hole.",
     },
   },
   config: {

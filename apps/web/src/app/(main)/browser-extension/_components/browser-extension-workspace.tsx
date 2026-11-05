@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 
-import { ChevronDown, ChevronRight, KeyRound, RefreshCw, Save, ShieldOff } from "lucide-react";
+import { ChevronDown, ChevronRight, KeyRound, RefreshCw, Save, ShieldBan, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,14 @@ type BrowserExtensionWorkspaceProps = Readonly<{
   initialDetections: BrowserExtensionDomainDetectionsResponse;
 }>;
 
-type BusyAction = "pairing" | "settings" | "refresh" | `revoke:${string}` | null;
+type BusyAction =
+  | "pairing"
+  | "settings"
+  | "refresh"
+  | `revoke:${string}`
+  | `block:${string}`
+  | `allow:${string}`
+  | null;
 
 function splitPatterns(value: string) {
   return value
@@ -209,6 +216,54 @@ export function BrowserExtensionWorkspace({
       toast.success(browserExtensionMessages.toasts.deviceRevoked);
     } catch {
       toast.error(browserExtensionMessages.toasts.revokeFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleBlockDomain = async (domain: string) => {
+    setBusyAction(`block:${domain}`);
+
+    try {
+      const { response } = await client.POST("/domains/{type}/{kind}", {
+        headers: { "x-yapd-csrf": csrfToken },
+        params: { path: { type: "deny", kind: "exact" } },
+        body: { domain, comment: "Added from YAPD Inspector" },
+      });
+
+      if (!response.ok) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      toast.success(browserExtensionMessages.toasts.domainBlocked);
+      await refreshData();
+    } catch {
+      toast.error(browserExtensionMessages.toasts.domainBlockFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleAllowDomain = async (domain: string) => {
+    setBusyAction(`allow:${domain}`);
+
+    try {
+      const { response } = await client.POST("/domains/{type}/{kind}", {
+        headers: { "x-yapd-csrf": csrfToken },
+        params: { path: { type: "allow", kind: "exact" } },
+        body: { domain, comment: "Added from YAPD Inspector" },
+      });
+
+      if (!response.ok) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      toast.success(browserExtensionMessages.toasts.domainAllowed);
+      await refreshData();
+    } catch {
+      toast.error(browserExtensionMessages.toasts.domainAllowFailed);
     } finally {
       setBusyAction(null);
     }
@@ -430,16 +485,40 @@ export function BrowserExtensionWorkspace({
                                           {targetGroup.targetMainDomain}
                                         </p>
                                       </div>
-                                      <div className="flex flex-wrap gap-2">
-                                        <Badge variant="secondary">
-                                          {targetGroup.totalDetected} {browserExtensionMessages.history.count}
-                                        </Badge>
-                                        <Badge variant="default">
-                                          {targetGroup.blockedCount} {browserExtensionMessages.history.blocked}
-                                        </Badge>
-                                        <Badge variant="outline">
-                                          {targetGroup.notBlockedCount} {browserExtensionMessages.history.notBlocked}
-                                        </Badge>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <div className="flex flex-wrap gap-2 mr-2">
+                                          <Badge variant="secondary">
+                                            {targetGroup.totalDetected} {browserExtensionMessages.history.count}
+                                          </Badge>
+                                          <Badge variant="default">
+                                            {targetGroup.blockedCount} {browserExtensionMessages.history.blocked}
+                                          </Badge>
+                                          <Badge variant="outline">
+                                            {targetGroup.notBlockedCount} {browserExtensionMessages.history.notBlocked}
+                                          </Badge>
+                                        </div>
+                                        <Button
+                                          size="sm"
+                                          variant="destructive"
+                                          disabled={busyAction !== null}
+                                          onClick={() => handleBlockDomain(targetGroup.targetMainDomain)}
+                                        >
+                                          <ShieldBan />
+                                          {busyAction === `block:${targetGroup.targetMainDomain}`
+                                            ? browserExtensionMessages.history.blocking
+                                            : browserExtensionMessages.history.blockDomain}
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          disabled={busyAction !== null}
+                                          onClick={() => handleAllowDomain(targetGroup.targetMainDomain)}
+                                        >
+                                          <ShieldCheck />
+                                          {busyAction === `allow:${targetGroup.targetMainDomain}`
+                                            ? browserExtensionMessages.history.allowing
+                                            : browserExtensionMessages.history.allowDomain}
+                                        </Button>
                                       </div>
                                     </div>
                                     <div className="mt-3 space-y-3">
