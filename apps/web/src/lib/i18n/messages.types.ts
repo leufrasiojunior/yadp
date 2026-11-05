@@ -1697,6 +1697,16 @@ export type WebMessages = {
       allowDomain: string;
       blocking: string;
       allowing: string;
+      actions: string;
+      alreadyBlocked: string;
+      alreadyAllowed: string;
+      copyJson: string;
+      jsonCopied: string;
+      detailsModalTitle: string;
+      detailsModalDescription: string;
+      close: string;
+      filterAllPages: string;
+      searchPlaceholder: string;
     };
     toasts: {
       pairingCreated: string;

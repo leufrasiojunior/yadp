@@ -1,14 +1,34 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
-import { ChevronDown, ChevronRight, KeyRound, RefreshCw, Save, ShieldBan, ShieldCheck, ShieldOff } from "lucide-react";
+import {
+  Check,
+  Copy,
+  KeyRound,
+  RefreshCw,
+  Save,
+  Search,
+  ShieldBan,
+  ShieldCheck,
+  ShieldOff,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +38,7 @@ import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
 import type {
   BrowserExtensionDeviceRevokeResponse,
   BrowserExtensionDevicesResponse,
+  BrowserExtensionDomainDetectionItem,
   BrowserExtensionDomainDetectionsResponse,
   BrowserExtensionPairingCodeResponse,
   BrowserExtensionSettingsResponse,
@@ -39,6 +60,13 @@ type BusyAction =
   | `block:${string}`
   | `allow:${string}`
   | null;
+
+type FlattenedTargetItem = BrowserExtensionDomainDetectionItem & {
+  pageMainDomain: string;
+  latestPageDomain: string;
+  latestPageUrl: string | null;
+  latestPageTitle: string | null;
+};
 
 function splitPatterns(value: string) {
   return value
@@ -95,8 +123,13 @@ export function BrowserExtensionWorkspace({
     joinPatterns(initialSettings.hardBlockedUrlPatterns),
   );
   const [sensitiveUrlPatterns, setSensitiveUrlPatterns] = useState(joinPatterns(initialSettings.sensitiveUrlPatterns));
-  const [expandedBatchIds, setExpandedBatchIds] = useState<string[]>([]);
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
+
+  // Estados da tabela limpa de alvos e modal de JSON
+  const [selectedPageFilter, setSelectedPageFilter] = useState<string>("ALL");
+  const [searchFilter, setSearchFilter] = useState<string>("");
+  const [selectedItemForModal, setSelectedItemForModal] = useState<FlattenedTargetItem | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const refreshData = async () => {
     setBusyAction("refresh");
@@ -269,8 +302,60 @@ export function BrowserExtensionWorkspace({
     }
   };
 
-  const toggleBatchExpansion = (id: string) => {
-    setExpandedBatchIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+  // Consolidação de todos os alvos detectados de forma plana para exibição em tabela limpa
+  const allTargetItems = useMemo(() => {
+    const list: FlattenedTargetItem[] = [];
+
+    for (const group of detections.items) {
+      for (const targetGroup of group.targetGroups) {
+        for (const item of targetGroup.items) {
+          list.push({
+            ...item,
+            pageMainDomain: group.pageMainDomain,
+            latestPageDomain: group.latestPageDomain,
+            latestPageUrl: group.latestPageUrl,
+            latestPageTitle: group.latestPageTitle,
+          });
+        }
+      }
+    }
+
+    return list;
+  }, [detections]);
+
+  // Lista de páginas distintas para o filtro
+  const availablePages = useMemo(() => {
+    return Array.from(new Set(detections.items.map((g) => g.pageMainDomain)));
+  }, [detections]);
+
+  // Filtragem por página selecionada e busca textual
+  const filteredTargetItems = useMemo(() => {
+    let result = allTargetItems;
+
+    if (selectedPageFilter !== "ALL") {
+      result = result.filter((item) => item.pageMainDomain === selectedPageFilter);
+    }
+
+    if (searchFilter.trim().length > 0) {
+      const q = searchFilter.trim().toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.target.toLowerCase().includes(q) ||
+          item.targetMainDomain.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q) ||
+          item.pageDomain.toLowerCase().includes(q),
+      );
+    }
+
+    return result;
+  }, [allTargetItems, selectedPageFilter, searchFilter]);
+
+  const handleCopyJson = () => {
+    if (!selectedItemForModal) return;
+    navigator.clipboard.writeText(JSON.stringify(selectedItemForModal, null, 2));
+    setIsCopied(true);
+    toast.success(browserExtensionMessages.history.jsonCopied);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   return (
@@ -413,177 +498,199 @@ export function BrowserExtensionWorkspace({
         </CardContent>
       </Card>
 
+      {/* Tabela Limpa e Direta de Alvos Detectados */}
       <Card>
-        <CardHeader>
-          <CardTitle>{browserExtensionMessages.history.title}</CardTitle>
-          <CardDescription>{browserExtensionMessages.history.description}</CardDescription>
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>{browserExtensionMessages.history.title}</CardTitle>
+            <CardDescription>{browserExtensionMessages.history.description}</CardDescription>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {availablePages.length > 1 && (
+              <div className="flex flex-wrap items-center gap-1 rounded-lg border bg-muted/30 p-1 text-xs">
+                <Button
+                  size="sm"
+                  variant={selectedPageFilter === "ALL" ? "default" : "ghost"}
+                  className="h-7 px-2.5 text-xs"
+                  onClick={() => setSelectedPageFilter("ALL")}
+                >
+                  {browserExtensionMessages.history.filterAllPages} ({allTargetItems.length})
+                </Button>
+                {availablePages.map((page) => (
+                  <Button
+                    key={page}
+                    size="sm"
+                    variant={selectedPageFilter === page ? "default" : "ghost"}
+                    className="h-7 px-2.5 text-xs"
+                    onClick={() => setSelectedPageFilter(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+            )}
+            <div className="relative w-full sm:w-64">
+              <Search className="-translate-y-1/2 absolute top-1/2 left-2.5 size-4 text-muted-foreground" />
+              <Input
+                placeholder={browserExtensionMessages.history.searchPlaceholder}
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="h-8 pl-8 text-xs"
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {detections.items.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{browserExtensionMessages.history.empty}</p>
+          {filteredTargetItems.length === 0 ? (
+            <p className="py-4 text-center text-muted-foreground text-sm">{browserExtensionMessages.history.empty}</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{browserExtensionMessages.history.pageDomain}</TableHead>
-                    <TableHead>{browserExtensionMessages.history.date}</TableHead>
-                    <TableHead>{browserExtensionMessages.history.count}</TableHead>
-                    <TableHead>{browserExtensionMessages.history.blocked}</TableHead>
-                    <TableHead>{browserExtensionMessages.history.notBlocked}</TableHead>
-                    <TableHead>{browserExtensionMessages.history.status}</TableHead>
-                    <TableHead className="text-right">{browserExtensionMessages.history.details}</TableHead>
+                    <TableHead className="w-[34%]">{browserExtensionMessages.history.target}</TableHead>
+                    <TableHead className="w-[16%]">{browserExtensionMessages.history.category}</TableHead>
+                    <TableHead className="w-[12%]">{browserExtensionMessages.history.score}</TableHead>
+                    <TableHead className="w-[14%]">{browserExtensionMessages.history.kind}</TableHead>
+                    <TableHead className="w-[24%] text-right">{browserExtensionMessages.history.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {detections.items.map((domainGroup) => {
-                    const expanded = expandedBatchIds.includes(domainGroup.pageMainDomain);
+                  {filteredTargetItems.map((item) => {
+                    const isBlocked = item.applyStatus === "blocked" || item.applyStatus === "applied";
+                    const isAllowed = item.applyStatus === "allowed";
 
                     return (
-                      <Fragment key={domainGroup.pageMainDomain}>
-                        <TableRow>
-                          <TableCell className="font-medium">
-                            <div className="grid gap-1">
-                              <span>{domainGroup.pageMainDomain}</span>
-                              {domainGroup.latestPageDomain !== domainGroup.pageMainDomain && (
-                                <span className="text-muted-foreground text-xs">{domainGroup.latestPageDomain}</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>{formatDate(domainGroup.lastDetectedAt, locale)}</TableCell>
-                          <TableCell>{domainGroup.totalDetected}</TableCell>
-                          <TableCell>{domainGroup.blockedCount}</TableCell>
-                          <TableCell>{domainGroup.notBlockedCount}</TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusVariant(domainGroup.status)}>{domainGroup.status}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => toggleBatchExpansion(domainGroup.pageMainDomain)}
-                            >
-                              {expanded ? <ChevronDown /> : <ChevronRight />}
-                              {expanded
-                                ? browserExtensionMessages.history.hideDetails
-                                : browserExtensionMessages.history.details}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                        {expanded && (
-                          <TableRow key={`${domainGroup.pageMainDomain}:details`}>
-                            <TableCell colSpan={7}>
-                              <div className="space-y-3 py-2">
-                                {domainGroup.targetGroups.map((targetGroup) => (
-                                  <div key={targetGroup.targetMainDomain} className="rounded-md border p-3">
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                      <div>
-                                        <p className="text-muted-foreground text-xs">
-                                          {browserExtensionMessages.history.target}
-                                        </p>
-                                        <p className="break-all font-medium font-mono text-sm">
-                                          {targetGroup.targetMainDomain}
-                                        </p>
-                                      </div>
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <div className="flex flex-wrap gap-2 mr-2">
-                                          <Badge variant="secondary">
-                                            {targetGroup.totalDetected} {browserExtensionMessages.history.count}
-                                          </Badge>
-                                          <Badge variant="default">
-                                            {targetGroup.blockedCount} {browserExtensionMessages.history.blocked}
-                                          </Badge>
-                                          <Badge variant="outline">
-                                            {targetGroup.notBlockedCount} {browserExtensionMessages.history.notBlocked}
-                                          </Badge>
-                                        </div>
-                                        <Button
-                                          size="sm"
-                                          variant="destructive"
-                                          disabled={busyAction !== null}
-                                          onClick={() => handleBlockDomain(targetGroup.targetMainDomain)}
-                                        >
-                                          <ShieldBan />
-                                          {busyAction === `block:${targetGroup.targetMainDomain}`
-                                            ? browserExtensionMessages.history.blocking
-                                            : browserExtensionMessages.history.blockDomain}
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          disabled={busyAction !== null}
-                                          onClick={() => handleAllowDomain(targetGroup.targetMainDomain)}
-                                        >
-                                          <ShieldCheck />
-                                          {busyAction === `allow:${targetGroup.targetMainDomain}`
-                                            ? browserExtensionMessages.history.allowing
-                                            : browserExtensionMessages.history.allowDomain}
-                                        </Button>
-                                      </div>
-                                    </div>
-                                    <div className="mt-3 space-y-3">
-                                      {targetGroup.items.map((item) => (
-                                        <div key={item.id} className="rounded-md bg-muted/50 p-3">
-                                          <div className="grid gap-3 md:grid-cols-6">
-                                            <div className="md:col-span-2">
-                                              <p className="text-muted-foreground text-xs">
-                                                {browserExtensionMessages.history.target}
-                                              </p>
-                                              <p className="break-all font-mono text-sm">{item.target}</p>
-                                            </div>
-                                            <div>
-                                              <p className="text-muted-foreground text-xs">
-                                                {browserExtensionMessages.history.kind}
-                                              </p>
-                                              <Badge variant="outline">{item.kind}</Badge>
-                                            </div>
-                                            <div>
-                                              <p className="text-muted-foreground text-xs">
-                                                {browserExtensionMessages.history.category}
-                                              </p>
-                                              <p className="text-sm">{item.category}</p>
-                                            </div>
-                                            <div>
-                                              <p className="text-muted-foreground text-xs">
-                                                {browserExtensionMessages.history.score}
-                                              </p>
-                                              <p className="text-sm">{item.score}</p>
-                                            </div>
-                                            <div>
-                                              <p className="text-muted-foreground text-xs">
-                                                {browserExtensionMessages.history.status}
-                                              </p>
-                                              <Badge variant={getStatusVariant(item.applyStatus)}>
-                                                {item.applyStatus}
-                                              </Badge>
-                                            </div>
-                                          </div>
-                                          <div className="mt-3 grid gap-3 md:grid-cols-2">
-                                            <div>
-                                              <p className="text-muted-foreground text-xs">
-                                                {browserExtensionMessages.history.reasons}
-                                              </p>
-                                              <p className="text-sm">{item.reasons.join(", ")}</p>
-                                            </div>
-                                            <div>
-                                              <p className="text-muted-foreground text-xs">
-                                                {browserExtensionMessages.history.evidence}
-                                              </p>
-                                              <pre className="max-h-28 overflow-auto rounded bg-background p-2 text-xs">
-                                                {JSON.stringify(item.evidence, null, 2)}
-                                              </pre>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </Fragment>
+                      <TableRow
+                        key={item.id}
+                        className="cursor-pointer transition-colors hover:bg-muted/50"
+                        onClick={() => setSelectedItemForModal(item)}
+                      >
+                        {/* 1. Target */}
+                        <TableCell className="font-medium">
+                          <div className="grid gap-0.5">
+                            <span className="break-all font-mono text-foreground text-sm">{item.target}</span>
+                            {item.pageDomain && item.pageDomain !== item.target && (
+                              <span className="max-w-[280px] truncate text-muted-foreground text-xs">
+                                via {item.pageDomain}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        {/* 2. Categoria */}
+                        <TableCell>
+                          <Badge variant="secondary" className="font-normal text-xs capitalize">
+                            {item.category.replace(/_/g, " ")}
+                          </Badge>
+                        </TableCell>
+
+                        {/* 3. Score */}
+                        <TableCell>
+                          <Badge
+                            variant={item.score >= 70 ? "destructive" : item.score >= 40 ? "secondary" : "outline"}
+                            className="font-mono font-semibold"
+                          >
+                            {item.score}
+                          </Badge>
+                        </TableCell>
+
+                        {/* 4. Formato */}
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {item.kind}
+                            </Badge>
+                            {item.evidence && typeof item.evidence.elementTag === "string" && (
+                              <span className="font-mono text-muted-foreground text-xs">
+                                &lt;{item.evidence.elementTag}&gt;
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        {/* 5. Ações (Permitir, Bloquear, se já bloqueado informar) */}
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {isBlocked ? (
+                              <>
+                                <Badge
+                                  variant="default"
+                                  className="h-7 gap-1 border-red-500/25 bg-red-500/15 px-2.5 font-medium text-red-600 text-xs dark:text-red-400"
+                                >
+                                  <ShieldBan className="size-3.5" />
+                                  {browserExtensionMessages.history.alreadyBlocked}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-2 text-xs"
+                                  disabled={busyAction !== null}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAllowDomain(item.targetMainDomain || item.target);
+                                  }}
+                                >
+                                  <ShieldCheck className="mr-1 size-3.5" />
+                                  {browserExtensionMessages.history.allowDomain}
+                                </Button>
+                              </>
+                            ) : isAllowed ? (
+                              <>
+                                <Badge
+                                  variant="outline"
+                                  className="h-7 gap-1 border-emerald-500/25 bg-emerald-500/10 px-2.5 font-medium text-emerald-600 text-xs dark:text-emerald-400"
+                                >
+                                  <ShieldCheck className="size-3.5" />
+                                  {browserExtensionMessages.history.alreadyAllowed}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-7 px-2 text-xs"
+                                  disabled={busyAction !== null}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBlockDomain(item.targetMainDomain || item.target);
+                                  }}
+                                >
+                                  <ShieldBan className="mr-1 size-3.5" />
+                                  {browserExtensionMessages.history.blockDomain}
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs"
+                                  disabled={busyAction !== null}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAllowDomain(item.targetMainDomain || item.target);
+                                  }}
+                                >
+                                  <ShieldCheck className="mr-1 size-3.5" />
+                                  {browserExtensionMessages.history.allowDomain}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-7 text-xs"
+                                  disabled={busyAction !== null}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBlockDomain(item.targetMainDomain || item.target);
+                                  }}
+                                >
+                                  <ShieldBan className="mr-1 size-3.5" />
+                                  {browserExtensionMessages.history.blockDomain}
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
                 </TableBody>
@@ -592,6 +699,72 @@ export function BrowserExtensionWorkspace({
           )}
         </CardContent>
       </Card>
+
+      {/* Modal com Payload JSON e Evidências ao Clicar na Linha */}
+      <Dialog open={Boolean(selectedItemForModal)} onOpenChange={(open) => !open && setSelectedItemForModal(null)}>
+        <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 break-all font-mono text-base">
+              <Sparkles className="size-4 shrink-0 text-primary" />
+              <span>{selectedItemForModal?.target}</span>
+            </DialogTitle>
+            <DialogDescription>{browserExtensionMessages.history.detailsModalDescription}</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 space-y-4 overflow-auto py-2">
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-md border p-2.5">
+                <span className="mb-0.5 block text-muted-foreground">Domínio Principal:</span>
+                <span className="font-medium font-mono">{selectedItemForModal?.targetMainDomain}</span>
+              </div>
+              <div className="rounded-md border p-2.5">
+                <span className="mb-0.5 block text-muted-foreground">Página Visitada:</span>
+                <span className="block truncate font-medium font-mono">{selectedItemForModal?.pageDomain || "-"}</span>
+              </div>
+              <div className="rounded-md border p-2.5">
+                <span className="mb-0.5 block text-muted-foreground">Categoria / Score:</span>
+                <span className="font-medium">
+                  {selectedItemForModal?.category} (Score: {selectedItemForModal?.score}/100)
+                </span>
+              </div>
+              <div className="rounded-md border p-2.5">
+                <span className="mb-0.5 block text-muted-foreground">Status no Pi-hole:</span>
+                <span className="font-medium capitalize">{selectedItemForModal?.applyStatus}</span>
+              </div>
+            </div>
+
+            {selectedItemForModal?.reasons && selectedItemForModal.reasons.length > 0 && (
+              <div className="rounded-md border p-3">
+                <span className="mb-1 block font-medium text-muted-foreground text-xs">Motivos da Classificação:</span>
+                <ul className="list-inside list-disc space-y-0.5 text-foreground/80 text-xs">
+                  {selectedItemForModal.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="font-medium text-muted-foreground text-xs">Payload JSON Completo:</span>
+                <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={handleCopyJson}>
+                  {isCopied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+                  {isCopied ? "Copiado!" : browserExtensionMessages.history.copyJson}
+                </Button>
+              </div>
+              <pre className="max-h-64 overflow-auto rounded-lg border bg-zinc-950 p-3 font-mono text-xs text-zinc-100 dark:bg-zinc-900">
+                {selectedItemForModal ? JSON.stringify(selectedItemForModal, null, 2) : ""}
+              </pre>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedItemForModal(null)}>
+              {browserExtensionMessages.history.close}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
