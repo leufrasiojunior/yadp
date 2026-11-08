@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 
 import {
   Check,
+  ChevronsUpDown,
   Copy,
+  Globe,
   KeyRound,
   RefreshCw,
   Save,
@@ -15,6 +17,7 @@ import {
   ShieldOff,
   Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -32,6 +35,7 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -132,6 +136,8 @@ export function BrowserExtensionWorkspace({
 
   // Estados da tabela limpa de alvos e modal de JSON
   const [selectedPageFilter, setSelectedPageFilter] = useState<string>("ALL");
+  const [domainDropdownOpen, setDomainDropdownOpen] = useState(false);
+  const [domainSearchQuery, setDomainSearchQuery] = useState("");
   const [scoreFilter, setScoreFilter] = useState<"ALL" | "GTE_70" | "GTE_30" | "LT_30">("ALL");
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [selectedItemForModal, setSelectedItemForModal] = useState<FlattenedTargetItem | null>(null);
@@ -398,10 +404,31 @@ export function BrowserExtensionWorkspace({
     return list.sort((a, b) => b.score - a.score || a.target.localeCompare(b.target) || a.id.localeCompare(b.id));
   }, [detections]);
 
-  // Lista de páginas distintas para o filtro
+  // Contagem de alvos por domínio principal da página visitada
+  const pageTargetCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of allTargetItems) {
+      counts.set(item.pageMainDomain, (counts.get(item.pageMainDomain) ?? 0) + 1);
+    }
+    return counts;
+  }, [allTargetItems]);
+
+  // Lista de páginas distintas para o filtro ordenadas por quantidade e alfabético
   const availablePages = useMemo(() => {
-    return Array.from(new Set(detections.items.map((g) => g.pageMainDomain)));
-  }, [detections]);
+    const pages = Array.from(new Set(detections.items.map((g) => g.pageMainDomain)));
+    return pages.sort((a, b) => {
+      const countA = pageTargetCounts.get(a) ?? 0;
+      const countB = pageTargetCounts.get(b) ?? 0;
+      return countB - countA || a.localeCompare(b);
+    });
+  }, [detections, pageTargetCounts]);
+
+  // Filtragem dos domínios por digitação parcial no dropdown
+  const searchedPages = useMemo(() => {
+    const q = domainSearchQuery.trim().toLowerCase();
+    if (!q) return availablePages;
+    return availablePages.filter((domain) => domain.toLowerCase().includes(q));
+  }, [availablePages, domainSearchQuery]);
 
   // Filtragem por página selecionada, score e busca textual
   const filteredTargetItems = useMemo(() => {
@@ -480,27 +507,141 @@ export function BrowserExtensionWorkspace({
                 <CardDescription>{browserExtensionMessages.history.description}</CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {availablePages.length > 1 && (
-                  <div className="flex flex-wrap items-center gap-1 rounded-lg border bg-muted/30 p-1 text-xs">
-                    <Button
-                      size="sm"
-                      variant={selectedPageFilter === "ALL" ? "default" : "ghost"}
-                      className="h-7 px-2.5 text-xs"
-                      onClick={() => setSelectedPageFilter("ALL")}
-                    >
-                      {browserExtensionMessages.history.filterAllPages} ({allTargetItems.length})
-                    </Button>
-                    {availablePages.map((page) => (
+                {/* Dropdown Pesquisável de Domínios Principais */}
+                {availablePages.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <Popover open={domainDropdownOpen} onOpenChange={setDomainDropdownOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          role="combobox"
+                          aria-expanded={domainDropdownOpen}
+                          className="h-8 min-w-[190px] max-w-[270px] justify-between gap-2 font-normal text-xs"
+                        >
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Globe className="size-3.5 shrink-0 text-muted-foreground" />
+                            <span className="truncate">
+                              {selectedPageFilter === "ALL"
+                                ? browserExtensionMessages.history.filterAllDomains
+                                : selectedPageFilter}
+                            </span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
+                              {selectedPageFilter === "ALL"
+                                ? allTargetItems.length
+                                : (pageTargetCounts.get(selectedPageFilter) ?? 0)}
+                            </Badge>
+                            <ChevronsUpDown className="size-3 opacity-50" />
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0" align="start">
+                        <div className="border-b p-2">
+                          <div className="relative">
+                            <Search className="-translate-y-1/2 absolute top-1/2 left-2.5 size-3.5 text-muted-foreground" />
+                            <Input
+                              placeholder={browserExtensionMessages.history.domainFilterPlaceholder}
+                              value={domainSearchQuery}
+                              onChange={(e) => setDomainSearchQuery(e.target.value)}
+                              className="h-8 pr-7 pl-8 text-xs"
+                              autoFocus
+                            />
+                            {domainSearchQuery && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="-translate-y-1/2 absolute top-1/2 right-1 size-6 text-muted-foreground hover:text-foreground"
+                                onClick={() => setDomainSearchQuery("")}
+                              >
+                                <X className="size-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="max-h-60 overflow-y-auto p-1 text-xs">
+                          {/* Opção Todos os Domínios */}
+                          <button
+                            type="button"
+                            className={cn(
+                              "flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-muted/80",
+                              selectedPageFilter === "ALL" && "bg-muted font-medium text-foreground",
+                            )}
+                            onClick={() => {
+                              setSelectedPageFilter("ALL");
+                              setDomainDropdownOpen(false);
+                            }}
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <Check
+                                className={cn(
+                                  "size-3.5 shrink-0 text-primary",
+                                  selectedPageFilter === "ALL" ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              <span className="truncate">{browserExtensionMessages.history.filterAllDomains}</span>
+                            </div>
+                            <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
+                              {allTargetItems.length}
+                            </Badge>
+                          </button>
+
+                          {searchedPages.length === 0 ? (
+                            <p className="py-4 text-center text-muted-foreground text-xs">
+                              {browserExtensionMessages.history.domainFilterEmpty}
+                            </p>
+                          ) : (
+                            searchedPages.map((page) => {
+                              const isSelected = selectedPageFilter === page;
+                              const count = pageTargetCounts.get(page) ?? 0;
+
+                              return (
+                                <button
+                                  key={page}
+                                  type="button"
+                                  className={cn(
+                                    "flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-muted/80",
+                                    isSelected && "bg-muted font-medium text-foreground",
+                                  )}
+                                  onClick={() => {
+                                    setSelectedPageFilter(page);
+                                    setDomainDropdownOpen(false);
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2 truncate">
+                                    <Check
+                                      className={cn(
+                                        "size-3.5 shrink-0 text-primary",
+                                        isSelected ? "opacity-100" : "opacity-0",
+                                      )}
+                                    />
+                                    <span className="truncate font-mono">{page}</span>
+                                  </div>
+                                  <Badge variant="outline" className="px-1.5 py-0 font-mono text-[10px]">
+                                    {count}
+                                  </Badge>
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {selectedPageFilter !== "ALL" && (
                       <Button
-                        key={page}
                         size="sm"
-                        variant={selectedPageFilter === page ? "default" : "ghost"}
-                        className="h-7 px-2.5 text-xs"
-                        onClick={() => setSelectedPageFilter(page)}
+                        variant="ghost"
+                        className="h-8 px-2 text-muted-foreground text-xs hover:text-foreground"
+                        onClick={() => setSelectedPageFilter("ALL")}
+                        title="Limpar filtro de domínio"
                       >
-                        {page}
+                        <X className="mr-1 size-3" />
+                        <span>Limpar</span>
                       </Button>
-                    ))}
+                    )}
                   </div>
                 )}
                 <div className="w-full sm:w-auto">

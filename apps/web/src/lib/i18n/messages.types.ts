@@ -1710,6 +1710,9 @@ export type WebMessages = {
       detailsModalDescription: string;
       close: string;
       filterAllPages: string;
+      filterAllDomains: string;
+      domainFilterPlaceholder: string;
+      domainFilterEmpty: string;
       searchPlaceholder: string;
       scoreFilter: string;
       scoreFilterAll: string;
