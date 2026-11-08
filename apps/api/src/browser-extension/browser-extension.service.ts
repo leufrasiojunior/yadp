@@ -288,7 +288,7 @@ export class BrowserExtensionService {
       throw new BadRequestException("sourceBatchId page domain does not match the payload page domain.");
     }
 
-    this.assertValidDomainTarget(dto.page.domain, "page.domain");
+    this.assertValidHostTarget(dto.page.domain, "page.domain");
     for (const target of dto.approvedTargets) {
       this.assertValidDomainTarget(target.target, "approvedTargets.target");
     }

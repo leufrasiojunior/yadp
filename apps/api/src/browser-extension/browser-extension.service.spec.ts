@@ -564,3 +564,63 @@ test("clearDetections deletes all items and batches and records audit log", asyn
   assert.equal(result.itemsCount, 12);
   assert.equal(auditRecorded, true);
 });
+
+test("applyDetections accepts valid hostnames for page.domain without raw regex", async () => {
+  const service = createService(
+    {
+      browserExtensionDetectionBatch: {
+        findUnique: async () => null,
+        create: async () => ({ id: "batch-host-1" }),
+      },
+      browserExtensionDecision: {
+        upsert: async () => undefined,
+      },
+    },
+    {
+      applyDomainOperationForActor: async () => ({
+        request: { value: "ads.example.com" },
+        successfulInstances: [{ instanceName: "Pi-hole" }],
+        failedInstances: [],
+      }),
+    },
+  );
+  const request = {
+    ...createRequest(),
+    browserExtension: {
+      id: "extension-1",
+      name: "YAPD Sentinel",
+      browser: "chrome-or-edge",
+      manifestVersion: 3,
+      extensionVersion: "0.2.0",
+      tokenPrefix: "token",
+    },
+  };
+  const validHostDto = {
+    ...applyDto,
+    sourceBatchId: undefined,
+    page: {
+      url: "http://192.168.1.1/dashboard",
+      domain: "192.168.1.1",
+    },
+    approvedTargets: [
+      {
+        candidateId: "candidate-1",
+        target: "ads.example.com",
+        type: "deny" as const,
+        kind: "exact" as const,
+        patternMode: "exact" as const,
+        category: "ads",
+        score: 90,
+        riskLevel: "high",
+        reasons: ["Suspicious URL"],
+        evidence: {
+          source: "user_inspector_click" as const,
+          isThirdParty: true,
+        },
+      },
+    ],
+  };
+
+  const response = await service.applyDetections(validHostDto, request as never);
+  assert.equal(response.status, "applied");
+});
