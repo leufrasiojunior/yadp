@@ -861,10 +861,11 @@ export class BrowserExtensionService {
               items: groupItems.sort((left, right) => right.score - left.score),
             };
           })
-          .sort(
-            (left, right) =>
-              right.blockedCount - left.blockedCount || left.targetMainDomain.localeCompare(right.targetMainDomain),
-          ),
+          .sort((left, right) => {
+            const leftMaxScore = Math.max(...left.items.map((i) => i.score), 0);
+            const rightMaxScore = Math.max(...right.items.map((i) => i.score), 0);
+            return rightMaxScore - leftMaxScore || left.targetMainDomain.localeCompare(right.targetMainDomain);
+          }),
       };
     });
 

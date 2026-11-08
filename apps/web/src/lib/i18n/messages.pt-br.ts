@@ -1785,6 +1785,10 @@ export const ptBRMessages: WebMessages = {
     eyebrow: "Extensão",
     title: "YAPD Sentinel",
     description: "Gerencie pareamento, dispositivos, configurações e histórico da extensão.",
+    tabs: {
+      history: "Histórico de Detecções",
+      settings: "Configurações Gerais",
+    },
     pairing: {
       title: "Pareamento",
       description: "Gere um código temporário para conectar uma extensão ao YAPD.",
@@ -1856,6 +1860,11 @@ export const ptBRMessages: WebMessages = {
       close: "Fechar",
       filterAllPages: "Todas as páginas",
       searchPlaceholder: "Buscar target ou domínio...",
+      scoreFilter: "Filtrar por Score",
+      scoreFilterAll: "Todos os scores",
+      scoreFilterHigh: "Score ≥ 70 (Alto Risco)",
+      scoreFilterMedium: "Score ≥ 30 (Suspeitos & Ads)",
+      scoreFilterLow: "Score < 30 (Baixo Risco)",
       clearHistory: "Limpar histórico",
       clearing: "Limpando...",
       clearConfirmTitle: "Limpar todo o histórico de detecções?",

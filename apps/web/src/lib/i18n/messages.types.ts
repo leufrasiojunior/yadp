@@ -1636,6 +1636,10 @@ export type WebMessages = {
     eyebrow: string;
     title: string;
     description: string;
+    tabs: {
+      history: string;
+      settings: string;
+    };
     pairing: {
       title: string;
       description: string;
@@ -1707,6 +1711,11 @@ export type WebMessages = {
       close: string;
       filterAllPages: string;
       searchPlaceholder: string;
+      scoreFilter: string;
+      scoreFilterAll: string;
+      scoreFilterHigh: string;
+      scoreFilterMedium: string;
+      scoreFilterLow: string;
       clearHistory: string;
       clearing: string;
       clearConfirmTitle: string;

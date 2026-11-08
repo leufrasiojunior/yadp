@@ -1775,6 +1775,10 @@ export const enUSMessages: WebMessages = {
     eyebrow: "Extension",
     title: "YAPD Sentinel",
     description: "Manage extension pairing, devices, settings, and submission history.",
+    tabs: {
+      history: "Detections History",
+      settings: "General Settings",
+    },
     pairing: {
       title: "Pairing",
       description: "Generate a temporary code to connect an extension to YAPD.",
@@ -1846,6 +1850,11 @@ export const enUSMessages: WebMessages = {
       close: "Close",
       filterAllPages: "All pages",
       searchPlaceholder: "Search target or domain...",
+      scoreFilter: "Filter by Score",
+      scoreFilterAll: "All scores",
+      scoreFilterHigh: "Score ≥ 70 (High Risk)",
+      scoreFilterMedium: "Score ≥ 30 (Suspicious & Ads)",
+      scoreFilterLow: "Score < 30 (Low Risk)",
       clearHistory: "Clear history",
       clearing: "Clearing...",
       clearConfirmTitle: "Clear all detection history?",

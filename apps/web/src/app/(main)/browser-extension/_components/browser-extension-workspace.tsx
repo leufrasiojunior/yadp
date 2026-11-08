@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Save,
   Search,
+  Settings,
   ShieldBan,
   ShieldCheck,
   ShieldOff,
@@ -30,8 +31,10 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppSession } from "@/components/yapd/app-session-provider";
 import { getApiErrorMessage } from "@/lib/api/error-message";
@@ -129,6 +132,7 @@ export function BrowserExtensionWorkspace({
 
   // Estados da tabela limpa de alvos e modal de JSON
   const [selectedPageFilter, setSelectedPageFilter] = useState<string>("ALL");
+  const [scoreFilter, setScoreFilter] = useState<"ALL" | "GTE_70" | "GTE_30" | "LT_30">("ALL");
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [selectedItemForModal, setSelectedItemForModal] = useState<FlattenedTargetItem | null>(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -387,7 +391,11 @@ export function BrowserExtensionWorkspace({
       }
     }
 
-    return list;
+    // Ordenação estritamente determinística e estável:
+    // 1. Maior score primeiro
+    // 2. Desempate estável por target alfabético (não muda com status de bloqueio)
+    // 3. Desempate final por ID
+    return list.sort((a, b) => b.score - a.score || a.target.localeCompare(b.target) || a.id.localeCompare(b.id));
   }, [detections]);
 
   // Lista de páginas distintas para o filtro
@@ -395,12 +403,20 @@ export function BrowserExtensionWorkspace({
     return Array.from(new Set(detections.items.map((g) => g.pageMainDomain)));
   }, [detections]);
 
-  // Filtragem por página selecionada e busca textual
+  // Filtragem por página selecionada, score e busca textual
   const filteredTargetItems = useMemo(() => {
     let result = allTargetItems;
 
     if (selectedPageFilter !== "ALL") {
       result = result.filter((item) => item.pageMainDomain === selectedPageFilter);
+    }
+
+    if (scoreFilter === "GTE_70") {
+      result = result.filter((item) => item.score >= 70);
+    } else if (scoreFilter === "GTE_30") {
+      result = result.filter((item) => item.score >= 30);
+    } else if (scoreFilter === "LT_30") {
+      result = result.filter((item) => item.score < 30);
     }
 
     if (searchFilter.trim().length > 0) {
@@ -415,7 +431,7 @@ export function BrowserExtensionWorkspace({
     }
 
     return result;
-  }, [allTargetItems, selectedPageFilter, searchFilter]);
+  }, [allTargetItems, selectedPageFilter, scoreFilter, searchFilter]);
 
   const handleCopyJson = () => {
     if (!selectedItemForModal) return;
@@ -426,356 +442,413 @@ export function BrowserExtensionWorkspace({
   };
 
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.65fr)]">
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle>{browserExtensionMessages.pairing.title}</CardTitle>
-              <CardDescription>{browserExtensionMessages.pairing.description}</CardDescription>
-            </div>
-            <Button disabled={busyAction !== null} onClick={generatePairingCode}>
-              <KeyRound />
-              {busyAction === "pairing"
-                ? browserExtensionMessages.pairing.generating
-                : browserExtensionMessages.pairing.generate}
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {pairingCode ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-md border px-4 py-3">
-                  <p className="text-muted-foreground text-xs">{browserExtensionMessages.pairing.code}</p>
-                  <p className="font-mono font-semibold text-3xl tracking-widest">{pairingCode.pairingCode}</p>
-                </div>
-                <div className="rounded-md border px-4 py-3">
-                  <p className="text-muted-foreground text-xs">{browserExtensionMessages.pairing.expiresAt}</p>
-                  <p className="font-medium">{formatDate(pairingCode.expiresAt, locale)}</p>
-                </div>
+    <div className="space-y-6">
+      <Tabs defaultValue="history" className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <TabsList>
+            <TabsTrigger value="history" className="gap-2">
+              <Sparkles className="size-4" />
+              <span>{browserExtensionMessages.tabs.history}</span>
+              <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
+                {filteredTargetItems.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="size-4" />
+              <span>{browserExtensionMessages.tabs.settings}</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <Button
+            disabled={busyAction !== null}
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 text-xs"
+            onClick={refreshData}
+          >
+            <RefreshCw className={cn("size-3.5", busyAction === "refresh" && "animate-spin")} />
+            <span>Atualizar</span>
+          </Button>
+        </div>
+
+        {/* ABA PRINCIPAL: HISTÓRICO DE DETECÇÕES */}
+        <TabsContent value="history" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>{browserExtensionMessages.history.title}</CardTitle>
+                <CardDescription>{browserExtensionMessages.history.description}</CardDescription>
               </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">{browserExtensionMessages.pairing.empty}</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle>{browserExtensionMessages.settings.title}</CardTitle>
-              <CardDescription>{browserExtensionMessages.settings.description}</CardDescription>
-            </div>
-            <Button disabled={busyAction !== null} variant="outline" onClick={refreshData}>
-              <RefreshCw className={cn(busyAction === "refresh" && "animate-spin")} />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between rounded-md border px-3 py-2">
-              <FieldLabel>{browserExtensionMessages.settings.sendPageTitle}</FieldLabel>
-              <Switch checked={sendPageTitle} onCheckedChange={setSendPageTitle} />
-            </div>
-            <Field>
-              <FieldLabel>{browserExtensionMessages.settings.hardBlocked}</FieldLabel>
-              <Textarea
-                className="min-h-24 font-mono text-xs"
-                placeholder={browserExtensionMessages.settings.patternsPlaceholder}
-                value={hardBlockedUrlPatterns}
-                onChange={(event) => setHardBlockedUrlPatterns(event.target.value)}
-              />
-            </Field>
-            <Field>
-              <FieldLabel>{browserExtensionMessages.settings.sensitive}</FieldLabel>
-              <Textarea
-                className="min-h-24 font-mono text-xs"
-                placeholder={browserExtensionMessages.settings.patternsPlaceholder}
-                value={sensitiveUrlPatterns}
-                onChange={(event) => setSensitiveUrlPatterns(event.target.value)}
-              />
-            </Field>
-            <Button disabled={busyAction !== null} onClick={saveSettings}>
-              <Save />
-              {busyAction === "settings"
-                ? browserExtensionMessages.settings.saving
-                : browserExtensionMessages.settings.save}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{browserExtensionMessages.devices.title}</CardTitle>
-          <CardDescription>{browserExtensionMessages.devices.description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {devices.items.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{browserExtensionMessages.devices.empty}</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{browserExtensionMessages.devices.name}</TableHead>
-                    <TableHead>{browserExtensionMessages.devices.browser}</TableHead>
-                    <TableHead>{browserExtensionMessages.devices.version}</TableHead>
-                    <TableHead>{browserExtensionMessages.devices.manifest}</TableHead>
-                    <TableHead>{browserExtensionMessages.devices.lastSeen}</TableHead>
-                    <TableHead>{browserExtensionMessages.devices.status}</TableHead>
-                    <TableHead className="text-right">{browserExtensionMessages.devices.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {devices.items.map((device) => {
-                    const isRevoked = Boolean(device.revokedAt);
-
-                    return (
-                      <TableRow key={device.id}>
-                        <TableCell className="font-medium">{device.name}</TableCell>
-                        <TableCell>{device.browser}</TableCell>
-                        <TableCell>{device.extensionVersion}</TableCell>
-                        <TableCell>MV{device.manifestVersion}</TableCell>
-                        <TableCell>{formatDate(device.lastSeenAt, locale)}</TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusVariant(isRevoked ? "revoked" : "active")}>
-                            {isRevoked
-                              ? browserExtensionMessages.devices.revoked
-                              : browserExtensionMessages.devices.active}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            disabled={isRevoked || busyAction !== null}
-                            size="sm"
-                            variant="outline"
-                            onClick={() => revokeDevice(device.id)}
-                          >
-                            <ShieldOff />
-                            {busyAction === `revoke:${device.id}`
-                              ? browserExtensionMessages.devices.revoking
-                              : browserExtensionMessages.devices.revoke}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Tabela Limpa e Direta de Alvos Detectados */}
-      <Card>
-        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>{browserExtensionMessages.history.title}</CardTitle>
-            <CardDescription>{browserExtensionMessages.history.description}</CardDescription>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {availablePages.length > 1 && (
-              <div className="flex flex-wrap items-center gap-1 rounded-lg border bg-muted/30 p-1 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                {availablePages.length > 1 && (
+                  <div className="flex flex-wrap items-center gap-1 rounded-lg border bg-muted/30 p-1 text-xs">
+                    <Button
+                      size="sm"
+                      variant={selectedPageFilter === "ALL" ? "default" : "ghost"}
+                      className="h-7 px-2.5 text-xs"
+                      onClick={() => setSelectedPageFilter("ALL")}
+                    >
+                      {browserExtensionMessages.history.filterAllPages} ({allTargetItems.length})
+                    </Button>
+                    {availablePages.map((page) => (
+                      <Button
+                        key={page}
+                        size="sm"
+                        variant={selectedPageFilter === page ? "default" : "ghost"}
+                        className="h-7 px-2.5 text-xs"
+                        onClick={() => setSelectedPageFilter(page)}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                <div className="w-full sm:w-auto">
+                  <NativeSelect
+                    size="sm"
+                    value={scoreFilter}
+                    onChange={(e) => setScoreFilter(e.target.value as "ALL" | "GTE_70" | "GTE_30" | "LT_30")}
+                    className="h-8 text-xs"
+                  >
+                    <NativeSelectOption value="ALL">
+                      {browserExtensionMessages.history.scoreFilterAll}
+                    </NativeSelectOption>
+                    <NativeSelectOption value="GTE_70">
+                      {browserExtensionMessages.history.scoreFilterHigh}
+                    </NativeSelectOption>
+                    <NativeSelectOption value="GTE_30">
+                      {browserExtensionMessages.history.scoreFilterMedium}
+                    </NativeSelectOption>
+                    <NativeSelectOption value="LT_30">
+                      {browserExtensionMessages.history.scoreFilterLow}
+                    </NativeSelectOption>
+                  </NativeSelect>
+                </div>
+                <div className="relative w-full sm:w-64">
+                  <Search className="-translate-y-1/2 absolute top-1/2 left-2.5 size-4 text-muted-foreground" />
+                  <Input
+                    placeholder={browserExtensionMessages.history.searchPlaceholder}
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    className="h-8 pl-8 text-xs"
+                  />
+                </div>
                 <Button
                   size="sm"
-                  variant={selectedPageFilter === "ALL" ? "default" : "ghost"}
-                  className="h-7 px-2.5 text-xs"
-                  onClick={() => setSelectedPageFilter("ALL")}
+                  variant="outline"
+                  className="h-8 gap-1.5 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive"
+                  disabled={allTargetItems.length === 0 || busyAction !== null}
+                  onClick={() => setClearConfirmOpen(true)}
                 >
-                  {browserExtensionMessages.history.filterAllPages} ({allTargetItems.length})
+                  <Trash2 className="size-3.5" />
+                  {browserExtensionMessages.history.clearHistory}
                 </Button>
-                {availablePages.map((page) => (
-                  <Button
-                    key={page}
-                    size="sm"
-                    variant={selectedPageFilter === page ? "default" : "ghost"}
-                    className="h-7 px-2.5 text-xs"
-                    onClick={() => setSelectedPageFilter(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
               </div>
-            )}
-            <div className="relative w-full sm:w-64">
-              <Search className="-translate-y-1/2 absolute top-1/2 left-2.5 size-4 text-muted-foreground" />
-              <Input
-                placeholder={browserExtensionMessages.history.searchPlaceholder}
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                className="h-8 pl-8 text-xs"
-              />
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1.5 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive"
-              disabled={allTargetItems.length === 0 || busyAction !== null}
-              onClick={() => setClearConfirmOpen(true)}
-            >
-              <Trash2 className="size-3.5" />
-              {browserExtensionMessages.history.clearHistory}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {filteredTargetItems.length === 0 ? (
-            <p className="py-4 text-center text-muted-foreground text-sm">{browserExtensionMessages.history.empty}</p>
-          ) : (
-            <div className="overflow-x-auto rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[34%]">{browserExtensionMessages.history.target}</TableHead>
-                    <TableHead className="w-[16%]">{browserExtensionMessages.history.category}</TableHead>
-                    <TableHead className="w-[12%]">{browserExtensionMessages.history.score}</TableHead>
-                    <TableHead className="w-[14%]">{browserExtensionMessages.history.kind}</TableHead>
-                    <TableHead className="w-[24%] text-right">{browserExtensionMessages.history.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTargetItems.map((item) => {
-                    const isBlocked = item.applyStatus === "blocked" || item.applyStatus === "applied";
-                    const isAllowed = item.applyStatus === "allowed";
-
-                    return (
-                      <TableRow
-                        key={item.id}
-                        className="cursor-pointer transition-colors hover:bg-muted/50"
-                        onClick={() => setSelectedItemForModal(item)}
-                      >
-                        {/* 1. Target */}
-                        <TableCell className="font-medium">
-                          <div className="grid gap-0.5">
-                            <span className="break-all font-mono text-foreground text-sm">{item.target}</span>
-                            {item.pageDomain && item.pageDomain !== item.target && (
-                              <span className="max-w-[280px] truncate text-muted-foreground text-xs">
-                                via {item.pageDomain}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-
-                        {/* 2. Categoria */}
-                        <TableCell>
-                          <Badge variant="secondary" className="font-normal text-xs capitalize">
-                            {item.category.replace(/_/g, " ")}
-                          </Badge>
-                        </TableCell>
-
-                        {/* 3. Score */}
-                        <TableCell>
-                          <Badge
-                            variant={item.score >= 70 ? "destructive" : item.score >= 40 ? "secondary" : "outline"}
-                            className="font-mono font-semibold"
-                          >
-                            {item.score}
-                          </Badge>
-                        </TableCell>
-
-                        {/* 4. Formato */}
-                        <TableCell>
-                          <div className="flex items-center gap-1.5">
-                            <Badge variant="outline" className="font-mono text-xs">
-                              {item.kind}
-                            </Badge>
-                            {item.evidence && typeof item.evidence.elementTag === "string" && (
-                              <span className="font-mono text-muted-foreground text-xs">
-                                &lt;{item.evidence.elementTag}&gt;
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-
-                        {/* 5. Ações (Permitir, Bloquear, se já bloqueado informar) */}
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {isBlocked ? (
-                              <>
-                                <Badge
-                                  variant="default"
-                                  className="h-7 gap-1 border-red-500/25 bg-red-500/15 px-2.5 font-medium text-red-600 text-xs dark:text-red-400"
-                                >
-                                  <ShieldBan className="size-3.5" />
-                                  {browserExtensionMessages.history.alreadyBlocked}
-                                </Badge>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 px-2 text-xs"
-                                  disabled={busyAction !== null}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAllowDomain(item.targetMainDomain || item.target);
-                                  }}
-                                >
-                                  <ShieldCheck className="mr-1 size-3.5" />
-                                  {browserExtensionMessages.history.allowDomain}
-                                </Button>
-                              </>
-                            ) : isAllowed ? (
-                              <>
-                                <Badge
-                                  variant="outline"
-                                  className="h-7 gap-1 border-emerald-500/25 bg-emerald-500/10 px-2.5 font-medium text-emerald-600 text-xs dark:text-emerald-400"
-                                >
-                                  <ShieldCheck className="size-3.5" />
-                                  {browserExtensionMessages.history.alreadyAllowed}
-                                </Badge>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  className="h-7 px-2 text-xs"
-                                  disabled={busyAction !== null}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleBlockDomain(item.targetMainDomain || item.target);
-                                  }}
-                                >
-                                  <ShieldBan className="mr-1 size-3.5" />
-                                  {browserExtensionMessages.history.blockDomain}
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 text-xs"
-                                  disabled={busyAction !== null}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAllowDomain(item.targetMainDomain || item.target);
-                                  }}
-                                >
-                                  <ShieldCheck className="mr-1 size-3.5" />
-                                  {browserExtensionMessages.history.allowDomain}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  className="h-7 text-xs"
-                                  disabled={busyAction !== null}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleBlockDomain(item.targetMainDomain || item.target);
-                                  }}
-                                >
-                                  <ShieldBan className="mr-1 size-3.5" />
-                                  {browserExtensionMessages.history.blockDomain}
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
+            </CardHeader>
+            <CardContent>
+              {filteredTargetItems.length === 0 ? (
+                <p className="py-4 text-center text-muted-foreground text-sm">
+                  {browserExtensionMessages.history.empty}
+                </p>
+              ) : (
+                <div className="overflow-x-auto rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[34%]">{browserExtensionMessages.history.target}</TableHead>
+                        <TableHead className="w-[16%]">{browserExtensionMessages.history.category}</TableHead>
+                        <TableHead className="w-[12%]">{browserExtensionMessages.history.score}</TableHead>
+                        <TableHead className="w-[14%]">{browserExtensionMessages.history.kind}</TableHead>
+                        <TableHead className="w-[24%] text-right">{browserExtensionMessages.history.actions}</TableHead>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTargetItems.map((item) => {
+                        const isBlocked = item.applyStatus === "blocked" || item.applyStatus === "applied";
+                        const isAllowed = item.applyStatus === "allowed";
+
+                        return (
+                          <TableRow
+                            key={item.id}
+                            className="cursor-pointer transition-colors hover:bg-muted/50"
+                            onClick={() => setSelectedItemForModal(item)}
+                          >
+                            {/* 1. Target */}
+                            <TableCell className="font-medium">
+                              <div className="grid gap-0.5">
+                                <span className="break-all font-mono text-foreground text-sm">{item.target}</span>
+                                {item.pageDomain && item.pageDomain !== item.target && (
+                                  <span className="max-w-[280px] truncate text-muted-foreground text-xs">
+                                    via {item.pageDomain}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            {/* 2. Categoria */}
+                            <TableCell>
+                              <Badge variant="secondary" className="font-normal text-xs capitalize">
+                                {item.category.replace(/_/g, " ")}
+                              </Badge>
+                            </TableCell>
+
+                            {/* 3. Score */}
+                            <TableCell>
+                              <Badge
+                                variant={item.score >= 70 ? "destructive" : item.score >= 40 ? "secondary" : "outline"}
+                                className="font-mono font-semibold"
+                              >
+                                {item.score}
+                              </Badge>
+                            </TableCell>
+
+                            {/* 4. Formato */}
+                            <TableCell>
+                              <div className="flex items-center gap-1.5">
+                                <Badge variant="outline" className="font-mono text-xs">
+                                  {item.kind}
+                                </Badge>
+                                {item.evidence && typeof item.evidence.elementTag === "string" && (
+                                  <span className="font-mono text-muted-foreground text-xs">
+                                    &lt;{item.evidence.elementTag}&gt;
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            {/* 5. Ações (Permitir, Bloquear, se já bloqueado informar) */}
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {isBlocked ? (
+                                  <>
+                                    <Badge
+                                      variant="default"
+                                      className="h-7 gap-1 border-red-500/25 bg-red-500/15 px-2.5 font-medium text-red-600 text-xs dark:text-red-400"
+                                    >
+                                      <ShieldBan className="size-3.5" />
+                                      {browserExtensionMessages.history.alreadyBlocked}
+                                    </Badge>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 px-2 text-xs"
+                                      disabled={busyAction !== null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAllowDomain(item.targetMainDomain || item.target);
+                                      }}
+                                    >
+                                      <ShieldCheck className="mr-1 size-3.5" />
+                                      {browserExtensionMessages.history.allowDomain}
+                                    </Button>
+                                  </>
+                                ) : isAllowed ? (
+                                  <>
+                                    <Badge
+                                      variant="outline"
+                                      className="h-7 gap-1 border-emerald-500/25 bg-emerald-500/10 px-2.5 font-medium text-emerald-600 text-xs dark:text-emerald-400"
+                                    >
+                                      <ShieldCheck className="size-3.5" />
+                                      {browserExtensionMessages.history.alreadyAllowed}
+                                    </Badge>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="h-7 px-2 text-xs"
+                                      disabled={busyAction !== null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleBlockDomain(item.targetMainDomain || item.target);
+                                      }}
+                                    >
+                                      <ShieldBan className="mr-1 size-3.5" />
+                                      {browserExtensionMessages.history.blockDomain}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs"
+                                      disabled={busyAction !== null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAllowDomain(item.targetMainDomain || item.target);
+                                      }}
+                                    >
+                                      <ShieldCheck className="mr-1 size-3.5" />
+                                      {browserExtensionMessages.history.allowDomain}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="h-7 text-xs"
+                                      disabled={busyAction !== null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleBlockDomain(item.targetMainDomain || item.target);
+                                      }}
+                                    >
+                                      <ShieldBan className="mr-1 size-3.5" />
+                                      {browserExtensionMessages.history.blockDomain}
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ABA SECUNDÁRIA: CONFIGURAÇÕES GERAIS */}
+        <TabsContent value="settings" className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.65fr)]">
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>{browserExtensionMessages.pairing.title}</CardTitle>
+                  <CardDescription>{browserExtensionMessages.pairing.description}</CardDescription>
+                </div>
+                <Button disabled={busyAction !== null} onClick={generatePairingCode}>
+                  <KeyRound />
+                  {busyAction === "pairing"
+                    ? browserExtensionMessages.pairing.generating
+                    : browserExtensionMessages.pairing.generate}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {pairingCode ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-md border px-4 py-3">
+                      <p className="text-muted-foreground text-xs">{browserExtensionMessages.pairing.code}</p>
+                      <p className="font-mono font-semibold text-3xl tracking-widest">{pairingCode.pairingCode}</p>
+                    </div>
+                    <div className="rounded-md border px-4 py-3">
+                      <p className="text-muted-foreground text-xs">{browserExtensionMessages.pairing.expiresAt}</p>
+                      <p className="font-medium">{formatDate(pairingCode.expiresAt, locale)}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">{browserExtensionMessages.pairing.empty}</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>{browserExtensionMessages.settings.title}</CardTitle>
+                  <CardDescription>{browserExtensionMessages.settings.description}</CardDescription>
+                </div>
+                <Button disabled={busyAction !== null} variant="outline" onClick={refreshData}>
+                  <RefreshCw className={cn(busyAction === "refresh" && "animate-spin")} />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-md border px-3 py-2">
+                  <FieldLabel>{browserExtensionMessages.settings.sendPageTitle}</FieldLabel>
+                  <Switch checked={sendPageTitle} onCheckedChange={setSendPageTitle} />
+                </div>
+                <Field>
+                  <FieldLabel>{browserExtensionMessages.settings.hardBlocked}</FieldLabel>
+                  <Textarea
+                    className="min-h-24 font-mono text-xs"
+                    placeholder={browserExtensionMessages.settings.patternsPlaceholder}
+                    value={hardBlockedUrlPatterns}
+                    onChange={(event) => setHardBlockedUrlPatterns(event.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel>{browserExtensionMessages.settings.sensitive}</FieldLabel>
+                  <Textarea
+                    className="min-h-24 font-mono text-xs"
+                    placeholder={browserExtensionMessages.settings.patternsPlaceholder}
+                    value={sensitiveUrlPatterns}
+                    onChange={(event) => setSensitiveUrlPatterns(event.target.value)}
+                  />
+                </Field>
+                <Button disabled={busyAction !== null} onClick={saveSettings}>
+                  <Save />
+                  {busyAction === "settings"
+                    ? browserExtensionMessages.settings.saving
+                    : browserExtensionMessages.settings.save}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{browserExtensionMessages.devices.title}</CardTitle>
+              <CardDescription>{browserExtensionMessages.devices.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {devices.items.length === 0 ? (
+                <p className="text-muted-foreground text-sm">{browserExtensionMessages.devices.empty}</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{browserExtensionMessages.devices.name}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.browser}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.version}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.manifest}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.lastSeen}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.status}</TableHead>
+                        <TableHead className="text-right">{browserExtensionMessages.devices.actions}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {devices.items.map((device) => {
+                        const isRevoked = Boolean(device.revokedAt);
+
+                        return (
+                          <TableRow key={device.id}>
+                            <TableCell className="font-medium">{device.name}</TableCell>
+                            <TableCell>{device.browser}</TableCell>
+                            <TableCell>{device.extensionVersion}</TableCell>
+                            <TableCell>MV{device.manifestVersion}</TableCell>
+                            <TableCell>{formatDate(device.lastSeenAt, locale)}</TableCell>
+                            <TableCell>
+                              <Badge variant={getStatusVariant(isRevoked ? "revoked" : "active")}>
+                                {isRevoked
+                                  ? browserExtensionMessages.devices.revoked
+                                  : browserExtensionMessages.devices.active}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                disabled={isRevoked || busyAction !== null}
+                                size="sm"
+                                variant="outline"
+                                onClick={() => revokeDevice(device.id)}
+                              >
+                                <ShieldOff />
+                                {busyAction === `revoke:${device.id}`
+                                  ? browserExtensionMessages.devices.revoking
+                                  : browserExtensionMessages.devices.revoke}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Modal com Payload JSON e Evidências ao Clicar na Linha */}
       <Dialog open={Boolean(selectedItemForModal)} onOpenChange={(open) => !open && setSelectedItemForModal(null)}>
