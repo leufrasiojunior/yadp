@@ -34,8 +34,8 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -645,25 +645,20 @@ export function BrowserExtensionWorkspace({
                   </div>
                 )}
                 <div className="w-full sm:w-auto">
-                  <NativeSelect
-                    size="sm"
+                  <Select
                     value={scoreFilter}
-                    onChange={(e) => setScoreFilter(e.target.value as "ALL" | "GTE_70" | "GTE_30" | "LT_30")}
-                    className="h-8 text-xs"
+                    onValueChange={(val) => setScoreFilter(val as "ALL" | "GTE_70" | "GTE_30" | "LT_30")}
                   >
-                    <NativeSelectOption value="ALL">
-                      {browserExtensionMessages.history.scoreFilterAll}
-                    </NativeSelectOption>
-                    <NativeSelectOption value="GTE_70">
-                      {browserExtensionMessages.history.scoreFilterHigh}
-                    </NativeSelectOption>
-                    <NativeSelectOption value="GTE_30">
-                      {browserExtensionMessages.history.scoreFilterMedium}
-                    </NativeSelectOption>
-                    <NativeSelectOption value="LT_30">
-                      {browserExtensionMessages.history.scoreFilterLow}
-                    </NativeSelectOption>
-                  </NativeSelect>
+                    <SelectTrigger size="sm" className="h-8 min-w-[170px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent position="popper" align="start">
+                      <SelectItem value="ALL">{browserExtensionMessages.history.scoreFilterAll}</SelectItem>
+                      <SelectItem value="GTE_70">{browserExtensionMessages.history.scoreFilterHigh}</SelectItem>
+                      <SelectItem value="GTE_30">{browserExtensionMessages.history.scoreFilterMedium}</SelectItem>
+                      <SelectItem value="LT_30">{browserExtensionMessages.history.scoreFilterLow}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="relative w-full sm:w-64">
                   <Search className="-translate-y-1/2 absolute top-1/2 left-2.5 size-4 text-muted-foreground" />
