@@ -640,18 +640,30 @@ export class BrowserExtensionService {
     const totalItems = await this.prisma.browserExtensionDetectionBatch.count({ where });
     const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
     const page = Math.min(this.clampInteger(query.page, 1, 999, 1), totalPages);
-    const batches = await this.prisma.browserExtensionDetectionBatch.findMany({
-      where,
-      include: {
-        extension: true,
-        items: {
-          orderBy: [{ createdAt: "asc" }],
+    const [batches, cache] = await Promise.all([
+      this.prisma.browserExtensionDetectionBatch.findMany({
+        where,
+        include: {
+          extension: true,
+          items: {
+            orderBy: [{ createdAt: "asc" }],
+          },
         },
-      },
-      orderBy: [{ createdAt: "desc" }],
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+        orderBy: [{ createdAt: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.readRuleCache(),
+    ]);
+
+    const blockedTargetsSet = new Set<string>();
+    const allowedTargetsSet = new Set<string>();
+    for (const item of cache.blockedItems) {
+      blockedTargetsSet.add(item.target.toLowerCase());
+    }
+    for (const item of cache.allowlist) {
+      allowedTargetsSet.add(item.target.toLowerCase());
+    }
 
     return {
       items: batches.map((batch) => ({
@@ -667,21 +679,32 @@ export class BrowserExtensionService {
         summary: this.asObjectOrNull(batch.summary),
         createdAt: batch.createdAt.toISOString(),
         undoneAt: batch.undoneAt?.toISOString() ?? null,
-        items: batch.items.map((item) => ({
-          id: item.id,
-          candidateId: item.candidateId,
-          target: item.target,
-          targetMainDomain: item.targetMainDomain,
-          type: item.type,
-          kind: item.kind,
-          category: item.category,
-          score: item.score,
-          riskLevel: item.riskLevel,
-          reasons: this.asStringArray(item.reasons),
-          evidence: this.asObject(item.evidence),
-          applyStatus: item.applyStatus,
-          errorMessage: item.errorMessage,
-        })),
+        items: batch.items.map((item) => {
+          const normTarget = item.target.toLowerCase();
+          const normTargetMain = item.targetMainDomain.toLowerCase();
+          let dynamicApplyStatus = item.applyStatus;
+          if (blockedTargetsSet.has(normTarget) || blockedTargetsSet.has(normTargetMain)) {
+            dynamicApplyStatus = "blocked";
+          } else if (allowedTargetsSet.has(normTarget) || allowedTargetsSet.has(normTargetMain)) {
+            dynamicApplyStatus = "allowed";
+          }
+
+          return {
+            id: item.id,
+            candidateId: item.candidateId,
+            target: item.target,
+            targetMainDomain: item.targetMainDomain,
+            type: item.type,
+            kind: item.kind,
+            category: item.category,
+            score: item.score,
+            riskLevel: item.riskLevel,
+            reasons: this.asStringArray(item.reasons),
+            evidence: this.asObject(item.evidence),
+            applyStatus: dynamicApplyStatus,
+            errorMessage: item.errorMessage,
+          };
+        }),
       })),
       pagination: {
         page,
@@ -729,18 +752,31 @@ export class BrowserExtensionService {
       };
     }
 
-    const batches = await this.prisma.browserExtensionDetectionBatch.findMany({
-      where: {
-        ...where,
-        pageMainDomain: { in: pageMainDomains },
-      },
-      include: {
-        items: {
-          orderBy: [{ createdAt: "desc" }],
+    const [batches, cache] = await Promise.all([
+      this.prisma.browserExtensionDetectionBatch.findMany({
+        where: {
+          ...where,
+          pageMainDomain: { in: pageMainDomains },
         },
-      },
-      orderBy: [{ createdAt: "desc" }],
-    });
+        include: {
+          items: {
+            orderBy: [{ createdAt: "desc" }],
+          },
+        },
+        orderBy: [{ createdAt: "desc" }],
+      }),
+      this.readRuleCache(),
+    ]);
+
+    const blockedTargetsSet = new Set<string>();
+    const allowedTargetsSet = new Set<string>();
+    for (const item of cache.blockedItems) {
+      blockedTargetsSet.add(item.target.toLowerCase());
+    }
+    for (const item of cache.allowlist) {
+      allowedTargetsSet.add(item.target.toLowerCase());
+    }
+
     const blockedStatuses = new Set(["blocked", "applied"]);
     const items = pageMainDomains.map((pageMainDomain) => {
       const domainBatches = batches.filter((batch) => batch.pageMainDomain === pageMainDomain);
@@ -751,26 +787,37 @@ export class BrowserExtensionService {
       }
 
       const flatItems = domainBatches.flatMap((batch) =>
-        batch.items.map((item) => ({
-          id: item.id,
-          batchId: batch.id,
-          candidateId: item.candidateId,
-          pageDomain: batch.pageDomain,
-          pageUrl: batch.pageUrl,
-          pageTitle: batch.pageTitle,
-          detectedAt: item.createdAt.toISOString(),
-          target: item.target,
-          targetMainDomain: item.targetMainDomain,
-          type: item.type,
-          kind: item.kind,
-          category: item.category,
-          score: item.score,
-          riskLevel: item.riskLevel,
-          reasons: this.asStringArray(item.reasons),
-          evidence: this.asObject(item.evidence),
-          applyStatus: item.applyStatus,
-          errorMessage: item.errorMessage,
-        })),
+        batch.items.map((item) => {
+          const normTarget = item.target.toLowerCase();
+          const normTargetMain = item.targetMainDomain.toLowerCase();
+          let dynamicApplyStatus = item.applyStatus;
+          if (blockedTargetsSet.has(normTarget) || blockedTargetsSet.has(normTargetMain)) {
+            dynamicApplyStatus = "blocked";
+          } else if (allowedTargetsSet.has(normTarget) || allowedTargetsSet.has(normTargetMain)) {
+            dynamicApplyStatus = "allowed";
+          }
+
+          return {
+            id: item.id,
+            batchId: batch.id,
+            candidateId: item.candidateId,
+            pageDomain: batch.pageDomain,
+            pageUrl: batch.pageUrl,
+            pageTitle: batch.pageTitle,
+            detectedAt: item.createdAt.toISOString(),
+            target: item.target,
+            targetMainDomain: item.targetMainDomain,
+            type: item.type,
+            kind: item.kind,
+            category: item.category,
+            score: item.score,
+            riskLevel: item.riskLevel,
+            reasons: this.asStringArray(item.reasons),
+            evidence: this.asObject(item.evidence),
+            applyStatus: dynamicApplyStatus,
+            errorMessage: item.errorMessage,
+          };
+        }),
       );
 
       // Deduplica os itens por alvo único (target) mantendo o de maior score / mais recente

@@ -260,6 +260,23 @@ export function BrowserExtensionWorkspace({
   const handleBlockDomain = async (domain: string) => {
     setBusyAction(`block:${domain}`);
 
+    // Atualização otimista imediata na tabela
+    setDetections((prev) => ({
+      ...prev,
+      items: prev.items.map((group) => ({
+        ...group,
+        targetGroups: group.targetGroups.map((tg) => ({
+          ...tg,
+          items: tg.items.map((item) =>
+            item.target.toLowerCase() === domain.toLowerCase() ||
+            item.targetMainDomain.toLowerCase() === domain.toLowerCase()
+              ? { ...item, applyStatus: "blocked" as const }
+              : item,
+          ),
+        })),
+      })),
+    }));
+
     try {
       const { response } = await client.POST("/domains/{type}/{kind}", {
         headers: { "x-yapd-csrf": csrfToken },
@@ -269,6 +286,7 @@ export function BrowserExtensionWorkspace({
 
       if (!response.ok) {
         toast.error(await getApiErrorMessage(response));
+        await refreshData();
         return;
       }
 
@@ -276,6 +294,7 @@ export function BrowserExtensionWorkspace({
       await refreshData();
     } catch {
       toast.error(browserExtensionMessages.toasts.domainBlockFailed);
+      await refreshData();
     } finally {
       setBusyAction(null);
     }
@@ -283,6 +302,23 @@ export function BrowserExtensionWorkspace({
 
   const handleAllowDomain = async (domain: string) => {
     setBusyAction(`allow:${domain}`);
+
+    // Atualização otimista imediata na tabela
+    setDetections((prev) => ({
+      ...prev,
+      items: prev.items.map((group) => ({
+        ...group,
+        targetGroups: group.targetGroups.map((tg) => ({
+          ...tg,
+          items: tg.items.map((item) =>
+            item.target.toLowerCase() === domain.toLowerCase() ||
+            item.targetMainDomain.toLowerCase() === domain.toLowerCase()
+              ? { ...item, applyStatus: "allowed" as const }
+              : item,
+          ),
+        })),
+      })),
+    }));
 
     try {
       const { response } = await client.POST("/domains/{type}/{kind}", {
@@ -293,6 +329,7 @@ export function BrowserExtensionWorkspace({
 
       if (!response.ok) {
         toast.error(await getApiErrorMessage(response));
+        await refreshData();
         return;
       }
 
@@ -300,6 +337,7 @@ export function BrowserExtensionWorkspace({
       await refreshData();
     } catch {
       toast.error(browserExtensionMessages.toasts.domainAllowFailed);
+      await refreshData();
     } finally {
       setBusyAction(null);
     }
