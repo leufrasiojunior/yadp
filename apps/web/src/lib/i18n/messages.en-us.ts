@@ -1858,6 +1858,33 @@ export const enUSMessages: WebMessages = {
       scoreFilterHigh: "Score ≥ 70 (High Risk)",
       scoreFilterMedium: "Score ≥ 30 (Suspicious & Ads)",
       scoreFilterLow: "Score < 30 (Low Risk)",
+      subtabs: {
+        pending: "Pending",
+        blocked: "Blocked",
+        all: "All",
+      },
+      legend: {
+        button: "Legend",
+        title: "Categories & Classification Legend",
+        description: "Understand how Sentinel classifies detected targets and risk scores.",
+        categoriesTitle: "Detected Categories",
+        scoresTitle: "Score Tiers and Risk Levels",
+        adsName: "Ads (Advertising)",
+        adsDesc:
+          "Known ad-servers and ad-networks (e.g. DoubleClick, Criteo, Taboola), standard IAB banner dimensions, or injected ads.",
+        trackingName: "Tracking (Analytics & Telemetry)",
+        trackingDesc:
+          "Behavioral tracking scripts, telemetry, audience measurement, and third-party conversion pixels.",
+        thirdPartyName: "Third Party (External Resources)",
+        thirdPartyDesc:
+          "External resources loaded from outside the visited domain without a confirmed ad network match.",
+        userInspectorName: "User Inspector (Inspected by User)",
+        userInspectorDesc: "Targets manually inspected and flagged by the user using the Inspect Ad tool.",
+        scoreHigh: "Score ≥ 70 — High Risk (confirmed ad-networks and invasive trackers)",
+        scoreMedium: "Score 30 to 69 — Suspicious & Ads (default ad threshold and dynamic scripts)",
+        scoreLow: "Score < 30 — Low Risk (common third-party media and assets)",
+        close: "Understood",
+      },
       clearHistory: "Clear history",
       clearing: "Clearing...",
       clearConfirmTitle: "Clear all detection history?",

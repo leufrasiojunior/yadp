@@ -1868,6 +1868,34 @@ export const ptBRMessages: WebMessages = {
       scoreFilterHigh: "Score ≥ 70 (Alto Risco)",
       scoreFilterMedium: "Score ≥ 30 (Suspeitos & Ads)",
       scoreFilterLow: "Score < 30 (Baixo Risco)",
+      subtabs: {
+        pending: "Pendentes",
+        blocked: "Bloqueados",
+        all: "Todos",
+      },
+      legend: {
+        button: "Legenda",
+        title: "Legenda de Categorias e Classificação",
+        description: "Entenda como o Sentinela classifica os alvos detectados e as pontuações de risco.",
+        categoriesTitle: "Categorias Detectadas",
+        scoresTitle: "Faixas de Score e Níveis de Risco",
+        adsName: "Ads (Publicidade)",
+        adsDesc:
+          "Servidores de anúncios e redes publicitárias conhecidas (ex: DoubleClick, Criteo, Taboola), dimensões de banner padrão IAB ou injeções de anúncios.",
+        trackingName: "Tracking (Rastreamento)",
+        trackingDesc:
+          "Scripts de rastreamento comportamental, telemetria, medição de audiência e pixels de conversão de terceiros.",
+        thirdPartyName: "Third Party (Terceiros)",
+        thirdPartyDesc:
+          "Recursos externos carregados de outros domínios sem correspondência direta em listas de anúncios conhecidas.",
+        userInspectorName: "User Inspector (Inspecionado)",
+        userInspectorDesc:
+          "Alvos selecionados manualmente pelo usuário na página através da ferramenta Inspecionar Ad.",
+        scoreHigh: "Score ≥ 70 — Alto Risco (redes de anúncios invasivos e rastreadores confirmados)",
+        scoreMedium: "Score 30 a 69 — Suspeitos & Ads (limiar padrão de anúncios e injeções dinâmicas)",
+        scoreLow: "Score < 30 — Baixo Risco (recursos e mídias de terceiros comuns)",
+        close: "Entendido",
+      },
       clearHistory: "Limpar histórico",
       clearing: "Limpando...",
       clearConfirmTitle: "Limpar todo o histórico de detecções?",

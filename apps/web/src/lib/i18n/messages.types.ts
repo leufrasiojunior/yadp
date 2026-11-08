@@ -1719,6 +1719,30 @@ export type WebMessages = {
       scoreFilterHigh: string;
       scoreFilterMedium: string;
       scoreFilterLow: string;
+      subtabs: {
+        pending: string;
+        blocked: string;
+        all: string;
+      };
+      legend: {
+        button: string;
+        title: string;
+        description: string;
+        categoriesTitle: string;
+        scoresTitle: string;
+        adsName: string;
+        adsDesc: string;
+        trackingName: string;
+        trackingDesc: string;
+        thirdPartyName: string;
+        thirdPartyDesc: string;
+        userInspectorName: string;
+        userInspectorDesc: string;
+        scoreHigh: string;
+        scoreMedium: string;
+        scoreLow: string;
+        close: string;
+      };
       clearHistory: string;
       clearing: string;
       clearConfirmTitle: string;

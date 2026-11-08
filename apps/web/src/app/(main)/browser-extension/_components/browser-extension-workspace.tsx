@@ -7,11 +7,14 @@ import {
   ChevronsUpDown,
   Copy,
   Globe,
+  Info,
   KeyRound,
+  Layers,
   RefreshCw,
   Save,
   Search,
   Settings,
+  ShieldAlert,
   ShieldBan,
   ShieldCheck,
   ShieldOff,
@@ -135,6 +138,8 @@ export function BrowserExtensionWorkspace({
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
 
   // Estados da tabela limpa de alvos e modal de JSON
+  const [statusSubTab, setStatusSubTab] = useState<"pending" | "blocked" | "all">("pending");
+  const [legendOpen, setLegendOpen] = useState(false);
   const [selectedPageFilter, setSelectedPageFilter] = useState<string>("ALL");
   const [domainDropdownOpen, setDomainDropdownOpen] = useState(false);
   const [domainSearchQuery, setDomainSearchQuery] = useState("");
@@ -430,9 +435,24 @@ export function BrowserExtensionWorkspace({
     return availablePages.filter((domain) => domain.toLowerCase().includes(q));
   }, [availablePages, domainSearchQuery]);
 
-  // Filtragem por página selecionada, score e busca textual
+  // Contagens para as sub-abas de status
+  const pendingCount = useMemo(() => {
+    return allTargetItems.filter((i) => i.applyStatus !== "blocked" && i.applyStatus !== "applied").length;
+  }, [allTargetItems]);
+
+  const blockedCount = useMemo(() => {
+    return allTargetItems.filter((i) => i.applyStatus === "blocked" || i.applyStatus === "applied").length;
+  }, [allTargetItems]);
+
+  // Filtragem por sub-aba de status, página selecionada, score e busca textual
   const filteredTargetItems = useMemo(() => {
     let result = allTargetItems;
+
+    if (statusSubTab === "pending") {
+      result = result.filter((item) => item.applyStatus !== "blocked" && item.applyStatus !== "applied");
+    } else if (statusSubTab === "blocked") {
+      result = result.filter((item) => item.applyStatus === "blocked" || item.applyStatus === "applied");
+    }
 
     if (selectedPageFilter !== "ALL") {
       result = result.filter((item) => item.pageMainDomain === selectedPageFilter);
@@ -458,7 +478,7 @@ export function BrowserExtensionWorkspace({
     }
 
     return result;
-  }, [allTargetItems, selectedPageFilter, scoreFilter, searchFilter]);
+  }, [allTargetItems, statusSubTab, selectedPageFilter, scoreFilter, searchFilter]);
 
   const handleCopyJson = () => {
     if (!selectedItemForModal) return;
@@ -501,11 +521,75 @@ export function BrowserExtensionWorkspace({
         {/* ABA PRINCIPAL: HISTÓRICO DE DETECÇÕES */}
         <TabsContent value="history" className="space-y-6">
           <Card>
-            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>{browserExtensionMessages.history.title}</CardTitle>
-                <CardDescription>{browserExtensionMessages.history.description}</CardDescription>
+            <CardHeader className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle>{browserExtensionMessages.history.title}</CardTitle>
+                  <CardDescription>{browserExtensionMessages.history.description}</CardDescription>
+                </div>
+
+                {/* Sub-abas de Status: Pendentes, Bloqueados, Todos */}
+                <div className="flex items-center gap-1 rounded-lg border bg-muted/40 p-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={statusSubTab === "pending" ? "default" : "ghost"}
+                    className={cn(
+                      "h-7 gap-1.5 px-3 text-xs",
+                      statusSubTab === "pending" ? "shadow-sm" : "text-muted-foreground hover:text-foreground",
+                    )}
+                    onClick={() => setStatusSubTab("pending")}
+                  >
+                    <ShieldAlert className="size-3.5 text-amber-500" />
+                    <span>{browserExtensionMessages.history.subtabs.pending}</span>
+                    <Badge
+                      variant={statusSubTab === "pending" ? "secondary" : "outline"}
+                      className="px-1.5 py-0 font-mono text-[10px]"
+                    >
+                      {pendingCount}
+                    </Badge>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={statusSubTab === "blocked" ? "default" : "ghost"}
+                    className={cn(
+                      "h-7 gap-1.5 px-3 text-xs",
+                      statusSubTab === "blocked" ? "shadow-sm" : "text-muted-foreground hover:text-foreground",
+                    )}
+                    onClick={() => setStatusSubTab("blocked")}
+                  >
+                    <ShieldBan className="size-3.5 text-red-500" />
+                    <span>{browserExtensionMessages.history.subtabs.blocked}</span>
+                    <Badge
+                      variant={statusSubTab === "blocked" ? "secondary" : "outline"}
+                      className="px-1.5 py-0 font-mono text-[10px]"
+                    >
+                      {blockedCount}
+                    </Badge>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={statusSubTab === "all" ? "default" : "ghost"}
+                    className={cn(
+                      "h-7 gap-1.5 px-3 text-xs",
+                      statusSubTab === "all" ? "shadow-sm" : "text-muted-foreground hover:text-foreground",
+                    )}
+                    onClick={() => setStatusSubTab("all")}
+                  >
+                    <Layers className="size-3.5 text-muted-foreground" />
+                    <span>{browserExtensionMessages.history.subtabs.all}</span>
+                    <Badge
+                      variant={statusSubTab === "all" ? "secondary" : "outline"}
+                      className="px-1.5 py-0 font-mono text-[10px]"
+                    >
+                      {allTargetItems.length}
+                    </Badge>
+                  </Button>
+                </div>
               </div>
+
               <div className="flex flex-wrap items-center gap-2">
                 {/* Dropdown Pesquisável de Domínios Principais */}
                 {availablePages.length > 0 && (
@@ -669,6 +753,15 @@ export function BrowserExtensionWorkspace({
                     className="h-8 pl-8 text-xs"
                   />
                 </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
+                  onClick={() => setLegendOpen(true)}
+                >
+                  <Info className="size-3.5" />
+                  <span>{browserExtensionMessages.history.legend.button}</span>
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -1071,6 +1164,126 @@ export function BrowserExtensionWorkspace({
               {busyAction === "clear"
                 ? browserExtensionMessages.history.clearing
                 : browserExtensionMessages.history.clearConfirmButton}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Legenda de Categorias e Classificação */}
+      <Dialog open={legendOpen} onOpenChange={setLegendOpen}>
+        <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-semibold text-base">
+              <Info className="size-4 text-primary" />
+              <span>{browserExtensionMessages.history.legend.title}</span>
+            </DialogTitle>
+            <DialogDescription>{browserExtensionMessages.history.legend.description}</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 space-y-4 overflow-auto py-2">
+            <div>
+              <h4 className="mb-2.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                {browserExtensionMessages.history.legend.categoriesTitle}
+              </h4>
+              <div className="space-y-2">
+                {/* Ads */}
+                <div className="flex flex-col gap-1.5 rounded-lg border p-3 sm:flex-row sm:items-start sm:gap-3">
+                  <Badge variant="destructive" className="w-fit font-medium text-xs">
+                    Ads
+                  </Badge>
+                  <div className="flex-1">
+                    <span className="block font-medium text-foreground text-xs">
+                      {browserExtensionMessages.history.legend.adsName}
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.legend.adsDesc}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tracking */}
+                <div className="flex flex-col gap-1.5 rounded-lg border p-3 sm:flex-row sm:items-start sm:gap-3">
+                  <Badge
+                    variant="secondary"
+                    className="w-fit border-amber-500/30 bg-amber-500/15 font-medium text-amber-600 text-xs dark:text-amber-400"
+                  >
+                    Tracking
+                  </Badge>
+                  <div className="flex-1">
+                    <span className="block font-medium text-foreground text-xs">
+                      {browserExtensionMessages.history.legend.trackingName}
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.legend.trackingDesc}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Third Party */}
+                <div className="flex flex-col gap-1.5 rounded-lg border p-3 sm:flex-row sm:items-start sm:gap-3">
+                  <Badge variant="outline" className="w-fit font-medium text-xs">
+                    Third Party
+                  </Badge>
+                  <div className="flex-1">
+                    <span className="block font-medium text-foreground text-xs">
+                      {browserExtensionMessages.history.legend.thirdPartyName}
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.legend.thirdPartyDesc}
+                    </p>
+                  </div>
+                </div>
+
+                {/* User Inspector */}
+                <div className="flex flex-col gap-1.5 rounded-lg border p-3 sm:flex-row sm:items-start sm:gap-3">
+                  <Badge
+                    variant="default"
+                    className="w-fit border-primary/30 bg-primary/20 font-medium text-primary text-xs"
+                  >
+                    User Inspector
+                  </Badge>
+                  <div className="flex-1">
+                    <span className="block font-medium text-foreground text-xs">
+                      {browserExtensionMessages.history.legend.userInspectorName}
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.legend.userInspectorDesc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-2.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                {browserExtensionMessages.history.legend.scoresTitle}
+              </h4>
+              <div className="grid gap-2 text-xs">
+                <div className="flex items-center gap-2 rounded-md border p-2.5">
+                  <Badge variant="destructive" className="font-mono font-semibold">
+                    ≥ 70
+                  </Badge>
+                  <span className="text-muted-foreground">{browserExtensionMessages.history.legend.scoreHigh}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-md border p-2.5">
+                  <Badge variant="secondary" className="font-mono font-semibold">
+                    30 - 69
+                  </Badge>
+                  <span className="text-muted-foreground">{browserExtensionMessages.history.legend.scoreMedium}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-md border p-2.5">
+                  <Badge variant="outline" className="font-mono font-semibold">
+                    &lt; 30
+                  </Badge>
+                  <span className="text-muted-foreground">{browserExtensionMessages.history.legend.scoreLow}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="default" onClick={() => setLegendOpen(false)}>
+              {browserExtensionMessages.history.legend.close}
             </Button>
           </DialogFooter>
         </DialogContent>
