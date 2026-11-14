@@ -1,6 +1,46 @@
 import type { WebMessages } from "./messages.types";
 
 export const ptBRMessages: WebMessages = {
+  subnets: {
+    title: "Políticas de sub-rede",
+    description:
+      "Associe redes IPv4 ou IPv6 a grupos do Pi-hole. Revise as alterações antes de aplicar às instâncias selecionadas.",
+    add: "Adicionar sub-rede",
+    refresh: "Atualizar",
+    subnet: "Sub-rede (CIDR)",
+    instances: "Instâncias",
+    actions: "Ações",
+    edit: "Editar sub-rede",
+    remove: "Remover sub-rede",
+    loading: "Carregando políticas…",
+    empty: "Nenhuma política de sub-rede configurada.",
+    unavailable: "Indisponível",
+    absent: "Não configurada",
+    noGroups: "Sem grupos",
+    note: "As consultas devem chegar ao Pi-hole com o IP de origem original. O Pi-hole define a precedência; uma regra de IP mais específica pode prevalecer. Nomes e descoberta de MAC não são necessários. Regras IPv4 não cobrem consultas IPv6.",
+    review: "Revisar alterações",
+    before: "Antes",
+    after: "Depois",
+    deleteNote:
+      "Remover esta regra não desativa a filtragem. O Pi-hole usará outra regra correspondente ou o grupo Default.",
+    comment: "Comentário",
+    groups: "Grupos",
+    back: "Voltar",
+    cancel: "Cancelar",
+    apply: "Aplicar alterações revisadas",
+    preview: "Visualizar alterações",
+    working: "Processando…",
+    failed: "Não foi possível carregar ou salvar as políticas.",
+    partial: "Algumas instâncias falharam. Revise os resultados e visualize novamente para tentar outra vez.",
+    applied: "Política aplicada e verificada.",
+    planActions: {
+      create: "Criar",
+      update: "Atualizar",
+      delete: "Excluir",
+      unchanged: "Sem alterações",
+      unavailable: "Indisponível",
+    },
+  },
   common: {
     language: "Idioma",
     languagePlaceholder: "Selecione o idioma",

@@ -11868,6 +11868,280 @@
         ],
         "tags": ["tours"]
       }
+    },
+    "/clients/subnets": {
+      "get": {
+        "operationId": "SubnetsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["items", "instances", "unavailableInstances"],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["client", "instances"],
+                        "properties": {
+                          "client": {
+                            "type": "string"
+                          },
+                          "instances": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": ["instanceId", "instanceName", "groups", "comment"],
+                              "properties": {
+                                "instanceId": {
+                                  "type": "string"
+                                },
+                                "instanceName": {
+                                  "type": "string"
+                                },
+                                "groups": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "comment": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "instances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["instanceId", "instanceName"],
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "unavailableInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["instanceId", "instanceName", "message"],
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List IPv4/IPv6 subnet policies across sync-enabled Pi-holes",
+        "tags": ["clients"]
+      }
+    },
+    "/clients/subnets/preview": {
+      "post": {
+        "operationId": "SubnetsController_preview",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubnetPlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["client", "operation", "targets", "previewToken"],
+                  "properties": {
+                    "client": {
+                      "type": "string"
+                    },
+                    "operation": {
+                      "type": "string",
+                      "enum": ["save", "delete"]
+                    },
+                    "previewToken": {
+                      "type": "string"
+                    },
+                    "targets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["instanceId", "instanceName", "action", "current", "desired"],
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "action": {
+                            "type": "string",
+                            "enum": ["create", "update", "delete", "unchanged", "unavailable"]
+                          },
+                          "current": {
+                            "type": "object",
+                            "required": ["groups", "comment"],
+                            "properties": {
+                              "groups": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "comment": {
+                                "type": "string"
+                              }
+                            },
+                            "nullable": true
+                          },
+                          "desired": {
+                            "type": "object",
+                            "required": ["groups", "comment"],
+                            "properties": {
+                              "groups": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "comment": {
+                                "type": "string"
+                              }
+                            },
+                            "nullable": true
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Preview subnet creation, update or deletion without writing configuration",
+        "tags": ["clients"]
+      }
+    },
+    "/clients/subnets/apply": {
+      "post": {
+        "operationId": "SubnetsController_apply",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplySubnetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status", "successfulInstances", "failedInstances"],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "partial"]
+                    },
+                    "successfulInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["instanceId", "instanceName"],
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "failedInstances": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["instanceId", "instanceName", "message"],
+                        "properties": {
+                          "instanceId": {
+                            "type": "string"
+                          },
+                          "instanceName": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Apply a reviewed subnet plan, with drift checks and per-instance results",
+        "tags": ["clients"]
+      }
     }
   },
   "info": {
@@ -11886,6 +12160,75 @@
         "name": "yapd_session"
       }
     },
-    "schemas": {}
+    "schemas": {
+      "SubnetPlanDto": {
+        "type": "object",
+        "properties": {
+          "client": {
+            "type": "string",
+            "example": "192.0.2.0/24"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["save", "delete"]
+          },
+          "groups": {
+            "example": ["IoT"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "example": "IoT subnet policy"
+          },
+          "targetInstanceIds": {
+            "description": "Omit to target all sync-enabled instances.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["client", "operation"]
+      },
+      "ApplySubnetDto": {
+        "type": "object",
+        "properties": {
+          "client": {
+            "type": "string",
+            "example": "192.0.2.0/24"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["save", "delete"]
+          },
+          "groups": {
+            "example": ["IoT"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "example": "IoT subnet policy"
+          },
+          "targetInstanceIds": {
+            "description": "Omit to target all sync-enabled instances.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "previewToken": {
+            "type": "string",
+            "description": "Configuration fingerprint returned by the preview endpoint."
+          }
+        },
+        "required": ["client", "operation", "previewToken"]
+      }
+    }
   }
 }

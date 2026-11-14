@@ -1108,10 +1108,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/subnets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List IPv4/IPv6 subnet policies across sync-enabled Pi-holes */
+        get: operations["SubnetsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/subnets/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview subnet creation, update or deletion without writing configuration */
+        post: operations["SubnetsController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/subnets/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply a reviewed subnet plan, with drift checks and per-instance results */
+        post: operations["SubnetsController_apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        SubnetPlanDto: {
+            /** @example 192.0.2.0/24 */
+            client: string;
+            /** @enum {string} */
+            operation: "save" | "delete";
+            /**
+             * @example [
+             *       "IoT"
+             *     ]
+             */
+            groups?: string[];
+            /** @example IoT subnet policy */
+            comment?: string;
+            /** @description Omit to target all sync-enabled instances. */
+            targetInstanceIds?: string[];
+        };
+        ApplySubnetDto: {
+            /** @example 192.0.2.0/24 */
+            client: string;
+            /** @enum {string} */
+            operation: "save" | "delete";
+            /**
+             * @example [
+             *       "IoT"
+             *     ]
+             */
+            groups?: string[];
+            /** @example IoT subnet policy */
+            comment?: string;
+            /** @description Omit to target all sync-enabled instances. */
+            targetInstanceIds?: string[];
+            /** @description Configuration fingerprint returned by the preview endpoint. */
+            previewToken: string;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -5478,6 +5564,122 @@ export interface operations {
                         completed: boolean;
                         /** Format: date-time */
                         completedAt: string | null;
+                    };
+                };
+            };
+        };
+    };
+    SubnetsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            client: string;
+                            instances: {
+                                instanceId: string;
+                                instanceName: string;
+                                groups: string[];
+                                comment: string;
+                            }[];
+                        }[];
+                        instances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        unavailableInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    SubnetsController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubnetPlanDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        client: string;
+                        /** @enum {string} */
+                        operation: "save" | "delete";
+                        previewToken: string;
+                        targets: {
+                            instanceId: string;
+                            instanceName: string;
+                            /** @enum {string} */
+                            action: "create" | "update" | "delete" | "unchanged" | "unavailable";
+                            current: {
+                                groups: string[];
+                                comment: string;
+                            } | null;
+                            desired: {
+                                groups: string[];
+                                comment: string;
+                            } | null;
+                            message?: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    SubnetsController_apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplySubnetDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "success" | "partial";
+                        successfulInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                        }[];
+                        failedInstances: {
+                            instanceId: string;
+                            instanceName: string;
+                            message: string;
+                        }[];
                     };
                 };
             };

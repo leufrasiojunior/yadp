@@ -31,6 +31,7 @@ YAPD is built around a simple idea: **your dashboard should know the desired sta
 ## Highlights
 
 - **Multi-instance dashboard**: manage and monitor multiple Pi-hole v6+ instances from one interface.
+- **Subnet policies**: assign IPv4/IPv6 client networks to groups with per-instance previews and verified application. See [subnet policies](docs/subnet-policies.md).
 - **Central configuration source of truth**: keep the intended configuration in YAPD instead of depending on scattered manual edits.
 - **Sync and drift detection**: identify when an instance differs from the expected state before applying changes.
 - **Query and activity visibility**: inspect DNS activity, clients, domains, and historical overview data from a unified surface.
