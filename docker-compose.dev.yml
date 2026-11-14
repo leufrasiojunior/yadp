@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: yapd-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: yapd
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - yapd-postgres-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d yapd"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    image: yapd-app:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: yapd-app-dev
+    restart: unless-stopped
+    working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      API_HOST: 0.0.0.0
+      API_PORT: 3001
+      WEB_ORIGIN: "*"
+      API_BASE_URL: /api
+      INTERNAL_API_BASE_URL: http://127.0.0.1:3001/api
+      NEXT_PUBLIC_API_BASE_URL: /api
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/yapd?schema=public
+      SESSION_SECRET: local-dev-session-secret-do-not-use-in-production
+      APP_ENCRYPTION_KEY: local-dev-encryption-key-do-not-use-in-production
+      WEB_PUSH_VAPID_SUBJECT: mailto:admin@yapd.local
+      COOKIE_SECURE: "false"
+      SWAGGER_ENABLED: "true"
+      # Polling de filesystem para suportar hot reload transparente em Windows/WSL2/Linux
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      NEXT_WEBPACK_USEPOLLING: "true"
+      NEXT_WEBPACK_POLL_INTERVAL_MS: "1000"
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      # Bind mount do código-fonte para espelhamento em tempo real
+      - .:/app
+      # Volumes anônimos para proteger dependências e builds gerados pelo container
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/packages/api-client/node_modules
+      - /app/apps/web/.next
+    command:
+      - sh
+      - -c
+      - |
+        npm run prisma:generate --workspace @yapd/api
+        chown -R 1000:1000 apps/api/src/generated/prisma 2>/dev/null || true
+        npm run db:migrate:deploy --workspace @yapd/api
+        ./node_modules/.bin/concurrently -k -n api,web -c blue,magenta \
+          "cd apps/api && node --watch --import tsx src/main.ts" \
+          "npm run dev --workspace @yapd/web -- --webpack --hostname 0.0.0.0 --port 3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"Promise.all([fetch('http://127.0.0.1:3000/healthz'), fetch('http://127.0.0.1:3001/api/health')]).then((responses) => process.exit(responses.every((res) => res.ok) ? 0 : 1)).catch(() => process.exit(1))\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  pihole:
+    image: pihole/pihole:latest
+    container_name: yapd-pihole-test
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      FTLCONF_webserver_api_password: "yapdtestpassword"
+      FTLCONF_dns_upstreams: "1.1.1.1;8.8.8.8"
+      FTLCONF_webserver_interface: "0.0.0.0"
+    volumes:
+      - yapd-pihole-dev-data:/etc/pihole
+
+volumes:
+  yapd-postgres-dev-data:
+  yapd-pihole-dev-data:
