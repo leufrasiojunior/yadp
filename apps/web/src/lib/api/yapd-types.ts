@@ -1180,6 +1180,121 @@ export type DomainsImportResponse = {
   }>;
 };
 
+export type BrowserExtensionPatternKind = "exact" | "regex";
+
+export type BrowserExtensionSettingsResponse = {
+  sendPageTitle: boolean;
+  hardBlockedUrlPatterns: string[];
+  sensitiveUrlPatterns: string[];
+};
+
+export type BrowserExtensionPairingCodeResponse = {
+  pairingCode: string;
+  expiresAt: string;
+};
+
+export type BrowserExtensionDeviceItem = {
+  id: string;
+  name: string;
+  browser: string;
+  manifestVersion: number;
+  extensionVersion: string;
+  tokenPrefix: string;
+  lastSeenAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+};
+
+export type BrowserExtensionDevicesResponse = {
+  items: BrowserExtensionDeviceItem[];
+};
+
+export type BrowserExtensionDeviceRevokeResponse = {
+  id: string;
+  revokedAt: string;
+};
+
+export type BrowserExtensionDetectionItem = {
+  id: string;
+  candidateId: string;
+  target: string;
+  targetMainDomain: string;
+  type: "deny";
+  kind: BrowserExtensionPatternKind;
+  category: string;
+  score: number;
+  riskLevel: string;
+  reasons: string[];
+  evidence: Record<string, unknown>;
+  applyStatus: string;
+  errorMessage: string | null;
+};
+
+export type BrowserExtensionDetectionBatch = {
+  id: string;
+  extensionId: string;
+  extensionName: string;
+  clientRequestId: string;
+  pageDomain: string;
+  pageMainDomain: string;
+  pageUrl: string | null;
+  pageTitle: string | null;
+  status: string;
+  summary: Record<string, unknown> | null;
+  createdAt: string;
+  undoneAt: string | null;
+  items: BrowserExtensionDetectionItem[];
+};
+
+export type BrowserExtensionDomainDetectionItem = BrowserExtensionDetectionItem & {
+  batchId: string;
+  pageDomain: string;
+  pageUrl: string | null;
+  pageTitle: string | null;
+  detectedAt: string;
+};
+
+export type BrowserExtensionTargetDomainGroup = {
+  targetMainDomain: string;
+  totalDetected: number;
+  blockedCount: number;
+  notBlockedCount: number;
+  items: BrowserExtensionDomainDetectionItem[];
+};
+
+export type BrowserExtensionDomainDetectionGroup = {
+  pageMainDomain: string;
+  latestPageDomain: string;
+  latestPageUrl: string | null;
+  latestPageTitle: string | null;
+  lastDetectedAt: string;
+  totalDetected: number;
+  blockedCount: number;
+  notBlockedCount: number;
+  status: string;
+  targetGroups: BrowserExtensionTargetDomainGroup[];
+};
+
+export type BrowserExtensionDomainDetectionsResponse = {
+  items: BrowserExtensionDomainDetectionGroup[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+};
+
+export type BrowserExtensionDetectionsResponse = {
+  items: BrowserExtensionDetectionBatch[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+};
+
 export type ConfigTopicName =
   | "dns"
   | "dhcp"

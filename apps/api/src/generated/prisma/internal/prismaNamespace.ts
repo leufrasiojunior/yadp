@@ -399,6 +399,12 @@ export const ModelName = {
   SyncAttempt: 'SyncAttempt',
   ManagedList: 'ManagedList',
   ManagedDomain: 'ManagedDomain',
+  BrowserExtensionDevice: 'BrowserExtensionDevice',
+  BrowserExtensionPairingCode: 'BrowserExtensionPairingCode',
+  BrowserExtensionSettings: 'BrowserExtensionSettings',
+  BrowserExtensionDecision: 'BrowserExtensionDecision',
+  BrowserExtensionDetectionBatch: 'BrowserExtensionDetectionBatch',
+  BrowserExtensionDetectionItem: 'BrowserExtensionDetectionItem',
   RegexFilter: 'RegexFilter',
   Notification: 'Notification',
   ProductTourCompletion: 'ProductTourCompletion',
@@ -422,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "regexFilter" | "notification" | "productTourCompletion" | "historicalQuery" | "overviewHistoryJob" | "overviewCoverageWindow" | "overviewAutomaticImportRule" | "pushSubscription"
+    modelProps: "appConfig" | "configSyncIgnoreRule" | "instance" | "instanceSecret" | "instanceCertificateTrust" | "instanceSession" | "auditLog" | "clientDevice" | "clientGroup" | "clientGroupMembership" | "syncOperationPreset" | "syncJob" | "syncAttempt" | "managedList" | "managedDomain" | "browserExtensionDevice" | "browserExtensionPairingCode" | "browserExtensionSettings" | "browserExtensionDecision" | "browserExtensionDetectionBatch" | "browserExtensionDetectionItem" | "regexFilter" | "notification" | "productTourCompletion" | "historicalQuery" | "overviewHistoryJob" | "overviewCoverageWindow" | "overviewAutomaticImportRule" | "pushSubscription"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1536,6 +1542,450 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BrowserExtensionDevice: {
+      payload: Prisma.$BrowserExtensionDevicePayload<ExtArgs>
+      fields: Prisma.BrowserExtensionDeviceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BrowserExtensionDeviceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BrowserExtensionDeviceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>
+        }
+        findFirst: {
+          args: Prisma.BrowserExtensionDeviceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BrowserExtensionDeviceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>
+        }
+        findMany: {
+          args: Prisma.BrowserExtensionDeviceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>[]
+        }
+        create: {
+          args: Prisma.BrowserExtensionDeviceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>
+        }
+        createMany: {
+          args: Prisma.BrowserExtensionDeviceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BrowserExtensionDeviceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>[]
+        }
+        delete: {
+          args: Prisma.BrowserExtensionDeviceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>
+        }
+        update: {
+          args: Prisma.BrowserExtensionDeviceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>
+        }
+        deleteMany: {
+          args: Prisma.BrowserExtensionDeviceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BrowserExtensionDeviceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BrowserExtensionDeviceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>[]
+        }
+        upsert: {
+          args: Prisma.BrowserExtensionDeviceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDevicePayload>
+        }
+        aggregate: {
+          args: Prisma.BrowserExtensionDeviceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBrowserExtensionDevice>
+        }
+        groupBy: {
+          args: Prisma.BrowserExtensionDeviceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionDeviceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BrowserExtensionDeviceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionDeviceCountAggregateOutputType> | number
+        }
+      }
+    }
+    BrowserExtensionPairingCode: {
+      payload: Prisma.$BrowserExtensionPairingCodePayload<ExtArgs>
+      fields: Prisma.BrowserExtensionPairingCodeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BrowserExtensionPairingCodeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BrowserExtensionPairingCodeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>
+        }
+        findFirst: {
+          args: Prisma.BrowserExtensionPairingCodeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BrowserExtensionPairingCodeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>
+        }
+        findMany: {
+          args: Prisma.BrowserExtensionPairingCodeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>[]
+        }
+        create: {
+          args: Prisma.BrowserExtensionPairingCodeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>
+        }
+        createMany: {
+          args: Prisma.BrowserExtensionPairingCodeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BrowserExtensionPairingCodeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>[]
+        }
+        delete: {
+          args: Prisma.BrowserExtensionPairingCodeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>
+        }
+        update: {
+          args: Prisma.BrowserExtensionPairingCodeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>
+        }
+        deleteMany: {
+          args: Prisma.BrowserExtensionPairingCodeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BrowserExtensionPairingCodeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BrowserExtensionPairingCodeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>[]
+        }
+        upsert: {
+          args: Prisma.BrowserExtensionPairingCodeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionPairingCodePayload>
+        }
+        aggregate: {
+          args: Prisma.BrowserExtensionPairingCodeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBrowserExtensionPairingCode>
+        }
+        groupBy: {
+          args: Prisma.BrowserExtensionPairingCodeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionPairingCodeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BrowserExtensionPairingCodeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionPairingCodeCountAggregateOutputType> | number
+        }
+      }
+    }
+    BrowserExtensionSettings: {
+      payload: Prisma.$BrowserExtensionSettingsPayload<ExtArgs>
+      fields: Prisma.BrowserExtensionSettingsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BrowserExtensionSettingsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BrowserExtensionSettingsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>
+        }
+        findFirst: {
+          args: Prisma.BrowserExtensionSettingsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BrowserExtensionSettingsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>
+        }
+        findMany: {
+          args: Prisma.BrowserExtensionSettingsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>[]
+        }
+        create: {
+          args: Prisma.BrowserExtensionSettingsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>
+        }
+        createMany: {
+          args: Prisma.BrowserExtensionSettingsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BrowserExtensionSettingsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>[]
+        }
+        delete: {
+          args: Prisma.BrowserExtensionSettingsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>
+        }
+        update: {
+          args: Prisma.BrowserExtensionSettingsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>
+        }
+        deleteMany: {
+          args: Prisma.BrowserExtensionSettingsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BrowserExtensionSettingsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BrowserExtensionSettingsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>[]
+        }
+        upsert: {
+          args: Prisma.BrowserExtensionSettingsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionSettingsPayload>
+        }
+        aggregate: {
+          args: Prisma.BrowserExtensionSettingsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBrowserExtensionSettings>
+        }
+        groupBy: {
+          args: Prisma.BrowserExtensionSettingsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionSettingsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BrowserExtensionSettingsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionSettingsCountAggregateOutputType> | number
+        }
+      }
+    }
+    BrowserExtensionDecision: {
+      payload: Prisma.$BrowserExtensionDecisionPayload<ExtArgs>
+      fields: Prisma.BrowserExtensionDecisionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BrowserExtensionDecisionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BrowserExtensionDecisionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>
+        }
+        findFirst: {
+          args: Prisma.BrowserExtensionDecisionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BrowserExtensionDecisionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>
+        }
+        findMany: {
+          args: Prisma.BrowserExtensionDecisionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>[]
+        }
+        create: {
+          args: Prisma.BrowserExtensionDecisionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>
+        }
+        createMany: {
+          args: Prisma.BrowserExtensionDecisionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BrowserExtensionDecisionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>[]
+        }
+        delete: {
+          args: Prisma.BrowserExtensionDecisionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>
+        }
+        update: {
+          args: Prisma.BrowserExtensionDecisionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>
+        }
+        deleteMany: {
+          args: Prisma.BrowserExtensionDecisionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BrowserExtensionDecisionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BrowserExtensionDecisionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>[]
+        }
+        upsert: {
+          args: Prisma.BrowserExtensionDecisionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDecisionPayload>
+        }
+        aggregate: {
+          args: Prisma.BrowserExtensionDecisionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBrowserExtensionDecision>
+        }
+        groupBy: {
+          args: Prisma.BrowserExtensionDecisionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionDecisionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BrowserExtensionDecisionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionDecisionCountAggregateOutputType> | number
+        }
+      }
+    }
+    BrowserExtensionDetectionBatch: {
+      payload: Prisma.$BrowserExtensionDetectionBatchPayload<ExtArgs>
+      fields: Prisma.BrowserExtensionDetectionBatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BrowserExtensionDetectionBatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BrowserExtensionDetectionBatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>
+        }
+        findFirst: {
+          args: Prisma.BrowserExtensionDetectionBatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BrowserExtensionDetectionBatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>
+        }
+        findMany: {
+          args: Prisma.BrowserExtensionDetectionBatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>[]
+        }
+        create: {
+          args: Prisma.BrowserExtensionDetectionBatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>
+        }
+        createMany: {
+          args: Prisma.BrowserExtensionDetectionBatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BrowserExtensionDetectionBatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>[]
+        }
+        delete: {
+          args: Prisma.BrowserExtensionDetectionBatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>
+        }
+        update: {
+          args: Prisma.BrowserExtensionDetectionBatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.BrowserExtensionDetectionBatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BrowserExtensionDetectionBatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BrowserExtensionDetectionBatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.BrowserExtensionDetectionBatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionBatchPayload>
+        }
+        aggregate: {
+          args: Prisma.BrowserExtensionDetectionBatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBrowserExtensionDetectionBatch>
+        }
+        groupBy: {
+          args: Prisma.BrowserExtensionDetectionBatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionDetectionBatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BrowserExtensionDetectionBatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionDetectionBatchCountAggregateOutputType> | number
+        }
+      }
+    }
+    BrowserExtensionDetectionItem: {
+      payload: Prisma.$BrowserExtensionDetectionItemPayload<ExtArgs>
+      fields: Prisma.BrowserExtensionDetectionItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BrowserExtensionDetectionItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BrowserExtensionDetectionItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>
+        }
+        findFirst: {
+          args: Prisma.BrowserExtensionDetectionItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BrowserExtensionDetectionItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>
+        }
+        findMany: {
+          args: Prisma.BrowserExtensionDetectionItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>[]
+        }
+        create: {
+          args: Prisma.BrowserExtensionDetectionItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>
+        }
+        createMany: {
+          args: Prisma.BrowserExtensionDetectionItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BrowserExtensionDetectionItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>[]
+        }
+        delete: {
+          args: Prisma.BrowserExtensionDetectionItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>
+        }
+        update: {
+          args: Prisma.BrowserExtensionDetectionItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.BrowserExtensionDetectionItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BrowserExtensionDetectionItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BrowserExtensionDetectionItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.BrowserExtensionDetectionItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrowserExtensionDetectionItemPayload>
+        }
+        aggregate: {
+          args: Prisma.BrowserExtensionDetectionItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBrowserExtensionDetectionItem>
+        }
+        groupBy: {
+          args: Prisma.BrowserExtensionDetectionItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionDetectionItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BrowserExtensionDetectionItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrowserExtensionDetectionItemCountAggregateOutputType> | number
+        }
+      }
+    }
     RegexFilter: {
       payload: Prisma.$RegexFilterPayload<ExtArgs>
       fields: Prisma.RegexFilterFieldRefs
@@ -2379,6 +2829,98 @@ export const ManagedDomainScalarFieldEnum = {
 export type ManagedDomainScalarFieldEnum = (typeof ManagedDomainScalarFieldEnum)[keyof typeof ManagedDomainScalarFieldEnum]
 
 
+export const BrowserExtensionDeviceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  browser: 'browser',
+  manifestVersion: 'manifestVersion',
+  extensionVersion: 'extensionVersion',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  lastSeenAt: 'lastSeenAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BrowserExtensionDeviceScalarFieldEnum = (typeof BrowserExtensionDeviceScalarFieldEnum)[keyof typeof BrowserExtensionDeviceScalarFieldEnum]
+
+
+export const BrowserExtensionPairingCodeScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BrowserExtensionPairingCodeScalarFieldEnum = (typeof BrowserExtensionPairingCodeScalarFieldEnum)[keyof typeof BrowserExtensionPairingCodeScalarFieldEnum]
+
+
+export const BrowserExtensionSettingsScalarFieldEnum = {
+  id: 'id',
+  sendPageTitle: 'sendPageTitle',
+  hardBlockedUrlPatterns: 'hardBlockedUrlPatterns',
+  sensitiveUrlPatterns: 'sensitiveUrlPatterns',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BrowserExtensionSettingsScalarFieldEnum = (typeof BrowserExtensionSettingsScalarFieldEnum)[keyof typeof BrowserExtensionSettingsScalarFieldEnum]
+
+
+export const BrowserExtensionDecisionScalarFieldEnum = {
+  id: 'id',
+  target: 'target',
+  kind: 'kind',
+  decision: 'decision',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BrowserExtensionDecisionScalarFieldEnum = (typeof BrowserExtensionDecisionScalarFieldEnum)[keyof typeof BrowserExtensionDecisionScalarFieldEnum]
+
+
+export const BrowserExtensionDetectionBatchScalarFieldEnum = {
+  id: 'id',
+  extensionId: 'extensionId',
+  clientRequestId: 'clientRequestId',
+  pageDomain: 'pageDomain',
+  pageMainDomain: 'pageMainDomain',
+  pageUrl: 'pageUrl',
+  pageTitle: 'pageTitle',
+  status: 'status',
+  undoTokenHash: 'undoTokenHash',
+  summary: 'summary',
+  createdAt: 'createdAt',
+  undoneAt: 'undoneAt'
+} as const
+
+export type BrowserExtensionDetectionBatchScalarFieldEnum = (typeof BrowserExtensionDetectionBatchScalarFieldEnum)[keyof typeof BrowserExtensionDetectionBatchScalarFieldEnum]
+
+
+export const BrowserExtensionDetectionItemScalarFieldEnum = {
+  id: 'id',
+  batchId: 'batchId',
+  candidateId: 'candidateId',
+  target: 'target',
+  targetMainDomain: 'targetMainDomain',
+  type: 'type',
+  kind: 'kind',
+  category: 'category',
+  score: 'score',
+  riskLevel: 'riskLevel',
+  reasons: 'reasons',
+  evidence: 'evidence',
+  applyStatus: 'applyStatus',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type BrowserExtensionDetectionItemScalarFieldEnum = (typeof BrowserExtensionDetectionItemScalarFieldEnum)[keyof typeof BrowserExtensionDetectionItemScalarFieldEnum]
+
+
 export const RegexFilterScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2907,6 +3449,12 @@ export type GlobalOmitConfig = {
   syncAttempt?: Prisma.SyncAttemptOmit
   managedList?: Prisma.ManagedListOmit
   managedDomain?: Prisma.ManagedDomainOmit
+  browserExtensionDevice?: Prisma.BrowserExtensionDeviceOmit
+  browserExtensionPairingCode?: Prisma.BrowserExtensionPairingCodeOmit
+  browserExtensionSettings?: Prisma.BrowserExtensionSettingsOmit
+  browserExtensionDecision?: Prisma.BrowserExtensionDecisionOmit
+  browserExtensionDetectionBatch?: Prisma.BrowserExtensionDetectionBatchOmit
+  browserExtensionDetectionItem?: Prisma.BrowserExtensionDetectionItemOmit
   regexFilter?: Prisma.RegexFilterOmit
   notification?: Prisma.NotificationOmit
   productTourCompletion?: Prisma.ProductTourCompletionOmit

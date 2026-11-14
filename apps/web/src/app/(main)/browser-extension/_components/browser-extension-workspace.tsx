@@ -1,0 +1,1530 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import {
+  Check,
+  CheckCircle2,
+  ChevronsUpDown,
+  Copy,
+  Download,
+  Globe,
+  HelpCircle,
+  Info,
+  KeyRound,
+  Layers,
+  Puzzle,
+  RefreshCw,
+  Save,
+  Search,
+  Settings,
+  ShieldAlert,
+  ShieldBan,
+  ShieldCheck,
+  ShieldOff,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useAppSession } from "@/components/yapd/app-session-provider";
+import { getApiErrorMessage } from "@/lib/api/error-message";
+import { getAuthenticatedBrowserApiClient } from "@/lib/api/yapd-client";
+import type {
+  BrowserExtensionDeviceRevokeResponse,
+  BrowserExtensionDevicesResponse,
+  BrowserExtensionDomainDetectionItem,
+  BrowserExtensionDomainDetectionsResponse,
+  BrowserExtensionPairingCodeResponse,
+  BrowserExtensionSettingsResponse,
+} from "@/lib/api/yapd-types";
+import { useWebI18n } from "@/lib/i18n/client";
+import { cn } from "@/lib/utils";
+
+type BrowserExtensionWorkspaceProps = Readonly<{
+  initialSettings: BrowserExtensionSettingsResponse;
+  initialDevices: BrowserExtensionDevicesResponse;
+  initialDetections: BrowserExtensionDomainDetectionsResponse;
+}>;
+
+type BusyAction =
+  | "pairing"
+  | "settings"
+  | "refresh"
+  | "clear"
+  | `revoke:${string}`
+  | `block:${string}`
+  | `allow:${string}`
+  | null;
+
+type FlattenedTargetItem = BrowserExtensionDomainDetectionItem & {
+  pageMainDomain: string;
+  latestPageDomain: string;
+  latestPageUrl: string | null;
+  latestPageTitle: string | null;
+};
+
+function splitPatterns(value: string) {
+  return value
+    .split("\n")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function joinPatterns(value: string[]) {
+  return value.join("\n");
+}
+
+function formatDate(value: string | null, locale: string) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function getStatusVariant(status: string) {
+  if (status === "applied" || status === "active" || status === "blocked") {
+    return "default" as const;
+  }
+
+  if (status === "partial" || status === "detected") {
+    return "secondary" as const;
+  }
+
+  if (status === "undone" || status === "revoked" || status === "allowed") {
+    return "outline" as const;
+  }
+
+  return "destructive" as const;
+}
+
+export function BrowserExtensionWorkspace({
+  initialDetections,
+  initialDevices,
+  initialSettings,
+}: BrowserExtensionWorkspaceProps) {
+  const { csrfToken } = useAppSession();
+  const { locale, messages } = useWebI18n();
+  const browserExtensionMessages = messages.browserExtension;
+  const client = useMemo(() => getAuthenticatedBrowserApiClient(), []);
+  const [devices, setDevices] = useState(initialDevices);
+  const [detections, setDetections] = useState(initialDetections);
+  const [pairingCode, setPairingCode] = useState<BrowserExtensionPairingCodeResponse | null>(null);
+  const [sendPageTitle, setSendPageTitle] = useState(initialSettings.sendPageTitle);
+  const [hardBlockedUrlPatterns, setHardBlockedUrlPatterns] = useState(
+    joinPatterns(initialSettings.hardBlockedUrlPatterns),
+  );
+  const [sensitiveUrlPatterns, setSensitiveUrlPatterns] = useState(joinPatterns(initialSettings.sensitiveUrlPatterns));
+  const [busyAction, setBusyAction] = useState<BusyAction>(null);
+
+  // Estados da tabela limpa de alvos e modal de JSON
+  const [statusSubTab, setStatusSubTab] = useState<"pending" | "blocked" | "all">("pending");
+  const [legendOpen, setLegendOpen] = useState(false);
+  const [selectedPageFilter, setSelectedPageFilter] = useState<string>("ALL");
+  const [domainDropdownOpen, setDomainDropdownOpen] = useState(false);
+  const [domainSearchQuery, setDomainSearchQuery] = useState("");
+  const [scoreFilter, setScoreFilter] = useState<"ALL" | "GTE_70" | "GTE_30" | "LT_30">("ALL");
+  const [searchFilter, setSearchFilter] = useState<string>("");
+  const [selectedItemForModal, setSelectedItemForModal] = useState<FlattenedTargetItem | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+
+  const [extensionDetected, setExtensionDetected] = useState<boolean | null>(null);
+  const [installModalOpen, setInstallModalOpen] = useState(false);
+
+  const checkExtension = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    if (
+      Boolean((window as unknown as { __YAPD_EXTENSION_INSTALLED__?: boolean }).__YAPD_EXTENSION_INSTALLED__) ||
+      document.documentElement.hasAttribute("data-yapd-extension-installed")
+    ) {
+      setExtensionDetected(true);
+      return;
+    }
+
+    let resolved = false;
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === "YAPD_EXTENSION_PONG") {
+        resolved = true;
+        setExtensionDetected(true);
+        window.removeEventListener("message", handler);
+      }
+    };
+
+    window.addEventListener("message", handler);
+    window.postMessage({ type: "YAPD_EXTENSION_PING" }, "*");
+
+    setTimeout(() => {
+      window.removeEventListener("message", handler);
+      if (!resolved) {
+        const hasAttr = document.documentElement.hasAttribute("data-yapd-extension-installed");
+        setExtensionDetected(hasAttr);
+      }
+    }, 450);
+  }, []);
+
+  useEffect(() => {
+    checkExtension();
+  }, [checkExtension]);
+
+  const refreshData = async () => {
+    setBusyAction("refresh");
+
+    try {
+      const [settingsResponse, devicesResponse, detectionsResponse] = await Promise.all([
+        client.GET<BrowserExtensionSettingsResponse>("/browser-extension/settings"),
+        client.GET<BrowserExtensionDevicesResponse>("/browser-extension/devices"),
+        client.GET<BrowserExtensionDomainDetectionsResponse>("/browser-extension/detections/domains", {
+          params: { query: { page: 1, pageSize: detections.pagination.pageSize } },
+        }),
+      ]);
+
+      if (!settingsResponse.response.ok || !settingsResponse.data) {
+        toast.error(await getApiErrorMessage(settingsResponse.response));
+        return;
+      }
+
+      if (!devicesResponse.response.ok || !devicesResponse.data) {
+        toast.error(await getApiErrorMessage(devicesResponse.response));
+        return;
+      }
+
+      if (!detectionsResponse.response.ok || !detectionsResponse.data) {
+        toast.error(await getApiErrorMessage(detectionsResponse.response));
+        return;
+      }
+
+      setDevices(devicesResponse.data);
+      setDetections(detectionsResponse.data);
+      setSendPageTitle(settingsResponse.data.sendPageTitle);
+      setHardBlockedUrlPatterns(joinPatterns(settingsResponse.data.hardBlockedUrlPatterns));
+      setSensitiveUrlPatterns(joinPatterns(settingsResponse.data.sensitiveUrlPatterns));
+    } catch {
+      toast.error(browserExtensionMessages.toasts.refreshFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const generatePairingCode = async () => {
+    setBusyAction("pairing");
+
+    try {
+      const { data, response } = await client.POST<BrowserExtensionPairingCodeResponse>(
+        "/browser-extension/pairing-codes",
+        {
+          headers: { "x-yapd-csrf": csrfToken },
+          body: {},
+        },
+      );
+
+      if (!response.ok || !data) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      setPairingCode(data);
+      toast.success(browserExtensionMessages.toasts.pairingCreated);
+    } catch {
+      toast.error(browserExtensionMessages.toasts.pairingFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const saveSettings = async () => {
+    setBusyAction("settings");
+
+    try {
+      const nextSettings = {
+        sendPageTitle,
+        hardBlockedUrlPatterns: splitPatterns(hardBlockedUrlPatterns),
+        sensitiveUrlPatterns: splitPatterns(sensitiveUrlPatterns),
+      };
+      const { data, response } = await client.PATCH<BrowserExtensionSettingsResponse>("/browser-extension/settings", {
+        headers: { "x-yapd-csrf": csrfToken },
+        body: nextSettings,
+      });
+
+      if (!response.ok || !data) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      toast.success(browserExtensionMessages.toasts.settingsSaved);
+    } catch {
+      toast.error(browserExtensionMessages.toasts.settingsFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const revokeDevice = async (id: string) => {
+    setBusyAction(`revoke:${id}`);
+
+    try {
+      const { data, response } = await client.POST<BrowserExtensionDeviceRevokeResponse>(
+        "/browser-extension/devices/{id}/revoke",
+        {
+          headers: { "x-yapd-csrf": csrfToken },
+          params: { path: { id } },
+          body: {},
+        },
+      );
+
+      if (!response.ok || !data) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      setDevices((current) => ({
+        items: current.items.map((device) =>
+          device.id === data.id ? { ...device, revokedAt: data.revokedAt } : device,
+        ),
+      }));
+      toast.success(browserExtensionMessages.toasts.deviceRevoked);
+    } catch {
+      toast.error(browserExtensionMessages.toasts.revokeFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleBlockDomain = async (domain: string) => {
+    setBusyAction(`block:${domain}`);
+
+    // Atualização otimista imediata na tabela
+    setDetections((prev) => ({
+      ...prev,
+      items: prev.items.map((group) => ({
+        ...group,
+        targetGroups: group.targetGroups.map((tg) => ({
+          ...tg,
+          items: tg.items.map((item) =>
+            item.target.toLowerCase() === domain.toLowerCase() ||
+            item.targetMainDomain.toLowerCase() === domain.toLowerCase()
+              ? { ...item, applyStatus: "blocked" as const }
+              : item,
+          ),
+        })),
+      })),
+    }));
+
+    try {
+      const { response } = await client.POST("/domains/{type}/{kind}", {
+        headers: { "x-yapd-csrf": csrfToken },
+        params: { path: { type: "deny", kind: "exact" } },
+        body: { domain, comment: "Added from YAPD Inspector" },
+      });
+
+      if (!response.ok) {
+        toast.error(await getApiErrorMessage(response));
+        await refreshData();
+        return;
+      }
+
+      toast.success(browserExtensionMessages.toasts.domainBlocked);
+      await refreshData();
+    } catch {
+      toast.error(browserExtensionMessages.toasts.domainBlockFailed);
+      await refreshData();
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleAllowDomain = async (domain: string) => {
+    setBusyAction(`allow:${domain}`);
+
+    // Atualização otimista imediata na tabela
+    setDetections((prev) => ({
+      ...prev,
+      items: prev.items.map((group) => ({
+        ...group,
+        targetGroups: group.targetGroups.map((tg) => ({
+          ...tg,
+          items: tg.items.map((item) =>
+            item.target.toLowerCase() === domain.toLowerCase() ||
+            item.targetMainDomain.toLowerCase() === domain.toLowerCase()
+              ? { ...item, applyStatus: "allowed" as const }
+              : item,
+          ),
+        })),
+      })),
+    }));
+
+    try {
+      const { response } = await client.POST("/domains/{type}/{kind}", {
+        headers: { "x-yapd-csrf": csrfToken },
+        params: { path: { type: "allow", kind: "exact" } },
+        body: { domain, comment: "Added from YAPD Inspector" },
+      });
+
+      if (!response.ok) {
+        toast.error(await getApiErrorMessage(response));
+        await refreshData();
+        return;
+      }
+
+      toast.success(browserExtensionMessages.toasts.domainAllowed);
+      await refreshData();
+    } catch {
+      toast.error(browserExtensionMessages.toasts.domainAllowFailed);
+      await refreshData();
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    setBusyAction("clear");
+
+    try {
+      const { response } = await client.POST("/browser-extension/detections/clear", {
+        headers: { "x-yapd-csrf": csrfToken },
+      });
+
+      if (!response.ok) {
+        toast.error(await getApiErrorMessage(response));
+        return;
+      }
+
+      setDetections({
+        items: [],
+        pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 1 },
+      });
+      setClearConfirmOpen(false);
+      toast.success(browserExtensionMessages.toasts.historyCleared);
+    } catch {
+      toast.error(browserExtensionMessages.toasts.historyClearFailed);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  // Consolidação de todos os alvos detectados de forma plana para exibição em tabela limpa
+  const allTargetItems = useMemo(() => {
+    const list: FlattenedTargetItem[] = [];
+
+    for (const group of detections.items) {
+      for (const targetGroup of group.targetGroups) {
+        for (const item of targetGroup.items) {
+          list.push({
+            ...item,
+            pageMainDomain: group.pageMainDomain,
+            latestPageDomain: group.latestPageDomain,
+            latestPageUrl: group.latestPageUrl,
+            latestPageTitle: group.latestPageTitle,
+          });
+        }
+      }
+    }
+
+    // Ordenação estritamente determinística e estável:
+    // 1. Maior score primeiro
+    // 2. Desempate estável por target alfabético (não muda com status de bloqueio)
+    // 3. Desempate final por ID
+    return list.sort((a, b) => b.score - a.score || a.target.localeCompare(b.target) || a.id.localeCompare(b.id));
+  }, [detections]);
+
+  // Contagem de alvos por domínio principal da página visitada
+  const pageTargetCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of allTargetItems) {
+      counts.set(item.pageMainDomain, (counts.get(item.pageMainDomain) ?? 0) + 1);
+    }
+    return counts;
+  }, [allTargetItems]);
+
+  // Lista de páginas distintas para o filtro ordenadas por quantidade e alfabético
+  const availablePages = useMemo(() => {
+    const pages = Array.from(new Set(detections.items.map((g) => g.pageMainDomain)));
+    return pages.sort((a, b) => {
+      const countA = pageTargetCounts.get(a) ?? 0;
+      const countB = pageTargetCounts.get(b) ?? 0;
+      return countB - countA || a.localeCompare(b);
+    });
+  }, [detections, pageTargetCounts]);
+
+  // Filtragem dos domínios por digitação parcial no dropdown
+  const searchedPages = useMemo(() => {
+    const q = domainSearchQuery.trim().toLowerCase();
+    if (!q) return availablePages;
+    return availablePages.filter((domain) => domain.toLowerCase().includes(q));
+  }, [availablePages, domainSearchQuery]);
+
+  // Contagens para as sub-abas de status
+  const pendingCount = useMemo(() => {
+    return allTargetItems.filter((i) => i.applyStatus !== "blocked" && i.applyStatus !== "applied").length;
+  }, [allTargetItems]);
+
+  const blockedCount = useMemo(() => {
+    return allTargetItems.filter((i) => i.applyStatus === "blocked" || i.applyStatus === "applied").length;
+  }, [allTargetItems]);
+
+  // Filtragem por sub-aba de status, página selecionada, score e busca textual
+  const filteredTargetItems = useMemo(() => {
+    let result = allTargetItems;
+
+    if (statusSubTab === "pending") {
+      result = result.filter((item) => item.applyStatus !== "blocked" && item.applyStatus !== "applied");
+    } else if (statusSubTab === "blocked") {
+      result = result.filter((item) => item.applyStatus === "blocked" || item.applyStatus === "applied");
+    }
+
+    if (selectedPageFilter !== "ALL") {
+      result = result.filter((item) => item.pageMainDomain === selectedPageFilter);
+    }
+
+    if (scoreFilter === "GTE_70") {
+      result = result.filter((item) => item.score >= 70);
+    } else if (scoreFilter === "GTE_30") {
+      result = result.filter((item) => item.score >= 30);
+    } else if (scoreFilter === "LT_30") {
+      result = result.filter((item) => item.score < 30);
+    }
+
+    if (searchFilter.trim().length > 0) {
+      const q = searchFilter.trim().toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.target.toLowerCase().includes(q) ||
+          item.targetMainDomain.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q) ||
+          item.pageDomain.toLowerCase().includes(q),
+      );
+    }
+
+    return result;
+  }, [allTargetItems, statusSubTab, selectedPageFilter, scoreFilter, searchFilter]);
+
+  const handleCopyJson = () => {
+    if (!selectedItemForModal) return;
+    navigator.clipboard.writeText(JSON.stringify(selectedItemForModal, null, 2));
+    setIsCopied(true);
+    toast.success(browserExtensionMessages.history.jsonCopied);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* BANNER DE DETECÇÃO E ONBOARDING DA EXTENSÃO */}
+      {extensionDetected === false && (
+        <Card className="border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/20">
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="rounded-md bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
+                  <Puzzle className="size-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CardTitle className="text-base sm:text-lg">
+                      {browserExtensionMessages.onboarding.notDetectedTitle}
+                    </CardTitle>
+                    <Badge
+                      variant="outline"
+                      className="border-amber-500/40 text-[11px] text-amber-600 dark:text-amber-400"
+                    >
+                      {browserExtensionMessages.onboarding.notDetectedBadge}
+                    </Badge>
+                  </div>
+                  <CardDescription className="mt-1 text-xs sm:text-sm">
+                    {browserExtensionMessages.onboarding.description}
+                  </CardDescription>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <a href="/downloads/yapd-extension.zip" download="yapd-extension.zip">
+                  <Button size="sm" className="gap-2">
+                    <Download className="size-4" />
+                    <span>{browserExtensionMessages.onboarding.downloadButton}</span>
+                  </Button>
+                </a>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setInstallModalOpen(true)}>
+                  <HelpCircle className="size-4 text-muted-foreground" />
+                  <span>{browserExtensionMessages.onboarding.instructionsButton}</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 text-muted-foreground text-xs"
+                  onClick={checkExtension}
+                >
+                  <RefreshCw className="size-3.5" />
+                  <span>{browserExtensionMessages.onboarding.recheckButton}</span>
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 text-muted-foreground text-xs">
+            <p>
+              <strong className="font-medium text-foreground">
+                {browserExtensionMessages.onboarding.whyManualTitle}
+              </strong>{" "}
+              {browserExtensionMessages.onboarding.whyManualDescription}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {extensionDetected === true && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-2.5 text-muted-foreground text-xs">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="gap-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            >
+              <CheckCircle2 className="size-3.5 text-emerald-500" />
+              <span>{browserExtensionMessages.onboarding.detectedBadge}</span>
+            </Badge>
+            <span>Extensão ativa inspecionando e sincronizando requisições neste navegador.</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="/downloads/yapd-extension.zip"
+              download="yapd-extension.zip"
+              className="flex items-center gap-1 text-muted-foreground text-xs hover:text-foreground hover:underline"
+            >
+              <Download className="size-3" />
+              <span>Baixar pacote (.ZIP)</span>
+            </a>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-[11px]"
+              onClick={() => setInstallModalOpen(true)}
+            >
+              Instruções
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <Tabs defaultValue="history" className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <TabsList>
+            <TabsTrigger value="history" className="gap-2">
+              <Sparkles className="size-4" />
+              <span>{browserExtensionMessages.tabs.history}</span>
+              <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
+                {filteredTargetItems.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="size-4" />
+              <span>{browserExtensionMessages.tabs.settings}</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <Button
+            disabled={busyAction !== null}
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 text-xs"
+            onClick={refreshData}
+          >
+            <RefreshCw className={cn("size-3.5", busyAction === "refresh" && "animate-spin")} />
+            <span>Atualizar</span>
+          </Button>
+        </div>
+
+        {/* ABA PRINCIPAL: HISTÓRICO DE DETECÇÕES */}
+        <TabsContent value="history" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle>{browserExtensionMessages.history.title}</CardTitle>
+                  <CardDescription>{browserExtensionMessages.history.description}</CardDescription>
+                </div>
+
+                {/* Sub-abas de Status: Pendentes, Bloqueados, Todos */}
+                <div className="flex items-center gap-1 rounded-lg border bg-muted/40 p-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={statusSubTab === "pending" ? "default" : "ghost"}
+                    className={cn(
+                      "h-7 gap-1.5 px-3 text-xs",
+                      statusSubTab === "pending" ? "shadow-sm" : "text-muted-foreground hover:text-foreground",
+                    )}
+                    onClick={() => setStatusSubTab("pending")}
+                  >
+                    <ShieldAlert className="size-3.5 text-amber-500" />
+                    <span>{browserExtensionMessages.history.subtabs.pending}</span>
+                    <Badge
+                      variant={statusSubTab === "pending" ? "secondary" : "outline"}
+                      className="px-1.5 py-0 font-mono text-[10px]"
+                    >
+                      {pendingCount}
+                    </Badge>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={statusSubTab === "blocked" ? "default" : "ghost"}
+                    className={cn(
+                      "h-7 gap-1.5 px-3 text-xs",
+                      statusSubTab === "blocked" ? "shadow-sm" : "text-muted-foreground hover:text-foreground",
+                    )}
+                    onClick={() => setStatusSubTab("blocked")}
+                  >
+                    <ShieldBan className="size-3.5 text-red-500" />
+                    <span>{browserExtensionMessages.history.subtabs.blocked}</span>
+                    <Badge
+                      variant={statusSubTab === "blocked" ? "secondary" : "outline"}
+                      className="px-1.5 py-0 font-mono text-[10px]"
+                    >
+                      {blockedCount}
+                    </Badge>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={statusSubTab === "all" ? "default" : "ghost"}
+                    className={cn(
+                      "h-7 gap-1.5 px-3 text-xs",
+                      statusSubTab === "all" ? "shadow-sm" : "text-muted-foreground hover:text-foreground",
+                    )}
+                    onClick={() => setStatusSubTab("all")}
+                  >
+                    <Layers className="size-3.5 text-muted-foreground" />
+                    <span>{browserExtensionMessages.history.subtabs.all}</span>
+                    <Badge
+                      variant={statusSubTab === "all" ? "secondary" : "outline"}
+                      className="px-1.5 py-0 font-mono text-[10px]"
+                    >
+                      {allTargetItems.length}
+                    </Badge>
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Dropdown Pesquisável de Domínios Principais */}
+                {availablePages.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <Popover open={domainDropdownOpen} onOpenChange={setDomainDropdownOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          role="combobox"
+                          aria-expanded={domainDropdownOpen}
+                          className="h-8 min-w-[190px] max-w-[270px] justify-between gap-2 font-normal text-xs"
+                        >
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Globe className="size-3.5 shrink-0 text-muted-foreground" />
+                            <span className="truncate">
+                              {selectedPageFilter === "ALL"
+                                ? browserExtensionMessages.history.filterAllDomains
+                                : selectedPageFilter}
+                            </span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
+                              {selectedPageFilter === "ALL"
+                                ? allTargetItems.length
+                                : (pageTargetCounts.get(selectedPageFilter) ?? 0)}
+                            </Badge>
+                            <ChevronsUpDown className="size-3 opacity-50" />
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0" align="start">
+                        <div className="border-b p-2">
+                          <div className="relative">
+                            <Search className="-translate-y-1/2 absolute top-1/2 left-2.5 size-3.5 text-muted-foreground" />
+                            <Input
+                              placeholder={browserExtensionMessages.history.domainFilterPlaceholder}
+                              value={domainSearchQuery}
+                              onChange={(e) => setDomainSearchQuery(e.target.value)}
+                              className="h-8 pr-7 pl-8 text-xs"
+                              autoFocus
+                            />
+                            {domainSearchQuery && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="-translate-y-1/2 absolute top-1/2 right-1 size-6 text-muted-foreground hover:text-foreground"
+                                onClick={() => setDomainSearchQuery("")}
+                              >
+                                <X className="size-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="max-h-60 overflow-y-auto p-1 text-xs">
+                          {/* Opção Todos os Domínios */}
+                          <button
+                            type="button"
+                            className={cn(
+                              "flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-muted/80",
+                              selectedPageFilter === "ALL" && "bg-muted font-medium text-foreground",
+                            )}
+                            onClick={() => {
+                              setSelectedPageFilter("ALL");
+                              setDomainDropdownOpen(false);
+                            }}
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <Check
+                                className={cn(
+                                  "size-3.5 shrink-0 text-primary",
+                                  selectedPageFilter === "ALL" ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              <span className="truncate">{browserExtensionMessages.history.filterAllDomains}</span>
+                            </div>
+                            <Badge variant="secondary" className="px-1.5 py-0 font-mono text-[10px]">
+                              {allTargetItems.length}
+                            </Badge>
+                          </button>
+
+                          {searchedPages.length === 0 ? (
+                            <p className="py-4 text-center text-muted-foreground text-xs">
+                              {browserExtensionMessages.history.domainFilterEmpty}
+                            </p>
+                          ) : (
+                            searchedPages.map((page) => {
+                              const isSelected = selectedPageFilter === page;
+                              const count = pageTargetCounts.get(page) ?? 0;
+
+                              return (
+                                <button
+                                  key={page}
+                                  type="button"
+                                  className={cn(
+                                    "flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-muted/80",
+                                    isSelected && "bg-muted font-medium text-foreground",
+                                  )}
+                                  onClick={() => {
+                                    setSelectedPageFilter(page);
+                                    setDomainDropdownOpen(false);
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2 truncate">
+                                    <Check
+                                      className={cn(
+                                        "size-3.5 shrink-0 text-primary",
+                                        isSelected ? "opacity-100" : "opacity-0",
+                                      )}
+                                    />
+                                    <span className="truncate font-mono">{page}</span>
+                                  </div>
+                                  <Badge variant="outline" className="px-1.5 py-0 font-mono text-[10px]">
+                                    {count}
+                                  </Badge>
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {selectedPageFilter !== "ALL" && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2 text-muted-foreground text-xs hover:text-foreground"
+                        onClick={() => setSelectedPageFilter("ALL")}
+                        title="Limpar filtro de domínio"
+                      >
+                        <X className="mr-1 size-3" />
+                        <span>Limpar</span>
+                      </Button>
+                    )}
+                  </div>
+                )}
+                <div className="w-full sm:w-auto">
+                  <Select
+                    value={scoreFilter}
+                    onValueChange={(val) => setScoreFilter(val as "ALL" | "GTE_70" | "GTE_30" | "LT_30")}
+                  >
+                    <SelectTrigger size="sm" className="h-8 min-w-[170px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent position="popper" align="start">
+                      <SelectItem value="ALL">{browserExtensionMessages.history.scoreFilterAll}</SelectItem>
+                      <SelectItem value="GTE_70">{browserExtensionMessages.history.scoreFilterHigh}</SelectItem>
+                      <SelectItem value="GTE_30">{browserExtensionMessages.history.scoreFilterMedium}</SelectItem>
+                      <SelectItem value="LT_30">{browserExtensionMessages.history.scoreFilterLow}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="relative w-full sm:w-64">
+                  <Search className="-translate-y-1/2 absolute top-1/2 left-2.5 size-4 text-muted-foreground" />
+                  <Input
+                    placeholder={browserExtensionMessages.history.searchPlaceholder}
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    className="h-8 pl-8 text-xs"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1.5 text-muted-foreground text-xs hover:text-foreground"
+                  onClick={() => setLegendOpen(true)}
+                >
+                  <Info className="size-3.5" />
+                  <span>{browserExtensionMessages.history.legend.button}</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1.5 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive"
+                  disabled={allTargetItems.length === 0 || busyAction !== null}
+                  onClick={() => setClearConfirmOpen(true)}
+                >
+                  <Trash2 className="size-3.5" />
+                  {browserExtensionMessages.history.clearHistory}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {filteredTargetItems.length === 0 ? (
+                allTargetItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="mb-3 rounded-full bg-muted p-3 text-muted-foreground">
+                      <Puzzle className="size-6 text-amber-500" />
+                    </div>
+                    <p className="font-medium text-foreground text-sm">{browserExtensionMessages.history.empty}</p>
+                    <p className="mt-1 max-w-md text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.emptyHint}
+                    </p>
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                      <a href="/downloads/yapd-extension.zip" download="yapd-extension.zip">
+                        <Button size="sm" variant="secondary" className="gap-1.5 text-xs">
+                          <Download className="size-3.5" />
+                          <span>{browserExtensionMessages.onboarding.downloadButton}</span>
+                        </Button>
+                      </a>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 text-xs"
+                        onClick={() => setInstallModalOpen(true)}
+                      >
+                        <HelpCircle className="size-3.5 text-muted-foreground" />
+                        <span>{browserExtensionMessages.onboarding.instructionsButton}</span>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="py-4 text-center text-muted-foreground text-sm">
+                    {browserExtensionMessages.history.empty}
+                  </p>
+                )
+              ) : (
+                <div className="overflow-x-auto rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[34%]">{browserExtensionMessages.history.target}</TableHead>
+                        <TableHead className="w-[16%]">{browserExtensionMessages.history.category}</TableHead>
+                        <TableHead className="w-[12%]">{browserExtensionMessages.history.score}</TableHead>
+                        <TableHead className="w-[14%]">{browserExtensionMessages.history.kind}</TableHead>
+                        <TableHead className="w-[24%] text-right">{browserExtensionMessages.history.actions}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTargetItems.map((item) => {
+                        const isBlocked = item.applyStatus === "blocked" || item.applyStatus === "applied";
+                        const isAllowed = item.applyStatus === "allowed";
+
+                        return (
+                          <TableRow
+                            key={item.id}
+                            className="cursor-pointer transition-colors hover:bg-muted/50"
+                            onClick={() => setSelectedItemForModal(item)}
+                          >
+                            {/* 1. Target */}
+                            <TableCell className="font-medium">
+                              <div className="grid gap-0.5">
+                                <span className="break-all font-mono text-foreground text-sm">{item.target}</span>
+                                {item.pageDomain && item.pageDomain !== item.target && (
+                                  <span className="max-w-[280px] truncate text-muted-foreground text-xs">
+                                    via {item.pageDomain}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            {/* 2. Categoria */}
+                            <TableCell>
+                              <Badge variant="secondary" className="font-normal text-xs capitalize">
+                                {item.category.replace(/_/g, " ")}
+                              </Badge>
+                            </TableCell>
+
+                            {/* 3. Score */}
+                            <TableCell>
+                              <Badge
+                                variant={item.score >= 70 ? "destructive" : item.score >= 40 ? "secondary" : "outline"}
+                                className="font-mono font-semibold"
+                              >
+                                {item.score}
+                              </Badge>
+                            </TableCell>
+
+                            {/* 4. Formato */}
+                            <TableCell>
+                              <div className="flex items-center gap-1.5">
+                                <Badge variant="outline" className="font-mono text-xs">
+                                  {item.kind}
+                                </Badge>
+                                {item.evidence && typeof item.evidence.elementTag === "string" && (
+                                  <span className="font-mono text-muted-foreground text-xs">
+                                    &lt;{item.evidence.elementTag}&gt;
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            {/* 5. Ações (Permitir, Bloquear, se já bloqueado informar) */}
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {isBlocked ? (
+                                  <>
+                                    <Badge
+                                      variant="default"
+                                      className="h-7 gap-1 border-red-500/25 bg-red-500/15 px-2.5 font-medium text-red-600 text-xs dark:text-red-400"
+                                    >
+                                      <ShieldBan className="size-3.5" />
+                                      {browserExtensionMessages.history.alreadyBlocked}
+                                    </Badge>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 px-2 text-xs"
+                                      disabled={busyAction !== null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAllowDomain(item.targetMainDomain || item.target);
+                                      }}
+                                    >
+                                      <ShieldCheck className="mr-1 size-3.5" />
+                                      {browserExtensionMessages.history.allowDomain}
+                                    </Button>
+                                  </>
+                                ) : isAllowed ? (
+                                  <>
+                                    <Badge
+                                      variant="outline"
+                                      className="h-7 gap-1 border-emerald-500/25 bg-emerald-500/10 px-2.5 font-medium text-emerald-600 text-xs dark:text-emerald-400"
+                                    >
+                                      <ShieldCheck className="size-3.5" />
+                                      {browserExtensionMessages.history.alreadyAllowed}
+                                    </Badge>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="h-7 px-2 text-xs"
+                                      disabled={busyAction !== null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleBlockDomain(item.targetMainDomain || item.target);
+                                      }}
+                                    >
+                                      <ShieldBan className="mr-1 size-3.5" />
+                                      {browserExtensionMessages.history.blockDomain}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs"
+                                      disabled={busyAction !== null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAllowDomain(item.targetMainDomain || item.target);
+                                      }}
+                                    >
+                                      <ShieldCheck className="mr-1 size-3.5" />
+                                      {browserExtensionMessages.history.allowDomain}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="h-7 text-xs"
+                                      disabled={busyAction !== null}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleBlockDomain(item.targetMainDomain || item.target);
+                                      }}
+                                    >
+                                      <ShieldBan className="mr-1 size-3.5" />
+                                      {browserExtensionMessages.history.blockDomain}
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ABA SECUNDÁRIA: CONFIGURAÇÕES GERAIS */}
+        <TabsContent value="settings" className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.65fr)]">
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>{browserExtensionMessages.pairing.title}</CardTitle>
+                  <CardDescription>{browserExtensionMessages.pairing.description}</CardDescription>
+                </div>
+                <Button disabled={busyAction !== null} onClick={generatePairingCode}>
+                  <KeyRound />
+                  {busyAction === "pairing"
+                    ? browserExtensionMessages.pairing.generating
+                    : browserExtensionMessages.pairing.generate}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {pairingCode ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-md border px-4 py-3">
+                      <p className="text-muted-foreground text-xs">{browserExtensionMessages.pairing.code}</p>
+                      <p className="font-mono font-semibold text-3xl tracking-widest">{pairingCode.pairingCode}</p>
+                    </div>
+                    <div className="rounded-md border px-4 py-3">
+                      <p className="text-muted-foreground text-xs">{browserExtensionMessages.pairing.expiresAt}</p>
+                      <p className="font-medium">{formatDate(pairingCode.expiresAt, locale)}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">{browserExtensionMessages.pairing.empty}</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between gap-4">
+                <div>
+                  <CardTitle>{browserExtensionMessages.settings.title}</CardTitle>
+                  <CardDescription>{browserExtensionMessages.settings.description}</CardDescription>
+                </div>
+                <Button disabled={busyAction !== null} variant="outline" onClick={refreshData}>
+                  <RefreshCw className={cn(busyAction === "refresh" && "animate-spin")} />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-md border px-3 py-2">
+                  <FieldLabel>{browserExtensionMessages.settings.sendPageTitle}</FieldLabel>
+                  <Switch checked={sendPageTitle} onCheckedChange={setSendPageTitle} />
+                </div>
+                <Field>
+                  <FieldLabel>{browserExtensionMessages.settings.hardBlocked}</FieldLabel>
+                  <Textarea
+                    className="min-h-24 font-mono text-xs"
+                    placeholder={browserExtensionMessages.settings.patternsPlaceholder}
+                    value={hardBlockedUrlPatterns}
+                    onChange={(event) => setHardBlockedUrlPatterns(event.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel>{browserExtensionMessages.settings.sensitive}</FieldLabel>
+                  <Textarea
+                    className="min-h-24 font-mono text-xs"
+                    placeholder={browserExtensionMessages.settings.patternsPlaceholder}
+                    value={sensitiveUrlPatterns}
+                    onChange={(event) => setSensitiveUrlPatterns(event.target.value)}
+                  />
+                </Field>
+                <Button disabled={busyAction !== null} onClick={saveSettings}>
+                  <Save />
+                  {busyAction === "settings"
+                    ? browserExtensionMessages.settings.saving
+                    : browserExtensionMessages.settings.save}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{browserExtensionMessages.devices.title}</CardTitle>
+              <CardDescription>{browserExtensionMessages.devices.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {devices.items.length === 0 ? (
+                <p className="text-muted-foreground text-sm">{browserExtensionMessages.devices.empty}</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{browserExtensionMessages.devices.name}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.browser}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.version}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.manifest}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.lastSeen}</TableHead>
+                        <TableHead>{browserExtensionMessages.devices.status}</TableHead>
+                        <TableHead className="text-right">{browserExtensionMessages.devices.actions}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {devices.items.map((device) => {
+                        const isRevoked = Boolean(device.revokedAt);
+
+                        return (
+                          <TableRow key={device.id}>
+                            <TableCell className="font-medium">{device.name}</TableCell>
+                            <TableCell>{device.browser}</TableCell>
+                            <TableCell>{device.extensionVersion}</TableCell>
+                            <TableCell>MV{device.manifestVersion}</TableCell>
+                            <TableCell>{formatDate(device.lastSeenAt, locale)}</TableCell>
+                            <TableCell>
+                              <Badge variant={getStatusVariant(isRevoked ? "revoked" : "active")}>
+                                {isRevoked
+                                  ? browserExtensionMessages.devices.revoked
+                                  : browserExtensionMessages.devices.active}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                disabled={isRevoked || busyAction !== null}
+                                size="sm"
+                                variant="outline"
+                                onClick={() => revokeDevice(device.id)}
+                              >
+                                <ShieldOff />
+                                {busyAction === `revoke:${device.id}`
+                                  ? browserExtensionMessages.devices.revoking
+                                  : browserExtensionMessages.devices.revoke}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Modal com Payload JSON e Evidências ao Clicar na Linha */}
+      <Dialog open={Boolean(selectedItemForModal)} onOpenChange={(open) => !open && setSelectedItemForModal(null)}>
+        <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 break-all font-mono text-base">
+              <Sparkles className="size-4 shrink-0 text-primary" />
+              <span>{selectedItemForModal?.target}</span>
+            </DialogTitle>
+            <DialogDescription>{browserExtensionMessages.history.detailsModalDescription}</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 space-y-4 overflow-auto py-2">
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-md border p-2.5">
+                <span className="mb-0.5 block text-muted-foreground">Domínio Principal:</span>
+                <span className="font-medium font-mono">{selectedItemForModal?.targetMainDomain}</span>
+              </div>
+              <div className="rounded-md border p-2.5">
+                <span className="mb-0.5 block text-muted-foreground">Página Visitada:</span>
+                <span className="block truncate font-medium font-mono">{selectedItemForModal?.pageDomain || "-"}</span>
+              </div>
+              <div className="rounded-md border p-2.5">
+                <span className="mb-0.5 block text-muted-foreground">Categoria / Score:</span>
+                <span className="font-medium">
+                  {selectedItemForModal?.category} (Score: {selectedItemForModal?.score}/100)
+                </span>
+              </div>
+              <div className="rounded-md border p-2.5">
+                <span className="mb-0.5 block text-muted-foreground">Status no Pi-hole:</span>
+                <span className="font-medium capitalize">{selectedItemForModal?.applyStatus}</span>
+              </div>
+            </div>
+
+            {selectedItemForModal?.reasons && selectedItemForModal.reasons.length > 0 && (
+              <div className="rounded-md border p-3">
+                <span className="mb-1 block font-medium text-muted-foreground text-xs">Motivos da Classificação:</span>
+                <ul className="list-inside list-disc space-y-0.5 text-foreground/80 text-xs">
+                  {selectedItemForModal.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="font-medium text-muted-foreground text-xs">Payload JSON Completo:</span>
+                <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={handleCopyJson}>
+                  {isCopied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+                  {isCopied ? "Copiado!" : browserExtensionMessages.history.copyJson}
+                </Button>
+              </div>
+              <pre className="max-h-64 overflow-auto rounded-lg border bg-zinc-950 p-3 font-mono text-xs text-zinc-100 dark:bg-zinc-900">
+                {selectedItemForModal ? JSON.stringify(selectedItemForModal, null, 2) : ""}
+              </pre>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedItemForModal(null)}>
+              {browserExtensionMessages.history.close}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmação de Limpeza de Histórico */}
+      <Dialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="size-5" />
+              <span>{browserExtensionMessages.history.clearConfirmTitle}</span>
+            </DialogTitle>
+            <DialogDescription>{browserExtensionMessages.history.clearConfirmDescription}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setClearConfirmOpen(false)} disabled={busyAction === "clear"}>
+              {browserExtensionMessages.history.cancel}
+            </Button>
+            <Button variant="destructive" onClick={handleClearHistory} disabled={busyAction === "clear"}>
+              <Trash2 className="mr-1.5 size-4" />
+              {busyAction === "clear"
+                ? browserExtensionMessages.history.clearing
+                : browserExtensionMessages.history.clearConfirmButton}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Legenda de Categorias e Classificação */}
+      <Dialog open={legendOpen} onOpenChange={setLegendOpen}>
+        <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-semibold text-base">
+              <Info className="size-4 text-primary" />
+              <span>{browserExtensionMessages.history.legend.title}</span>
+            </DialogTitle>
+            <DialogDescription>{browserExtensionMessages.history.legend.description}</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 space-y-4 overflow-auto py-2">
+            <div>
+              <h4 className="mb-2.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                {browserExtensionMessages.history.legend.categoriesTitle}
+              </h4>
+              <div className="space-y-2">
+                {/* Ads */}
+                <div className="flex flex-col gap-1.5 rounded-lg border p-3 sm:flex-row sm:items-start sm:gap-3">
+                  <Badge variant="destructive" className="w-fit font-medium text-xs">
+                    Ads
+                  </Badge>
+                  <div className="flex-1">
+                    <span className="block font-medium text-foreground text-xs">
+                      {browserExtensionMessages.history.legend.adsName}
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.legend.adsDesc}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tracking */}
+                <div className="flex flex-col gap-1.5 rounded-lg border p-3 sm:flex-row sm:items-start sm:gap-3">
+                  <Badge
+                    variant="secondary"
+                    className="w-fit border-amber-500/30 bg-amber-500/15 font-medium text-amber-600 text-xs dark:text-amber-400"
+                  >
+                    Tracking
+                  </Badge>
+                  <div className="flex-1">
+                    <span className="block font-medium text-foreground text-xs">
+                      {browserExtensionMessages.history.legend.trackingName}
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.legend.trackingDesc}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Third Party */}
+                <div className="flex flex-col gap-1.5 rounded-lg border p-3 sm:flex-row sm:items-start sm:gap-3">
+                  <Badge variant="outline" className="w-fit font-medium text-xs">
+                    Third Party
+                  </Badge>
+                  <div className="flex-1">
+                    <span className="block font-medium text-foreground text-xs">
+                      {browserExtensionMessages.history.legend.thirdPartyName}
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.legend.thirdPartyDesc}
+                    </p>
+                  </div>
+                </div>
+
+                {/* User Inspector */}
+                <div className="flex flex-col gap-1.5 rounded-lg border p-3 sm:flex-row sm:items-start sm:gap-3">
+                  <Badge
+                    variant="default"
+                    className="w-fit border-primary/30 bg-primary/20 font-medium text-primary text-xs"
+                  >
+                    User Inspector
+                  </Badge>
+                  <div className="flex-1">
+                    <span className="block font-medium text-foreground text-xs">
+                      {browserExtensionMessages.history.legend.userInspectorName}
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.legend.userInspectorDesc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-2.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                {browserExtensionMessages.history.legend.scoresTitle}
+              </h4>
+              <div className="grid gap-2 text-xs">
+                <div className="flex items-center gap-2 rounded-md border p-2.5">
+                  <Badge variant="destructive" className="font-mono font-semibold">
+                    ≥ 70
+                  </Badge>
+                  <span className="text-muted-foreground">{browserExtensionMessages.history.legend.scoreHigh}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-md border p-2.5">
+                  <Badge variant="secondary" className="font-mono font-semibold">
+                    30 - 69
+                  </Badge>
+                  <span className="text-muted-foreground">{browserExtensionMessages.history.legend.scoreMedium}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-md border p-2.5">
+                  <Badge variant="outline" className="font-mono font-semibold">
+                    &lt; 30
+                  </Badge>
+                  <span className="text-muted-foreground">{browserExtensionMessages.history.legend.scoreLow}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="default" onClick={() => setLegendOpen(false)}>
+              {browserExtensionMessages.history.legend.close}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL COM INSTRUÇÕES DE INSTALAÇÃO NO NAVEGADOR (CHROME / EDGE / BRAVE) */}
+      <Dialog open={installModalOpen} onOpenChange={setInstallModalOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <div className="rounded-md bg-primary/10 p-2 text-primary">
+                <Puzzle className="size-5" />
+              </div>
+              <div>
+                <DialogTitle>{browserExtensionMessages.onboarding.modalTitle}</DialogTitle>
+                <DialogDescription>{browserExtensionMessages.onboarding.modalDescription}</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <div className="flex items-center justify-between font-medium">
+                <span>{browserExtensionMessages.onboarding.step1Title}</span>
+                <a href="/downloads/yapd-extension.zip" download="yapd-extension.zip">
+                  <Button size="sm" variant="secondary" className="h-7 gap-1.5 text-xs">
+                    <Download className="size-3.5" />
+                    Baixar ZIP
+                  </Button>
+                </a>
+              </div>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step1Desc}</p>
+            </div>
+
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <p className="font-medium">{browserExtensionMessages.onboarding.step2Title}</p>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step2Desc}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <code className="rounded bg-muted px-2 py-0.5 font-mono text-foreground text-xs">
+                  chrome://extensions
+                </code>
+                <span className="text-muted-foreground text-xs">ou</span>
+                <code className="rounded bg-muted px-2 py-0.5 font-mono text-foreground text-xs">
+                  edge://extensions
+                </code>
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <p className="font-medium">{browserExtensionMessages.onboarding.step3Title}</p>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step3Desc}</p>
+            </div>
+
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <p className="font-medium">{browserExtensionMessages.onboarding.step4Title}</p>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step4Desc}</p>
+            </div>
+
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <p className="font-medium">{browserExtensionMessages.onboarding.step5Title}</p>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step5Desc}</p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:gap-0">
+            <a href="/downloads/yapd-extension.zip" download="yapd-extension.zip">
+              <Button variant="outline" size="sm" className="w-full gap-2 sm:w-auto">
+                <Download className="size-4" />
+                <span>{browserExtensionMessages.onboarding.downloadButton}</span>
+              </Button>
+            </a>
+            <Button onClick={() => setInstallModalOpen(false)}>{browserExtensionMessages.onboarding.close}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

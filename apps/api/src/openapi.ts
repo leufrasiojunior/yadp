@@ -11,6 +11,14 @@ export function buildOpenApiDocument(app: INestApplication) {
       in: "cookie",
       name: "yapd_session",
     })
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "Browser extension token",
+      },
+      "browser_extension",
+    )
     .build();
 
   return SwaggerModule.createDocument(app, config);

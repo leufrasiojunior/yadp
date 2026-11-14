@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 import { ClientsWorkspace } from "@/app/(main)/clients/_components/clients-workspace";
+import { SubnetRules } from "@/app/(main)/clients/_components/subnet-rules";
 import { ApiErrorScreen } from "@/components/yapd/api-error-screen";
 import { ApiUnavailableScreen } from "@/components/yapd/api-unavailable-screen";
 import { getClients, getGroups, isYapdApiResponseError, isYapdApiUnavailableError } from "@/lib/api/yapd-server";
@@ -33,6 +34,7 @@ export default async function ClientsPage() {
           <p className="mt-2 text-muted-foreground">{messages.clients.description}</p>
         </div>
 
+        <SubnetRules groups={groups.items.map((group) => group.name)} />
         <ClientsWorkspace
           initialData={clients}
           initialExcludedTags={initialExcludedTags}

@@ -4,6 +4,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 
 import { AuditModule } from "./audit/audit.module";
+import { BrowserExtensionModule } from "./browser-extension/browser-extension.module";
 import { ClientsModule } from "./clients/clients.module";
 import { CryptoModule } from "./common/crypto/crypto.module";
 import { ApiExceptionFilter } from "./common/http/api-exception.filter";
@@ -45,6 +46,7 @@ import { ToursModule } from "./tours/tours.module";
       }),
     }),
     AuditModule,
+    BrowserExtensionModule,
     ClientsModule,
     CryptoModule,
     DashboardModule,

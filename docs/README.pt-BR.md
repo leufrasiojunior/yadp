@@ -178,6 +178,27 @@ npm run db:migrate:dev -- --name your_change_name
 
 Evite `prisma db push` para mudanças de schema da aplicação. As migrações são a fonte da verdade para evoluções seguras em desenvolvimento e produção.
 
+## Contribuindo
+
+Contribuições para o YAPD são muito bem-vindas! Seja relatando um bug, sugerindo novas funcionalidades ou enviando código, siga estas diretrizes:
+
+- **Branch de destino**: Abra seus Pull Requests sempre tendo como alvo a branch **`develop`**. A branch `main` é estritamente reservada para releases estáveis e publicadas (`v*`).
+- **Branches de funcionalidade**: Crie branches descritivas a partir da `develop` (ex: `feature/nova-ideia`, `fix/reconexao-pihole`).
+- **Validação**: Certifique-se de que a checagem de tipos, lint e testes passem antes de submeter:
+  ```bash
+  npm run check
+  npm run typecheck
+  npm test
+  ```
+- **Ambiente de desenvolvimento**: Você pode usar o ambiente Docker dedicado com live reload:
+  ```bash
+  docker compose -f docker-compose.dev.yml up
+  ```
+
+## Ecossistema e Ferramentas Recomendadas
+
+- [**yapd-identity-bridge**](https://github.com/alexcf/yapd-identity-bridge) por [@alexcf](https://github.com/alexcf): Identificação extensível de dispositivos e ponte DNS local para YAPD e Pi-hole v6. Integra com roteadores MikroTik (DHCP leases / ARP), inventários estáticos JSON e provedores opcionais Prometheus para enriquecer a descoberta de nomes locais e dispositivos em toda a sua rede.
+
 ## Bugs Conhecidos E Ajuda Necessária
 
 O YAPD ainda é jovem, e setups de rede reais são a melhor forma de encontrar pontos frágeis. Se você encontrar um destes problemas, abra uma issue com logs, versão do Pi-hole, versão ou commit do YAPD, forma de deploy e o que fez o sistema se recuperar.

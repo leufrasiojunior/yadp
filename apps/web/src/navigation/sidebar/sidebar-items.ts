@@ -8,6 +8,7 @@ import {
   List,
   type LucideIcon,
   MonitorSmartphone,
+  ScanSearch,
   Settings2,
   Waypoints,
 } from "lucide-react";
@@ -89,6 +90,11 @@ export function getSidebarItems(
           url: "/domains",
           icon: Globe,
           count: summary?.domains.total,
+        },
+        {
+          title: messages.sidebar.items.browserExtension,
+          url: "/browser-extension",
+          icon: ScanSearch,
         },
         {
           title: messages.sidebar.items.lists,

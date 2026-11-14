@@ -66,6 +66,12 @@ export const ModelName = {
   SyncAttempt: 'SyncAttempt',
   ManagedList: 'ManagedList',
   ManagedDomain: 'ManagedDomain',
+  BrowserExtensionDevice: 'BrowserExtensionDevice',
+  BrowserExtensionPairingCode: 'BrowserExtensionPairingCode',
+  BrowserExtensionSettings: 'BrowserExtensionSettings',
+  BrowserExtensionDecision: 'BrowserExtensionDecision',
+  BrowserExtensionDetectionBatch: 'BrowserExtensionDetectionBatch',
+  BrowserExtensionDetectionItem: 'BrowserExtensionDetectionItem',
   RegexFilter: 'RegexFilter',
   Notification: 'Notification',
   ProductTourCompletion: 'ProductTourCompletion',
@@ -302,6 +308,98 @@ export const ManagedDomainScalarFieldEnum = {
 } as const
 
 export type ManagedDomainScalarFieldEnum = (typeof ManagedDomainScalarFieldEnum)[keyof typeof ManagedDomainScalarFieldEnum]
+
+
+export const BrowserExtensionDeviceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  browser: 'browser',
+  manifestVersion: 'manifestVersion',
+  extensionVersion: 'extensionVersion',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  lastSeenAt: 'lastSeenAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BrowserExtensionDeviceScalarFieldEnum = (typeof BrowserExtensionDeviceScalarFieldEnum)[keyof typeof BrowserExtensionDeviceScalarFieldEnum]
+
+
+export const BrowserExtensionPairingCodeScalarFieldEnum = {
+  id: 'id',
+  codeHash: 'codeHash',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BrowserExtensionPairingCodeScalarFieldEnum = (typeof BrowserExtensionPairingCodeScalarFieldEnum)[keyof typeof BrowserExtensionPairingCodeScalarFieldEnum]
+
+
+export const BrowserExtensionSettingsScalarFieldEnum = {
+  id: 'id',
+  sendPageTitle: 'sendPageTitle',
+  hardBlockedUrlPatterns: 'hardBlockedUrlPatterns',
+  sensitiveUrlPatterns: 'sensitiveUrlPatterns',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BrowserExtensionSettingsScalarFieldEnum = (typeof BrowserExtensionSettingsScalarFieldEnum)[keyof typeof BrowserExtensionSettingsScalarFieldEnum]
+
+
+export const BrowserExtensionDecisionScalarFieldEnum = {
+  id: 'id',
+  target: 'target',
+  kind: 'kind',
+  decision: 'decision',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BrowserExtensionDecisionScalarFieldEnum = (typeof BrowserExtensionDecisionScalarFieldEnum)[keyof typeof BrowserExtensionDecisionScalarFieldEnum]
+
+
+export const BrowserExtensionDetectionBatchScalarFieldEnum = {
+  id: 'id',
+  extensionId: 'extensionId',
+  clientRequestId: 'clientRequestId',
+  pageDomain: 'pageDomain',
+  pageMainDomain: 'pageMainDomain',
+  pageUrl: 'pageUrl',
+  pageTitle: 'pageTitle',
+  status: 'status',
+  undoTokenHash: 'undoTokenHash',
+  summary: 'summary',
+  createdAt: 'createdAt',
+  undoneAt: 'undoneAt'
+} as const
+
+export type BrowserExtensionDetectionBatchScalarFieldEnum = (typeof BrowserExtensionDetectionBatchScalarFieldEnum)[keyof typeof BrowserExtensionDetectionBatchScalarFieldEnum]
+
+
+export const BrowserExtensionDetectionItemScalarFieldEnum = {
+  id: 'id',
+  batchId: 'batchId',
+  candidateId: 'candidateId',
+  target: 'target',
+  targetMainDomain: 'targetMainDomain',
+  type: 'type',
+  kind: 'kind',
+  category: 'category',
+  score: 'score',
+  riskLevel: 'riskLevel',
+  reasons: 'reasons',
+  evidence: 'evidence',
+  applyStatus: 'applyStatus',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type BrowserExtensionDetectionItemScalarFieldEnum = (typeof BrowserExtensionDetectionItemScalarFieldEnum)[keyof typeof BrowserExtensionDetectionItemScalarFieldEnum]
 
 
 export const RegexFilterScalarFieldEnum = {

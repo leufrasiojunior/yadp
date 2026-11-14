@@ -31,6 +31,7 @@ YAPD is built around a simple idea: **your dashboard should know the desired sta
 ## Highlights
 
 - **Multi-instance dashboard**: manage and monitor multiple Pi-hole v6+ instances from one interface.
+- **Subnet policies**: assign IPv4/IPv6 client networks to groups with per-instance previews and verified application. See [subnet policies](docs/subnet-policies.md).
 - **Central configuration source of truth**: keep the intended configuration in YAPD instead of depending on scattered manual edits.
 - **Sync and drift detection**: identify when an instance differs from the expected state before applying changes.
 - **Query and activity visibility**: inspect DNS activity, clients, domains, and historical overview data from a unified surface.
@@ -191,6 +192,27 @@ npm run db:migrate:dev -- --name your_change_name
 ```
 
 Avoid `prisma db push` for application schema changes. Migrations are the source of truth for safe development and production upgrades.
+
+## Contributing
+
+Contributions to YAPD are welcome! Whether you are reporting a bug, proposing a new feature, or submitting code, please keep the following guidelines in mind:
+
+- **Target branch**: Always open Pull Requests against the **`develop`** branch. The `main` branch is strictly reserved for stable tagged releases (`v*`).
+- **Feature branches**: Create descriptive branches starting from `develop` (e.g., `feature/awesome-idea`, `fix/connection-retry`).
+- **Validation**: Ensure typecheck, linting, and tests pass before submitting:
+  ```bash
+  npm run check
+  npm run typecheck
+  npm test
+  ```
+- **Local Dev Environment**: You can use the dedicated live-reload Docker environment:
+  ```bash
+  docker compose -f docker-compose.dev.yml up
+  ```
+
+## Ecosystem & Community Projects
+
+- [**yapd-identity-bridge**](https://github.com/alexcf/yapd-identity-bridge) by [@alexcf](https://github.com/alexcf): Extensible device identification and local DNS bridge for YAPD and Pi-hole v6. Integrates with MikroTik routers (DHCP leases / ARP), static JSON inventories, and optional Prometheus metric providers to resolve local hostnames and enrich device awareness across your network.
 
 ## Known Bugs And Help Wanted
 

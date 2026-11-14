@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1.7
+
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+# Instala dependências de sistema necessárias para o Prisma, compilação de pacotes e healthchecks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    ca-certificates \
+    bash \
+    wget \
+    procps \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copia os manifestos de dependências do monorepo para aproveitar o cache de camadas do Docker
+COPY package.json package-lock.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY packages/api-client/package.json packages/api-client/package.json
+
+# Instala todas as dependências (incluindo devDependencies essenciais para live reload, TS e Prisma)
+RUN npm ci
+
+# Copia o código-fonte da aplicação para a imagem (em runtime de dev, o bind mount sobrescreverá)
+COPY . .
+
+# Expõe as portas de desenvolvimento (3000 = Next.js / HMR, 3001 = NestJS API)
+EXPOSE 3000 3001
+
+# Variáveis padrão de ambiente para HMR, Network Bind em 0.0.0.0 e Watch Polling
+ENV NODE_ENV=development \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0 \
+    API_PORT=3001 \
+    API_HOST=0.0.0.0 \
+    CHOKIDAR_USEPOLLING=true \
+    WATCHPACK_POLLING=true \
+    NEXT_WEBPACK_USEPOLLING=true \
+    NEXT_WEBPACK_POLL_INTERVAL_MS=1000
+
+# Executa migrações do banco, gera cliente Prisma e inicia os servidores em modo dev watch/HMR
+CMD ["sh", "-c", "npm run prisma:generate --workspace @yapd/api && npm run db:migrate:deploy --workspace @yapd/api && ./node_modules/.bin/concurrently -k -n api,web -c blue,magenta 'cd apps/api && node --watch --import tsx src/main.ts' 'npm run dev --workspace @yapd/web -- --webpack --hostname 0.0.0.0 --port 3000'"]

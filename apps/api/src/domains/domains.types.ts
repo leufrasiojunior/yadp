@@ -23,6 +23,13 @@ export type DomainSortDirection = (typeof DOMAIN_SORT_DIRECTIONS)[number];
 
 export const DEFAULT_DOMAIN_OPERATION_COMMENT = "Added from YAPD";
 
+export type DomainOperationActorContext = {
+  locale: "pt-BR" | "en-US";
+  ipAddress: string | null;
+  actorType: "browser_extension" | "user";
+  actorLabel: string | null;
+};
+
 export type DomainItem = {
   domain: string;
   unicode: string | null;
