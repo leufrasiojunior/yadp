@@ -1,4 +1,36 @@
 export type WebMessages = {
+  subnets: {
+    title: string;
+    description: string;
+    add: string;
+    refresh: string;
+    subnet: string;
+    instances: string;
+    actions: string;
+    edit: string;
+    remove: string;
+    loading: string;
+    empty: string;
+    unavailable: string;
+    absent: string;
+    noGroups: string;
+    note: string;
+    review: string;
+    before: string;
+    after: string;
+    deleteNote: string;
+    comment: string;
+    groups: string;
+    back: string;
+    cancel: string;
+    apply: string;
+    preview: string;
+    working: string;
+    failed: string;
+    partial: string;
+    applied: string;
+    planActions: Record<"create" | "update" | "delete" | "unchanged" | "unavailable", string>;
+  };
   common: {
     language: string;
     languagePlaceholder: string;

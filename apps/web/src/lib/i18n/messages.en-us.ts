@@ -1,6 +1,46 @@
 import type { WebMessages } from "./messages.types";
 
 export const enUSMessages: WebMessages = {
+  subnets: {
+    title: "Subnet policies",
+    description:
+      "Assign IPv4 or IPv6 client networks to Pi-hole groups. Preview changes before applying to selected instances.",
+    add: "Add subnet",
+    refresh: "Refresh",
+    subnet: "Subnet (CIDR)",
+    instances: "Instances",
+    actions: "Actions",
+    edit: "Edit subnet",
+    remove: "Remove subnet",
+    loading: "Loading subnet policies…",
+    empty: "No subnet policies configured.",
+    unavailable: "Unavailable",
+    absent: "Not configured",
+    noGroups: "No groups",
+    note: "Clients must reach Pi-hole with their original source IP. Pi-hole decides matching precedence; a more specific IP rule may override a subnet. Names and MAC discovery are not required. IPv4 rules do not cover IPv6 queries.",
+    review: "Review subnet changes",
+    before: "Before",
+    after: "After",
+    deleteNote:
+      "Removing this rule does not disable filtering. Pi-hole will use another matching rule or its Default group.",
+    comment: "Comment",
+    groups: "Groups",
+    back: "Back",
+    cancel: "Cancel",
+    apply: "Apply reviewed changes",
+    preview: "Preview changes",
+    working: "Working…",
+    failed: "Could not load or save subnet policies.",
+    partial: "Some instances failed. Review the results and preview again to retry.",
+    applied: "Subnet policy applied and verified.",
+    planActions: {
+      create: "Create",
+      update: "Update",
+      delete: "Delete",
+      unchanged: "No change",
+      unavailable: "Unavailable",
+    },
+  },
   common: {
     language: "Language",
     languagePlaceholder: "Select language",

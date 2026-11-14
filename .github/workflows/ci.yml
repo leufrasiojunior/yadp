@@ -57,3 +57,5 @@ jobs:
       - name: Generate API client
         run: npm run generate:api-client
       - run: npm run build
+      - name: Test subnet policy preview and replication
+        run: npm run test:subnets --workspace @yapd/api && npm run test:subnets-http --workspace @yapd/api
