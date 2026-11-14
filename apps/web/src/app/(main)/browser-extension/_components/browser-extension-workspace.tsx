@@ -913,9 +913,38 @@ export function BrowserExtensionWorkspace({
             </CardHeader>
             <CardContent>
               {filteredTargetItems.length === 0 ? (
-                <p className="py-4 text-center text-muted-foreground text-sm">
-                  {browserExtensionMessages.history.empty}
-                </p>
+                allTargetItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="mb-3 rounded-full bg-muted p-3 text-muted-foreground">
+                      <Puzzle className="size-6 text-amber-500" />
+                    </div>
+                    <p className="font-medium text-foreground text-sm">{browserExtensionMessages.history.empty}</p>
+                    <p className="mt-1 max-w-md text-muted-foreground text-xs">
+                      {browserExtensionMessages.history.emptyHint}
+                    </p>
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                      <a href="/downloads/yapd-extension.zip" download="yapd-extension.zip">
+                        <Button size="sm" variant="secondary" className="gap-1.5 text-xs">
+                          <Download className="size-3.5" />
+                          <span>{browserExtensionMessages.onboarding.downloadButton}</span>
+                        </Button>
+                      </a>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 text-xs"
+                        onClick={() => setInstallModalOpen(true)}
+                      >
+                        <HelpCircle className="size-3.5 text-muted-foreground" />
+                        <span>{browserExtensionMessages.onboarding.instructionsButton}</span>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="py-4 text-center text-muted-foreground text-sm">
+                    {browserExtensionMessages.history.empty}
+                  </p>
+                )
               ) : (
                 <div className="overflow-x-auto rounded-md border">
                   <Table>

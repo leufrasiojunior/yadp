@@ -1746,6 +1746,7 @@ export type WebMessages = {
       details: string;
       hideDetails: string;
       empty: string;
+      emptyHint: string;
       target: string;
       type: string;
       kind: string;

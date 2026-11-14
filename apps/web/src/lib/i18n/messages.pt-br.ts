@@ -1908,6 +1908,8 @@ export const ptBRMessages: WebMessages = {
       details: "Detalhes",
       hideDetails: "Ocultar",
       empty: "Nenhum item detectado.",
+      emptyHint:
+        "Instale a extensão YAPD Sentinel no seu navegador para detectar requisições de anúncios e rastreadores automaticamente.",
       target: "Target",
       type: "Tipo",
       kind: "Formato",

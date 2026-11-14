@@ -1898,6 +1898,8 @@ export const enUSMessages: WebMessages = {
       details: "Details",
       hideDetails: "Hide",
       empty: "No detected items.",
+      emptyHint:
+        "Install the YAPD Sentinel extension in your browser to automatically inspect ad and tracker network requests.",
       target: "Target",
       type: "Type",
       kind: "Pattern",
