@@ -1668,6 +1668,30 @@ export type WebMessages = {
     eyebrow: string;
     title: string;
     description: string;
+    onboarding: {
+      notDetectedTitle: string;
+      notDetectedBadge: string;
+      detectedBadge: string;
+      description: string;
+      whyManualTitle: string;
+      whyManualDescription: string;
+      downloadButton: string;
+      instructionsButton: string;
+      recheckButton: string;
+      modalTitle: string;
+      modalDescription: string;
+      step1Title: string;
+      step1Desc: string;
+      step2Title: string;
+      step2Desc: string;
+      step3Title: string;
+      step3Desc: string;
+      step4Title: string;
+      step4Desc: string;
+      step5Title: string;
+      step5Desc: string;
+      close: string;
+    };
     tabs: {
       history: string;
       settings: string;

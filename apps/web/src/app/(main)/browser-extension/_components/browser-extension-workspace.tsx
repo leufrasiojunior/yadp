@@ -1,15 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   Check,
+  CheckCircle2,
   ChevronsUpDown,
   Copy,
+  Download,
   Globe,
+  HelpCircle,
   Info,
   KeyRound,
   Layers,
+  Puzzle,
   RefreshCw,
   Save,
   Search,
@@ -148,6 +152,45 @@ export function BrowserExtensionWorkspace({
   const [selectedItemForModal, setSelectedItemForModal] = useState<FlattenedTargetItem | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+
+  const [extensionDetected, setExtensionDetected] = useState<boolean | null>(null);
+  const [installModalOpen, setInstallModalOpen] = useState(false);
+
+  const checkExtension = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    if (
+      Boolean((window as unknown as { __YAPD_EXTENSION_INSTALLED__?: boolean }).__YAPD_EXTENSION_INSTALLED__) ||
+      document.documentElement.hasAttribute("data-yapd-extension-installed")
+    ) {
+      setExtensionDetected(true);
+      return;
+    }
+
+    let resolved = false;
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === "YAPD_EXTENSION_PONG") {
+        resolved = true;
+        setExtensionDetected(true);
+        window.removeEventListener("message", handler);
+      }
+    };
+
+    window.addEventListener("message", handler);
+    window.postMessage({ type: "YAPD_EXTENSION_PING" }, "*");
+
+    setTimeout(() => {
+      window.removeEventListener("message", handler);
+      if (!resolved) {
+        const hasAttr = document.documentElement.hasAttribute("data-yapd-extension-installed");
+        setExtensionDetected(hasAttr);
+      }
+    }, 450);
+  }, []);
+
+  useEffect(() => {
+    checkExtension();
+  }, [checkExtension]);
 
   const refreshData = async () => {
     setBusyAction("refresh");
@@ -490,6 +533,100 @@ export function BrowserExtensionWorkspace({
 
   return (
     <div className="space-y-6">
+      {/* BANNER DE DETECÇÃO E ONBOARDING DA EXTENSÃO */}
+      {extensionDetected === false && (
+        <Card className="border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/20">
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="rounded-md bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
+                  <Puzzle className="size-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CardTitle className="text-base sm:text-lg">
+                      {browserExtensionMessages.onboarding.notDetectedTitle}
+                    </CardTitle>
+                    <Badge
+                      variant="outline"
+                      className="border-amber-500/40 text-[11px] text-amber-600 dark:text-amber-400"
+                    >
+                      {browserExtensionMessages.onboarding.notDetectedBadge}
+                    </Badge>
+                  </div>
+                  <CardDescription className="mt-1 text-xs sm:text-sm">
+                    {browserExtensionMessages.onboarding.description}
+                  </CardDescription>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <a href="/downloads/yapd-extension.zip" download="yapd-extension.zip">
+                  <Button size="sm" className="gap-2">
+                    <Download className="size-4" />
+                    <span>{browserExtensionMessages.onboarding.downloadButton}</span>
+                  </Button>
+                </a>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setInstallModalOpen(true)}>
+                  <HelpCircle className="size-4 text-muted-foreground" />
+                  <span>{browserExtensionMessages.onboarding.instructionsButton}</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 text-muted-foreground text-xs"
+                  onClick={checkExtension}
+                >
+                  <RefreshCw className="size-3.5" />
+                  <span>{browserExtensionMessages.onboarding.recheckButton}</span>
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 text-muted-foreground text-xs">
+            <p>
+              <strong className="font-medium text-foreground">
+                {browserExtensionMessages.onboarding.whyManualTitle}
+              </strong>{" "}
+              {browserExtensionMessages.onboarding.whyManualDescription}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {extensionDetected === true && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-2.5 text-muted-foreground text-xs">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="gap-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            >
+              <CheckCircle2 className="size-3.5 text-emerald-500" />
+              <span>{browserExtensionMessages.onboarding.detectedBadge}</span>
+            </Badge>
+            <span>Extensão ativa inspecionando e sincronizando requisições neste navegador.</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="/downloads/yapd-extension.zip"
+              download="yapd-extension.zip"
+              className="flex items-center gap-1 text-muted-foreground text-xs hover:text-foreground hover:underline"
+            >
+              <Download className="size-3" />
+              <span>Baixar pacote (.ZIP)</span>
+            </a>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-[11px]"
+              onClick={() => setInstallModalOpen(true)}
+            >
+              Instruções
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="history" className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <TabsList>
@@ -1285,6 +1422,77 @@ export function BrowserExtensionWorkspace({
             <Button variant="default" onClick={() => setLegendOpen(false)}>
               {browserExtensionMessages.history.legend.close}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL COM INSTRUÇÕES DE INSTALAÇÃO NO NAVEGADOR (CHROME / EDGE / BRAVE) */}
+      <Dialog open={installModalOpen} onOpenChange={setInstallModalOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <div className="rounded-md bg-primary/10 p-2 text-primary">
+                <Puzzle className="size-5" />
+              </div>
+              <div>
+                <DialogTitle>{browserExtensionMessages.onboarding.modalTitle}</DialogTitle>
+                <DialogDescription>{browserExtensionMessages.onboarding.modalDescription}</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <div className="flex items-center justify-between font-medium">
+                <span>{browserExtensionMessages.onboarding.step1Title}</span>
+                <a href="/downloads/yapd-extension.zip" download="yapd-extension.zip">
+                  <Button size="sm" variant="secondary" className="h-7 gap-1.5 text-xs">
+                    <Download className="size-3.5" />
+                    Baixar ZIP
+                  </Button>
+                </a>
+              </div>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step1Desc}</p>
+            </div>
+
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <p className="font-medium">{browserExtensionMessages.onboarding.step2Title}</p>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step2Desc}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <code className="rounded bg-muted px-2 py-0.5 font-mono text-foreground text-xs">
+                  chrome://extensions
+                </code>
+                <span className="text-muted-foreground text-xs">ou</span>
+                <code className="rounded bg-muted px-2 py-0.5 font-mono text-foreground text-xs">
+                  edge://extensions
+                </code>
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <p className="font-medium">{browserExtensionMessages.onboarding.step3Title}</p>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step3Desc}</p>
+            </div>
+
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <p className="font-medium">{browserExtensionMessages.onboarding.step4Title}</p>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step4Desc}</p>
+            </div>
+
+            <div className="rounded-lg border bg-card p-3.5 text-sm">
+              <p className="font-medium">{browserExtensionMessages.onboarding.step5Title}</p>
+              <p className="mt-1 text-muted-foreground text-xs">{browserExtensionMessages.onboarding.step5Desc}</p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:gap-0">
+            <a href="/downloads/yapd-extension.zip" download="yapd-extension.zip">
+              <Button variant="outline" size="sm" className="w-full gap-2 sm:w-auto">
+                <Download className="size-4" />
+                <span>{browserExtensionMessages.onboarding.downloadButton}</span>
+              </Button>
+            </a>
+            <Button onClick={() => setInstallModalOpen(false)}>{browserExtensionMessages.onboarding.close}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

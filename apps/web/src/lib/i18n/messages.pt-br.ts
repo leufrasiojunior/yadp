@@ -418,7 +418,7 @@ export const ptBRMessages: WebMessages = {
       groups: "Grupos",
       clients: "Clientes",
       domains: "Domínios",
-      browserExtension: "YAPD Sentinel",
+      browserExtension: "YAPD Inspector",
       lists: "Ad-lists",
       instances: "Instâncias",
       config: "Configurações",
@@ -1823,8 +1823,37 @@ export const ptBRMessages: WebMessages = {
   },
   browserExtension: {
     eyebrow: "Extensão",
-    title: "YAPD Sentinel",
+    title: "YAPD Inspector",
     description: "Gerencie pareamento, dispositivos, configurações e histórico da extensão.",
+    onboarding: {
+      notDetectedTitle: "Extensão YAPD Inspector não detectada no navegador",
+      notDetectedBadge: "Instalação Manual (Chromium)",
+      detectedBadge: "Extensão Conectada no Navegador",
+      description:
+        "O YAPD Inspector é uma extensão de navegador que audita requisições web em tempo real e identifica anúncios e rastreadores para bloqueio centralizado no seu Pi-hole.",
+      whyManualTitle: "Por que não está na Chrome Web Store?",
+      whyManualDescription:
+        "Por ser uma ferramenta open-source auto-hospedada com foco em privacidade e homelabs, ela é empacotada e servida diretamente pelo seu container YAPD, sem intermediários nem telemetria externa.",
+      downloadButton: "Baixar Extensão (.ZIP)",
+      instructionsButton: "Como Instalar no Navegador",
+      recheckButton: "Verificar Novamente",
+      modalTitle: "Instalação no Chrome, Edge, Brave ou Opera",
+      modalDescription: "Siga o passo a passo abaixo para carregar a extensão no seu navegador em modo desenvolvedor:",
+      step1Title: "1. Baixar e Extrair o Pacote",
+      step1Desc: "Baixe o arquivo yapd-extension.zip e descompacte-o em uma pasta permanente no seu computador.",
+      step2Title: "2. Acessar a Página de Extensões",
+      step2Desc: "No navegador, acesse chrome://extensions (no Chrome/Brave) ou edge://extensions (no Edge).",
+      step3Title: "3. Ativar o Modo do Desenvolvedor",
+      step3Desc:
+        "Ative a chave seletora 'Modo do desenvolvedor' (geralmente localizada no canto superior direito da página de extensões).",
+      step4Title: "4. Carregar sem Compactação",
+      step4Desc:
+        "Clique no botão 'Carregar sem compactação' (Load unpacked) e selecione a pasta descompactada da extensão.",
+      step5Title: "5. Parear com este Painel",
+      step5Desc:
+        "Clique no ícone do YAPD no menu de extensões da barra de ferramentas e conecte utilizando o Código de Pareamento gerado abaixo.",
+      close: "Entendido",
+    },
     tabs: {
       history: "Histórico de Detecções",
       settings: "Configurações Gerais",

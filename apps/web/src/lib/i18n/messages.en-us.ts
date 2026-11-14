@@ -416,7 +416,7 @@ export const enUSMessages: WebMessages = {
       groups: "Groups",
       clients: "Clients",
       domains: "Domains",
-      browserExtension: "YAPD Sentinel",
+      browserExtension: "YAPD Inspector",
       lists: "Ad-lists",
       instances: "Instances",
       config: "Configuration",
@@ -1813,8 +1813,37 @@ export const enUSMessages: WebMessages = {
   },
   browserExtension: {
     eyebrow: "Extension",
-    title: "YAPD Sentinel",
+    title: "YAPD Inspector",
     description: "Manage extension pairing, devices, settings, and submission history.",
+    onboarding: {
+      notDetectedTitle: "YAPD Inspector extension not detected in browser",
+      notDetectedBadge: "Manual Install (Chromium)",
+      detectedBadge: "Extension Active in Browser",
+      description:
+        "The YAPD Inspector is a browser extension that audits web requests in real time and detects ads and trackers for centralized blocking on your Pi-hole.",
+      whyManualTitle: "Why is it not on the Chrome Web Store?",
+      whyManualDescription:
+        "As an open-source, privacy-first self-hosted tool designed for homelabs, it is packaged and served directly from your YAPD container without third-party tracking or intermediaries.",
+      downloadButton: "Download Extension (.ZIP)",
+      instructionsButton: "How to Install in Browser",
+      recheckButton: "Check Again",
+      modalTitle: "Installation in Chrome, Edge, Brave, or Opera",
+      modalDescription: "Follow the steps below to load the extension into your browser in developer mode:",
+      step1Title: "1. Download and Extract the Package",
+      step1Desc: "Download the yapd-extension.zip archive and extract it into a permanent folder on your computer.",
+      step2Title: "2. Open the Extensions Page",
+      step2Desc:
+        "In your browser address bar, navigate to chrome://extensions (Chrome/Brave) or edge://extensions (Edge).",
+      step3Title: "3. Turn on Developer Mode",
+      step3Desc:
+        "Toggle on the 'Developer mode' switch (usually located at the top-right corner of the extensions page).",
+      step4Title: "4. Load Unpacked",
+      step4Desc: "Click the 'Load unpacked' button and select the extracted extension folder.",
+      step5Title: "5. Pair with Dashboard",
+      step5Desc:
+        "Click the YAPD icon in your browser toolbar's extension menu and pair using the Pairing Code generated below.",
+      close: "Got it",
+    },
     tabs: {
       history: "Detections History",
       settings: "General Settings",
