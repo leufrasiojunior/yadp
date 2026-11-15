@@ -1,5 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsIn, IsNumber, IsOptional, IsString } from "class-validator";
 
 import {
   DOMAIN_PATTERN_MODE_VALUES,
@@ -16,51 +17,50 @@ export class ApplyDomainOperationDto {
   @IsString()
   domain!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Comment describing why the operation is applied",
     example: "Blocked for parental control",
-    required: false,
     nullable: true,
   })
   @IsString()
   @IsOptional()
   comment?: string | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Operation scope",
     enum: DOMAIN_SCOPE_VALUES,
+    default: "all",
     example: "all",
   })
-  @IsEnum(DOMAIN_SCOPE_VALUES)
-  scope!: DomainScopeMode;
+  @Transform(({ value }) => value ?? "all")
+  @IsIn(DOMAIN_SCOPE_VALUES)
+  @IsOptional()
+  scope: DomainScopeMode = "all";
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Specific instance ID when scope is set to 'instance'",
     example: "clz-baseline",
-    required: false,
     nullable: true,
   })
   @IsString()
   @IsOptional()
   instanceId?: string | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Groups assigned to this domain",
     type: [Number],
     example: [0],
-    required: false,
   })
   @IsNumber({}, { each: true })
   @IsOptional()
   groups?: number[];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "How the submitted domain should be interpreted before creating the Pi-hole entry",
     enum: DOMAIN_PATTERN_MODE_VALUES,
     example: "regex_specific",
-    required: false,
   })
-  @IsEnum(DOMAIN_PATTERN_MODE_VALUES)
+  @IsIn(DOMAIN_PATTERN_MODE_VALUES)
   @IsOptional()
   patternMode?: DomainPatternMode;
 }

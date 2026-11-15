@@ -1,6 +1,18 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsIn, IsInt, IsString, Max, MaxLength, Min, ValidateNested } from "class-validator";
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from "class-validator";
 
 import { BROWSER_EXTENSION_RISK_LEVEL_VALUES, type BrowserExtensionRiskLevel } from "../browser-extension.types";
 import {
@@ -45,6 +57,11 @@ class ReportExtensionTargetDto {
   @ValidateNested()
   @Type(() => ApplyExtensionEvidenceDto)
   evidence!: ApplyExtensionEvidenceDto;
+
+  @ApiPropertyOptional({ example: false })
+  @IsBoolean()
+  @IsOptional()
+  isBlocked?: boolean;
 }
 
 export class ReportExtensionDetectionsDto {
