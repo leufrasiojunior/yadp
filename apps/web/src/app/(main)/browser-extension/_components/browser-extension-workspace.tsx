@@ -339,7 +339,7 @@ export function BrowserExtensionWorkspace({
       const { response } = await client.POST("/domains/{type}/{kind}", {
         headers: { "x-yapd-csrf": csrfToken },
         params: { path: { type: "deny", kind: "exact" } },
-        body: { domain, comment: "Added from YAPD Inspector" },
+        body: { domain, comment: "Added from YAPD Inspector", scope: "all" },
       });
 
       if (!response.ok) {
@@ -382,7 +382,7 @@ export function BrowserExtensionWorkspace({
       const { response } = await client.POST("/domains/{type}/{kind}", {
         headers: { "x-yapd-csrf": csrfToken },
         params: { path: { type: "allow", kind: "exact" } },
-        body: { domain, comment: "Added from YAPD Inspector" },
+        body: { domain, comment: "Added from YAPD Inspector", scope: "all" },
       });
 
       if (!response.ok) {
@@ -1030,7 +1030,7 @@ export function BrowserExtensionWorkspace({
                                       disabled={busyAction !== null}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleAllowDomain(item.targetMainDomain || item.target);
+                                        handleAllowDomain(item.target || item.targetMainDomain);
                                       }}
                                     >
                                       <ShieldCheck className="mr-1 size-3.5" />
@@ -1053,7 +1053,7 @@ export function BrowserExtensionWorkspace({
                                       disabled={busyAction !== null}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleBlockDomain(item.targetMainDomain || item.target);
+                                        handleBlockDomain(item.target || item.targetMainDomain);
                                       }}
                                     >
                                       <ShieldBan className="mr-1 size-3.5" />
@@ -1069,7 +1069,7 @@ export function BrowserExtensionWorkspace({
                                       disabled={busyAction !== null}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleAllowDomain(item.targetMainDomain || item.target);
+                                        handleAllowDomain(item.target || item.targetMainDomain);
                                       }}
                                     >
                                       <ShieldCheck className="mr-1 size-3.5" />
@@ -1082,7 +1082,7 @@ export function BrowserExtensionWorkspace({
                                       disabled={busyAction !== null}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleBlockDomain(item.targetMainDomain || item.target);
+                                        handleBlockDomain(item.target || item.targetMainDomain);
                                       }}
                                     >
                                       <ShieldBan className="mr-1 size-3.5" />

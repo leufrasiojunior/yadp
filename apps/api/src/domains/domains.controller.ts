@@ -28,9 +28,7 @@ import {
   DOMAINS_MUTATION_API_OK_RESPONSE,
 } from "./domains.responses";
 import { DomainsService } from "./domains.service";
-// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { ApplyDomainOperationDto } from "./dto/apply-domain-operation.dto";
-// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { BatchDeleteDomainsDto } from "./dto/batch-delete-domains.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { DomainItemParamsDto } from "./dto/domain-item-params.dto";
@@ -38,9 +36,7 @@ import { DomainItemParamsDto } from "./dto/domain-item-params.dto";
 import { DomainOperationParamsDto } from "./dto/domain-operation-params.dto";
 // biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { GetDomainsDto } from "./dto/get-domains.dto";
-// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { SyncDomainsDto } from "./dto/sync-domains.dto";
-// biome-ignore lint/style/useImportType: Nest validation metadata needs the DTO class at runtime.
 import { UpdateDomainDto } from "./dto/update-domain.dto";
 
 type UploadedCsvFile = {
@@ -93,6 +89,7 @@ export class DomainsController {
   @UseGuards(CsrfGuard)
   @ApiParam({ name: "type", enum: ["allow", "deny"] })
   @ApiParam({ name: "kind", enum: ["exact", "regex"] })
+  @ApiBody({ type: ApplyDomainOperationDto })
   @ApiOkResponse(DOMAIN_OPERATION_API_OK_RESPONSE)
   applyDomainOperation(
     @Param() params: DomainOperationParamsDto,
@@ -104,6 +101,7 @@ export class DomainsController {
 
   @Put(":domain/:type/:kind")
   @UseGuards(CsrfGuard)
+  @ApiBody({ type: UpdateDomainDto })
   @ApiOkResponse(DOMAINS_MUTATION_API_OK_RESPONSE)
   updateDomain(
     @Param("domain") domain: string,
@@ -117,6 +115,7 @@ export class DomainsController {
 
   @Post("batchDelete")
   @UseGuards(CsrfGuard)
+  @ApiBody({ type: BatchDeleteDomainsDto })
   @ApiOkResponse(DOMAINS_MUTATION_API_OK_RESPONSE)
   batchDelete(@Body() body: BatchDeleteDomainsDto, @Req() request: Request) {
     return this.domainsService.batchDelete(body, request);
@@ -124,6 +123,7 @@ export class DomainsController {
 
   @Post("sync")
   @UseGuards(CsrfGuard)
+  @ApiBody({ type: SyncDomainsDto })
   @ApiOkResponse(DOMAINS_MUTATION_API_OK_RESPONSE)
   syncDomains(@Body() body: SyncDomainsDto, @Req() request: Request) {
     return this.domainsService.syncDomains(body, request);

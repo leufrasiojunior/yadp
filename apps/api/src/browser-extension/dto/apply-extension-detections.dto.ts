@@ -89,6 +89,51 @@ export class ApplyExtensionEvidenceDto {
   @ApiProperty({ example: true })
   @IsBoolean()
   isThirdParty!: boolean;
+
+  @ApiPropertyOptional({ example: "script" })
+  @IsString()
+  @MaxLength(100)
+  @IsOptional()
+  elementTag?: string;
+
+  @ApiPropertyOptional({ example: "https://example.com/main.js" })
+  @IsString()
+  @MaxLength(2048)
+  @IsOptional()
+  initiatorScript?: string;
+
+  @ApiPropertyOptional({ example: 1731600000000 })
+  @IsInt()
+  @IsOptional()
+  timestamp?: number;
+
+  @ApiPropertyOptional({ example: "hash123" })
+  @IsString()
+  @MaxLength(255)
+  @IsOptional()
+  domPathHash?: string;
+
+  @ApiPropertyOptional({ example: "ad-slot-1" })
+  @IsString()
+  @MaxLength(255)
+  @IsOptional()
+  elementId?: string;
+
+  @ApiPropertyOptional({ type: [String], example: ["ad-box", "banner"] })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  elementClasses?: string[];
+
+  @ApiPropertyOptional({ example: { width: 300, height: 250 } })
+  @IsOptional()
+  dimensions?: { width: number; height: number };
+
+  @ApiPropertyOptional({ example: "https://ad-frame.example.com" })
+  @IsString()
+  @MaxLength(2048)
+  @IsOptional()
+  frameUrl?: string;
 }
 
 export class ApplyExtensionTargetDto {
@@ -140,6 +185,11 @@ export class ApplyExtensionTargetDto {
   @ValidateNested()
   @Type(() => ApplyExtensionEvidenceDto)
   evidence!: ApplyExtensionEvidenceDto;
+
+  @ApiPropertyOptional({ example: false })
+  @IsBoolean()
+  @IsOptional()
+  isBlocked?: boolean;
 }
 
 export class ApplyExtensionDetectionsDto {
