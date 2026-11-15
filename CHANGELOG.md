@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/leufrasiojunior/yadp/compare/yapd-v1.1.0...yapd-v1.1.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **domains:** default scope to all in domain operations and update extension zip v0.2.1 ([#76](https://github.com/leufrasiojunior/yadp/issues/76)) ([3de9186](https://github.com/leufrasiojunior/yadp/commit/3de9186c294dee831ff445c150d65bb40a60b241))
+
 ## [1.1.0](https://github.com/leufrasiojunior/yadp/compare/yapd-v1.0.0...yapd-v1.1.0) (2026-11-14)
 
 
