@@ -6,6 +6,7 @@ on:
     paths:
       - "site/**"
       - "media/**"
+      - "apps/web/public/downloads/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -31,9 +32,10 @@ jobs:
 
       - name: Assemble static site artifact
         run: |
-          mkdir -p _site/media
+          mkdir -p _site/media _site/downloads
           cp -r site/* _site/
           cp -r media/*.png _site/media/
+          cp apps/web/public/downloads/yapd-extension.zip _site/downloads/yapd-extension.zip
           touch _site/.nojekyll
 
       - name: Configure Pages

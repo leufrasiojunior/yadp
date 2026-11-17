@@ -2,6 +2,7 @@ const TRANSLATIONS = {
   en: {
     "nav.features": "Features",
     "nav.tour": "Visual Tour",
+    "nav.extension": "Browser Extension",
     "nav.quickstart": "Quick Start",
     "nav.security": "Architecture & Security",
     "nav.docs": "Docs",
@@ -69,6 +70,37 @@ const TRANSLATIONS = {
     "tour.tab8": "9. Notifications",
     "tour.zoomBtn": "Expand Screenshot",
     "tour.clickToZoom": "Click to zoom",
+    "ext.eyebrow": "BROWSER EXTENSION • CHROMIUM",
+    "ext.title": "YAPD Inspector (Sentinel) — Real-Time Request Auditing in Your Browser",
+    "ext.subtitle":
+      "Passively inspect web requests while you browse, detect hidden ad and tracking domains with risk scoring, and block or allow them across all your Pi-hole v6+ instances with one click.",
+    "ext.badgeLocal": "100% Local & Private",
+    "ext.badgeBrowsers": "Chrome • Brave • Edge • Opera",
+    "ext.cardTitle": "How YAPD Inspector Works",
+    "ext.cardDesc":
+      "All domain analysis happens locally inside your browser with zero third-party telemetry. Paired securely via a temporary one-time code, detections are sent strictly to your own self-hosted YAPD instance on your private network.",
+    "ext.catAds": "Ad servers, banners, and promotional media scripts",
+    "ext.catTracking": "Telemetry, analytics beacons, and fingerprinting hosts",
+    "ext.catThird": "External cross-domain assets and embedded resources",
+    "ext.catInspector": "Domains manually flagged and submitted from the popup",
+    "ext.whyTitle": "Why is it installed via .ZIP instead of the Chrome Web Store?",
+    "ext.whyDesc":
+      "As a privacy-first, open-source self-hosted tool built for homelabs, the extension is packaged and served directly by your YAPD container (and this repository) with no external store intermediaries.",
+    "ext.downloadBtn": "Download Extension (.ZIP)",
+    "ext.downloadHint": 'Also available directly inside your YAPD dashboard under the "YAPD Inspector" menu.',
+    "ext.installTitle": "How to Install in Chrome, Brave, Edge, or Opera",
+    "ext.installSub": "Load the extension in Developer Mode in less than a minute:",
+    "ext.step1Title": "Download and Extract the Package",
+    "ext.step1Desc": "Download yapd-extension.zip and extract it into a permanent folder on your computer.",
+    "ext.step2Title": "Open the Browser Extensions Page",
+    "ext.step2Desc": "Paste one of the addresses below into your browser address bar:",
+    "ext.step3Title": "Enable Developer Mode",
+    "ext.step3Desc": 'Toggle on the "Developer mode" switch located in the top-right corner of the extensions page.',
+    "ext.step4Title": 'Click "Load Unpacked"',
+    "ext.step4Desc": 'Click the "Load unpacked" button ("Carregar sem compactação") and select the extracted folder.',
+    "ext.step5Title": "Pair with Your YAPD Dashboard",
+    "ext.step5Desc":
+      'Open the "YAPD Inspector" page in your YAPD dashboard, click "Generate code", and enter the temporary Pairing Code in the extension popup.',
     "quickstart.eyebrow": "PRODUCTION DEPLOYMENT",
     "quickstart.title": "Up and Running in 3 Steps with Docker Compose",
     "quickstart.subtitle":
@@ -125,6 +157,7 @@ const TRANSLATIONS = {
   "pt-BR": {
     "nav.features": "Recursos",
     "nav.tour": "Tour Visual",
+    "nav.extension": "Extensão",
     "nav.quickstart": "Instalação Rápida",
     "nav.security": "Arquitetura e Segurança",
     "nav.docs": "Docs",
@@ -192,6 +225,37 @@ const TRANSLATIONS = {
     "tour.tab8": "9. Notificações",
     "tour.zoomBtn": "Ampliar Captura",
     "tour.clickToZoom": "Clique para ampliar",
+    "ext.eyebrow": "EXTENSÃO DE NAVEGADOR • CHROMIUM",
+    "ext.title": "YAPD Inspector (Sentinel) — Auditoria de Requisições em Tempo Real",
+    "ext.subtitle":
+      "Inspecione requisições web enquanto navega, identifique domínios ocultos de anúncios e rastreadores com score de risco e bloqueie ou permita em todas as suas instâncias Pi-hole v6+ com um clique.",
+    "ext.badgeLocal": "100% Local e Privado",
+    "ext.badgeBrowsers": "Chrome • Brave • Edge • Opera",
+    "ext.cardTitle": "Como o YAPD Inspector Funciona",
+    "ext.cardDesc":
+      "Toda a análise de domínios ocorre localmente no seu navegador com zero telemetria de terceiros. Pareada com segurança via código temporário de uso único, as detecções são enviadas estritamente para a sua própria instância YAPD na sua rede privada.",
+    "ext.catAds": "Servidores de anúncios, banners e scripts promocionais",
+    "ext.catTracking": "Telemetria, beacons de analytics e hosts de fingerprinting",
+    "ext.catThird": "Recursos externos cross-domain e ativos embutidos",
+    "ext.catInspector": "Domínios marcados e enviados manualmente pelo popup",
+    "ext.whyTitle": "Por que a instalação é via .ZIP e não pela Chrome Web Store?",
+    "ext.whyDesc":
+      "Por ser uma ferramenta open-source auto-hospedada com foco em privacidade e homelabs, ela é empacotada e servida diretamente pelo seu container YAPD (e por este repositório), sem intermediários nem rastreamento externo.",
+    "ext.downloadBtn": "Baixar Extensão (.ZIP)",
+    "ext.downloadHint": 'Também disponível diretamente dentro do seu painel YAPD no menu "YAPD Inspector".',
+    "ext.installTitle": "Como Instalar no Chrome, Brave, Edge ou Opera",
+    "ext.installSub": "Carregue a extensão em Modo do Desenvolvedor em menos de 1 minuto:",
+    "ext.step1Title": "Baixar e Extrair o Pacote",
+    "ext.step1Desc": "Baixe o arquivo yapd-extension.zip e descompacte-o em uma pasta permanente no seu computador.",
+    "ext.step2Title": "Acessar a Página de Extensões",
+    "ext.step2Desc": "Cole um dos endereços abaixo na barra de endereços do seu navegador:",
+    "ext.step3Title": "Ativar o Modo do Desenvolvedor",
+    "ext.step3Desc": 'Ative a chave seletora "Modo do desenvolvedor" localizada no canto superior direito da página.',
+    "ext.step4Title": 'Clicar em "Carregar sem Compactação"',
+    "ext.step4Desc": 'Clique no botão "Carregar sem compactação" (Load unpacked) e selecione a pasta extraída.',
+    "ext.step5Title": "Parear com o Painel YAPD",
+    "ext.step5Desc":
+      'Abra a página "YAPD Inspector" no seu painel YAPD, clique em "Gerar código" e insira o Código de Pareamento no popup da extensão.',
     "quickstart.eyebrow": "DEPLOY EM PRODUÇÃO",
     "quickstart.title": "Pronto para Rodar em 3 Passos com Docker Compose",
     "quickstart.subtitle":
@@ -469,6 +533,10 @@ function updateAllMediaPaths() {
   if (heroImg) {
     heroImg.src = `${mediaPrefix}dashboard.png`;
     heroImg.setAttribute("data-lightbox-src", `${mediaPrefix}dashboard.png`);
+  }
+  const extDlLink = document.getElementById("ext-download-link");
+  if (extDlLink && mediaPrefix === "../media/") {
+    extDlLink.setAttribute("href", "../apps/web/public/downloads/yapd-extension.zip");
   }
   renderTourStep(currentTourIndex);
 }

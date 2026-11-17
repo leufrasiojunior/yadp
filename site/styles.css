@@ -1142,6 +1142,220 @@ body {
   background: #07090d;
 }
 
+/* Browser Extension Section */
+.ext-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 28px;
+  align-items: stretch;
+}
+
+.ext-overview-card,
+.ext-install-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ext-overview-card {
+  border-color: rgba(0, 212, 255, 0.3);
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.05) 0%, var(--bg-card) 100%);
+}
+
+.ext-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ext-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.ext-pill-cyan {
+  background: rgba(0, 212, 255, 0.14);
+  border-color: rgba(0, 212, 255, 0.35);
+  color: var(--accent-cyan);
+}
+
+.ext-card-title,
+.ext-install-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ext-card-desc,
+.ext-install-sub {
+  font-size: 0.93rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.ext-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ext-cat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.ext-cat-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  min-width: 96px;
+  text-align: center;
+}
+
+.tag-ads {
+  background: rgba(239, 68, 68, 0.16);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.tag-tracking {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.tag-third {
+  background: rgba(148, 163, 184, 0.14);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.tag-inspector {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.ext-why-box {
+  background: rgba(13, 16, 23, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 22px;
+}
+
+.ext-why-box strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.ext-why-box p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.ext-download-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ext-dl-btn {
+  width: 100%;
+}
+
+.ext-dl-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.ext-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ext-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 13px 15px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.ext-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ext-step-body h4 {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.ext-step-body p {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+}
+
+.ext-uri-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.uri-chip {
+  padding: 5px 10px;
+}
+
+.uri-chip code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent-cyan);
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 980px) {
   .nav-links {
@@ -1151,6 +1365,7 @@ body {
   .comparison-grid,
   .features-grid,
   .tour-stage,
+  .ext-grid,
   .arch-layout,
   .endpoints-grid {
     grid-template-columns: 1fr;

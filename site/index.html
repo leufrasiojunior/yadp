@@ -92,6 +92,7 @@
         <nav class="nav-links" aria-label="Primary Navigation">
           <a href="#features" data-i18n="nav.features">Features</a>
           <a href="#tour" data-i18n="nav.tour">Visual Tour</a>
+          <a href="#extension" data-i18n="nav.extension">Browser Extension</a>
           <a href="#quickstart" data-i18n="nav.quickstart">Quick Start</a>
           <a href="#security" data-i18n="nav.security">Architecture &amp; Security</a>
           <a
@@ -571,6 +572,160 @@
                     class="tour-img"
                     loading="eager"
                   />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Browser Extension Section (YAPD Inspector / Sentinel) -->
+      <section id="extension" class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-eyebrow" data-i18n="ext.eyebrow">BROWSER EXTENSION • CHROMIUM</span>
+            <h2 class="section-title" data-i18n="ext.title">
+              YAPD Inspector (Sentinel) — Real-Time Request Auditing in Your Browser
+            </h2>
+            <p class="section-subtitle" data-i18n="ext.subtitle">
+              Passively inspect web requests while you browse, detect hidden ad and tracking domains with risk scoring,
+              and block or allow them across all your Pi-hole v6+ instances with one click.
+            </p>
+          </div>
+
+          <div class="ext-grid">
+            <!-- Left Column: Overview, Categories & Direct Download -->
+            <div class="ext-overview-card">
+              <div class="ext-card-top">
+                <div class="ext-badge-row">
+                  <span class="ext-pill ext-pill-cyan" data-i18n="ext.badgeLocal">100% Local &amp; Private</span>
+                  <span class="ext-pill" data-i18n="ext.badgeBrowsers">Chrome • Brave • Edge • Opera</span>
+                </div>
+
+                <h3 class="ext-card-title" data-i18n="ext.cardTitle">How YAPD Inspector Works</h3>
+                <p class="ext-card-desc" data-i18n="ext.cardDesc">
+                  All domain analysis happens locally inside your browser with zero third-party telemetry. Paired
+                  securely via a temporary one-time code, detections are sent strictly to your own self-hosted YAPD
+                  instance on your private network.
+                </p>
+
+                <div class="ext-categories">
+                  <div class="ext-cat-item">
+                    <span class="ext-cat-tag tag-ads">Ads</span>
+                    <span data-i18n="ext.catAds">Ad servers, banners, and promotional media scripts</span>
+                  </div>
+                  <div class="ext-cat-item">
+                    <span class="ext-cat-tag tag-tracking">Tracking</span>
+                    <span data-i18n="ext.catTracking">Telemetry, analytics beacons, and fingerprinting hosts</span>
+                  </div>
+                  <div class="ext-cat-item">
+                    <span class="ext-cat-tag tag-third">Third Party</span>
+                    <span data-i18n="ext.catThird">External cross-domain assets and embedded resources</span>
+                  </div>
+                  <div class="ext-cat-item">
+                    <span class="ext-cat-tag tag-inspector">User Inspector</span>
+                    <span data-i18n="ext.catInspector">Domains manually flagged and submitted from the popup</span>
+                  </div>
+                </div>
+
+                <div class="ext-why-box">
+                  <strong data-i18n="ext.whyTitle">Why is it installed via .ZIP instead of the Chrome Web Store?</strong>
+                  <p data-i18n="ext.whyDesc">
+                    As a privacy-first, open-source self-hosted tool built for homelabs, the extension is packaged and
+                    served directly by your YAPD container (and this repository) with no external store intermediaries.
+                  </p>
+                </div>
+              </div>
+
+              <div class="ext-download-bar">
+                <a
+                  href="downloads/yapd-extension.zip"
+                  download="yapd-extension.zip"
+                  class="btn btn-primary btn-lg ext-dl-btn"
+                  id="ext-download-link"
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span data-i18n="ext.downloadBtn">Download Extension (.ZIP)</span>
+                </a>
+                <span class="ext-dl-hint" data-i18n="ext.downloadHint">
+                  Also available directly inside your YAPD dashboard under the "YAPD Inspector" menu.
+                </span>
+              </div>
+            </div>
+
+            <!-- Right Column: 5-Step Installation Guide -->
+            <div class="ext-install-card">
+              <h3 class="ext-install-title" data-i18n="ext.installTitle">
+                How to Install in Chrome, Brave, Edge, or Opera
+              </h3>
+              <p class="ext-install-sub" data-i18n="ext.installSub">
+                Load the extension in Developer Mode in less than a minute:
+              </p>
+
+              <div class="ext-steps-list">
+                <div class="ext-step-item">
+                  <span class="ext-step-num">1</span>
+                  <div class="ext-step-body">
+                    <h4 data-i18n="ext.step1Title">Download and Extract the Package</h4>
+                    <p data-i18n="ext.step1Desc">
+                      Download yapd-extension.zip and extract it into a permanent folder on your computer.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="ext-step-item">
+                  <span class="ext-step-num">2</span>
+                  <div class="ext-step-body">
+                    <h4 data-i18n="ext.step2Title">Open the Browser Extensions Page</h4>
+                    <p data-i18n="ext.step2Desc">
+                      Paste one of the addresses below into your browser address bar:
+                    </p>
+                    <div class="ext-uri-chips">
+                      <button type="button" class="uri-chip copy-btn" data-copy-target="uri-chrome">
+                        <code id="uri-chrome">chrome://extensions</code>
+                        <span class="copy-label" data-i18n="common.copy">Copy</span>
+                      </button>
+                      <button type="button" class="uri-chip copy-btn" data-copy-target="uri-edge">
+                        <code id="uri-edge">edge://extensions</code>
+                        <span class="copy-label" data-i18n="common.copy">Copy</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ext-step-item">
+                  <span class="ext-step-num">3</span>
+                  <div class="ext-step-body">
+                    <h4 data-i18n="ext.step3Title">Enable Developer Mode</h4>
+                    <p data-i18n="ext.step3Desc">
+                      Toggle on the "Developer mode" switch located in the top-right corner of the extensions page.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="ext-step-item">
+                  <span class="ext-step-num">4</span>
+                  <div class="ext-step-body">
+                    <h4 data-i18n="ext.step4Title">Click "Load Unpacked"</h4>
+                    <p data-i18n="ext.step4Desc">
+                      Click the "Load unpacked" button ("Carregar sem compactação") and select the extracted folder.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="ext-step-item">
+                  <span class="ext-step-num">5</span>
+                  <div class="ext-step-body">
+                    <h4 data-i18n="ext.step5Title">Pair with Your YAPD Dashboard</h4>
+                    <p data-i18n="ext.step5Desc">
+                      Open the "YAPD Inspector" page in your YAPD dashboard, click "Generate code", and enter the
+                      temporary Pairing Code in the extension popup.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
