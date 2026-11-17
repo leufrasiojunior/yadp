@@ -8,3 +8,5 @@ dist
 **/dist
 coverage
 *.log
+site
+media

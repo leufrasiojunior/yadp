@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YAPD — Yet Another Pi-hole Dashboard | Multi-Instance Control Center</title>
+    <meta
+      name="description"
+      content="Self-hosted control center for running multiple Pi-hole v6+ instances. Desired state configuration, drift detection, subnet policies, unified query logs, and auditable sync."
+    />
+    <meta name="theme-color" content="#0a0c10" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="YAPD — Yet Another Pi-hole Dashboard" />
+    <meta
+      property="og:description"
+      content="One self-hosted control center for all your Pi-hole v6+ instances: desired state, drift detection, subnet policies, and safe synchronization."
+    />
+    <meta property="og:image" content="media/logo_full.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="YAPD — Yet Another Pi-hole Dashboard" />
+    <meta
+      name="twitter:description"
+      content="Manage and synchronize multiple Pi-hole v6+ instances from a single security-first dashboard."
+    />
+    <meta name="twitter:image" content="media/logo_full.png" />
+
+    <!-- Inline SVG Favicon matching YAPD node icon -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0c10'/%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%2300d4ff' stroke-width='3.5' stroke-dasharray='20 5'/%3E%3Crect x='23' y='24' width='5' height='5' fill='%2300d4ff'/%3E%3Crect x='29' y='24' width='5' height='5' fill='%2300d4ff'/%3E%3Crect x='23' y='30' width='5' height='5' fill='%2300d4ff'/%3E%3Crect x='29' y='30' width='5' height='5' fill='%2300d4ff'/%3E%3Crect x='36' y='29' width='3.5' height='11' fill='%23ffffff'/%3E%3Crect x='40.5' y='25' width='3.5' height='15' fill='%2300d4ff'/%3E%3Ccircle cx='18' cy='14' r='4.5' fill='%230a0c10' stroke='%23ffffff' stroke-width='2'/%3E%3Ccircle cx='18' cy='14' r='2' fill='%2300d4ff'/%3E%3Ccircle cx='46' cy='14' r='4.5' fill='%230a0c10' stroke='%23ffffff' stroke-width='2'/%3E%3Ccircle cx='46' cy='14' r='2' fill='%2300d4ff'/%3E%3Ccircle cx='10' cy='32' r='4.5' fill='%230a0c10' stroke='%23ffffff' stroke-width='2'/%3E%3Ccircle cx='10' cy='32' r='2' fill='%2300d4ff'/%3E%3Ccircle cx='54' cy='32' r='4.5' fill='%230a0c10' stroke='%23ffffff' stroke-width='2'/%3E%3Ccircle cx='54' cy='32' r='2' fill='%2300d4ff'/%3E%3Ccircle cx='32' cy='54' r='4.5' fill='%230a0c10' stroke='%23ffffff' stroke-width='2'/%3E%3Ccircle cx='32' cy='54' r='2' fill='%2300d4ff'/%3E%3C/svg%3E"
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Ambient Background Glow -->
+    <div class="ambient-bg" aria-hidden="true">
+      <div class="ambient-orb orb-primary"></div>
+      <div class="ambient-orb orb-cyan"></div>
+      <div class="ambient-grid"></div>
+    </div>
+
+    <!-- Top Navigation -->
+    <header class="navbar">
+      <div class="container navbar-inner">
+        <a href="#" class="brand" aria-label="YAPD Home">
+          <svg class="brand-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Connector lines -->
+            <line x1="22" y1="18" x2="26" y2="23" stroke="#00d4ff" stroke-width="2.5" />
+            <line x1="42" y1="18" x2="38" y2="23" stroke="#00d4ff" stroke-width="2.5" />
+            <line x1="15" y1="32" x2="20" y2="32" stroke="#00d4ff" stroke-width="2.5" />
+            <line x1="44" y1="32" x2="49" y2="32" stroke="#00d4ff" stroke-width="2.5" />
+            <line x1="32" y1="44" x2="32" y2="49" stroke="#00d4ff" stroke-width="2.5" />
+            <!-- Central Hub -->
+            <circle cx="32" cy="32" r="13.5" fill="#0b0f17" stroke="#00d4ff" stroke-width="3" stroke-dasharray="18 4" />
+            <rect x="24.5" y="25.5" width="3.8" height="3.8" rx="0.6" fill="#00d4ff" />
+            <rect x="29.3" y="25.5" width="3.8" height="3.8" rx="0.6" fill="#00d4ff" />
+            <rect x="24.5" y="30.3" width="3.8" height="3.8" rx="0.6" fill="#00d4ff" />
+            <rect x="29.3" y="30.3" width="3.8" height="3.8" rx="0.6" fill="#00d4ff" />
+            <rect x="24.5" y="35.5" width="8.6" height="1.6" rx="0.5" fill="#94a3b8" />
+            <rect x="34.8" y="31.5" width="2.5" height="6.8" rx="0.5" fill="#f8fafc" />
+            <rect x="38.2" y="27.5" width="2.5" height="10.8" rx="0.5" fill="#00d4ff" />
+            <!-- Satellite Nodes -->
+            <circle cx="19" cy="14" r="5" fill="#0b0f17" stroke="#f8fafc" stroke-width="2" />
+            <circle cx="19" cy="14" r="2.2" fill="#00d4ff" />
+            <circle cx="45" cy="14" r="5" fill="#0b0f17" stroke="#f8fafc" stroke-width="2" />
+            <circle cx="45" cy="14" r="2.2" fill="#00d4ff" />
+            <circle cx="10" cy="32" r="5" fill="#0b0f17" stroke="#f8fafc" stroke-width="2" />
+            <circle cx="10" cy="32" r="2.2" fill="#00d4ff" />
+            <circle cx="54" cy="32" r="5" fill="#0b0f17" stroke="#f8fafc" stroke-width="2" />
+            <circle cx="54" cy="32" r="2.2" fill="#00d4ff" />
+            <circle cx="32" cy="54" r="5" fill="#0b0f17" stroke="#f8fafc" stroke-width="2" />
+            <circle cx="32" cy="54" r="2.2" fill="#00d4ff" />
+          </svg>
+          <div class="brand-text">
+            <span class="brand-title">YAPD</span>
+            <span class="brand-subtitle">PI-HOLE CONTROL</span>
+          </div>
+        </a>
+
+        <nav class="nav-links" aria-label="Primary Navigation">
+          <a href="#features" data-i18n="nav.features">Features</a>
+          <a href="#tour" data-i18n="nav.tour">Visual Tour</a>
+          <a href="#quickstart" data-i18n="nav.quickstart">Quick Start</a>
+          <a href="#security" data-i18n="nav.security">Architecture &amp; Security</a>
+          <a
+            href="https://yapd.gitbook.io/yapd-docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="nav-external"
+          >
+            <span data-i18n="nav.docs">Docs</span>
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none">
+              <path d="M7 17L17 7M17 7H7M17 7V17" />
+            </svg>
+          </a>
+        </nav>
+
+        <div class="nav-actions">
+          <div class="lang-switch" role="group" aria-label="Language Selector">
+            <button type="button" class="lang-btn active" data-lang-btn="en" aria-pressed="true">EN</button>
+            <button type="button" class="lang-btn" data-lang-btn="pt-BR" aria-pressed="false">PT</button>
+          </div>
+
+          <a
+            href="https://github.com/leufrasiojunior/yadp"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-outline btn-sm"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path
+                d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"
+              />
+            </svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="container">
+          <div class="hero-content">
+            <div class="hero-badge">
+              <span class="status-dot"></span>
+              <span data-i18n="hero.badge">Built for Pi-hole v6+ • Self-Hosted Multi-Instance Control Center</span>
+            </div>
+
+            <h1 class="hero-title">
+              <span data-i18n="hero.titleStart">One Control Center for</span>
+              <span class="text-gradient" data-i18n="hero.titleHighlight">All Your Pi-hole Instances</span>
+            </h1>
+
+            <p class="hero-description" data-i18n="hero.description">
+              Stop jumping between separate admin panels and risking manual configuration drift. YAPD brings your
+              Pi-hole v6+ environments into one auditable surface: desired state management, drift detection, IPv4/IPv6
+              subnet policies, unified query logs, and safe synchronization.
+            </p>
+
+            <div class="hero-cta-group">
+              <a href="#quickstart" class="btn btn-primary btn-lg">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="4 17 10 11 4 5" />
+                  <line x1="12" y1="19" x2="20" y2="19" />
+                </svg>
+                <span data-i18n="hero.ctaPrimary">Quick Start with Docker</span>
+              </a>
+
+              <a href="#tour" class="btn btn-secondary btn-lg">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18M9 21V9" />
+                </svg>
+                <span data-i18n="hero.ctaSecondary">Explore Visual Tour</span>
+              </a>
+
+              <a
+                href="https://yapd.gitbook.io/yapd-docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-ghost btn-lg"
+              >
+                <span data-i18n="hero.ctaDocs">Official Docs</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M7 17L17 7M17 7H7M17 7V17" />
+                </svg>
+              </a>
+            </div>
+
+            <div class="hero-pills">
+              <div class="hero-pill">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#00d4ff" stroke-width="2.2">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span data-i18n="hero.pill1">Desired State &amp; Drift Detection</span>
+              </div>
+              <div class="hero-pill">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#00d4ff" stroke-width="2.2">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span data-i18n="hero.pill2">IPv4/IPv6 Subnet Policies</span>
+              </div>
+              <div class="hero-pill">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#00d4ff" stroke-width="2.2">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span data-i18n="hero.pill3">AES-256-GCM &amp; Explicit TLS Trust</span>
+              </div>
+              <div class="hero-pill">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#00d4ff" stroke-width="2.2">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span data-i18n="hero.pill4">100% Open Source (MIT)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Browser Window Preview -->
+          <div class="hero-preview-wrapper">
+            <div class="browser-frame">
+              <div class="browser-header">
+                <div class="browser-dots" aria-hidden="true">
+                  <span class="dot dot-red"></span>
+                  <span class="dot dot-yellow"></span>
+                  <span class="dot dot-green"></span>
+                </div>
+                <div class="browser-address">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#10b981" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <span>https://yapd.homelab.lan:48443/dashboard</span>
+                </div>
+                <div class="browser-status">
+                  <span class="status-badge status-synced" data-i18n="hero.frameStatus">2 Instances Active</span>
+                </div>
+              </div>
+              <div class="browser-body">
+                <img
+                  src="media/dashboard.png"
+                  alt="YAPD Multi-Instance Dashboard"
+                  class="hero-img"
+                  fetchpriority="high"
+                  data-lightbox-src="media/dashboard.png"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Why YAPD / Problem vs Solution + Core Features -->
+      <section id="features" class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-eyebrow" data-i18n="features.eyebrow">WHY YAPD EXISTS</span>
+            <h2 class="section-title" data-i18n="features.title">
+              Running one Pi-hole is simple. Running several requires a source of truth.
+            </h2>
+            <p class="section-subtitle" data-i18n="features.subtitle">
+              Across home labs, VLAN setups, small offices, or family networks, managing redundant Pi-hole servers
+              manually leads to silent drift and fragmented logs. YAPD makes multi-instance operations predictable.
+            </p>
+          </div>
+
+          <!-- Comparison Banner -->
+          <div class="comparison-grid">
+            <div class="comparison-card card-without">
+              <div class="comparison-card-header">
+                <span class="comparison-badge badge-warn" data-i18n="features.withoutBadge">Without YAPD</span>
+                <h3 data-i18n="features.withoutTitle">Scattered Manual Administration</h3>
+              </div>
+              <ul class="comparison-list">
+                <li data-i18n="features.without1">
+                  Settings, ad-lists, and domain rules quietly drift between primary and secondary nodes.
+                </li>
+                <li data-i18n="features.without2">
+                  DNS query investigation requires opening multiple browser tabs and correlating timestamps manually.
+                </li>
+                <li data-i18n="features.without3">
+                  Blind replication scripts overwrite local state without pre-checks or rollback visibility.
+                </li>
+                <li data-i18n="features.without4">
+                  No central audit trail of which rule changed, when, or on which Pi-hole instance.
+                </li>
+              </ul>
+            </div>
+
+            <div class="comparison-card card-with">
+              <div class="comparison-card-header">
+                <span class="comparison-badge badge-ok" data-i18n="features.withBadge">With YAPD</span>
+                <h3 data-i18n="features.withTitle">Desired State, Drift Detection &amp; Safe Sync</h3>
+              </div>
+              <ul class="comparison-list">
+                <li data-i18n="features.with1">
+                  YAPD holds the canonical desired state and highlights exact drift before you apply changes.
+                </li>
+                <li data-i18n="features.with2">
+                  Consolidated Dashboard and Queries Log aggregate traffic and client activity across all instances.
+                </li>
+                <li data-i18n="features.with3">
+                  Per-instance concurrency coordination prevents overwhelming remote Pi-hole v6+ APIs.
+                </li>
+                <li data-i18n="features.with4">
+                  Full audit history, operational notifications, and explicit TLS certificate validation.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 6 Feature Cards -->
+          <div class="features-grid">
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+              </div>
+              <h3 data-i18n="features.f1Title">Multi-Instance Dashboard</h3>
+              <p data-i18n="features.f1Desc">
+                Monitor total queries, blocked requests, block percentages, and 24-hour client activity aggregated
+                across all your Pi-hole v6+ nodes or filtered by individual instance.
+              </p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                  <path d="M16 16h5v5" />
+                </svg>
+              </div>
+              <h3 data-i18n="features.f2Title">Sync &amp; Drift Detection</h3>
+              <p data-i18n="features.f2Desc">
+                Compare live instance configurations against your central baseline. Spot out-of-sync nodes and reconcile
+                changes safely with retries and pre-checks.
+              </p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+              </div>
+              <h3 data-i18n="features.f3Title">IPv4 &amp; IPv6 Subnet Policies</h3>
+              <p data-i18n="features.f3Desc">
+                Assign whole CIDR client networks (VLANs, IoT, Guest, Kids subnets) to Pi-hole filtering groups with
+                per-instance previews and verified replication.
+              </p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+              <h3 data-i18n="features.f4Title">Unified Queries &amp; Objects</h3>
+              <p data-i18n="features.f4Desc">
+                Search DNS query history and centrally organize domains, groups, and ad-lists from one clean operational
+                surface without switching tabs.
+              </p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <h3 data-i18n="features.f5Title">Security-First by Design</h3>
+              <p data-i18n="features.f5Desc">
+                Built for LAN/VPN deployments with AES-256-GCM encrypted credentials, HTTP-only session cookies, CSRF
+                protection, and explicit TLS trust per instance.
+              </p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              </div>
+              <h3 data-i18n="features.f6Title">Audit-Focused Operations</h3>
+              <p data-i18n="features.f6Desc">
+                Keep an explicit record of critical actions, sync jobs, configuration updates, and instance health
+                alerts so nothing changes in the dark.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Visual Tour Section (Highlight #1) -->
+      <section id="tour" class="section section-alt">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-eyebrow" data-i18n="tour.eyebrow">INTERACTIVE PRODUCT WALKTHROUGH</span>
+            <h2 class="section-title" data-i18n="tour.title">Explore Every Screen of YAPD</h2>
+            <p class="section-subtitle" data-i18n="tour.subtitle">
+              Click through the tabs below (or use your keyboard arrow keys) to inspect how YAPD organizes multi-node
+              Pi-hole administration. Click any screenshot to expand it in full resolution.
+            </p>
+          </div>
+
+          <!-- Tour Tabs Navigation -->
+          <div class="tour-tabs" role="tablist" aria-label="YAPD Screens">
+            <button
+              type="button"
+              class="tour-tab active"
+              role="tab"
+              aria-selected="true"
+              data-tour-index="0"
+              data-i18n="tour.tab0"
+            >
+              1. Dashboard
+            </button>
+            <button
+              type="button"
+              class="tour-tab"
+              role="tab"
+              aria-selected="false"
+              data-tour-index="1"
+              data-i18n="tour.tab1"
+            >
+              2. Overview
+            </button>
+            <button
+              type="button"
+              class="tour-tab"
+              role="tab"
+              aria-selected="false"
+              data-tour-index="2"
+              data-i18n="tour.tab2"
+            >
+              3. Instances
+            </button>
+            <button
+              type="button"
+              class="tour-tab"
+              role="tab"
+              aria-selected="false"
+              data-tour-index="3"
+              data-i18n="tour.tab3"
+            >
+              4. Configuration
+            </button>
+            <button
+              type="button"
+              class="tour-tab"
+              role="tab"
+              aria-selected="false"
+              data-tour-index="4"
+              data-i18n="tour.tab4"
+            >
+              5. Queries Log
+            </button>
+            <button
+              type="button"
+              class="tour-tab"
+              role="tab"
+              aria-selected="false"
+              data-tour-index="5"
+              data-i18n="tour.tab5"
+            >
+              6. Domains
+            </button>
+            <button
+              type="button"
+              class="tour-tab"
+              role="tab"
+              aria-selected="false"
+              data-tour-index="6"
+              data-i18n="tour.tab6"
+            >
+              7. Groups
+            </button>
+            <button
+              type="button"
+              class="tour-tab"
+              role="tab"
+              aria-selected="false"
+              data-tour-index="7"
+              data-i18n="tour.tab7"
+            >
+              8. Ad Lists
+            </button>
+            <button
+              type="button"
+              class="tour-tab"
+              role="tab"
+              aria-selected="false"
+              data-tour-index="8"
+              data-i18n="tour.tab8"
+            >
+              9. Notifications
+            </button>
+          </div>
+
+          <!-- Tour Active Stage -->
+          <div class="tour-stage">
+            <div class="tour-info-panel">
+              <div class="tour-step-Row">
+                <span class="tour-counter" id="tour-counter">01 / 09</span>
+                <div class="tour-nav-arrows">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    id="tour-prev"
+                    aria-label="Previous Screen"
+                    title="Previous Screen"
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <button type="button" class="icon-btn" id="tour-next" aria-label="Next Screen" title="Next Screen">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <h3 class="tour-panel-title" id="tour-title">Consolidated Multi-Instance Dashboard</h3>
+              <p class="tour-panel-desc" id="tour-desc">
+                See your entire DNS environment at a glance. Track total queries, blocked requests, blocking ratio, and
+                hourly client activity combined across all registered Pi-hole instances.
+              </p>
+
+              <ul class="tour-highlights" id="tour-bullets">
+                <li>Aggregated 24-hour query and client activity timelines</li>
+                <li>Instant instance switcher in the top bar (All instances or single node)</li>
+                <li>Quick blocking controls (Indefinite, 10s, 30s, 5m, or custom presets)</li>
+              </ul>
+
+              <button type="button" class="btn btn-outline btn-sm tour-zoom-btn" id="tour-zoom-trigger">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 3 21 3 21 9" />
+                  <polyline points="9 21 3 21 3 15" />
+                  <line x1="21" y1="3" x2="14" y2="10" />
+                  <line x1="3" y1="21" x2="10" y2="14" />
+                </svg>
+                <span data-i18n="tour.zoomBtn">Expand Screenshot</span>
+              </button>
+            </div>
+
+            <div class="tour-screen-panel">
+              <div class="tour-frame" id="tour-frame-clickable" role="button" tabindex="0" aria-label="Zoom Screenshot">
+                <div class="browser-header">
+                  <div class="browser-dots" aria-hidden="true">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                  </div>
+                  <div class="browser-address">
+                    <span id="tour-url">https://yapd.lan:48443/dashboard</span>
+                  </div>
+                  <span class="zoom-hint" data-i18n="tour.clickToZoom">Click to zoom</span>
+                </div>
+                <div class="tour-img-container">
+                  <img
+                    id="tour-image"
+                    src="media/dashboard.png"
+                    alt="YAPD Dashboard Screen"
+                    class="tour-img"
+                    loading="eager"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Start Section (Highlight #2) -->
+      <section id="quickstart" class="section">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-eyebrow" data-i18n="quickstart.eyebrow">PRODUCTION DEPLOYMENT</span>
+            <h2 class="section-title" data-i18n="quickstart.title">Up and Running in 3 Steps with Docker Compose</h2>
+            <p class="section-subtitle" data-i18n="quickstart.subtitle">
+              YAPD ships with a production-ready Docker Compose stack that bundles PostgreSQL 16 and the YAPD container
+              with an internal Nginx proxy. No cloning or local compilation required.
+            </p>
+          </div>
+
+          <div class="quickstart-steps">
+            <!-- Step 1 -->
+            <div class="step-card">
+              <div class="step-header">
+                <span class="step-number">01</span>
+                <div>
+                  <h3 class="step-title" data-i18n="quickstart.s1Title">Download the production compose.yml</h3>
+                  <p class="step-desc" data-i18n="quickstart.s1Desc">
+                    Fetch the official compose file directly from the repository into your server or homelab host.
+                  </p>
+                </div>
+              </div>
+
+              <div class="code-window">
+                <div class="code-window-bar">
+                  <span class="code-lang">bash</span>
+                  <button
+                    type="button"
+                    class="copy-btn"
+                    data-copy-target="cmd-step-1"
+                    aria-label="Copy command"
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span class="copy-label" data-i18n="common.copy">Copy</span>
+                  </button>
+                </div>
+                <pre><code id="cmd-step-1">curl -O https://raw.githubusercontent.com/leufrasiojunior/yadp/main/compose.yml</code></pre>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+              <div class="step-header">
+                <span class="step-number">02</span>
+                <div>
+                  <h3 class="step-title" data-i18n="quickstart.s2Title">
+                    Configure environment secrets &amp; WEB_ORIGIN
+                  </h3>
+                  <p class="step-desc" data-i18n="quickstart.s2Desc">
+                    Edit compose.yml to set your database password, cryptographic keys, and exact browser origin. Both
+                    PostgreSQL password variables must match.
+                  </p>
+                </div>
+              </div>
+
+              <div class="secret-helper-bar">
+                <div class="secret-helper-text">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#00d4ff" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <span data-i18n="quickstart.secretHelperNote">
+                    Need strong keys right now? Generate random client-side secrets in your browser:
+                  </span>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" id="btn-generate-secrets">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
+                  <span data-i18n="quickstart.generateBtn">Generate Random Secrets</span>
+                </button>
+              </div>
+
+              <div class="code-window">
+                <div class="code-window-bar">
+                  <span class="code-lang">compose.yml (key placeholders)</span>
+                  <button
+                    type="button"
+                    class="copy-btn"
+                    data-copy-target="cmd-step-2"
+                    aria-label="Copy configuration snippet"
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span class="copy-label" data-i18n="common.copy">Copy</span>
+                  </button>
+                </div>
+                <pre><code id="cmd-step-2"># In services.postgres.environment:
+- POSTGRES_PASSWORD=change-this-password
+
+# In services.yapd.environment:
+- WEB_ORIGIN=https://yapd.example.com
+- YAPD_POSTGRES_PASSWORD=change-this-password
+- SESSION_SECRET=change-this-session-secret
+- APP_ENCRYPTION_KEY=change-this-encryption-key</code></pre>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+              <div class="step-header">
+                <span class="step-number">03</span>
+                <div>
+                  <h3 class="step-title" data-i18n="quickstart.s3Title">Start the stack &amp; open the dashboard</h3>
+                  <p class="step-desc" data-i18n="quickstart.s3Desc">
+                    Launch the containers in detached mode. YAPD automatically runs database migrations on startup and
+                    publishes HTTP and HTTPS endpoints.
+                  </p>
+                </div>
+              </div>
+
+              <div class="code-window">
+                <div class="code-window-bar">
+                  <span class="code-lang">bash</span>
+                  <button
+                    type="button"
+                    class="copy-btn"
+                    data-copy-target="cmd-step-3"
+                    aria-label="Copy docker compose command"
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span class="copy-label" data-i18n="common.copy">Copy</span>
+                  </button>
+                </div>
+                <pre><code id="cmd-step-3">docker compose up -d</code></pre>
+              </div>
+
+              <div class="endpoints-grid">
+                <div class="endpoint-box">
+                  <span class="endpoint-tag">HTTPS (Direct LAN / VPN)</span>
+                  <code>https://&lt;your-ip&gt;:48443</code>
+                  <p data-i18n="quickstart.httpsNote">
+                    Served via internal Nginx with an auto-generated self-signed TLS certificate.
+                  </p>
+                </div>
+                <div class="endpoint-box">
+                  <span class="endpoint-tag">HTTP (External Reverse Proxy)</span>
+                  <code>http://&lt;your-ip&gt;:48080</code>
+                  <p data-i18n="quickstart.httpNote">
+                    Ideal upstream target when terminating public TLS in Nginx, Caddy, or Nginx Proxy Manager.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Architecture, Security & Documentation Section -->
+      <section id="security" class="section section-alt">
+        <div class="container">
+          <div class="arch-layout">
+            <div class="arch-col">
+              <span class="section-eyebrow" data-i18n="security.eyebrow">ARCHITECTURE &amp; SECURITY BOUNDARIES</span>
+              <h2 class="section-title arch-title" data-i18n="security.title">
+                Engineered for Private Networks with Real Application-Level Controls
+              </h2>
+              <p class="arch-lead" data-i18n="security.lead">
+                YAPD is a TypeScript monorepo separating presentation (Next.js App Router + Shadcn UI) from canonical
+                domain logic (NestJS + Prisma + PostgreSQL). Sensitive operations never run in the browser.
+              </p>
+
+              <ul class="security-checklist">
+                <li>
+                  <strong data-i18n="security.item1Title">Zero Hardcoded Admin Credentials:</strong>
+                  <span data-i18n="security.item1Desc">
+                    No fixed default bootstrap account; administrative setup is explicit and protected.
+                  </span>
+                </li>
+                <li>
+                  <strong data-i18n="security.item2Title">Encrypted Pi-hole Secrets (AES-256-GCM):</strong>
+                  <span data-i18n="security.item2Desc">
+                    Instance passwords and sensitive tokens are encrypted at rest and never exposed in read payloads.
+                  </span>
+                </li>
+                <li>
+                  <strong data-i18n="security.item3Title">Explicit Certificate Trust:</strong>
+                  <span data-i18n="security.item3Desc">
+                    HTTPS connections validate TLS strictly by default, allowing self-signed certificates only per
+                    explicitly consented instance.
+                  </span>
+                </li>
+                <li>
+                  <strong data-i18n="security.item4Title">HTTP-Only Sessions &amp; Anti-CSRF Guard:</strong>
+                  <span data-i18n="security.item4Desc">
+                    Cookie-backed sessions with rate limiting, lockouts, and mandatory CSRF header verification on
+                    mutating routes.
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="docs-col">
+              <div class="docs-card">
+                <h3 data-i18n="security.docsCardTitle">Official Documentation &amp; Guides</h3>
+                <p data-i18n="security.docsCardDesc">
+                  Dive deeper into deployment topologies, reverse proxy headers, subnet policies, and database backup
+                  procedures.
+                </p>
+
+                <div class="docs-links">
+                  <a
+                    href="https://yapd.gitbook.io/yapd-docs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="doc-link-item"
+                  >
+                    <div>
+                      <strong data-i18n="security.doc1Title">YAPD Official Documentation (GitBook)</strong>
+                      <span data-i18n="security.doc1Sub">Complete administration and architecture reference</span>
+                    </div>
+                    <span class="doc-arrow">→</span>
+                  </a>
+
+                  <a
+                    href="https://yapd.gitbook.io/yapd-docs/installation-and-administration/install-with-docker-compose"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="doc-link-item"
+                  >
+                    <div>
+                      <strong data-i18n="security.doc2Title">Install with Docker Compose</strong>
+                      <span data-i18n="security.doc2Sub">Step-by-step production setup and environment variables</span>
+                    </div>
+                    <span class="doc-arrow">→</span>
+                  </a>
+
+                  <a
+                    href="https://yapd.gitbook.io/yapd-docs/installation-and-administration/reverse-proxy-and-https"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="doc-link-item"
+                  >
+                    <div>
+                      <strong data-i18n="security.doc3Title">Reverse Proxy &amp; HTTPS Guide</strong>
+                      <span data-i18n="security.doc3Sub">Nginx, Caddy, Nginx Proxy Manager &amp; WebSocket headers</span>
+                    </div>
+                    <span class="doc-arrow">→</span>
+                  </a>
+
+                  <a
+                    href="https://github.com/leufrasiojunior/yadp/blob/main/docs/subnet-policies.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="doc-link-item"
+                  >
+                    <div>
+                      <strong data-i18n="security.doc4Title">Subnet Policies (IPv4 / IPv6)</strong>
+                      <span data-i18n="security.doc4Sub">CIDR group assignment, previews, and verified sync</span>
+                    </div>
+                    <span class="doc-arrow">→</span>
+                  </a>
+
+                  <a
+                    href="https://github.com/leufrasiojunior/yadp/blob/main/docs/backup.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="doc-link-item"
+                  >
+                    <div>
+                      <strong data-i18n="security.doc5Title">PostgreSQL Backup &amp; Restore Guide</strong>
+                      <span data-i18n="security.doc5Sub">Safeguarding your desired state and audit history</span>
+                    </div>
+                    <span class="doc-arrow">→</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <span class="brand-title">YAPD</span>
+            <p data-i18n="footer.tagline">
+              Yet Another Pi-hole Dashboard — Open-source multi-instance control center for Pi-hole v6+ environments.
+            </p>
+          </div>
+
+          <div class="footer-links">
+            <a href="https://github.com/leufrasiojunior/yadp" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/leufrasiojunior/yadp/releases" target="_blank" rel="noopener noreferrer" data-i18n="footer.releases">Releases</a>
+            <a href="https://github.com/leufrasiojunior/yadp/issues" target="_blank" rel="noopener noreferrer" data-i18n="footer.issues">Issues &amp; Feedback</a>
+            <a href="https://yapd.gitbook.io/yapd-docs" target="_blank" rel="noopener noreferrer" data-i18n="footer.docs">Documentation</a>
+            <a href="https://hub.docker.com/r/leufrasiojunior/yapd" target="_blank" rel="noopener noreferrer">Docker Hub</a>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p class="disclaimer" data-i18n="footer.disclaimer">
+            YAPD is an independent third-party project. It is not affiliated with, endorsed by, or sponsored by Pi-hole,
+            LLC; "Pi-hole" is referenced only to identify compatibility with Pi-hole installations.
+          </p>
+          <p class="copyright">
+            <span>MIT License • Built by the YAPD Community</span>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Fullscreen Lightbox Modal for Screenshots -->
+    <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Screenshot Preview">
+      <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+      <div class="lightbox-content">
+        <div class="lightbox-bar">
+          <span id="lightbox-caption">YAPD Screenshot</span>
+          <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close Preview">✕</button>
+        </div>
+        <img id="lightbox-img" src="media/dashboard.png" alt="Expanded YAPD Screenshot" />
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
