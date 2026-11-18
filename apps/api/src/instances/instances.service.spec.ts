@@ -35,6 +35,7 @@ function createService(options?: {
   readVersionDetails?: () => Promise<unknown>;
   readHostInfo?: () => Promise<unknown>;
   readSystemInfo?: () => Promise<unknown>;
+  restartDns?: (...args: unknown[]) => Promise<void>;
 }) {
   const auditCalls: Array<{ action: string; result: string }> = [];
 
@@ -62,6 +63,7 @@ function createService(options?: {
   };
 
   const pihole = {
+    restartDns: options?.restartDns ?? (async () => undefined),
     readVersionDetails:
       options?.readVersionDetails ??
       (async () => ({
@@ -173,6 +175,36 @@ test("getInstanceInfo maps Pi-hole request failures consistently", async () => {
     name: "BadGatewayException",
   });
   assert.deepEqual(auditCalls, [{ action: "instances.info", result: "FAILURE" }]);
+});
+
+test("restartInstanceDns restarts the resolver with the active session and audits success", async () => {
+  const calls: unknown[][] = [];
+  const { service, auditCalls } = createService({
+    restartDns: async (...args) => {
+      calls.push(args);
+    },
+  });
+
+  const result = await service.restartInstanceDns("instance-1", REQUEST);
+
+  assert.equal(result.ok, true);
+  assert.ok(result.restartedAt);
+  assert.deepEqual(calls, [[{ baseUrl: "https://pi.hole" }, { sid: "sid", csrf: "csrf" }]]);
+  assert.deepEqual(auditCalls, [{ action: "instances.restart_dns", result: "SUCCESS" }]);
+});
+
+test("restartInstanceDns maps Pi-hole failures and audits the failure", async () => {
+  const { service, auditCalls } = createService({
+    restartDns: async () => {
+      throw new PiholeRequestError(502, "upstream failed", "unknown");
+    },
+  });
+
+  await assert.rejects(() => service.restartInstanceDns("instance-1", REQUEST), {
+    message: "upstream failed",
+    name: "BadGatewayException",
+  });
+  assert.deepEqual(auditCalls, [{ action: "instances.restart_dns", result: "FAILURE" }]);
 });
 
 test("promotePrimaryInstance promotes a secondary instance and preserves the old sync flag", async () => {

@@ -593,6 +593,14 @@ export class PiholeService {
     return this.normalizeBlockingConfig(payload, connection, "/dns/blocking");
   }
 
+  async restartDns(connection: PiholeConnection, session: Pick<PiholeSession, "sid" | "csrf">): Promise<void> {
+    await this.request<unknown>(connection, "/action/restartdns", {
+      method: "POST",
+      sid: session.sid,
+      csrf: session.csrf,
+    });
+  }
+
   async getStatsSummary(
     connection: PiholeConnection,
     session: Pick<PiholeSession, "sid" | "csrf">,

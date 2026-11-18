@@ -331,6 +331,17 @@ export const INSTANCE_TEST_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
   },
 };
 
+export const INSTANCE_RESTART_DNS_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
+  schema: {
+    type: "object",
+    properties: {
+      ok: { type: "boolean" },
+      restartedAt: { type: "string", format: "date-time" },
+    },
+    required: ["ok", "restartedAt"],
+  },
+};
+
 export const INSTANCE_REAUTHENTICATE_API_OK_RESPONSE: ApiResponseNoStatusOptions = {
   schema: {
     type: "object",

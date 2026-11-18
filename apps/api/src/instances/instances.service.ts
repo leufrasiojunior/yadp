@@ -534,6 +534,45 @@ export class InstancesService {
     }
   }
 
+  async restartInstanceDns(instanceId: string, request: Request) {
+    const locale = getRequestLocale(request);
+    const ipAddress = getRequestIp(request);
+
+    try {
+      await this.instanceSessions.withActiveSession(instanceId, locale, async ({ connection, session }) =>
+        this.pihole.restartDns(connection, session),
+      );
+
+      await this.audit.record({
+        action: "instances.restart_dns",
+        actorType: "session",
+        ipAddress,
+        targetType: "instance",
+        targetId: instanceId,
+        result: "SUCCESS",
+      });
+
+      return {
+        ok: true,
+        restartedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      await this.audit.record({
+        action: "instances.restart_dns",
+        actorType: "session",
+        ipAddress,
+        targetType: "instance",
+        targetId: instanceId,
+        result: "FAILURE",
+        details: {
+          error: error instanceof Error ? error.message : "Unknown error",
+        } satisfies Prisma.InputJsonObject,
+      });
+
+      this.mapPiholeError(error, locale);
+    }
+  }
+
   async reauthenticateInstance(instanceId: string, request: Request) {
     const locale = getRequestLocale(request);
     const ipAddress = getRequestIp(request);
