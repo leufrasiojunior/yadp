@@ -142,6 +142,7 @@ export type WebMessages = {
         discoverSuccess: string;
         detailsLoadFailed: string;
         testSuccess: string;
+        restartDnsSuccess: (instanceName: string) => string;
         reauthenticateSuccess: string;
         syncEnabledSuccess: string;
         syncDisabledSuccess: string;
@@ -274,12 +275,21 @@ export type WebMessages = {
         makePrimaryLoading: string;
         testIdle: string;
         testLoading: string;
+        restartDnsIdle: string;
         reauthenticateIdle: string;
         reauthenticateLoading: string;
         statusActive: string;
         statusExpired: string;
         statusMissing: string;
         statusError: string;
+      };
+      restartDns: {
+        title: string;
+        description: (instanceName: string) => string;
+        warning: string;
+        cancel: string;
+        confirmIdle: string;
+        confirmLoading: string;
       };
       promotePrimary: {
         title: string;

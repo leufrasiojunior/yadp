@@ -189,6 +189,11 @@ export type InstanceTestResponse = {
   checkedAt: string;
 };
 
+export type InstanceRestartDnsResponse = {
+  ok: true;
+  restartedAt: string;
+};
+
 export type InstanceReauthenticateResponse = {
   ok: true;
   version: string;

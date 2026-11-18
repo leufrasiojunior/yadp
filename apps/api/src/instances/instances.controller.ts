@@ -22,6 +22,7 @@ import {
   INSTANCE_MUTATION_API_OK_RESPONSE,
   INSTANCE_PRIMARY_MUTATION_API_OK_RESPONSE,
   INSTANCE_REAUTHENTICATE_API_OK_RESPONSE,
+  INSTANCE_RESTART_DNS_API_OK_RESPONSE,
   INSTANCE_SYNC_MUTATION_API_OK_RESPONSE,
   INSTANCE_TEST_API_OK_RESPONSE,
   INSTANCES_DISCOVER_API_OK_RESPONSE,
@@ -92,6 +93,14 @@ export class InstancesController {
   @ApiOkResponse(INSTANCE_TEST_API_OK_RESPONSE)
   testInstance(@Param() params: InstanceIdParamsDto, @Req() request: Request) {
     return this.instancesService.testInstance(params.id, request);
+  }
+
+  @Post(":id/restart-dns")
+  @UseGuards(CsrfGuard)
+  @ApiParam(InstancesController.INSTANCE_ID_PARAM)
+  @ApiOkResponse(INSTANCE_RESTART_DNS_API_OK_RESPONSE)
+  restartInstanceDns(@Param() params: InstanceIdParamsDto, @Req() request: Request) {
+    return this.instancesService.restartInstanceDns(params.id, request);
   }
 
   @Post(":id/reauthenticate")

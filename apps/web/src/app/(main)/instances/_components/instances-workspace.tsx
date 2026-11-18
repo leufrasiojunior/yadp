@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Activity, CircleAlert, Crown, Info, Pencil, RefreshCw } from "lucide-react";
+import { Activity, CircleAlert, Crown, Info, Pencil, RefreshCw, RotateCcw } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -43,6 +43,7 @@ import type {
   InstanceMutationResponse,
   InstancePrimaryMutationResponse,
   InstanceReauthenticateResponse,
+  InstanceRestartDnsResponse,
   InstanceSyncToggleResponse,
   InstanceTestResponse,
 } from "@/lib/api/yapd-types";
@@ -147,6 +148,8 @@ export function InstancesWorkspace({
   const [reauthenticatingId, setReauthenticatingId] = useState<string | null>(null);
   const [syncUpdatingId, setSyncUpdatingId] = useState<string | null>(null);
   const [promotingPrimaryId, setPromotingPrimaryId] = useState<string | null>(null);
+  const [restartDnsDialogItem, setRestartDnsDialogItem] = useState<InstanceItem | null>(null);
+  const [restartingDnsId, setRestartingDnsId] = useState<string | null>(null);
   const [primaryDialogItem, setPrimaryDialogItem] = useState<InstanceItem | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingInstanceId, setEditingInstanceId] = useState<string | null>(null);
@@ -399,6 +402,30 @@ export function InstancesWorkspace({
     await refreshItems();
   };
 
+  const restartInstanceDns = async (item: InstanceItem) => {
+    setRestartingDnsId(item.id);
+    const { response } = await client.POST<InstanceRestartDnsResponse>("/instances/{id}/restart-dns", {
+      headers: {
+        "x-yapd-csrf": csrfToken,
+      },
+      params: {
+        path: {
+          id: item.id,
+        },
+      },
+    });
+
+    setRestartingDnsId(null);
+    setRestartDnsDialogItem(null);
+
+    if (!response.ok) {
+      toast.error(await getApiErrorMessage(response));
+      return;
+    }
+
+    toast.success(messages.forms.instances.toasts.restartDnsSuccess(item.name));
+  };
+
   const reauthenticateInstance = async (instanceId: string) => {
     setReauthenticatingId(instanceId);
     const { response } = await client.POST<InstanceReauthenticateResponse>("/instances/{id}/reauthenticate", {
@@ -515,6 +542,7 @@ export function InstancesWorkspace({
   const isRowBusy = (instanceId: string) =>
     isRowEditBusy(instanceId) ||
     testingId === instanceId ||
+    restartingDnsId === instanceId ||
     reauthenticatingId === instanceId ||
     syncUpdatingId === instanceId ||
     promotingPrimaryId === instanceId;
@@ -673,6 +701,16 @@ export function InstancesWorkspace({
                             onClick={() => void testInstance(item.id)}
                           >
                             <Activity className={cn(testingId === item.id && "animate-pulse")} />
+                          </Button>
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            aria-label={messages.forms.instances.table.restartDnsIdle}
+                            title={messages.forms.instances.table.restartDnsIdle}
+                            disabled={isRowBusy(item.id)}
+                            onClick={() => setRestartDnsDialogItem(item)}
+                          >
+                            <RotateCcw className={cn(restartingDnsId === item.id && "animate-spin")} />
                           </Button>
                           <Button
                             size="icon-sm"
@@ -846,6 +884,43 @@ export function InstancesWorkspace({
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={Boolean(restartDnsDialogItem)}
+        onOpenChange={(open) => {
+          if (!open && !restartingDnsId) {
+            setRestartDnsDialogItem(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{messages.forms.instances.restartDns.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {restartDnsDialogItem ? messages.forms.instances.restartDns.description(restartDnsDialogItem.name) : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <p className="text-muted-foreground text-sm">{messages.forms.instances.restartDns.warning}</p>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={Boolean(restartingDnsId)}>
+              {messages.forms.instances.restartDns.cancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!restartDnsDialogItem || Boolean(restartingDnsId)}
+              onClick={(event) => {
+                event.preventDefault();
+                if (restartDnsDialogItem) {
+                  void restartInstanceDns(restartDnsDialogItem);
+                }
+              }}
+            >
+              {restartingDnsId
+                ? messages.forms.instances.restartDns.confirmLoading
+                : messages.forms.instances.restartDns.confirmIdle}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={Boolean(primaryDialogItem)}

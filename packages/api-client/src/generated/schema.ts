@@ -759,6 +759,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instances/{id}/restart-dns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InstancesController_restartInstanceDns"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/instances/{id}/reauthenticate": {
         parameters: {
             query?: never;
@@ -3854,6 +3870,31 @@ export interface operations {
                         version: string;
                         /** Format: date-time */
                         checkedAt: string;
+                    };
+                };
+            };
+        };
+    };
+    InstancesController_restartInstanceDns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        /** Format: date-time */
+                        restartedAt: string;
                     };
                 };
             };

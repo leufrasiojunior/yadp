@@ -4909,6 +4909,49 @@
         "tags": ["instances"]
       }
     },
+    "/instances/{id}/restart-dns": {
+      "post": {
+        "operationId": "InstancesController_restartInstanceDns",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "restartedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": ["ok", "restartedAt"]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["instances"]
+      }
+    },
     "/instances/{id}/reauthenticate": {
       "post": {
         "operationId": "InstancesController_reauthenticateInstance",
